@@ -1,0 +1,114 @@
+﻿{
+    "repo":  "Polly",
+    "run":  "2026-07-27 20:55:52",
+    "wallSec":  32.6,
+    "snapshotCache":  "HIT · 7a1d10f",
+    "nodeCount":  1207,
+    "edgeCount":  893,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "FAIL",
+                                      "detail":  "test/fixture hubs in top-5: StubCacheProvider(108)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "PolicyBuilder",
+                                                                       "id":  "Type:Polly.PolicyBuilder",
+                                                                       "degree":  160
+                                                                   },
+                                                                   {
+                                                                       "title":  "StubCacheProvider",
+                                                                       "id":  "Type:Polly.Specs.Helpers.Caching.StubCacheProvider",
+                                                                       "degree":  108
+                                                                   },
+                                                                   {
+                                                                       "title":  "Func",
+                                                                       "id":  "Type:Polly.Benchmarks.Workloads::Func(0)",
+                                                                       "degree":  38
+                                                                   },
+                                                                   {
+                                                                       "title":  "Policy",
+                                                                       "id":  "Type:Polly.Policy",
+                                                                       "degree":  38
+                                                                   },
+                                                                   {
+                                                                       "title":  "ServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.ServiceCollection",
+                                                                       "degree":  29
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/MinimalApi",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "MinimalApi",
+                                                 "confidence":  0.65
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "2 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  2,
+                                                     "slnNames":  [
+                                                                      "samples\\Samples.slnx",
+                                                                      "Polly.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  21
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  395,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

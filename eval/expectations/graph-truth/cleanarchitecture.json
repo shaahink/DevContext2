@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/CleanArchitecture",
+  "note": "HEALTHY-BASELINE CANARY - its cells must NOT move in any batch (PLAN S1 step 6). Single-service Ardalis template, MediatR CQRS, no cross-service transports (a present-but-empty transports section asserts all four kinds are 0).",
+  "transports": {},
+  "style": { "archetype": "App", "styles": ["CleanArchitecture"] }
+}

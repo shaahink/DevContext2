@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/Polly",
+  "note": "Library pole (resilience library, no app entries, no transports).",
+  "transports": {},
+  "style": { "archetype": "Library" }
+}

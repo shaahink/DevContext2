@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/GitVersion",
+  "note": "CliTool pole (octet-pinned archetype since Prism D1.1d). DC7 verified defect: EmptyRepositoryFixture(602) dominates the wiring graph - hub-sanity default deny pattern must catch it (RED until Batch C ProjectClassifier fixtures). DC8 probe repo: F10 insight sees 1 command on a many-command tool.",
+  "transports": {},
+  "style": { "archetype": "CliTool" }
+}

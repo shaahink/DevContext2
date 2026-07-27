@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/MassTransit-Sample",
+  "note": "Bus pole sample - single project (GettingStarted), so a bus ServiceLink (project->project) is structurally impossible: transport truth is all-zero and the bus wiring must instead show as Sends/Consumes handler joins (handler-join cell carries this pole's signal).",
+  "transports": {},
+  "style": { "archetype": "Worker", "archetypes": ["Worker", "App"] }
+}

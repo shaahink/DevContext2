@@ -1,0 +1,113 @@
+﻿{
+    "repo":  "FluentValidation",
+    "run":  "2026-07-27 20:55:02",
+    "wallSec":  15.6,
+    "snapshotCache":  "HIT · 9439790",
+    "nodeCount":  605,
+    "edgeCount":  508,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "FAIL",
+                                      "detail":  "test/fixture hubs in top-5: TestValidator(47)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "InlineValidator",
+                                                                       "id":  "Type:FluentValidation.InlineValidator",
+                                                                       "degree":  187
+                                                                   },
+                                                                   {
+                                                                       "title":  "TestValidator",
+                                                                       "id":  "Type:FluentValidation.Tests.TestValidator",
+                                                                       "degree":  47
+                                                                   },
+                                                                   {
+                                                                       "title":  "IRuleBuilderInitial",
+                                                                       "id":  "Type:FluentValidation.IRuleBuilderInitial",
+                                                                       "degree":  46
+                                                                   },
+                                                                   {
+                                                                       "title":  "IRuleBuilder",
+                                                                       "id":  "Type:FluentValidation.IRuleBuilder",
+                                                                       "degree":  28
+                                                                   },
+                                                                   {
+                                                                       "title":  "IValidationRule",
+                                                                       "id":  "Type:FluentValidation.IValidationRule",
+                                                                       "degree":  18
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/Unknown",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 4 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "FluentValidation.sln"
+                                                                  ],
+                                                     "analyzedProjects":  4
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  297,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

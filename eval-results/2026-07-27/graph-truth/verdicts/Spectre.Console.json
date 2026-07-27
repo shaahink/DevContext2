@@ -1,0 +1,113 @@
+﻿{
+    "repo":  "Spectre.Console",
+    "run":  "2026-07-27 20:55:49",
+    "wallSec":  18.4,
+    "snapshotCache":  "HIT · 3ba1023",
+    "nodeCount":  671,
+    "edgeCount":  322,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "FAIL",
+                                      "detail":  "test/fixture hubs in top-5: TestConsole(61)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "TestConsole",
+                                                                       "id":  "Type:Spectre.Console.Testing.TestConsole",
+                                                                       "degree":  61
+                                                                   },
+                                                                   {
+                                                                       "title":  "IAnsiConsole",
+                                                                       "id":  "Type:Spectre.Console.IAnsiConsole",
+                                                                       "degree":  37
+                                                                   },
+                                                                   {
+                                                                       "title":  "TextPrompt",
+                                                                       "id":  "Type:Spectre.Console.TextPrompt\u003cstring\u003e",
+                                                                       "degree":  24
+                                                                   },
+                                                                   {
+                                                                       "title":  "Progress",
+                                                                       "id":  "Type:Spectre.Console.Progress",
+                                                                       "degree":  22
+                                                                   },
+                                                                   {
+                                                                       "title":  "Table",
+                                                                       "id":  "Type:Spectre.Console.Table",
+                                                                       "degree":  18
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/Unknown",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 9 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "src\\Spectre.Console.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  9
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  143,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

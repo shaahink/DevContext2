@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/functions-app",
+  "note": "Azure Functions pole (single csproj, no sln). DC8/universal-coverage: function triggers must appear as entries - an empty entry list here is the detect!=render gap. Archetype truth App-or-Worker depending on trigger mix.",
+  "transports": {},
+  "style": { "archetypes": ["App", "Worker"] }
+}

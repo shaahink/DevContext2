@@ -4,7 +4,7 @@ The expectation suite runs against real open-source .NET repositories to validat
 DevContext's output quality. Clone these into `eval-repos/` at the pinned commits
 below for stable, reproducible checks.
 
-Two cohorts live here:
+Three cohorts live here:
 
 - **Expectation cohort** (below) — the original pinned repos driven by
   `eval/expectations/*.json` in the gate battery's eval step.
@@ -12,6 +12,13 @@ Two cohorts live here:
   audit (`eval-results/2026-07-17/lens-audit/AUDIT.md`). Pinned for the Prism phase;
   driven by `eval/lens-audit.ps1 <repo|octet>` and by aspirational expectation rows
   that flip to expected as Prism deliveries land.
+- **The graph-truth matrix** (graph-v2 program, R1) — defect-class × repo grid driven by
+  `eval/graph-truth.ps1 <repo|matrix>` with ground truth in
+  `eval/expectations/graph-truth/<repo>.json` (one file per matrix repo; the matrix set =
+  the files that exist — widen by adding files). 7 checks per repo (transports,
+  handler-join, hubs, entry targets, style, sln scope, dup-names) over `query graphdump`
+  output; FAIL cells are the documented baseline the R2 batches flip. Grid + probe answers
+  + batch acceptance live in `eval-results/<date>/graph-truth/MATRIX.md`.
 
 ## Setup
 

@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/Spectre.Console",
+  "note": "CLI-framework library pole: the product is a library FOR building CLI apps, so archetype truth is Library (not CliTool - it ships no tool of its own; examples are samples).",
+  "transports": {},
+  "style": { "archetype": "Library" }
+}

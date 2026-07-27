@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/gRPC",
+  "note": "gRPC pole (grpc-dotnet). The repo ships in-repo client+server example pairs; grpc min 1 is held as pole truth. If the cell fails because the examples sln is out of analysis scope, that is DC6 interplay - record it, do not relax the truth. Archetype truth: Library (the framework).",
+  "transports": { "grpc": { "min": 1 } },
+  "style": { "archetype": "Library" }
+}

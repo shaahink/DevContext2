@@ -19,12 +19,21 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
 
     private static readonly HashSet<string> ValidOps = new(StringComparer.OrdinalIgnoreCase)
     {
-        "entrypoints", "map", "trace", "stats", "node", "neighbors", "usages", "search",
+        "entrypoints", "map", "trace", "stats", "node", "neighbors", "usages", "search", "graphdump",
     };
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
+    // r1 — graphdump payloads reach ~100k edges on the monolith poles; compact JSON keeps the raw
+    // dump files (and the PS 5.1 parse in eval/graph-truth.ps1) tractable.
+    private static readonly JsonSerializerOptions JsonOptsCompact = new()
+    {
+        WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
@@ -138,7 +147,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         // T3.7 — entrypoints/stats/trace now run against the snapshot's GraphQuery with the same JSON
         // shape as the MCP tools (one shape, two transports), instead of falling through to the overview
         // render (which ignored --focus and returned the map payload for all three).
-        if (settings.Op is "node" or "neighbors" or "usages" or "search" or "entrypoints" or "stats" or "trace")
+        if (settings.Op is "node" or "neighbors" or "usages" or "search" or "entrypoints" or "stats" or "trace" or "graphdump")
         {
             if (snapshot.Graph is not { NodeCount: > 0 })
             {
@@ -158,6 +167,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "entrypoints" => EntrypointsOp(query),
                 "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus, snapshot.Report),
                 "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
+                "graphdump" => GraphDumpOp(snapshot.Graph),
                 _ => null
             };
 
@@ -169,7 +179,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
 
             // T3.7 — write machine-readable JSON to RAW stdout. AnsiConsole wraps at the console width,
             // which splits long file:line strings mid-value and corrupts the JSON for a parser.
-            Console.WriteLine(JsonSerializer.Serialize(output, JsonOpts));
+            var opts = settings.Op.Equals("graphdump", StringComparison.OrdinalIgnoreCase) ? JsonOptsCompact : JsonOpts;
+            Console.WriteLine(JsonSerializer.Serialize(output, opts));
             return 0;
         }
 
@@ -373,6 +384,31 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         truncated = step.Truncated,
         omitted = step.Omitted > 0 ? step.Omitted : (int?)null,
         children = step.Children.Select(SerializeStep).ToArray(),
+    };
+
+    // r1 — graphdump: the full node/edge inventory for the graph-truth matrix (eval/graph-truth.ps1).
+    // A read-only projection of what the builder already assembled — no SourceBody (bulk), no degrees
+    // (derivable from edges). Node ids use the "Kind:Key" form so edges join on one string.
+    private static object GraphDumpOp(DevContext.Core.Graph.CodeGraph graph) => new
+    {
+        nodeCount = graph.NodeCount,
+        edgeCount = graph.EdgeCount,
+        nodes = graph.Nodes.Select(n => new
+        {
+            id = n.Id.ToString(),
+            kind = n.Kind.ToString(),
+            title = n.Title,
+            project = n.Project,
+            tags = n.Tags.IsDefaultOrEmpty ? null : n.Tags.ToArray(),
+        }).ToArray(),
+        edges = graph.AllEdges.Select(e => new
+        {
+            from = e.From.ToString(),
+            to = e.To.ToString(),
+            kind = e.Kind.ToString(),
+            resolution = e.Resolution.ToString(),
+            tags = e.Tags.IsDefaultOrEmpty ? null : e.Tags.ToArray(),
+        }).ToArray(),
     };
 
     private static object Search(DevContext.Core.Graph.GraphQuery query, string term)

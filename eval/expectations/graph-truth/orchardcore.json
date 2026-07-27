@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/OrchardCore",
+  "note": "Big modular-monolith pole + perf canary (bench 2026-07-18: 30.8s). Style truth ModularMonolith. No cross-service transports (modules talk in-process).",
+  "transports": {},
+  "style": { "archetype": "App", "styles": ["ModularMonolith"] }
+}

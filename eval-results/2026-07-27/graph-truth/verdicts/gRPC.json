@@ -1,0 +1,122 @@
+﻿{
+    "repo":  "gRPC",
+    "run":  "2026-07-27 20:56:51",
+    "wallSec":  38.9,
+    "snapshotCache":  "HIT · be802f5",
+    "nodeCount":  1403,
+    "edgeCount":  1241,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "grpc=0 below min 1",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: List(108), ServiceCollection(67), IAsyncStreamReader(66), IServerStreamWriter(62), IClientStreamWriter.WriteAsync(30)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "List",
+                                                                       "id":  "Type:Grpc.Dotnet.Cli.Commands.ListCommand::List(0)",
+                                                                       "degree":  108
+                                                                   },
+                                                                   {
+                                                                       "title":  "ServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.ServiceCollection",
+                                                                       "degree":  67
+                                                                   },
+                                                                   {
+                                                                       "title":  "IAsyncStreamReader",
+                                                                       "id":  "Type:Grpc.Core.IAsyncStreamReader",
+                                                                       "degree":  66
+                                                                   },
+                                                                   {
+                                                                       "title":  "IServerStreamWriter",
+                                                                       "id":  "Type:Grpc.Core.IServerStreamWriter",
+                                                                       "degree":  62
+                                                                   },
+                                                                   {
+                                                                       "title":  "IClientStreamWriter.WriteAsync",
+                                                                       "id":  "Member:Grpc.Core.IClientStreamWriter.WriteAsync",
+                                                                       "degree":  30
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/6 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  7,
+                                                        "withTarget":  6,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.73
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "30 slns on disk silently scoped to one analysis (106 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  30,
+                                                     "slnNames":  [
+                                                                      "examples\\Aggregator\\Aggregator.slnx",
+                                                                      "examples\\Blazor\\Blazor.slnx",
+                                                                      "examples\\Browser\\Browser.slnx",
+                                                                      "examples\\Certifier\\Certifier.slnx",
+                                                                      "examples\\Channeler\\Channeler.slnx",
+                                                                      "examples\\Coder\\Coder.slnx",
+                                                                      "examples\\Compressor\\Compressor.slnx",
+                                                                      "examples\\Container\\Container.slnx",
+                                                                      "examples\\Counter\\Counter.slnx",
+                                                                      "examples\\Definer\\Definer.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  106
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  235,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

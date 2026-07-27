@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "OrchardCore",
+    "run":  "2026-07-27 20:57:15",
+    "wallSec":  155.4,
+    "snapshotCache":  "HIT · c078dba",
+    "nodeCount":  11047,
+    "edgeCount":  11904,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: IContentDefinitionManager(209), INotifier(189), IServiceCollection(159), ISiteService(146), IContentManager(137)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IContentDefinitionManager",
+                                                                       "id":  "Type:OrchardCore.ContentManagement.Metadata.IContentDefinitionManager",
+                                                                       "degree":  209
+                                                                   },
+                                                                   {
+                                                                       "title":  "INotifier",
+                                                                       "id":  "Type:OrchardCore.DisplayManagement.Notify.INotifier",
+                                                                       "degree":  189
+                                                                   },
+                                                                   {
+                                                                       "title":  "IServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.IServiceCollection",
+                                                                       "degree":  159
+                                                                   },
+                                                                   {
+                                                                       "title":  "ISiteService",
+                                                                       "id":  "Type:OrchardCore.Settings.ISiteService",
+                                                                       "degree":  146
+                                                                   },
+                                                                   {
+                                                                       "title":  "IContentManager",
+                                                                       "id":  "Type:OrchardCore.ContentManagement.IContentManager",
+                                                                       "degree":  137
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "11/286 targets are bare DI interfaces (3.8% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  286,
+                                                        "withTarget":  286,
+                                                        "diInterfaceTargets":  11,
+                                                        "diInterfacePct":  3.8,
+                                                        "sample":  [
+                                                                       "POST /Admin [CreatePost] -\u003e IndexingOptions",
+                                                                       "POST /Activity -\u003e InstantiateActivity",
+                                                                       "POST /Admin [CreatePartPOST] -\u003e InformationAsync",
+                                                                       "GET /Access -\u003e IOpenIdApplicationManager",
+                                                                       "POST /Admin [AdminController:208] -\u003e IsSystemRoleAsync"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/ModularMonolith",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "ModularMonolith",
+                                                 "confidence":  0.7
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 233 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "OrchardCore.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  233
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "10 dup-name types touched by cross-project edges: AdminMenu [OrchardCore.DataLocalization], ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.AzureAI], ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.Elasticsearch], ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.Lucene], ContentTypePartIndexSettingsDisplayDriver [OrchardCore.AzureAI]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  3532,
+                                                    "dupNameTypesTouched":  10,
+                                                    "sample":  [
+                                                                   "AdminMenu [OrchardCore.DataLocalization]",
+                                                                   "ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.AzureAI]",
+                                                                   "ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.Elasticsearch]",
+                                                                   "ContentPartFieldIndexSettingsDisplayDriver [OrchardCore.Lucene]",
+                                                                   "ContentTypePartIndexSettingsDisplayDriver [OrchardCore.AzureAI]"
+                                                               ]
+                                                }
+                                }
+               }
+}

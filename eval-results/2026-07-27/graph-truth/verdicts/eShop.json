@@ -1,0 +1,120 @@
+﻿{
+    "repo":  "eShop",
+    "run":  "2026-07-27 20:59:30",
+    "wallSec":  1.1,
+    "snapshotCache":  "HIT · 9b4f943",
+    "nodeCount":  1157,
+    "edgeCount":  870,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "grpc=0 below min 1; http=0 below min 1",
+                                     "metrics":  {
+                                                     "bus":  5,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  13,
+                                                     "eventWiringCrossService":  8
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "1 of 15 send targets have no Handles edge: IdentifiedCommand",
+                                        "metrics":  {
+                                                        "sendsTotal":  15,
+                                                        "handlesTotal":  18,
+                                                        "consumesTotal":  25,
+                                                        "unhandledTargets":  1,
+                                                        "sample":  [
+                                                                       "IdentifiedCommand"
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: IAppEnvironmentService(25), LoggingBehavior(18), TransactionBehavior(18), ValidatorBehavior(18), IOrderRepository(15)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IAppEnvironmentService",
+                                                                       "id":  "Type:eShop.ClientApp.Services.AppEnvironment.IAppEnvironmentService",
+                                                                       "degree":  25
+                                                                   },
+                                                                   {
+                                                                       "title":  "LoggingBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.LoggingBehavior",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "TransactionBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.TransactionBehavior",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "ValidatorBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.ValidatorBehavior",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "IOrderRepository",
+                                                                       "id":  "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.IOrderRepository",
+                                                                       "degree":  15
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "13.1% of entry targets are bare DI interfaces (max 10%): POST /api/orders/ -\u003e IdentifiedCommand; PUT /api/orders/cancel -\u003e IdentifiedCommand; PUT /api/orders/ship -\u003e IdentifiedCommand; [RelayCommand] CatalogItemViewModel.AddCatalogItemAsync -\u003e IAppEnvironmentService; [RelayCommand] CheckoutViewModel.CheckoutAsync -\u003e IAppEnvironmentService",
+                                        "metrics":  {
+                                                        "entries":  109,
+                                                        "withTarget":  107,
+                                                        "diInterfaceTargets":  14,
+                                                        "diInterfacePct":  13.1,
+                                                        "sample":  [
+                                                                       "POST /api/orders/ -\u003e IdentifiedCommand",
+                                                                       "PUT /api/orders/cancel -\u003e IdentifiedCommand",
+                                                                       "PUT /api/orders/ship -\u003e IdentifiedCommand",
+                                                                       "[RelayCommand] CatalogItemViewModel.AddCatalogItemAsync -\u003e IAppEnvironmentService",
+                                                                       "[RelayCommand] CheckoutViewModel.CheckoutAsync -\u003e IAppEnvironmentService"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/Microservices",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "Microservices",
+                                                 "confidence":  0.91
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "3 slns on disk silently scoped to one analysis (24 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  3,
+                                                     "slnNames":  [
+                                                                      "src\\ClientApp\\ClientApp.sln",
+                                                                      "tests\\ClientApp.UnitTests\\ClientApp.UnitTests.sln",
+                                                                      "eShop.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  24
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "2 dup-name types touched by cross-project edges: IIdentityService [Ordering.API], ProductImageUrlProvider [WebApp]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  110,
+                                                    "dupNameTypesTouched":  2,
+                                                    "sample":  [
+                                                                   "IIdentityService [Ordering.API]",
+                                                                   "ProductImageUrlProvider [WebApp]"
+                                                               ]
+                                                }
+                                }
+               }
+}

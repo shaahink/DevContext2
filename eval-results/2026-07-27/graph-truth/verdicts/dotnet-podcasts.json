@@ -1,0 +1,117 @@
+﻿{
+    "repo":  "dotnet-podcasts",
+    "run":  "2026-07-27 20:55:49",
+    "wallSec":  20.1,
+    "snapshotCache":  "HIT · 5ee8be2",
+    "nodeCount":  402,
+    "edgeCount":  246,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  1,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  1,
+                                                     "eventWiringCrossService":  1
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  12,
+                                                        "consumesTotal":  1,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: INativeAudioService(12), SubscriptionsService(9), ShowsService(8), ListenTogetherHub(7), HandleAsync(7)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "INativeAudioService",
+                                                                       "id":  "Type:SharedMauiLib.INativeAudioService",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "SubscriptionsService",
+                                                                       "id":  "Type:Microsoft.NetConf2021.Maui.Services.SubscriptionsService::SubscriptionsService(0)",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "ShowsService",
+                                                                       "id":  "Type:Microsoft.NetConf2021.Maui.Services.ShowsService::ShowsService(1)",
+                                                                       "degree":  8
+                                                                   },
+                                                                   {
+                                                                       "title":  "ListenTogetherHub",
+                                                                       "id":  "EntryPoint:signalr:ListenTogetherHub",
+                                                                       "degree":  7
+                                                                   },
+                                                                   {
+                                                                       "title":  "HandleAsync",
+                                                                       "id":  "Member:ListenTogether.Application.Rooms.GetRoomsQueryQueryHandler.HandleAsync",
+                                                                       "degree":  7
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/22 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  24,
+                                                        "withTarget":  22,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "FAIL",
+                                 "detail":  "style CleanArchitecture not in [Microservices]",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "CleanArchitecture",
+                                                 "confidence":  0.9
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "5 slns on disk silently scoped to one analysis (16 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  5,
+                                                     "slnNames":  [
+                                                                      "src\\Mobile\\Podcasts.DotnetMaui.sln",
+                                                                      "src\\MobileBlazor\\Podcast.DotnetMaui.Blazor.sln",
+                                                                      "NetPodcast.Services.sln",
+                                                                      "NetPodcast.sln",
+                                                                      "Podcast.Web.sln"
+                                                                  ],
+                                                     "analyzedProjects":  16
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "1 dup-name types touched by cross-project edges: Room [ListenTogether.Domain]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  12,
+                                                    "dupNameTypesTouched":  1,
+                                                    "sample":  [
+                                                                   "Room [ListenTogether.Domain]"
+                                                               ]
+                                                }
+                                }
+               }
+}

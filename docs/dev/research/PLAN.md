@@ -27,10 +27,11 @@
 
 ## 2. STATUS (update at every session close — this is the cold-start entry point)
 
-- [ ] S1 — base decided DONE (merge SIGNED 2026-07-27 → develop @ 8dbb510, pushed, CI riding) ·
-      program assets committed DONE (first commit on `feat/graph-v2`) · `eval/graph-truth.ps1` built ·
-      matrix v1 (12 poles) at `eval-results/<date>/graph-truth/MATRIX.md` · DC3/DC8 probes answered ·
-      Batch A acceptance cells declared in MATRIX.md
+- [x] S1 — CLOSED 2026-07-27: base decided (develop @ 8dbb510) · program assets committed ·
+      `eval/graph-truth.ps1` built (7 checks + `query graphdump` CLI op; expectations in
+      `eval/expectations/graph-truth/`) · matrix v1 (12 poles) at
+      `eval-results/2026-07-27/graph-truth/MATRIX.md` · DC3/DC8 probes ANSWERED (in MATRIX.md) ·
+      Batch A acceptance cells DECLARED (in MATRIX.md) · Batch A [audit] refs re-verified exact
 - [ ] S2 — Batch A landed · battery green · matrix v1 cells flipped as declared
 - [ ] S3 — Batch B landed · battery green · matrix widened to 22 repos
 - [ ] S4 — Batch C landed · battery green · matrix widened to 32 repos
@@ -44,6 +45,14 @@ Session log (one line each: date · what closed · surprises):
   pushed), `feat/graph-v2` created off it, program assets committed. Next session starts at S1
   step 3 (build `eval/graph-truth.ps1`). eval-results/2026-07-19/ left untracked (clutter = open
   owner call).
+- 2026-07-27 · S1 CLOSED: `query graphdump` op + graph-truth harness + 12-pole matrix v1 + probes +
+  Batch A acceptance. Surprises: functions-app graph is 3 nodes (Functions triggers invisible —
+  DC8 breadth confirmed at pole level); GitVersion fixture-hub lives in the INSIGHTS surface, graph
+  top-5 is clean; GitVersion analysis swallows both sln trees incl. name-colliding projects
+  (GitVersion.Core ×2 — DC6-adjacent identity hazard); eShop handler-join unhandled = exactly
+  IdentifiedCommand (DC1 verified case isolated); CleanArchitecture repo is 4-sln so its
+  handler-join FAIL is DC6-contaminated (canary = declared cells only). Next: S2 Batch A
+  (R2 §2.A), acceptance = MATRIX.md declaration.
 
 ## 3. Session map
 

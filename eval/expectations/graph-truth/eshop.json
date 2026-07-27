@@ -1,0 +1,7 @@
+{
+  "repo": "eval-repos/eShop",
+  "note": "Microservices+Aspire pole. Ground truth 2026-07-27 (R1 audits): integration events cross services (13 MessageConsumers); WebApp registers a Basket gRPC client (AddGrpcClient<Basket.BasketClient>); WebApp->Catalog/Ordering HTTP typed clients exist. Expected RED at baseline: grpc+http (DC3 sync-transport hole), handler-join (DC1 IdentifiedCommand<T,R> arity erasure), entry-target (DC4 ClientApp RelayCommand->IAppEnvironmentService), dup-name (DC2 CreateOrderRequest/OrderServices cross-service noise).",
+  "transports": { "bus": { "min": 1 }, "grpc": { "min": 1 }, "http": { "min": 1 } },
+  "entryTargets": { "maxDiInterfacePct": 10 },
+  "style": { "archetype": "App", "styles": ["Microservices"] }
+}

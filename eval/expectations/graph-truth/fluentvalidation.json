@@ -1,0 +1,6 @@
+{
+  "repo": "eval-repos/FluentValidation",
+  "note": "Library pole. Also the DC9 number-disagreement exemplar ('92 public types' identity vs '273 total') - that check lives with Batch E, not this matrix.",
+  "transports": {},
+  "style": { "archetype": "Library" }
+}

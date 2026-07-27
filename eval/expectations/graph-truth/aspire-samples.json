@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/aspire-samples",
+  "note": "Sample-collection + multi-sln pole (DC6 poster child: 'Metrics - 4 projects - 96 types' silently presented as the repo). Every sample has its own sln; silent single-sln scoping must FAIL until scope honesty lands (Batch C). T8 made SamplesAreTheProduct honest; style truth is SampleCollection.",
+  "style": { "archetype": "App", "styles": ["SampleCollection"] }
+}

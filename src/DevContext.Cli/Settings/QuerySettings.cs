@@ -6,7 +6,7 @@ namespace DevContext.Cli.Commands;
 /// All ops run over an in-process analyze session (or attach to a running server with --attach).</summary>
 public sealed class QuerySettings : CommandSettings
 {
-    [Description("Operation: entrypoints | map | trace | stats | node | neighbors | usages | search")]
+    [Description("Operation: entrypoints | map | trace | stats | node | neighbors | usages | search | graphdump")]
     [CommandArgument(0, "<OP>")]
     public string Op { get; set; } = "";
 
