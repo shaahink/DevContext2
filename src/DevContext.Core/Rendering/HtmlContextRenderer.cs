@@ -136,7 +136,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var name = options.ScenarioDisplayName ?? "Overview";
         var style = model.DetectedStyle != ArchitectureStyle.Unknown
-            ? $"{model.DetectedStyle} ({model.StyleConfidence:P0})"
+            ? $"{model.DetectedStyle} ({(int)Math.Round(model.StyleConfidence * 100)}%)"
             : "Not detected";
         var signals = string.Join(" · ",
             model.Architecture.All.Values.Where(s => s.Detected).Select(s => s.Key));

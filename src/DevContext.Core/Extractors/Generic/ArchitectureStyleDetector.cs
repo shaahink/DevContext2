@@ -11,6 +11,10 @@ namespace DevContext.Core.Extractors.Generic;
 /// verdicts (Microservices, ModularMonolith) so the style stays local. Multi-sample/docs repos with
 /// no unifying solution are detected as <see cref="ArchitectureStyle.SampleCollection"/> (E4 fix).
 /// </summary>
+/// <summary>How MediatR-shaped CQRS evidence should be branded (B6): the real library, a repo's own
+/// hand-rolled mediator interfaces, or absent.</summary>
+public enum MediatREvidenceKind { None, Package, HandRolled }
+
 public sealed class ArchitectureStyleDetector
 {
     public static (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
@@ -41,7 +45,11 @@ public sealed class ArchitectureStyleDetector
         // package is referenced from Ordering.Domain). The handler *detections* come straight from the
         // code, so treat them as first-class evidence of MediatR — otherwise the style falls through to
         // MinimalApi even though Send→handler is clearly wired (assessment G7).
-        var hasMediatR = HasMediatREvidence(model);
+        var mediatREvidence = GetMediatREvidence(model);
+        var hasMediatR = mediatREvidence != MediatREvidenceKind.None;
+        // B6: the evidence strings must brand a hand-rolled mediator honestly — podcasts has zero
+        // MediatR references, only its own IRequestHandler<,> interface.
+        var mediatorBrand = mediatREvidence == MediatREvidenceKind.HandRolled ? "hand-rolled mediator" : "MediatR";
         var hasEfCore = signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var _);
         var hasAspire = signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) && aspire.Detected;
         var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
@@ -159,7 +167,7 @@ public sealed class ArchitectureStyleDetector
                 if (aggregateCount >= 1) dddEvidence.Add($"{aggregateCount} aggregates");
                 if (notificationHandlerCount >= 1) dddEvidence.Add($"{notificationHandlerCount} domain-event handlers");
                 if (hasDomainCore) dddEvidence.Add("domain-core ref pattern (high fan-in, low fan-out)");
-                dddEvidence.Add($"MediatR with {totalHandlerCount} handlers");
+                dddEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
 
                 scores[ArchitectureStyle.CleanArchitecture] = (Math.Min(0.5f + dddLayers * 0.1f + aggregateCount * 0.05f, 0.95f),
                     string.Join("; ", dddEvidence));
@@ -170,7 +178,7 @@ public sealed class ArchitectureStyleDetector
         if (hasFastEndpoints)
         {
             var vEvidence = new List<string> { "FastEndpoints detected" };
-            if (hasMediatR) vEvidence.Add($"MediatR with {totalHandlerCount} handlers");
+            if (hasMediatR) vEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
             scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
                 string.Join("; ", vEvidence));
         }
@@ -248,6 +256,21 @@ public sealed class ArchitectureStyleDetector
             scores.Remove(ArchitectureStyle.ModularMonolith);
         }
 
+        // C4 (Prism D1.3a): desktop MVVM rung — a WPF/WinForms repo organized around ViewModels
+        // (ScreenToGif read Unknown). Fallback only: it never competes with a scored web/system style.
+        if (scores.Count == 0)
+        {
+            var desktopUiProjects = model.Projects.Count(p =>
+                p.FilePath is { } fp && IsDesktopUiProject(fp));
+            var viewModelCount = model.Types.Values.Count(t =>
+                t.Name.EndsWith("ViewModel", StringComparison.Ordinal));
+            if (desktopUiProjects > 0 && viewModelCount >= 3)
+            {
+                scores[ArchitectureStyle.DesktopMvvm] = (0.7f,
+                    $"{desktopUiProjects} WPF/WinForms project(s) + {viewModelCount} ViewModels");
+            }
+        }
+
         if (scores.Count == 0)
             return (ArchitectureStyle.Unknown, 0, null);
 
@@ -309,13 +332,31 @@ public sealed class ArchitectureStyleDetector
     /// style verdict can't drift (assessment G7 + residual).
     /// </summary>
     public static bool HasMediatREvidence(DiscoveryModel model)
+        => GetMediatREvidence(model) != MediatREvidenceKind.None;
+
+    /// <summary>
+    /// B6 (Prism D1.2e): distinguishes the MediatR LIBRARY from a hand-rolled mediator so the brand is
+    /// honest. A repo that DECLARES the handler interface itself (podcasts'
+    /// `ListenTogether.Application.Interfaces.IRequestHandler&lt;,&gt;`) has no MediatR at all — calling
+    /// its style "MediatR (CQRS)" is a name-only match. Package signal (or handler implementations
+    /// without a local interface declaration — the scoped-sub-project case where the interface comes
+    /// from the real package outside the closure, G7) still reads as MediatR.
+    /// </summary>
+    public static MediatREvidenceKind GetMediatREvidence(DiscoveryModel model)
     {
         if (model.Architecture.All.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
-            return true;
-        return model.Types.Values.Any(t => t.ImplementedInterfaces.Any(i =>
+            return MediatREvidenceKind.Package;
+
+        var hasHandlerImpls = model.Types.Values.Any(t => t.ImplementedInterfaces.Any(i =>
             i.StartsWith("IRequestHandler", StringComparison.Ordinal)
             || i.StartsWith("IStreamRequestHandler", StringComparison.Ordinal)
             || i.StartsWith("INotificationHandler", StringComparison.Ordinal)));
+        if (!hasHandlerImpls) return MediatREvidenceKind.None;
+
+        var declaresOwnHandlerInterface = model.Types.Values.Any(t =>
+            t.Kind == TypeKind.Interface
+            && (t.Name == "IRequestHandler" || t.Name.StartsWith("IRequestHandler<", StringComparison.Ordinal)));
+        return declaresOwnHandlerInterface ? MediatREvidenceKind.HandRolled : MediatREvidenceKind.Package;
     }
 
     private static HashSet<string> DetectFolderRoles(DiscoveryModel model)
@@ -399,6 +440,19 @@ public sealed class ArchitectureStyleDetector
         catch { return false; }
     }
 
+    /// <summary>C4 (Prism D1.3a): true when the csproj opts into WPF or WinForms — desktop UI evidence
+    /// with no package to probe (both are SDK-provided).</summary>
+    private static bool IsDesktopUiProject(string csprojPath)
+    {
+        try
+        {
+            var text = File.ReadAllText(csprojPath);
+            return text.Contains("<UseWPF>true", StringComparison.OrdinalIgnoreCase)
+                || text.Contains("<UseWindowsForms>true", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
     private readonly record struct ProjectRefStats(string Name, int Incoming, int Outgoing)
     {
         public bool HighFanIn => Incoming >= 2;
@@ -419,9 +473,21 @@ public sealed class ArchitectureStyleDetector
         foreach (var proj in model.Projects)
         {
             if (!IsRunnableService(proj)) continue;
+            // D1.1b (E2/A3): holder csproj and build-tooling exes never get per-service rows —
+            // GitVersion's Cake build tree rendered as seven "Unknown" services.
+            if (Graph.ProjectClassifier.IsHolderProject(proj)
+                || projectClassifier.IsBuildTooling(proj)) continue;
+            // C4 (Prism D1.3a): a benchmark harness is not a service (bitwarden MicroBenchmarks).
+            if (Graph.ProjectClassifier.IsBenchmarkProject(proj)) continue;
+            // A4 (Prism D1.1c): runnable-service inference honors the sample filter — wolverine's
+            // per-service table was ~80 rows of samples/ and test hosts. SamplesAreTheProduct repos
+            // (aspire-samples) keep their sample hosts: they ARE the services there (T8).
+            if (!model.SamplesAreTheProduct && Graph.ProjectClassifier.IsSamplePath(proj.FilePath)) continue;
             // T1.4 — the Aspire AppHost is a runnable orchestrator; surface it (before the infra skip that
             // otherwise hides ".apphost") so the constellation's conductor isn't dropped to "no services".
-            if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase))
+            // D1.3a: bitwarden names its host exactly `AppHost` — no dotted suffix.
+            if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.Equals("AppHost", StringComparison.OrdinalIgnoreCase))
             {
                 results.Add(new PerServiceStyle(proj.Name, "Aspire AppHost", ["Aspire"]));
                 continue;
@@ -438,7 +504,10 @@ public sealed class ArchitectureStyleDetector
             var hasYarp = pkgs.Any(p => p.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase));
             var hasRefit = pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase));
             var hasRazorPages = pkgs.Any(p => p.Name.Contains("Microsoft.AspNetCore.Mvc.RazorPages", StringComparison.OrdinalIgnoreCase));
-            var hasMaui = pkgs.Any(p => p.Name.Contains("Microsoft.Maui", StringComparison.OrdinalIgnoreCase));
+            // B2 (Prism D1.2b): UseMaui is SDK-provided — the mobile TFM triple identifies a MAUI app
+            // even with zero Microsoft.Maui package references (podcasts' two MAUI apps read Unknown).
+            var hasMaui = pkgs.Any(p => p.Name.Contains("Microsoft.Maui", StringComparison.OrdinalIgnoreCase))
+                || Graph.MauiEvidence.HasMauiTfm(proj);
             var hasCliParser = pkgs.Any(p => p.Name.Contains("Spectre.Console.Cli", StringComparison.OrdinalIgnoreCase)
                 || p.Name.Contains("System.CommandLine", StringComparison.OrdinalIgnoreCase));
             var isWorkerSdk = proj.FilePath is { } wp && IsWorkerSdkProject(wp);
@@ -459,6 +528,26 @@ public sealed class ArchitectureStyleDetector
                 .Any(d => d.HandlerMethod != "<component>" && Owns(d.SourceFile));
             var ownsBackground = model.Detections.Any(d =>
                 (d is MessageConsumerDetection || d is BackgroundWorkerDetection) && Owns(d.SourceFile));
+            // C4 (Prism D1.3a): hub/razor-page/controller OWNERSHIP as first-class style evidence —
+            // bitwarden read 17/17 Unknown because every rung below was package- or name-gated.
+            var ownsHubs = model.Detections.OfType<SignalRHubDetection>().Any(d => Owns(d.SourceFile));
+            var ownsRazorPages = model.Detections.OfType<EndpointDetection>()
+                .Any(d => d.ExtractorName == "RazorPagesExtractor" && Owns(d.SourceFile));
+            // IdentityServer/OpenIddict: the framework package often lives in a shared Core library
+            // (bitwarden), so a host NAMED for identity that reaches the package one hop away counts.
+            static bool IsIdentityPackage(PackageReferenceInfo p) =>
+                p.Name.StartsWith("Duende.IdentityServer", StringComparison.OrdinalIgnoreCase)
+                || p.Name.StartsWith("IdentityServer4", StringComparison.OrdinalIgnoreCase)
+                || p.Name.StartsWith("OpenIddict", StringComparison.OrdinalIgnoreCase);
+            var hasIdentityByName = proj.Name.Split('.').Any(seg =>
+                seg.Equals("Identity", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Sso", StringComparison.OrdinalIgnoreCase));
+            var hasIdentityServer = pkgs.Any(IsIdentityPackage)
+                || (hasIdentityByName && proj.ProjectReferences
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .Select(rn => model.Projects.FirstOrDefault(mp =>
+                        string.Equals(mp.Name, rn, StringComparison.OrdinalIgnoreCase)))
+                    .Any(rp => rp is not null && rp.PackageReferences.Any(IsIdentityPackage)));
 
             var stackTags = ImmutableArray.CreateBuilder<string>();
             var style = "Unknown";
@@ -468,6 +557,19 @@ public sealed class ArchitectureStyleDetector
             {
                 style = "MAUI App";
                 stackTags.Add(".NET MAUI");
+                if (hasEfCore) stackTags.Add("EF Core");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // C4 (Prism D1.3a): a WPF/WinForms host is a desktop app whatever else it references —
+            // decisive identity like MAUI. ViewModels upgrade it to MVVM (ScreenToGif).
+            if (proj.FilePath is { } dp && IsDesktopUiProject(dp))
+            {
+                var ownsViewModels = model.Types.Values.Any(t =>
+                    t.Name.EndsWith("ViewModel", StringComparison.Ordinal) && Owns(t.FilePath));
+                style = ownsViewModels ? "Desktop (MVVM)" : "Desktop";
+                stackTags.Add("WPF/WinForms");
                 if (hasEfCore) stackTags.Add("EF Core");
                 results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
                 continue;
@@ -517,6 +619,36 @@ public sealed class ArchitectureStyleDetector
                 continue;
             }
 
+            // C4 (Prism D1.3a): identity provider — IdentityServer/OpenIddict directly, or an
+            // identity-named host reaching the package one project-reference hop away (bitwarden
+            // Identity/Sso reference it via Core).
+            if (hasIdentityServer)
+            {
+                style = "Identity provider";
+                stackTags.Add("IdentityServer");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // C4 (Prism D1.3a): a host whose only entry surface is SignalR hubs is a SignalR host —
+            // and so is a hub host NAMED for real-time work (bitwarden Notifications hosts its hub
+            // plus a small internal send API; the hub is its identity, the controllers are auxiliary).
+            // A generically-named host with hubs AND endpoints keeps its web style; the hub presence
+            // rides as a stack tag below.
+            var isRealtimeByName = proj.Name.Split('.').Any(seg =>
+                seg.Equals("Notifications", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Hub", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Hubs", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("SignalR", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Push", StringComparison.OrdinalIgnoreCase));
+            if (ownsHubs && (!ownsHttpEndpoints || isRealtimeByName))
+            {
+                style = "SignalR host";
+                stackTags.Add("SignalR");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
             // Gateway (YARP/Ocelot and not a Blazor/normal web service)
             if (hasYarp)
             {
@@ -536,16 +668,22 @@ public sealed class ArchitectureStyleDetector
             if (hasMassTransit) stackTags.Add("MassTransit");
             if (hasFluentValidation) stackTags.Add("FluentValidation");
             if (hasRefit) stackTags.Add("Refit");
+            if (ownsHubs) stackTags.Add("SignalR");
 
             // Infer from project naming if no strong signal
             if (style == "Unknown")
             {
+                // C4 (Prism D1.3a): "Api" as a whole name segment, not just the dotted ".API" suffix —
+                // bitwarden's host is named exactly `Api`.
+                var isApiByName = proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase)
+                    || proj.Name.Split('.')[^1].Equals("Api", StringComparison.OrdinalIgnoreCase);
                 if (isWebByName)
                 {
-                    style = hasRazorPages ? "Razor Pages" : "Web App";
-                    if (hasRazorPages) stackTags.Add("Razor");
+                    var razor = hasRazorPages || ownsRazorPages;
+                    style = razor ? "Razor Pages" : "Web App";
+                    if (razor) stackTags.Add("Razor");
                 }
-                else if (proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase))
+                else if (isApiByName)
                 {
                     style = "Web API";
                 }
@@ -554,10 +692,24 @@ public sealed class ArchitectureStyleDetector
                 else if (hasCliParser || (isConsoleExe && !ownsHttpEndpoints
                     && (proj.Name.EndsWith("Cli", StringComparison.OrdinalIgnoreCase)
                         || proj.Name.EndsWith("Console", StringComparison.OrdinalIgnoreCase)
-                        || proj.Name.EndsWith("Tool", StringComparison.OrdinalIgnoreCase))))
+                        || proj.Name.EndsWith("Tool", StringComparison.OrdinalIgnoreCase)
+                        || proj.Name.EndsWith("Utility", StringComparison.OrdinalIgnoreCase))))
                 {
                     style = "CLI";
                     stackTags.Add("CLI");
+                }
+                // C4 (Prism D1.3a): endpoint OWNERSHIP as the last positive rung — a host that serves
+                // razor pages / controller actions / minimal APIs is never "Unknown" (bitwarden 17/17).
+                else if (ownsRazorPages)
+                {
+                    style = "Razor Pages";
+                    stackTags.Add("Razor");
+                }
+                else if (ownsHttpEndpoints)
+                {
+                    var ownsControllerActions = model.Detections.OfType<EndpointDetection>()
+                        .Any(d => d.ExtractorName == "ControllerActionExtractor" && Owns(d.SourceFile));
+                    style = ownsControllerActions ? "MVC" : "Web API";
                 }
             }
 

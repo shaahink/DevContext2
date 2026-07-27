@@ -5,6 +5,64 @@ public sealed class ArchitectureStyleDetectorTests
     private static ProjectInfo Project(string name) =>
         new(name, $"{name}.csproj", "C#", [], [], []);
 
+    // ── B6 (Prism D1.2e): hand-rolled mediator vs the MediatR library ──
+
+    private static TypeDiscovery Type(string name, TypeKind kind, params string[] interfaces) => new()
+    {
+        Id = $"App.{name}",
+        Name = name,
+        Namespace = "App",
+        FilePath = $"src/App/{name}.cs",
+        Kind = kind,
+        Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+        Layer = ArchitectureLayer.Unknown,
+        ImplementedInterfaces = [.. interfaces],
+    };
+
+    [Fact]
+    public void MediatR_package_signal_reads_Package()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MediatR, 1.0f));
+        model.Architecture.Seal();
+
+        Assert.Equal(MediatREvidenceKind.Package, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void HandRolled_when_repo_declares_its_own_IRequestHandler()
+    {
+        // The podcasts shape: no MediatR reference anywhere, the repo declares
+        // IRequestHandler<in TRequest, TResult> itself and implements it.
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+        model.Types["App.IRequestHandler"] = Type("IRequestHandler", TypeKind.Interface);
+        model.Types["App.GetShowsHandler"] = Type("GetShowsHandler", TypeKind.Class, "IRequestHandler<GetShows, List<Show>>");
+
+        Assert.Equal(MediatREvidenceKind.HandRolled, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void Handler_impls_without_local_declaration_read_Package()
+    {
+        // The scoped-sub-project shape (G7): handlers implement the interface, the package reference
+        // lives outside the closure — the interface is MediatR's own, not hand-rolled.
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+        model.Types["App.CreateOrderHandler"] = Type("CreateOrderHandler", TypeKind.Class, "IRequestHandler<CreateOrder, bool>");
+
+        Assert.Equal(MediatREvidenceKind.Package, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void No_handler_evidence_reads_None()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        Assert.Equal(MediatREvidenceKind.None, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
     [Fact]
     public void ControllerBased_when_controllers_stronger_than_minimal_apis()
     {
@@ -85,7 +143,7 @@ public sealed class ArchitectureStyleDetectorTests
             Id = "CleanArchitecture.Core.ContributorAggregate.Contributor",
             Name = "Contributor",
             Namespace = "CleanArchitecture.Core.ContributorAggregate",
-            FilePath = @"C:\repo\src\CleanArchitecture.Core\ContributorAggregate\Contributor.cs",
+            FilePath = @"C:/repo/src/CleanArchitecture.Core/ContributorAggregate/Contributor.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -95,18 +153,18 @@ public sealed class ArchitectureStyleDetectorTests
             Id = "CleanArchitecture.UseCases.Contributors.List.Handler",
             Name = "Handler",
             Namespace = "CleanArchitecture.UseCases.Contributors.List",
-            FilePath = @"C:\repo\src\CleanArchitecture.UseCases\Contributors\List\Handler.cs",
+            FilePath = @"C:/repo/src/CleanArchitecture.UseCases/Contributors/List/Handler.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
         });
         model.Detections.Add(new MediatRHandlerDetection("ListContributorsQuery", "Result", "Handler", MediatRKind.Query)
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\CleanArchitecture.UseCases\Contributors\List\Handler.cs", LineNumber = 10,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/CleanArchitecture.UseCases/Contributors/List/Handler.cs", LineNumber = 10,
         });
         model.Detections.Add(new EfEntityDetection("Contributor", "AppDbContext", true, ["Id"])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\CleanArchitecture.Core\ContributorAggregate\Contributor.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/CleanArchitecture.Core/ContributorAggregate/Contributor.cs", LineNumber = 5,
         });
 
         var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
@@ -132,7 +190,7 @@ public sealed class ArchitectureStyleDetectorTests
             Id = "Ordering.API.Application.CreateOrderCommandHandler",
             Name = "CreateOrderCommandHandler",
             Namespace = "Ordering.API.Application.Commands",
-            FilePath = @"C:\repo\src\Ordering.API\Application\Commands\CreateOrderCommandHandler.cs",
+            FilePath = @"C:/repo/src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
@@ -143,7 +201,7 @@ public sealed class ArchitectureStyleDetectorTests
             Id = "Ordering.API.Application.OrderPaidDomainEventHandler",
             Name = "OrderPaidDomainEventHandler",
             Namespace = "Ordering.API.Application.DomainEventHandlers",
-            FilePath = @"C:\repo\src\Ordering.API\Application\DomainEventHandlers\OrderPaidDomainEventHandler.cs",
+            FilePath = @"C:/repo/src/Ordering.API/Application/DomainEventHandlers/OrderPaidDomainEventHandler.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
@@ -197,9 +255,9 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
         model.Projects =
         [
-            new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", [], [], []),
-            new ProjectInfo("BlazorSsr", @"C:\repo\src\BlazorSsr\BlazorSsr.csproj", "C#", [], [], []),
-            new ProjectInfo("App.Tests", @"C:\repo\tests\App.Tests\App.Tests.csproj", "C#", [], [], []),
+            new ProjectInfo("Web", @"C:/repo/src/Web/Web.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorSsr", @"C:/repo/src/BlazorSsr/BlazorSsr.csproj", "C#", [], [], []),
+            new ProjectInfo("App.Tests", @"C:/repo/tests/App.Tests/App.Tests.csproj", "C#", [], [], []),
         ];
 
         var (style, _, via) = ArchitectureStyleDetector.Detect(model);
@@ -294,10 +352,10 @@ public sealed class ArchitectureStyleDetectorTests
         var model = new DiscoveryModel();
         model.Projects =
         [
-            new ProjectInfo("DevContext.Cli", @"C:\repo\src\DevContext.Cli\DevContext.Cli.csproj", "C#", [], [], []),
-            new ProjectInfo("DevContext.Core", @"C:\repo\src\DevContext.Core\DevContext.Core.csproj", "C#", [], [], []),
-            new ProjectInfo("DevContext.Server", @"C:\repo\src\DevContext.Server\DevContext.Server.csproj", "C#", [], [], []),
-            new ProjectInfo("Catalog.Module.Tests", @"C:\repo\tests\Catalog.Module.Tests\Catalog.Module.Tests.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Cli", @"C:/repo/src/DevContext.Cli/DevContext.Cli.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Core", @"C:/repo/src/DevContext.Core/DevContext.Core.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Server", @"C:/repo/src/DevContext.Server/DevContext.Server.csproj", "C#", [], [], []),
+            new ProjectInfo("Catalog.Module.Tests", @"C:/repo/tests/Catalog.Module.Tests/Catalog.Module.Tests.csproj", "C#", [], [], []),
         ];
 
         var (style, _, _) = ArchitectureStyleDetector.Detect(model);
@@ -316,11 +374,11 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
         model.Projects =
         [
-            new ProjectInfo("BlazorApp1", @"C:\repo\samples\BlazorApp1\BlazorApp1.csproj", "C#", [], [], []),
-            new ProjectInfo("BlazorApp2", @"C:\repo\samples\BlazorApp2\BlazorApp2.csproj", "C#", [], [], []),
-            new ProjectInfo("BlazorApp3", @"C:\repo\samples\BlazorApp3\BlazorApp3.csproj", "C#", [], [], []),
-            new ProjectInfo("BlazorApp4", @"C:\repo\samples\BlazorApp4\BlazorApp4.csproj", "C#", [], [], []),
-            new ProjectInfo("SharedLib", @"C:\repo\src\Shared\SharedLib.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp1", @"C:/repo/samples/BlazorApp1/BlazorApp1.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp2", @"C:/repo/samples/BlazorApp2/BlazorApp2.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp3", @"C:/repo/samples/BlazorApp3/BlazorApp3.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp4", @"C:/repo/samples/BlazorApp4/BlazorApp4.csproj", "C#", [], [], []),
+            new ProjectInfo("SharedLib", @"C:/repo/src/Shared/SharedLib.csproj", "C#", [], [], []),
         ];
 
         var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
@@ -358,10 +416,10 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
         model.Projects =
         [
-            new ProjectInfo("DemoApi", @"C:\repo\samples\DemoApi\DemoApi.csproj", "C#", [], [], []),
-            new ProjectInfo("DemoApi.Domain", @"C:\repo\samples\DemoApi\DemoApi.Domain.csproj", "C#", [], [], []),
-            new ProjectInfo("DemoApi.Application", @"C:\repo\samples\DemoApi\DemoApi.Application.csproj", "C#", [], [], []),
-            new ProjectInfo("DemoApi.Infrastructure", @"C:\repo\samples\DemoApi\DemoApi.Infrastructure.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi", @"C:/repo/samples/DemoApi/DemoApi.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Domain", @"C:/repo/samples/DemoApi/DemoApi.Domain.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Application", @"C:/repo/samples/DemoApi/DemoApi.Application.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Infrastructure", @"C:/repo/samples/DemoApi/DemoApi.Infrastructure.csproj", "C#", [], [], []),
         ];
 
         var (style, _, _) = ArchitectureStyleDetector.Detect(model);
@@ -378,9 +436,9 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
         model.Projects =
         [
-            new ProjectInfo("Ordering.API", @"C:\repo\src\Ordering.API\Ordering.API.csproj", "C#", [], [], []),
-            new ProjectInfo("Basket.API", @"C:\repo\src\Basket.API\Basket.API.csproj", "C#", [], [], []),
-            new ProjectInfo("AppHost", @"C:\repo\src\AppHost\AppHost.csproj", "C#", [], [], []),
+            new ProjectInfo("Ordering.API", @"C:/repo/src/Ordering.API/Ordering.API.csproj", "C#", [], [], []),
+            new ProjectInfo("Basket.API", @"C:/repo/src/Basket.API/Basket.API.csproj", "C#", [], [], []),
+            new ProjectInfo("AppHost", @"C:/repo/src/AppHost/AppHost.csproj", "C#", [], [], []),
         ];
         model.Solution = new SolutionInfo("eShop.slnx", "eShop",
             ["Ordering.API.csproj", "Basket.API.csproj", "AppHost.csproj"]);
@@ -403,7 +461,7 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
         var projects = ImmutableArray.CreateBuilder<ProjectInfo>();
         for (int i = 0; i < 30; i++)
-            projects.Add(new ProjectInfo($"App{i}", $@"C:\repo\10.0\App{i}\App{i}.csproj", "C#", [], [], []));
+            projects.Add(new ProjectInfo($"App{i}", $@"C:/repo/10.0/App{i}/App{i}.csproj", "C#", [], [], []));
         model.Projects = projects.ToImmutable();
         model.Solution = new SolutionInfo("BlazorSample.sln", "BlazorSample",
             ["BlazorSample.csproj"]); // .sln covers only 1 project, but 30 analyzed

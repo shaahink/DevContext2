@@ -30,7 +30,10 @@ public sealed class SymbolTable
 
         if (types is not null)
         {
-            foreach (var t in types)
+            // D5.3 determinism — same contract as NameResolver: the types source is typically
+            // ConcurrentDictionary.Values (per-process-randomized order), so sort by FQN to keep
+            // short-name candidate lists stable run-to-run.
+            foreach (var t in types.OrderBy(t => t.Id, StringComparer.Ordinal))
             {
                 _fqns.Add(t.Id);
                 if (!_byShort.TryGetValue(t.Name, out var list))

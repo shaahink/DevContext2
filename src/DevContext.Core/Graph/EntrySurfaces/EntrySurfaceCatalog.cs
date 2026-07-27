@@ -81,7 +81,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.AppEntry,
             Packages:   ["FastEndpoints"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["FastEndpoints"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Blazor,
             Kind:       EntryPointKind.HttpEndpoint,
@@ -123,6 +123,18 @@ public static class EntrySurfaceCatalog
             SdkHints:   ["Microsoft.NET.Sdk.WindowsDesktop"],
             SelfNamePatterns: []),
 
+        // B2 (Prism D1.2b): MAUI. The signal fires from <UseMaui>true</UseMaui> or the mobile TFM
+        // triple (DependencyExtractor probes the csproj — UseMaui is SDK-provided on .NET 7+, so
+        // package matching alone left podcasts' two MAUI apps invisible). Pages/Shell render as
+        // UiEntries via DesktopEntryExtractor.
+        new(SignalKey: ArchitectureSignals.Keys.Maui,
+            Kind:       EntryPointKind.UiEntry,
+            RenderLabel:"UI",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["Microsoft.Maui.Controls", "Microsoft.Maui"],
+            SdkHints:   [],
+            SelfNamePatterns: ["Microsoft.Maui"]),
+
         // ── Razor Pages — detected via PageModel base types, not packages ──
 
         new(SignalKey: ArchitectureSignals.Keys.RazorPages,
@@ -141,7 +153,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.AppEntry,
             Packages:   ["NServiceBus", "NServiceBus.Extensions.Hosting"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["NServiceBus"]),
 
         new(SignalKey: ArchitectureSignals.Keys.AzureServiceBus,
             Kind:       EntryPointKind.MessageConsumer,
@@ -149,15 +161,17 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.AppEntry,
             Packages:   ["Azure.Messaging.ServiceBus"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Azure.Messaging.ServiceBus"]),
 
+        // A4 (Prism D1.1c): nuget id "WolverineFx" != project names "Wolverine.*" — without the
+        // self-name pattern the framework's own repo read as a consumer App of itself.
         new(SignalKey: ArchitectureSignals.Keys.Wolverine,
             Kind:       EntryPointKind.MessageConsumer,
             RenderLabel:"Bus",
             Role:       SurfaceRole.AppEntry,
             Packages:   ["WolverineFx"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Wolverine"]),
 
         // ── E5: AWS Lambda ───────────────────────────────────────────
 
@@ -167,7 +181,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.AppEntry,
             Packages:   ["Amazon.Lambda.Core", "Amazon.Lambda.Annotations"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Amazon.Lambda"]),
 
         // ── E6: GraphQL resolvers ────────────────────────────────────
 
@@ -213,7 +227,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Quartz"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Quartz"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Hangfire,
             Kind:       null,
@@ -221,7 +235,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Hangfire"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Hangfire"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Testing,
             Kind:       null,
@@ -244,7 +258,7 @@ public static class EntrySurfaceCatalog
                 "Pomelo.EntityFrameworkCore.MySql",
             ],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Microsoft.EntityFrameworkCore"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Dapper,
             Kind:       null,
@@ -252,7 +266,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Dapper"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Dapper"]),
 
         new(SignalKey: ArchitectureSignals.Keys.FluentValidation,
             Kind:       null,
@@ -260,7 +274,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["FluentValidation"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["FluentValidation"]),
 
         new(SignalKey: ArchitectureSignals.Keys.AutoMapper,
             Kind:       null,
@@ -268,7 +282,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["AutoMapper"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["AutoMapper"]),
 
         new(SignalKey: ArchitectureSignals.Keys.MediatR,
             Kind:       null,
@@ -276,7 +290,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["MediatR", "Mediator"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["MediatR"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Serilog,
             Kind:       null,
@@ -284,7 +298,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Serilog"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Serilog"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Polly,
             Kind:       null,
@@ -292,7 +306,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Polly"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Polly"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Swagger,
             Kind:       null,
@@ -300,7 +314,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Swashbuckle.AspNetCore"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Swashbuckle"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Identity,
             Kind:       null,
@@ -316,7 +330,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["NLog"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["NLog"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Redis,
             Kind:       null,
@@ -324,7 +338,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["StackExchange.Redis"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["StackExchange.Redis"]),
 
         new(SignalKey: ArchitectureSignals.Keys.HealthChecks,
             Kind:       null,
@@ -332,7 +346,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["AspNetCore.HealthChecks"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["HealthChecks"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Aspire,
             Kind:       null,
@@ -340,7 +354,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Aspire.Hosting"],
             SdkHints:   ["Aspire.AppHost.Sdk"],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Aspire.Hosting"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Scrutor,
             Kind:       null,
@@ -348,7 +362,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Scrutor"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Scrutor"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Refit,
             Kind:       null,
@@ -356,7 +370,7 @@ public static class EntrySurfaceCatalog
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Refit"],
             SdkHints:   [],
-            SelfNamePatterns: []),
+            SelfNamePatterns: ["Refit"]),
 
         // ── Gateway ─────────────────────────────────────────────────
 

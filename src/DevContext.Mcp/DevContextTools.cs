@@ -80,6 +80,33 @@ public sealed class DevContextTools
         catch { return Array.Empty<object>(); }
     }
 
+    // D5.1 (G1) — better-connected focus candidates for a low-fill pack: the repo's top flows
+    // (score/depth = connectedness), excluding the focus that under-filled. Empty on repos with
+    // no ranked flows (libraries) — the fill note then stands alone.
+    private async Task<object[]> SuggestConnectedAsync(string handle, string exclude, int take = 4)
+    {
+        try
+        {
+            var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 12 });
+            var flows = resp.FlowList?.Flows;
+            if (flows is null) return [];
+            return flows
+                .Where(f => f.Depth >= 2)
+                .Select(f => new
+                {
+                    Focus = f.HasHttpMethod && f.HasRoute ? $"{f.HttpMethod} {f.Route}" : f.Title,
+                    f.Kind,
+                    f.Score,
+                    f.Depth,
+                })
+                .Where(x => !string.Equals(x.Focus, exclude, StringComparison.OrdinalIgnoreCase))
+                .Take(take)
+                .Select(x => (object)new { focus = x.Focus, kind = x.Kind, score = x.Score, depth = x.Depth })
+                .ToArray();
+        }
+        catch { return Array.Empty<object>(); }
+    }
+
     // Search by the most-selective token so an exact-substring miss still yields candidates
     // (e.g. "how does checkout work" → "checkout").
     private static string FirstWord(string s)
@@ -198,16 +225,27 @@ public sealed class DevContextTools
 
         var sb = new StringBuilder();
 
-        sb.Append(map.Archetype);
         var services = facets.ServiceMap?.Services ?? new();
-        if (services.Count > 0)
+        // DisplayName carries the FULL runnable name (Basket.API) — no client-side truncation,
+        // and libraries are already excluded (Service nodes only).
+        var svcLabels = services.Select(s => s.Kind is { Length: > 0 } && s.Kind != "Service"
+            ? $"{s.DisplayName} ({s.Kind})"
+            : s.DisplayName).ToArray();
+        if (map.IsLibrary)
         {
-            // DisplayName carries the FULL runnable name (Basket.API) — no client-side truncation,
-            // and libraries are already excluded (Service nodes only).
-            var svcLabels = services.Select(s => s.Kind is { Length: > 0 } && s.Kind != "Service"
-                ? $"{s.DisplayName} ({s.Kind})"
-                : s.DisplayName);
-            sb.Append(": ").AppendJoin(", ", svcLabels);
+            // D1.5b — a library's runnable "services" are its test/sample consoles; headlining them
+            // ("Library: Newtonsoft.Json.TestConsole") misstates the product identity.
+            sb.Append("Library");
+            if (map.HasSolutionName) sb.Append(": ").Append(map.SolutionName);
+            sb.AppendLine();
+            if (svcLabels.Length > 0)
+                sb.Append("  hosts: ").AppendJoin(", ", svcLabels).AppendLine();
+        }
+        else
+        {
+            sb.Append(map.Archetype);
+            if (svcLabels.Length > 0)
+                sb.Append(": ").AppendJoin(", ", svcLabels);
             sb.AppendLine();
         }
         sb.Append("  ").Append(stats.Graph?.Nodes ?? 0).Append(" nodes · ");
@@ -412,6 +450,14 @@ public sealed class DevContextTools
                 .Where(i => i.Severity == "WARNING")
                 .Select(i => i.Title)
                 .ToArray(),
+            // J1/J3 — per-component swallowed-failure counters (empty = clean run)
+            extractionFailures = resp.ExtractionFailures.Select(f => new
+            {
+                source = f.Source,
+                category = f.Category,
+                count = f.Count,
+                sample = f.Sample,
+            }).ToArray(),
         }, JsonOpts);
         }
         catch (RpcException ex) { return FromRpc(ex, "stats", "stats(handle)"); }
@@ -485,21 +531,25 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Architecture map: style, archetype, topology, project dependencies. Example: map("abc123")</summary>
+    /// <summary>The full architecture map (rendered markdown: entries/surface, seams, topology) + structured style/archetype/topology. Example: map("abc123")</summary>
     [McpServerTool]
     public async Task<string> Map(string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "map", "analyze(path) then map()"); }
         var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
+        // D1.5a — the rendered map IS the product; meta alone made a 1400-node library read as
+        // a ~60-token dead map over MCP while the CLI rendered 2000+ (octet DoD, audit A5/G).
         return JsonSerializer.Serialize(new
         {
             meta = $"style={resp.Style} archetype={resp.Archetype} projects={resp.ProjectCount}",
+            solutionName = resp.HasSolutionName ? resp.SolutionName : null,
             archetype = resp.Archetype,
             style = resp.Style,
             styleConfidence = resp.StyleConfidence,
             projectCount = resp.ProjectCount,
             topology = resp.Topology.Select(t => new { name = t.Name, dependsOn = t.DependsOn.ToArray() }).ToArray(),
+            markdown = resp.Markdown,
         }, JsonOpts);
     }
 
@@ -1291,11 +1341,39 @@ public sealed class DevContextTools
                     suggestions.Length > 0 ? suggestions : null);
             }
 
+            // D5.1 (G1) — the T4.2 ≥85%-fill promise must never fail SILENTLY. A low-fill pack
+            // says WHY: budget-cut (raise budgetTokens) vs content-exhausted (the focus's
+            // connected subgraph is small — everything reachable is already in the pack), and a
+            // content-exhausted under-fill suggests better-connected focuses so the agent has a
+            // next move instead of a near-empty pack.
+            string? fillNote = null;
+            object[]? suggestedFocuses = null;
+            var fillPct = budgetTokens > 0 ? (int)(resp.TotalTokens * 100L / budgetTokens) : 100;
+            if (fillPct < 85)
+            {
+                var budgetCut = resp.Omitted.Any(o =>
+                    o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+                    o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+                if (budgetCut)
+                {
+                    fillNote = $"fill {fillPct}%: sections were cut to fit the budget — raise budgetTokens for the rest (see omitted).";
+                }
+                else
+                {
+                    fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
+                    suggestedFocuses = await SuggestConnectedAsync(handle, focus);
+                    if (suggestedFocuses.Length > 0)
+                        fillNote += " Better-connected focuses in suggestedFocuses.";
+                }
+            }
+
             return JsonSerializer.Serialize(new
             {
                 focus,
                 budgetTokens,
                 totalTokens = resp.TotalTokens,
+                fillNote,
+                suggestedFocuses = suggestedFocuses is { Length: > 0 } ? suggestedFocuses : null,
                 sections = resp.Sections.Select(s => new { key = s.Key, tokens = s.Tokens }).ToArray(),
                 omitted = resp.Omitted.ToArray(),
                 content = string.Join("\n", resp.Sections.Select(s => s.Content)),

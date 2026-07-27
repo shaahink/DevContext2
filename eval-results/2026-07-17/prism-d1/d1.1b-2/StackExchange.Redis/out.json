@@ -1,0 +1,86 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-17T05:03:33.86272+00:00",
+  "archetype": "Library",
+  "architectureStyle": "MinimalApi",
+  "styleConfidence": 0.65,
+  "projectCount": 21,
+  "projectNames": [
+    ".github",
+    "BasicTest",
+    "BasicTestBaseline",
+    "Build",
+    "ConsoleTest",
+    "ConsoleTestBaseline",
+    "docker",
+    "docs",
+    "KestrelRedisServer",
+    "OpBench",
+    "RedisConfigs",
+    "RESPite",
+    "RESPite.Benchmark",
+    "RESPite.Tests",
+    "StackExchange.Redis",
+    "StackExchange.Redis.Benchmarks",
+    "StackExchange.Redis.Build",
+    "StackExchange.Redis.Server",
+    "StackExchange.Redis.Tests",
+    "TestConsole",
+    "TestConsoleBaseline"
+  ],
+  "typeCount": 905,
+  "topologyProjectCount": 3,
+  "graphNodeCount": 1612,
+  "graphEdgeCount": 1038,
+  "signals": [
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "redis",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 14 interfaces, 365 classes (445 total public types)",
+      "detail": "",
+      "evidence": [
+        "14 interfaces",
+        "365 classes"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: StackExchange.Redis (6 dependents) \u00B7 RESPite (4 dependents) \u00B7 * (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "StackExchange.Redis (6 dependents)",
+        "RESPite (4 dependents)",
+        "* (1 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: IDatabase (302) \u00B7 IDatabaseAsync (264) \u00B7 IInternalConnectionMultiplexer (59) \u00B7 ConfigurationOptions (52) \u00B7 RespPayload (46)",
+      "detail": "",
+      "evidence": [
+        "IDatabase (302)",
+        "IDatabaseAsync (264)",
+        "IInternalConnectionMultiplexer (59)",
+        "ConfigurationOptions (52)",
+        "RespPayload (46)"
+      ]
+    }
+  ]
+}

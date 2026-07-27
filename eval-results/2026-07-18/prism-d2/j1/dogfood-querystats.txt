@@ -1,0 +1,77 @@
+﻿{
+  "nodeCount": 439,
+  "edgeCount": 339,
+  "entryCount": 34,
+  "entriesWithTarget": 33,
+  "entriesWithDeepSpine": 34,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 27,
+    "GrpcService": 4,
+    "DomainEventHandler": 2,
+    "MessageConsumer": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 185,
+      "verified": 104,
+      "approx": 81
+    },
+    {
+      "kind": "Sends",
+      "total": 33,
+      "verified": 33,
+      "approx": 0
+    },
+    {
+      "kind": "Handles",
+      "total": 18,
+      "verified": 18,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 4,
+      "verified": 4,
+      "approx": 0
+    },
+    {
+      "kind": "Consumes",
+      "total": 5,
+      "verified": 5,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 25,
+      "verified": 9,
+      "approx": 16
+    },
+    {
+      "kind": "Resolves",
+      "total": 26,
+      "verified": 25,
+      "approx": 1
+    },
+    {
+      "kind": "WrappedBy",
+      "total": 36,
+      "verified": 36,
+      "approx": 0
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 6,
+      "verified": 3,
+      "approx": 3
+    }
+  ],
+  "extractionFailures": []
+}

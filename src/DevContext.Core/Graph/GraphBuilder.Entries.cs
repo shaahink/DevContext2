@@ -174,12 +174,27 @@ public sealed partial class GraphBuilder
         }
 
         if (serviceCallee is not null)
-            return TargetTitle(serviceCallee, serviceCalleeType!, serviceMember);
+            return TargetTitle(
+                ResolveTypedClientTarget(graph, serviceCallee), serviceCalleeType!, serviceMember);
         if (bestFallback is not null)
-            return TargetTitle(bestFallback, bestFallbackType!,
+            return TargetTitle(ResolveTypedClientTarget(graph, bestFallback), bestFallbackType!,
                 bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null);
         // No service/handler call — the endpoint accesses the data store directly; label it as such.
         return skippedDataStore is { } ds ? $"direct data access ({ds})" : null;
+    }
+
+    /// <summary>C6 (Prism D1.2f): a typed-HttpClient interface is plumbing, not a target — when a
+    /// Type-kind callee has a single <see cref="EdgeKind.Resolves"/> edge tagged
+    /// <see cref="RoleTags.HttpClientBinding"/>, name the implementation the route actually calls
+    /// (podcasts' <c>PUT /feeds/{id}</c> read a bare "IFeedClient"). Domain-port interfaces
+    /// (untagged AddScoped bindings, e.g. eShop's IOrderQueries) keep their contract display.</summary>
+    private static GraphNode ResolveTypedClientTarget(CodeGraph graph, GraphNode callee)
+    {
+        if (callee.Kind != NodeKind.Type) return callee;
+        var resolves = graph.OutEdges(callee.Id, EdgeKind.Resolves);
+        if (resolves.Length != 1 || resolves[0].Tags.IsDefaultOrEmpty
+            || !resolves[0].Tags.Contains(RoleTags.HttpClientBinding)) return callee;
+        return graph.Node(resolves[0].To) ?? callee;
     }
 
     /// <summary>A read-only accessor name (<c>Get…</c>). A mutating endpoint should prefer a non-getter

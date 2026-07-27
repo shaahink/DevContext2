@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
 import { RouterLink } from '@angular/router';
+import { StageTimeline } from '../shared/stage-timeline';
 
 const SEVERITY_CLASS: Record<string, string> = {
   warning: 'border-danger',
@@ -34,7 +35,7 @@ interface InsightGroup {
 @Component({
   selector: 'app-insights-view',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, StageTimeline],
   template: `
     <div class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
       <h2 class="text-lg font-semibold text-ink">Insights</h2>
@@ -142,12 +143,16 @@ interface InsightGroup {
       @if (store.stats(); as s) {
         <details class="border-t border-line pt-3">
           <summary class="text-xs text-ink-muted cursor-pointer hover:text-ink">Engine details</summary>
-          <div class="mt-2 text-xs text-ink-muted space-y-1">
+          <div class="mt-2 text-xs text-ink-muted space-y-2">
             @if (s.graph; as g) {
               <p>Nodes: {{ g.nodes }} · Edges: {{ g.edges }} · Entries: {{ g.entries }}</p>
             }
             @if (s.totalWallMs) {
               <p>Analysis time: {{ s.totalWallMs }}ms</p>
+            }
+            <!-- D4.6 (K2) — the run's stage timeline (persists with the snapshot, D3.3). -->
+            @if (s.stages.length) {
+              <app-stage-timeline [stages]="s.stages" />
             }
           </div>
         </details>

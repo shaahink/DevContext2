@@ -5,7 +5,7 @@ import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { filterApproxTree, type TraceNodeVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
-import { GraphCanvas } from '../../ui/graph-canvas/graph-canvas';
+import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-canvas';
 import { Meter, type MeterVariant } from '../../ui/meter/meter';
 import { TraceNodeComponent } from '../trace/trace-node';
 import { LensSwitcher, type LensId } from './lens-switcher';
@@ -137,7 +137,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           @if (topology().length > 0) {
               <app-graph-canvas
                 class="block h-full"
-                [data]="{ mode: 'topology', projects: topology() }"
+                [data]="topologyData()"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
                 [lensId]="lensModel()"
@@ -298,6 +298,15 @@ export class Stage {
   protected readonly highlightedNodeId = computed(() => this.trace.selectedNodeId());
 
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
+
+  /** D4.2: System altitude carries the ServiceMap facet so the canvas can render C4
+   * level 1 (services + transport-labeled edges) and expand services in place. */
+  protected readonly topologyData = computed<GraphCanvasData>(() => ({
+    mode: 'topology',
+    projects: this.topology(),
+    services: this.session.graphFacets()?.serviceMap?.services ?? [],
+    transports: this.session.graphFacets()?.serviceMap?.transports ?? [],
+  }));
 
   protected onGraphDepth(event: Event): void {
     this.graphDepth.set(Number((event.target as HTMLSelectElement).value));

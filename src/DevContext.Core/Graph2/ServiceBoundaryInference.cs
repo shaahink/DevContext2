@@ -56,8 +56,10 @@ public static class ServiceBoundaryInference
         // Core shared framework (WebApplicationFactory), so IsRunnableService would render 5 test projects
         // as service cards. Exclude test/benchmark/sample projects by classification, not path regex.
         // T8: in a samples-only repo the sample hosts ARE the services (tests/benchmarks still excluded).
+        // D1.1b: the classifier instance adds holder + transitive build-tooling exclusion (audit A3/E2).
+        var classifier = new ProjectClassifier(scope.Projects);
         return scope.Projects
-            .Where(p => ProjectClassifier.IsProductionProject(p, samplesAreTheProduct) && IsRunnableService(p))
+            .Where(p => classifier.IsProduction(p, samplesAreTheProduct) && IsRunnableService(p))
             .ToImmutableArray();
     }
 }

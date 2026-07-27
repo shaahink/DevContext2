@@ -1,0 +1,15 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\d1.2b-2\dotnet-podcasts\map
+.md
+analyzed 192 files · 313 nodes · 189 edges · 24 entries · 12/24 →target · ~1320 
+tokens · 6.2s stage2 ×3.0 stage3 ×1.4
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ NetPodcast.Services.sln │
+│   Time   │         6621ms          │
+│  Tokens  │   ~1320 (budget 8000)   │
+│ Version  │  v1.0.5-preview.0.279   │
+╰──────────┴─────────────────────────╯

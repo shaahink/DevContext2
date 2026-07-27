@@ -1,0 +1,2 @@
+﻿dotnet-podcasts  wall=7.8s  tokens=1321  cs=192  archetype=App/App  style=CleanArchitecture  => PASS
+LENS-AUDIT: PASS

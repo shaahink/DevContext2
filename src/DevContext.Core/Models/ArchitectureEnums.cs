@@ -130,4 +130,7 @@ public enum ArchitectureStyle
     /// <summary>L7.3 — a collection of unrelated samples, demos, or documentation projects with
     /// no unifying solution. Never report Microservices/CleanArchitecture for a sample repo.</summary>
     SampleCollection,
+    /// <summary>C4 (Prism D1.3a) — a WPF/WinForms desktop app organized around ViewModels. Fallback
+    /// rung: only fires when no web/system style scored (ScreenToGif read Unknown).</summary>
+    DesktopMvvm,
 }

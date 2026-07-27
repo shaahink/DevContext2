@@ -1,0 +1,27 @@
+== build CLI (stale-dll guard) ==
+
+== Newtonsoft.Json ==
+Newtonsoft.Json  wall=22.1s  tokens=2355  cs=945  archetype=Library/Library  style=Unknown  => PASS
+
+== refit ==
+refit  wall=14.2s  tokens=1600  cs=812  archetype=Library/Library  style=ControllerBased  => PASS
+
+== StackExchange.Redis ==
+StackExchange.Redis  wall=22.1s  tokens=1955  cs=561  archetype=Library/Library  style=MinimalApi  => PASS
+
+== wolverine ==
+wolverine  wall=95.6s  tokens=6321  cs=4053  archetype=Library/Library  style=CleanArchitecture  => PASS
+
+== GitVersion ==
+GitVersion  wall=16.2s  tokens=438  cs=663  archetype=CliTool/CliTool  style=Unknown  => PASS
+
+== dotnet-podcasts ==
+dotnet-podcasts  wall=10.2s  tokens=1469  cs=192  archetype=App/App  style=CleanArchitecture  => PASS
+
+== ScreenToGif ==
+ScreenToGif  wall=14.1s  tokens=1091  cs=648  archetype=Desktop/Desktop  style=DesktopMvvm  => PASS
+
+== bitwarden-server ==
+bitwarden-server  wall=173.2s  tokens=2419  cs=4927  archetype=App/App  style=Microservices  => PASS
+
+LENS-AUDIT: PASS (8 repo(s))

@@ -11,6 +11,7 @@ public sealed class ProjectClassifier
         ["xunit", "nunit", "MSTest", "Microsoft.NET.Test.Sdk", "FluentAssertions", "Moq", "NSubstitute", "Shouldly"];
 
     private readonly HashSet<string> _testProjectDirs; // normalized directory prefixes of test projects
+    private readonly HashSet<string> _buildToolingProjects; // project names, transitive over project refs
 
     /// <summary>Classifies every project up front; production code under a test project's directory is excluded.
     /// <paramref name="analysisRoot"/> (when known) makes the <see cref="SamplesAreTheProduct"/> computation
@@ -26,11 +27,49 @@ public sealed class ProjectClassifier
                 _testProjectDirs.Add(Normalize(dir));
         }
 
+        // A3 (Prism D1.1b): build-tooling closes over project references — GitVersion's
+        // artifacts/publish/release exes reference only build/common, which holds the Cake packages.
+        // Fixed point: seed = direct package markers; expand = any project referencing a seeded one.
+        _buildToolingProjects = new HashSet<string>(
+            projects.Where(IsBuildToolingProject).Select(p => p.Name),
+            StringComparer.OrdinalIgnoreCase);
+        var changed = _buildToolingProjects.Count > 0;
+        while (changed)
+        {
+            changed = false;
+            foreach (var p in projects)
+            {
+                if (_buildToolingProjects.Contains(p.Name)) continue;
+                foreach (var r in p.ProjectReferences)
+                {
+                    if (_buildToolingProjects.Contains(Path.GetFileNameWithoutExtension(r)))
+                    {
+                        _buildToolingProjects.Add(p.Name);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         var root = string.IsNullOrEmpty(analysisRoot) ? null : Normalize(analysisRoot);
-        var candidates = projects.Where(p => !IsTestProject(p) && !IsBenchmarkProject(p)).ToList();
+        var candidates = projects.Where(p => !IsTestProject(p) && !IsBenchmarkProject(p) && !IsBuildTooling(p)).ToList();
         SamplesAreTheProduct = candidates.Count > 0
             && candidates.All(p => IsSamplePath(BelowRoot(p.FilePath, root)));
     }
+
+    /// <summary>A3 (Prism D1.1b) — true when the project is build tooling, directly (see
+    /// <see cref="IsBuildToolingProject"/>) or by transitively referencing a build-tooling project.</summary>
+    public bool IsBuildTooling(ProjectInfo p) => _buildToolingProjects.Contains(p.Name);
+
+    /// <summary>D1.1b — the full production predicate: <see cref="IsProductionProject(ProjectInfo,bool)"/>
+    /// plus the transitive build-tooling closure. Prefer this wherever a classifier instance exists.</summary>
+    public bool IsProduction(ProjectInfo p, bool samplesAreTheProduct)
+        => IsProductionProject(p, samplesAreTheProduct) && !IsBuildTooling(p);
+
+    /// <summary>D1.1b — <see cref="IsProduction(ProjectInfo,bool)"/> using this classifier's own
+    /// <see cref="SamplesAreTheProduct"/> verdict.</summary>
+    public bool IsProduction(ProjectInfo p) => IsProduction(p, SamplesAreTheProduct);
 
     /// <summary>T8 — true when every non-test, non-benchmark project lives under a sample path: the repo
     /// is a sample COLLECTION (dotnet/aspire-samples) whose samples ARE the product. Sample-path
@@ -77,7 +116,11 @@ public sealed class ProjectClassifier
             || p.Contains("/demos/", StringComparison.OrdinalIgnoreCase)
             || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase)
             || p.Contains("/benchmarks/", StringComparison.OrdinalIgnoreCase)
-            || p.Contains("/benchmark/", StringComparison.OrdinalIgnoreCase);
+            || p.Contains("/benchmark/", StringComparison.OrdinalIgnoreCase)
+            // A2 (Prism D1.1b): StackExchange.Redis keeps its aux hosts under toys/ — same intent
+            // as samples/, and they flipped the library's archetype to App + style to MinimalApi.
+            || p.Contains("/toys/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/toy/", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>True when the file lives under a <c>test</c>/<c>tests</c> path segment. Catches shared test
@@ -123,6 +166,33 @@ public sealed class ProjectClassifier
         return false;
     }
 
+    /// <summary>E2 (Prism D1.1b) — true for a HOLDER csproj: a project whose SDK builds no code
+    /// (<c>Microsoft.Build.NoTargets</c> — StackExchange.Redis's .github/docs/docker/RedisConfigs hubs —
+    /// or <c>Microsoft.Build.Traversal</c>, its root Build.csproj). These exist for solution-explorer
+    /// convenience and must never render as topology nodes, services, or archetype evidence.</summary>
+    public static bool IsHolderProject(ProjectInfo p)
+        => p.Sdk is { } sdk
+            && (sdk.Contains("Microsoft.Build.NoTargets", StringComparison.OrdinalIgnoreCase)
+                || sdk.Contains("Microsoft.Build.Traversal", StringComparison.OrdinalIgnoreCase));
+
+    // A3 (Prism D1.1b): build-orchestration frameworks. A project referencing one is the repo's build
+    // SCRIPT (GitVersion's Cake-Frosting build/** tree, wolverine's Nuke build/build.csproj), not a
+    // service or app host — evidence-based, like TestPackageMarkers.
+    private static readonly string[] BuildToolingPackageMarkers =
+        ["Cake.", "Nuke.Common", "Bullseye", "SimpleExec", "FlubuCore"];
+
+    /// <summary>A3 (Prism D1.1b) — true when the project is build tooling (references a build-orchestration
+    /// framework: Cake.*, Nuke, Bullseye, SimpleExec). GitVersion's Cake Frosting exes rendered as seven
+    /// "services"; wolverine ships a Nuke build exe.</summary>
+    public static bool IsBuildToolingProject(ProjectInfo p)
+    {
+        foreach (var pkg in p.PackageReferences)
+            foreach (var marker in BuildToolingPackageMarkers)
+                if (pkg.Name.StartsWith(marker, StringComparison.OrdinalIgnoreCase))
+                    return true;
+        return false;
+    }
+
     /// <summary>T1.9 — project-level classification (not path regex): true when the project is real
     /// production code, i.e. NOT a test project, benchmark harness, or a sample/example/demo project
     /// (by its directory). The service topology (diagram, services count, most-depended-upon, dead-code)
@@ -133,11 +203,26 @@ public sealed class ProjectClassifier
 
     /// <summary>T8 overload — when <paramref name="samplesAreTheProduct"/> (see
     /// <see cref="SamplesAreTheProduct"/>), sample-path projects count as production: in a samples-only
-    /// repo they are the only product there is.</summary>
+    /// repo they are the only product there is. D1.1b: holder and build-tooling projects are never
+    /// production, in any repo shape.</summary>
     public static bool IsProductionProject(ProjectInfo p, bool samplesAreTheProduct)
-        => !IsTestProject(p) && !IsBenchmarkProject(p) && (samplesAreTheProduct || !IsSamplePath(p.FilePath));
+        => !IsTestProject(p) && !IsBenchmarkProject(p)
+            && !IsHolderProject(p) && !IsBuildToolingProject(p)
+            && (samplesAreTheProduct || !IsSamplePath(p.FilePath));
 
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
+}
+
+/// <summary>B2 (Prism D1.2b) — shared MAUI evidence probes. <c>UseMaui</c> is csproj-level (probed by
+/// DependencyExtractor where the XDocument is loaded); the mobile TFM triple is visible on
+/// <see cref="ProjectInfo.TargetFrameworks"/> and shared by the per-service style rung.</summary>
+public static class MauiEvidence
+{
+    /// <summary>True when any TFM targets android/ios/maccatalyst — the MAUI mobile triple.</summary>
+    public static bool HasMauiTfm(ProjectInfo p) => p.TargetFrameworks.Any(t =>
+        t.Contains("-android", StringComparison.OrdinalIgnoreCase)
+        || t.Contains("-ios", StringComparison.OrdinalIgnoreCase)
+        || t.Contains("-maccatalyst", StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>

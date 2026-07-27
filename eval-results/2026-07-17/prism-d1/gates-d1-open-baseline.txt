@@ -1,0 +1,62 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+  split: A=15+other eval classes, B=17 repos, two test hosts
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~catalog|DisplayName~communitytoolkit|DisplayName~compositionapp|DisplayName~conventionalcontroller|DisplayName~dntsite|DisplayName~files|DisplayName~functions-app|DisplayName~...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:03:13.88]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+[xUnit.net 00:04:36.81]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Passed!  - Failed:     0, Passed:    51, Skipped:     2, Total:    53, Duration: 10 m 36 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~automapper|DisplayName~blazor-app|DisplayName~cli-app|DisplayName~company-functions|DisplayName~controllerapp|DisplayName~desktop-app|DisplayName~eshop|DisplayName~fluentvalidation|DisplayName~grpc|DisplayName~grpcaggregator|Disp...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+
+Passed!  - Failed:     0, Passed:    25, Skipped:     0, Total:    25, Duration: 4 m 15 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=0 B=0
+  PASS  Eval tests passed (stamp written)
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 16 nodes, 2 entries, per-kind counts present
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check (pnpm check) ---
+  PASS  pnpm check passed
+
+GATE: PASS

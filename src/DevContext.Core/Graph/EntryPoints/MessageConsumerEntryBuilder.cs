@@ -15,6 +15,12 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
             if (!scope.Contains(mc.SourceFile) || !noise.IsProductionEntrySource(mc.SourceFile)) continue;
             // M1.5: filter DI registration noise (AddMassTransit, UsingRabbitMq etc.)
             if (mc.MessageType == "<registration>") continue;
+            // B5 (Prism D1.2d): a queue-channel consumer that is itself a hosted worker already has a
+            // Background entry — the channel seam lives on its Consumes edge, not a second entry row.
+            if (mc.MessageType.StartsWith("queue:", StringComparison.Ordinal)
+                && model.Detections.OfType<BackgroundWorkerDetection>()
+                    .Any(b => b.ImplementationType == mc.ConsumerType))
+                continue;
             if (!seen.Add(mc.ConsumerType)) continue;
 
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");

@@ -1,0 +1,52 @@
+{
+  "repo": "eval-repos/Newtonsoft.Json",
+  "checks": [
+    {
+      "id": "archetype-library",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "Library",
+      "status": "expected",
+      "note": "A1 FIXED (Prism D1.1a): transitive aux-exe walk — TestConsole -> Tests -> lib. Flipped expected 2026-07-17."
+    },
+    {
+      "id": "library-header",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "LIBRARY",
+      "status": "expected",
+      "note": "A1/A5 FIXED (Prism D1.1a): library render fires (2355 tokens, was a 209-token dead App map)."
+    },
+    {
+      "id": "entry-api",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "ENTRY API",
+      "status": "expected",
+      "note": "Flipped expected with D1.1a."
+    },
+    {
+      "id": "public-surface",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "PUBLIC SURFACE",
+      "status": "expected",
+      "note": "Flipped expected with D1.1a."
+    },
+    {
+      "id": "tfm-summarized",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "net46;net40;net35;net20",
+      "status": "expected",
+      "note": "Flipped expected with D1.1a: the library render carries no raw TFM matrix. (E5 proper — App STACK summarization — lands D1.4b on an App-render repo.)"
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 120000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 30s CLI wall."
+    }
+  ]
+}

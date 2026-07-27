@@ -1,0 +1,260 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+MAP  TradingEngine     (14 projects)
+
+STACK  net10.0, net6.0 · Minimal APIs · Controllers · EF Core
+
+STYLE  NLayer  (confidence moderate)
+       evidence: EF Core + 16 projects; folder roles: Domain, Application, 
+Infrastructure, Api
+
+       per service:
+         TradingEngine.AppHost: Aspire AppHost [Aspire]
+         TradingEngine.Host: Worker Service [Worker]
+         TradingEngine.ResearchCli: CLI [CLI]
+         TradingEngine.Web: Web App [EF Core, SignalR]
+
+TOPOLOGY (depends-on)
+   TradingEngine.Domain
+   TradingEngine.Application ── TradingEngine.Domain, TradingEngine.Engine
+   TradingEngine.Services ── TradingEngine.Application, TradingEngine.Domain, 
+TradingEngine.Engine
+   TradingEngine.Infrastructure ── TradingEngine.Application, 
+TradingEngine.Domain, TradingEngine.Risk, TradingEngine.Services
+   TradingEngine.Risk ── TradingEngine.Application, TradingEngine.Domain, 
+TradingEngine.Services
+   TradingEngine.Engine ── TradingEngine.Domain
+   TradingEngine.Host ── TradingEngine.Application, TradingEngine.Domain, 
+TradingEngine.Experiments, TradingEngine.Infrastructure, TradingEngine.Risk, 
+TradingEngine.Services, TradingEngine.Strategies
+   TradingEngine.Strategies ── TradingEngine.Domain, TradingEngine.Services
+   TradingEngine.CTraderRunner ── TradingEngine.Domain, 
+TradingEngine.Infrastructure
+   TradingEngine.Experiments ── TradingEngine.Application, TradingEngine.Domain,
+TradingEngine.Infrastructure
+   TradingEngine.Web ── TradingEngine.CTraderRunner, TradingEngine.Domain, 
+TradingEngine.Host, TradingEngine.Infrastructure, TradingEngine.Risk, 
+TradingEngine.Services, TradingEngine.Strategies
+   TradingEngine.Adapters.CTrader
+   TradingEngine.AppHost ── TradingEngine.Host, TradingEngine.Web
+   TradingEngine.ResearchCli ── TradingEngine.Domain
+
+ENTRY POINTS
+   HTTP (130)
+      DELETE /api/addons/packs/{id}  → SqliteAddOnPackStore.DeleteAsync  
+(src/TradingEngine.Web/Api/AddOnPacksController.cs:110)
+      DELETE /api/prop-firm-rules/{id}  → SqlitePropFirmRuleSetStore.DeleteAsync
+(src/TradingEngine.Web/Api/PropFirmRulesController.cs:73)
+      DELETE /api/risk-profiles/{id}  → SqliteRiskProfileStore.DeleteAsync  
+(src/TradingEngine.Web/Api/RiskProfilesController.cs:96)
+      DELETE /api/runs/{runId}  → BacktestOrchestrator.Cancel  
+(src/TradingEngine.Web/Api/RunsController.cs:231)
+      DELETE /api/strategies/{id}  → SqliteStrategyConfigStore.DeleteAsync  
+(src/TradingEngine.Web/Api/StrategiesController.cs:212)
+      GET /api/addons/packs  → SqliteAddOnPackStore.GetAllAsync  
+(src/TradingEngine.Web/Api/AddOnPacksController.cs:17)
+      GET /api/addons/packs/{id}  → SqliteAddOnPackStore.GetByIdAsync  
+(src/TradingEngine.Web/Api/AddOnPacksController.cs:20)
+      GET /api/addons/preview  → AddOnAutoTuner.Tune  
+(src/TradingEngine.Web/Api/AddOnPacksController.cs:123)
+      GET /api/backtest/analytics/{runId}/analytics  → TradingDbContext  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:173)
+      GET /api/backtest/analytics/{runId}/daily-pnl  → TradingDbContext  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:160)
+      GET /api/backtest/analytics/{runId}/pass-probability  → 
+PassProbabilityService.ComputeAsync  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:53)
+      GET /api/backtest/analytics/analytics/correlation  → TradingDbContext  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:195)
+      GET /api/backtest/analytics/compare  → 
+SqliteBacktestRunRepository.GetByIdAsync  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:68)
+      GET /api/backtest/analytics/parity  → ParityGateService.EvaluateAsync  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:87)
+      GET /api/backtest/analytics/reconcile  → 
+LedgerReconcileService.BuildEntryLatencyAsync  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:109)
+      GET /api/backtest/analytics/runs  → 
+SqliteBacktestRunRepository.GetAllAsync  
+(src/TradingEngine.Web/Api/BacktestAnalyticsController.cs:29)
+      GET /api/bars  → BarQueryService.TakeLast  
+(src/TradingEngine.Web/Api/BarsController.cs:13)
+      GET /api/ctrader/listen/status  → CtraderListenController  
+(src/TradingEngine.Web/Api/CtraderListenController.cs:63)
+      GET /api/ctrader/sessions  → TradingDbContext  
+(src/TradingEngine.Web/Api/VenueSessionsController.cs:11)
+      GET /api/ctrader/sessions/by-run/{runId}  → TradingDbContext  
+(src/TradingEngine.Web/Api/VenueSessionsController.cs:25)
+      … and 110 more (http entries — use --focus for a drill-in)
+   Background (5)
+      AutoSyncService  → AutoSyncService  
+(src/TradingEngine.Web/Configuration/ServiceRegistration.cs:186)
+      CacheEvictionSweeper  → CacheEvictionSweeper  
+(src/TradingEngine.Web/Configuration/ServiceRegistration.cs:31)
+      EngineWorker  → EngineWorker  
+(src/TradingEngine.Host/EngineServiceCollectionExtensions.cs:269)
+      NgServeHost  → NgServeHost  
+(src/TradingEngine.Web/Configuration/ServiceRegistration.cs:34)
+      WalkForwardBackgroundService  → WalkForwardBackgroundService  
+(src/TradingEngine.Web/Configuration/ServiceRegistration.cs:207)
+   SignalR (2)
+      RunHub (3 methods: Group, JoinRun, LeaveRun)  → RunHub  
+(src/TradingEngine.Web/Hubs/RunHub.cs:12)
+      WalkForwardHub (2 methods: JoinJob, LeaveJob)  → WalkForwardHub  
+(src/TradingEngine.Web/Hubs/WalkForwardHub.cs:5)
+
+PACKAGES
+   Web/API:  Microsoft.AspNetCore.Mvc.Testing 10.0.9, 
+Microsoft.AspNetCore.OpenApi 10.0.9, Scalar.AspNetCore 2.16.4, 
+Serilog.AspNetCore 10.0.0
+   ORM/Data:  Dapper 2.1.79, Microsoft.EntityFrameworkCore 10.0.9, 
+Microsoft.EntityFrameworkCore.Design 10.0.9, 
+Microsoft.EntityFrameworkCore.InMemory 10.0.9, 
+Microsoft.EntityFrameworkCore.Sqlite 10.0.9
+   Logging:  Serilog 4.3.1, Serilog.Extensions.Hosting 10.0.0, 
+Serilog.Settings.Configuration 10.*, Serilog.Sinks.Console 6.1.1, 
+Serilog.Sinks.File 7.0.0
+   Testing:  coverlet.collector 6.0.4, FluentAssertions 8.10.0, NSubstitute 
+5.3.0, xunit 2.9.3, xunit.runner.visualstudio 3.1.4, Xunit.SkippableFact 1.5.23
+   Utilities:  Newtonsoft.Json 13.*, Scrutor 6.0.1
+   Other:  CliWrap 3.*, cTrader.Automate *, Microsoft.Extensions.Configuration 
+10.*, Microsoft.Extensions.Configuration.EnvironmentVariables 10.*, 
+Microsoft.Extensions.Configuration.Json 10.*, 
+Microsoft.Extensions.DependencyInjection.Abstractions 10.0.8, 
+Microsoft.Extensions.Hosting 10.0.8, Microsoft.Extensions.Hosting.Abstractions 
+10.0.8 … (13 total)
+
+→ drill in:  --focus "<entry>"   (e.g. --focus "POST /api/experiments")
+
+analyzed 874 files · 2955 nodes · 3507 edges · 137 entries · 137/137 →target · 
+~1630 tokens · 47.5s stage2 ×3.0 stage3 ×1.6
+
+Snapshot cache: bypassed (--no-cache)
+                                    Insights                                    
+╭──────┬──────────┬──────────────────────────────┬─────────────────────────────╮
+│ Sev  │ Category │ Title                        │ Evidence                    │
+├──────┼──────────┼──────────────────────────────┼─────────────────────────────┤
+│ WARN │ Risk     │ 130/130 endpoints anonymous, │ GET                         │
+│      │          │ incl. 55 POST/PUT/DELETE     │ /api/walk-forward/jobs/{job │
+│      │          │                              │ Id:guid}/equity, GET        │
+│      │          │                              │ /api/walk-forward/jobs/{job │
+│      │          │                              │ Id:guid}, GET               │
+│      │          │                              │ /api/walk-forward/jobs      │
+│ NOTE │ Risk     │ Config without defaults: 6   │ CTrader:AlgoPath,           │
+│      │          │ consumed keys have no        │ Engine:Broker:NetMQ:Command │
+│      │          │ appsettings default          │ Port,                       │
+│      │          │                              │ Engine:Broker:NetMQ:DataPor │
+│      │          │                              │ t                           │
+│ NOTE │ Topology │ Most depended-upon:          │ TradingEngine.Domain (11    │
+│      │          │ TradingEngine.Domain (11     │ dependents),                │
+│      │          │ dependents) ·                │ TradingEngine.Application   │
+│      │          │ TradingEngine.Application (5 │ (5 dependents),             │
+│      │          │ dependents) ·                │ TradingEngine.Services (5   │
+│      │          │ TradingEngine.Services (5    │ dependents)                 │
+│      │          │ dependents)                  │                             │
+│ NOTE │ Wiring   │ External event contracts: 3  │ BarIngested, TradeClosed,   │
+│      │          │ consumed but never produced  │ EquityUpdated               │
+│      │          │ internally                   │                             │
+│ NOTE │ Wiring   │ Multi-implementation         │ ISizeModifier (5 impls),    │
+│      │          │ interfaces: ISizeModifier (5 │ IEngineClock (2 impls),     │
+│      │          │ impls) · IEngineClock (2     │ IVenueRunner (2 impls)      │
+│      │          │ impls) · IVenueRunner (2     │                             │
+│      │          │ impls)                       │                             │
+│ INFO │ Coverage │ Entry targets resolved       │                             │
+│      │          │ 137/137 (100%) — trace any   │                             │
+│      │          │ entry for its full path      │                             │
+│ INFO │ Wiring   │ DI: 217 Singleton · 55       │                             │
+│      │          │ Scoped · 51 Extension · 1    │                             │
+│      │          │ Transient (324 total)        │                             │
+│ INFO │ Shape    │ Entry surface: 130 HTTP · 5  │ 130 HTTP, 5 hosted, 2       │
+│      │          │ hosted · 2 SignalRHub        │ SignalRHub                  │
+│ INFO │ Data     │ Data map: 30 entities across │ TradingEngine.Infrastructur │
+│      │          │ 2 scopes                     │ e (29 entities),            │
+│      │          │                              │ TradingDbContext (1         │
+│      │          │                              │ entities)                   │
+╰──────┴──────────┴──────────────────────────────┴─────────────────────────────╯
+                       Stage Timing                        
+╭─────────────────────────┬─────────┬─────────────────────╮
+│ Stage                   │    Time │ Bar                 │
+├─────────────────────────┼─────────┼─────────────────────┤
+│ DiscoveryAndCacheWarmup │  9047ms │ ███████             │
+│ GenericExtraction       │  4260ms │ ███                 │
+│ SignalSealing           │     1ms │                     │
+│ SpecificExtraction      │  8820ms │ ███████             │
+│ SemanticLite            │ 23408ms │ ███████████████████ │
+│ GraphAssembly           │   513ms │                     │
+│ Insights                │   958ms │                     │
+│ Compression             │   135ms │                     │
+│ Snapshot                │   134ms │                     │
+│ Total                   │ 47539ms │                     │
+╰─────────────────────────┴─────────┴─────────────────────╯
+
+                                   Extractors                                   
+╭──────────────────────┬────────┬────────┬───────┬─────────────────────┬───────╮
+│ Name                 │   Time │ +Types │ +Dets │ Status              │ Fails │
+├──────────────────────┼────────┼────────┼───────┼─────────────────────┼───────┤
+│ FileTreeExtractor    │ 6645ms │      0 │     0 │ ran                 │     0 │
+│ CallGraphExtractor   │ 5989ms │      0 │     0 │ ran                 │     0 │
+│ ProgramCsFlowExtract │ 4257ms │   1153 │   340 │ ran                 │     0 │
+│ or                   │        │        │       │                     │       │
+│ SyntaxStructureExtra │ 4243ms │   1153 │   325 │ ran                 │     0 │
+│ ctor                 │        │        │       │                     │       │
+│ DiRegistrationExtrac │ 4231ms │      0 │   325 │ ran                 │     0 │
+│ tor                  │        │        │       │                     │       │
+│ EndpointExtractor    │ 2814ms │      0 │   411 │ ran                 │     0 │
+│ SolutionDiscovery    │ 2052ms │      0 │     0 │ ran                 │     0 │
+│ EfCoreExtractor      │ 1058ms │      0 │   411 │ ran                 │     0 │
+│ InMemoryEventBusExtr │  904ms │      0 │   389 │ ran                 │     0 │
+│ actor                │        │        │       │                     │       │
+│ SignalRHubExtractor  │  890ms │      0 │   386 │ ran                 │     0 │
+│ ControllerActionExtr │  883ms │      0 │   386 │ ran                 │     0 │
+│ actor                │        │        │       │                     │       │
+│ BodyFactsExtractor   │  614ms │      0 │     0 │ ran                 │     0 │
+│ SourceBodyExtractor  │  500ms │      0 │     0 │ ran                 │     0 │
+│ ProjectStructure     │  331ms │      0 │     0 │ ran                 │     0 │
+│ IndirectWiringDetect │  275ms │      0 │   203 │ ran                 │     0 │
+│ or                   │        │        │       │                     │       │
+│ DependencyExtractor  │   25ms │      0 │     0 │ ran                 │     0 │
+│ LayerClassifier      │   13ms │      0 │     0 │ ran                 │     0 │
+│ BlazorEntryExtractor │   10ms │      0 │     9 │ ran                 │     0 │
+│ AspireExtractor      │    4ms │      0 │     9 │ ran                 │     0 │
+│ AntiPatternDetector  │    0ms │      0 │     0 │ skipped: gated by   │     0 │
+│                      │        │        │       │ ShouldRun           │       │
+│ AwsLambdaExtractor   │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ aws-lambda          │       │
+│ AzureFunctionsExtrac │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ tor                  │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ azure-functions     │       │
+│ CliCommandExtractor  │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ cli-commands        │       │
+│ DesktopEntryExtracto │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ r                    │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ desktop-ui or maui  │       │
+│ EventBusExtractor    │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ masstransit or      │       │
+│                      │        │        │       │ nservicebus         │       │
+╰──────────────────────┴────────┴────────┴───────┴─────────────────────┴───────╯
+
+            Graph Seams            
+╭────────────────┬───────┬────────╮
+│ Seam           │ Edges │ Approx │
+├────────────────┼───────┼────────┤
+│ Calls          │  3273 │   1097 │
+│ ReadsWrites    │   121 │     89 │
+│ Resolves       │   110 │     17 │
+│ EntityRelation │     3 │      3 │
+╰────────────────┴───────┴────────╯
+2955 nodes · 3507 edges · 137/137 entries → target
+cache 89% hit · 874 files · 20 projects
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │  TradingEngine.slnx  │
+│   Time   │       47706ms        │
+│  Tokens  │ ~1630 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.304 │
+╰──────────┴──────────────────────╯

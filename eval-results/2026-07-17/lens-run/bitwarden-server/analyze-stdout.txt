@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-run\bitwarden-server\map.md
+analyzed 4927 files · 16344 nodes · 24782 edges · 676 entries · 675/676 target 
+· ~2428 tokens · 204.3s stage2 x3.0 stage3 x2.3
+┌──────────┬───────────────────────┐
+│  Metric  │         Value         │
+├──────────┼───────────────────────┤
+│ Solution │ bitwarden-server.slnx │
+│   Time   │       204723ms        │
+│  Tokens  │  ~2428 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.293  │
+└──────────┴───────────────────────┘

@@ -2560,3 +2560,123 @@ feat/github-ready (G1–G9) → develop (gates.ps1 -SkipMcpQa grafted pre-merge 
 
 **Next:** first eval.yml workflow_dispatch run; named perf lever (persist/reuse merged
 compilation) as its own future checkpoint; conductor-DEBT.md register.
+
+## 2026-07-17 — Prism audit: unseen-octet lens round (branch audit/library-round)
+
+Blind-drove 8 never-seen repos (Newtonsoft.Json, refit, StackExchange.Redis, wolverine, GitVersion,
+dotnet-podcasts, ScreenToGif, bitwarden-server) through engine+CLI+MCP+desktop on develop 9ee401a.
+**Verdict: not-yet-the-lens — 4/8 FAIL on archetype≠reality** (library flips to App via transitive
+aux-exe refs / toys hosts / missing catalog SelfNamePatterns; CLI-tool repos render empty maps).
+Desktop has NO library mode (refit = "0 entries" dashboard) and canvases clip/don't fit. Detect
+gaps: in-framework SignalR (podcasts+bitwarden), MAUI (UseMaui unprobed), MapGroup prefixes,
+queue seams. Graph: type-node degrees 0 (MCP dead-ends), razor/XAML entries trace to self.
+Perf: 8–58s small/mid, bitwarden 209s + 152s per CLI trace (no session reuse). Evidence:
+eval-results/2026-07-17/lens-audit/AUDIT.md + maps/traces/MCP transcript/13 UI screenshots.
+**Plan proposed:** docs/dev/briefs/proposal-prism.md (P0 harness → P1 archetype honesty → P2 entry
+surfaces → P3 graph depth → P4 per-service style → P5 UI library mode+canvas → P6 MCP honesty →
+P7 compilation persistence → P8 cross-platform CI/delivery). Audit protocol encoded in
+devcontext-eval-audit skill + eval/mcp-qa/drive-generic.js.
+
+**Round 2 (experience + engine health, same session):** EXPERIENCE-ADDENDUM.md — insights can be
+FALSE (podcasts orphans 3/5 live code; coverage gaps reported as repo fact); 17 bare catch{} in
+src (12 in SemanticLitePopulator); **I8 snapshot cache never persisted one snapshot** (all cache
+dirs 0 bytes; fire-and-forget save + swallowed throw) — the "why is there no cache" answer; loading
+renders 9 words while the observer streams a full waterfall; Studio lacks live pack preview;
+canvases are semantic-free force soup. proposal-prism.md rewritten P0–P10: adds insight-validity
+harness (P0.3), silent-failure amnesty (P3.5-6), living waterfall + cache resurrection (P5),
+visual intelligence (P6), Studio/nav core loops (P7).
+
+## 2026-07-17 - Prism D1 DELIVERY CLOSED (feat/prism-d1, sessions 1-4)
+
+**Archetype honesty delivered: octet DoD proof LENS-AUDIT: PASS 8/8**
+(eval-results/2026-07-17/prism-d1/octet-dod-proof-2.txt). D1.1-D1.4 (sessions 1-3): library/CLI
+archetype flips ratcheted, MapGroup prefix composition (zero bare grouped routes), queue seams as
+[approx] channel edges, per-service style rungs (bitwarden 17/17 -> 1/16 Unknown, ScreenToGif
+DesktopMvvm), hand-rolled-CQRS branding, typed-client targets, hygiene riders; close cohort sweep
+44/44 GREEN x2. D1.5 (session 4): the first octet proof caught 2 REAL MCP-surface FAILs - the MCP
+map tool dropped MapResponse.markdown (a 1400-node library read as a ~60-token dead map over MCP)
+and overview headlined libraries by their test consoles. Fixed (map emits rendered markdown +
+solutionName; additive proto solution_name; Library headline = product + hosts line), Server test
+pinned, octet rerun 8/8. Poles byte-identical throughout (two sanctioned documented eShop text
+deltas). Next: feat/prism-d2 opens with the pipeline-speed adjustment (D2.0 cohort tier knob,
+D2.0b J2 cache resurrection promoted from D3), then the C1/C2/C3 train (tracker section-speed).
+
+## 2026-07-17 - Prism D2 session 1: pipeline-speed pair VERIFIED (feat/prism-d2)
+
+**D2.0 tier knob (9b94393):** gates.ps1 -EvalTier quick = Step 3 minus the 5 heavy repos, poles
+ride, LOUD exclusion, stamp never written on quick green, self-labeled not-a-merge-gate; two
+detached GREEN runs. Run 1 exposed the alternating-alphabetical split stacking the whales
+(3m56 vs 8m28 halves) -> weight-hinted LPT-style split; honest floor recorded: ~6 min/2 hosts
+while shamshir+dntsite ride, the <5-min aspiration lands on J2 not more splitting.
+**D2.0b J2 cache resurrection (9c21eea, promoted from D3):** the I8 cache had never persisted a
+byte (unserializable snapshot -> swallowed throw behind a fire-and-forget; Exists() littered empty
+dirs). SnapshotPersistence defines the render-complete serializable subset; polymorphic $dtype
+detections; awaited saves x3 sites returning SnapshotSaveResult; dirty-fingerprint version keys
+(bare-HEAD keying would have served stale maps on dirty trees); --dry-run bypasses read,
+--no-cache bypasses write; DEVCONTEXT_CACHE_ROOT + ServerTestFactory temp-root (server tests
+were writing the user cache and would have flake-failed on cache hits). Proof: fresh-vs-rehydrated
+renders byte-identical (md+json) on a real fixture; dogfood live 8.1s->2.5s sha-identical HIT;
+McpQa 12/12 over the rehydrated snapshot; fast 574+15 green; loom-guards+truth PASS.
+Next: C1 (.razor @code into call graph) - session closed at the checkpoint boundary.
+
+## 2026-07-17 - Prism D2 session 2: the graph-depth trio (C1+C2+C3)
+C1 (.razor @code -> call graph, e018072): RazorCodeVirtualizer extracts @code/@functions/@inject
+ONLY (markup never parsed - T-era invariant updated, not broken); component partial class in
+Blazor's true namespace (own @namespace > _Imports > RootNamespace+folders) so .razor.cs partials
+merge; _Imports @using ride in -> [verified] semantic edges; #line maps call sites to true razor
+lines. UiEntries link at lifecycle-member level. podcasts GET /discover -> PodcastService.GetShows
+(the audit's score-0 exemplar), trace reaches the service at DiscoverPage.razor:72; eShop /cart
+4 deep; dogfood byte-identical; DntSite perf A/B +~3%. Snapshot schema v3 rider. Quick-tier gate
+PASS incl. new BlazorSurface fixture.
+C2 (desktop member links, 76da490): RelayCommand -> exact member; Window/UserControl -> ctor +
+(object sender, ...EventArgs) members - signature IS the XAML wiring, no XAML parse. ScreenToGif
+ExportPanel: "traces to itself, 3 lines" -> depth 3+ (DoD met).
+C3 (GraphQuery rollup, c5798d4): Type-node queries roll members' cross-type edges into
+node/neighbors/usages/impact + resolver tiebreak, one locus for CLI/gRPC/MCP. podcasts
+PodcastService usages 0 -> 9 callers.
+Owner mid-session: delivery rate low -> cadence tightened (one targeted drive per checkpoint,
+sweeps at boundaries). Next: C5 (DI provenance ranking) -> J1/J3 -> I1/I2 -> D3-budget.
+
+## 2026-07-18 - Prism D3 session 2: the compiler lever, profiled (D3.4) + D3 close
+D3.4 (fd8b135): the proposal's mechanism (persist the merged compilation on-disk) was falsified
+by instrument before engineering - new permanent timing split inside SemanticLitePopulator.Populate
+shows DntSite's 81.8s SemanticLite = fw 51ms / nuget 2ms / trees 2ms / create 1ms / BIND 79.7s.
+CSharpCompilation.Create is lazy; there is nothing to persist (the refs ARE the on-disk form).
+Delivered the measured lever: (1) bind parallelized BY TREE (per-task GetSemanticModel, results at
+original indices - order cannot drift) 79.7->46.7s; (2) arg-bind demand honesty - 390,625 of the
+binds were argument types, but every ResolveArgTarget site reads ONLY Args[0] of a
+dispatch/publish/raise verb; the gate is the runtime UNION of the three detectors' own verb
+catalogs (drift-impossible) 46.7->26.4s, DntSite arg binds 390625->0 (no dispatch calls there;
+bitwarden's honest demand: 6). Output proven byte-identical: DntSite map, bitwarden map (vs the
+session-1 d31 baseline; run-1 diff was the known [bus] provenance-site flap, proven run-to-run on
+one binary), dogfood pole incl. the E1 keep-side BasketCheckoutEvent seam, eShop deep trace
+(pre-vs-post worktree diff). Bench: DntSite Map 125.5->34.5s, Trace 179.4->30.2s, OrchardCore
+42.2->30.8s, edges/entries identical every row. Cold bitwarden 151.5->98.3s (target ~3.5min).
++3 unit tests; fast 606+15; McpQa serial 2/2; loom-guards PASS. D3 close battery: full-tier gate
+detached (result in tracker).
+
+## 2026-07-19 - Prism D5 session 2: riders + release decision + PHASE QA + close (D5.3-D5.6)
+D5.3 riders (995108b/b06de5b/208ed50): the determinism thread killed a 3-leg nondeterminism class
+at chokepoints - ConcurrentBag arrival order (SealableBag + one post-extraction seal),
+ConcurrentDictionary.Values per-process hash order (OrderedTypes view + ctor-sorted
+NameResolver/SymbolTable, retires the C5 collision-pick latent), FrozenDictionary layout order
+(CodeGraph captures builder insertion order). Call-edge canon = CALL SITE (file, numeric line)
+because source order is semantic for the primary-call pick - the D5.5 battery run-1 caught the
+callee-name-led first draft flipping ControllerApp's POST target. Proof: fresh A/B one binary,
+dogfood x3 + bitwarden x2 byte-identical; no schema bump (J2 MVID key rejects pre-fix snapshots).
+Laden-server: the session cap existed; the leak was EngineHostCache never evicting - one host per
+analyzed root pinning ALL parsed trees for the server's lifetime; hosts now released with their
+last session (bounded by the session cap), HostReleaseTests 2/2.
+D5.4 (7eb20c1/28273d3): Windows-only bundle decision ENCODED (tauri targets nsis+msi, release.yml
+claim); installer version from the release tag (set-tauri-version.mjs); workflow_dispatch = release
+dry-run. Dry-run 1 caught a REAL latent release bug (pnpm monorepo package_json_file - any real v*
+tag would have died); dry-run 2 green, inventory = exactly nsis 0.0.0 exe + msi + CLI nupkg,
+Release job skip proven.
+D5.5 PHASE QA: full battery GATE: PASS unqualified (stamp written) after the run-1 catch; octet
+LENS-AUDIT: PASS 8/8 (all archetypes intended, P6 MCP navigation probes green octet-wide = the DoD
+zero-silent-breaches proof, P7 quiet, bitwarden 173.2s vs 522s cap); clean-clone battery run-1
+caught TraceQualityTests' bare Directory.Exists running against empty gitlink dirs (the T8.3 class,
+sites T8.3 missed; RepoAvailable guard @ 24ce626) - run 2 GATE: PASS every step from a fresh clone.
+D5.6: HANDOVER-PRISM.md written, tracker closed, cross-OS CI re-dispatched at the tip.
+PRISM PHASE COMPLETE PENDING MERGE - branch train feat/prism-d1..d5 merges to develop as ONE merge
+on owner sign-off.

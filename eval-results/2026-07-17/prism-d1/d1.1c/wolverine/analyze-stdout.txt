@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\d1.1c\wolverine\map.md
+analyzed 4053 files · 11857 nodes · 9990 edges · 49 entries · 47/49 →target · 
+~6271 tokens · 84.0s stage2 ×3.0 stage3 ×1.7
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │    wolverine.slnx    │
+│   Time   │       84496ms        │
+│  Tokens  │ ~6271 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.276 │
+╰──────────┴──────────────────────╯

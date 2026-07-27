@@ -1,0 +1,56 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-17T17:35:00.6797803+00:00",
+  "archetype": "Library",
+  "architectureStyle": "Unknown",
+  "styleConfidence": 0,
+  "projectCount": 4,
+  "projectNames": [
+    "Newtonsoft.Json",
+    "Newtonsoft.Json.FuzzTests",
+    "Newtonsoft.Json.TestConsole",
+    "Newtonsoft.Json.Tests"
+  ],
+  "typeCount": 1470,
+  "topologyProjectCount": 2,
+  "graphNodeCount": 1406,
+  "graphEdgeCount": 1259,
+  "signals": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 36 interfaces, 1261 classes (1315 total public types)",
+      "detail": "",
+      "evidence": [
+        "36 interfaces",
+        "1261 classes"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Newtonsoft.Json (2 dependents)",
+      "detail": "",
+      "evidence": [
+        "Newtonsoft.Json (2 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: StringAssert (484) \u00B7 ExceptionAssert (250) \u00B7 List (136) \u00B7 JTokenReader (64) \u00B7 JsonConvert (50)",
+      "detail": "",
+      "evidence": [
+        "StringAssert (484)",
+        "ExceptionAssert (250)",
+        "List (136)",
+        "JTokenReader (64)",
+        "JsonConvert (50)"
+      ]
+    }
+  ]
+}

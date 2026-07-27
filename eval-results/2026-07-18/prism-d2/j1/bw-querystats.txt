@@ -1,0 +1,59 @@
+﻿{
+  "nodeCount": 16344,
+  "edgeCount": 24782,
+  "entryCount": 676,
+  "entriesWithTarget": 675,
+  "entriesWithDeepSpine": 676,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 662,
+    "HostedService": 7,
+    "MessageConsumer": 5,
+    "SignalRHub": 2
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 23055,
+      "verified": 13194,
+      "approx": 9861
+    },
+    {
+      "kind": "Raises",
+      "total": 11,
+      "verified": 0,
+      "approx": 11
+    },
+    {
+      "kind": "Consumes",
+      "total": 7,
+      "verified": 7,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 817,
+      "verified": 58,
+      "approx": 759
+    },
+    {
+      "kind": "Resolves",
+      "total": 788,
+      "verified": 725,
+      "approx": 63
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 101,
+      "verified": 0,
+      "approx": 101
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 3,
+      "verified": 3,
+      "approx": 0
+    }
+  ],
+  "extractionFailures": []
+}

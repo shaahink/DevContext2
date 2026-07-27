@@ -1,0 +1,101 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\StackExchange.Redis\map.m
+d
+analyzed 561 files ú 1616 nodes ú 1038 edges ú 0 entries ú ~403 tokens ú 28.6s 
+stage2 x2.4 stage3 x1.9
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ INFO ³ Topology ³ Most depended-upon:          ³ StackExchange.Redis (6      ³
+³      ³          ³ StackExchange.Redis (6       ³ dependents), RESPite (4     ³
+³      ³          ³ dependents) ú RESPite (4     ³ dependents), * (1           ³
+³      ³          ³ dependents) ú * (1           ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs: IDatabase (302) ³ IDatabase (302),            ³
+³      ³          ³ ú IDatabaseAsync (264) ú     ³ IDatabaseAsync (264),       ³
+³      ³          ³ IInternalConnectionMultiplex ³ IInternalConnectionMultiple ³
+³      ³          ³ er (59) ú                    ³ xer (59)                    ³
+³      ³          ³ ConfigurationOptions (52) ú  ³                             ³
+³      ³          ³ RespPayload (46)             ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                            Stage Timing                             
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                           ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   192ms ³                               ³
+³ GenericExtraction       ³  4208ms ³ ÛÛÛÛÛ                         ³
+³ SignalSealing           ³     3ms ³                               ³
+³ SpecificExtraction      ³  1570ms ³ ÛÛ                            ³
+³ SemanticLite            ³ 20889ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³   794ms ³ Û                             ³
+³ Insights                ³   144ms ³                               ³
+³ Compression             ³   214ms ³                               ³
+³ Snapshot                ³   273ms ³                               ³
+³ Total                   ³ 28558ms ³                               ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ SyntaxStructureExtractor ³ 4204ms ³    905 ³     1 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 2921ms ³      0 ³     1 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 2909ms ³      0 ³     1 ³ ran                     ³
+³ EndpointExtractor        ³  884ms ³      0 ³     0 ³ ran                     ³
+³ SourceBodyExtractor      ³  673ms ³      0 ³     0 ³ ran                     ³
+³ BodyFactsExtractor       ³  639ms ³      0 ³     0 ³ ran                     ³
+³ CallGraphExtractor       ³  358ms ³      0 ³     0 ³ ran                     ³
+³ InMemoryEventBusExtracto ³  262ms ³      0 ³     0 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ IndirectWiringDetector   ³  139ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure         ³   81ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³   46ms ³      0 ³     0 ³ ran                     ³
+³ FileTreeExtractor        ³   40ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³   32ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   22ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ BlazorEntryExtractor     ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs blazor or         ³
+³                          ³        ³        ³       ³ controllers             ³
+³ CliCommandExtractor      ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs cli-commands      ³
+³ ControllerActionExtracto ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³ r                        ³        ³        ³       ³ needs controllers       ³
+³ DesktopEntryExtractor    ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs desktop-ui        ³
+³ EfCoreExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs efcore            ³
+³ EventBusExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs masstransit or    ³
+³                          ³        ³        ³       ³ nservicebus             ³
+³ GraphQlResolverExtractor ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs graphql           ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+         Graph Seams         
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam     ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls    ³  1031 ³    748 ³
+³ Resolves ³     7 ³      6 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+cache 84% hit ú 561 files ú 21 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³          Value           ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ StackExchange.Redis.slnx ³
+³   Time   ³         29273ms          ³
+³  Tokens  ³    ~403 (budget 8000)    ³
+³ Version  ³   v1.0.5-preview.0.265   ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

@@ -21,7 +21,11 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
         "Scans for Command<TSettings> subclasses and System.CommandLine-gated Command/RootCommand bases");
 
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => currentModel.Architecture.Has(ArchitectureSignals.Keys.CliCommands);
+        // B4 (Prism D1.1d): also run for parser-less CLI tools — a repo whose production console exes
+        // carry PackAsTool/ToolCommandName evidence (GitVersion) gets Main-method entries below even
+        // though no CLI-parser package ever fires the CliCommands signal.
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.CliCommands)
+            || currentModel.Projects.Any(Graph.ArchetypeDetector.IsCliToolCandidate);
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
@@ -107,6 +111,74 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                     LineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
                     Confidence = 0.85f,
                 });
+            }
+        }
+
+        await AddMainEntryFallbackAsync(context, model, ct);
+    }
+
+    /// <summary>B4 (Prism D1.1d) — plain <c>Main()</c> becomes an entry. For every production console
+    /// exe with CLI-tool evidence (see <see cref="Graph.ArchetypeDetector.IsCliToolCandidate"/>) that
+    /// produced NO parser-based command detections, emit one detection for its program entry point
+    /// (top-level statements or a static <c>Main</c>). GitVersion read "App with 0 entries" and an
+    /// empty map because its CLI detection was package-gated.</summary>
+    private async ValueTask AddMainEntryFallbackAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    {
+        var classifier = new Graph.ProjectClassifier(model.Projects);
+        var coveredDirs = model.Detections.OfType<CliCommandDetection>()
+            .Select(d => Path.GetDirectoryName(d.SourceFile) ?? "")
+            .Where(d => d.Length > 0)
+            .ToList();
+
+        foreach (var proj in model.Projects)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) != true
+                || proj.OutputType.Contains("WinExe", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!Graph.ArchetypeDetector.IsCliToolCandidate(proj)) continue;
+            if (classifier.IsInTestProject(proj.FilePath)
+                || !classifier.IsProduction(proj, model.SamplesAreTheProduct)) continue;
+
+            var projDir = (Path.GetDirectoryName(proj.FilePath) ?? "").Replace('\\', '/');
+            if (projDir.Length == 0) continue;
+            // Skip projects that already own parser-based command detections.
+            if (coveredDirs.Any(d => d.Replace('\\', '/').StartsWith(projDir, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            // Find the program entry file: prefer Program.cs, else the first file with top-level
+            // statements or a static Main.
+            var projFiles = context.Analysis.AllSourceFiles
+                .Where(f => f.Replace('\\', '/').StartsWith(projDir + "/", StringComparison.OrdinalIgnoreCase)
+                    && f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(f => Path.GetFileName(f).Equals("Program.cs", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ToList();
+
+            foreach (var file in projFiles)
+            {
+                Microsoft.CodeAnalysis.SyntaxTree tree;
+                try { tree = await context.Cache.GetSyntaxTreeAsync(file, ct); }
+                catch { continue; }
+                var root = await tree.GetRootAsync(ct);
+
+                var topLevel = root.DescendantNodes()
+                    .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.GlobalStatementSyntax>()
+                    .FirstOrDefault();
+                var mainMethod = root.DescendantNodes()
+                    .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>()
+                    .FirstOrDefault(m => m.Identifier.ValueText == "Main"
+                        && m.Modifiers.Any(t => t.RawKind == (int)Microsoft.CodeAnalysis.CSharp.SyntaxKind.StaticKeyword));
+                if (topLevel is null && mainMethod is null) continue;
+
+                var line = (topLevel as Microsoft.CodeAnalysis.SyntaxNode ?? mainMethod)!
+                    .GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                model.Detections.Add(new CliCommandDetection(proj.Name, "", "Main")
+                {
+                    ExtractorName = Name,
+                    SourceFile = file,
+                    LineNumber = line,
+                    Confidence = 0.7f,
+                });
+                break; // one entry per project
             }
         }
     }

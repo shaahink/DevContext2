@@ -5,6 +5,15 @@ namespace DevContext.Core.Graph;
 /// dispatch targets via body scan.</summary>
 public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 {
+    /// <summary>C1: the Blazor component lifecycle methods a page entry links to, in priority order —
+    /// the first one present becomes the entry's primary HandlerNode (target resolution starts there).</summary>
+    private static readonly string[] ComponentLifecycleMethods =
+    [
+        "OnInitializedAsync", "OnInitialized",
+        "OnParametersSetAsync", "OnParametersSet",
+        "OnAfterRenderAsync", "OnAfterRender",
+    ];
+
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
         NameResolver names, NoiseFilter noise)
@@ -50,10 +59,38 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                 var handlerFqn = names.Resolve(ep.HandlerType, ep.SourceFile);
                 var methodName = ep.HandlerMethod;
                 var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
-                    && methodName is not "<lambda>" and not "<anonymous>"
+                    && methodName is not "<lambda>" and not "<anonymous>" and not "<component>"
                     && !methodName.Contains("=>", StringComparison.Ordinal);
 
-                if (hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
+                // C1 (Prism D2): a Blazor page entry links to the component's LIFECYCLE members —
+                // navigating to the route IS the framework invoking OnInitialized{Async} etc. The
+                // @code virtual trees (RazorCodeVirtualizer) made the component a real Type whose
+                // lifecycle methods carry member→member call edges, so linking at member level
+                // lights up target resolution, reach scoring, and the trace spine exactly like a
+                // controller action. A markup-only page (no @code) has no type/members and falls
+                // through to the type-node/owner fallbacks below.
+                if (methodName == "<component>" && g.HasNode(NodeId.ForType(handlerFqn))
+                    && model.Types.TryGetValue(handlerFqn, out var component))
+                {
+                    foreach (var lifecycle in ComponentLifecycleMethods)
+                    {
+                        if (!component.Methods.Any(m => m.Name == lifecycle)) continue;
+                        var lifecycleId = NodeId.ForMember(handlerFqn, lifecycle);
+                        g.AddNode(new GraphNode(lifecycleId, ep.HandlerType + "." + lifecycle, NodeKind.Member)
+                        {
+                            FilePath = ep.SourceFile,
+                        });
+                        g.AddEdge(new GraphEdge(id, lifecycleId, EdgeKind.Calls)
+                        {
+                            Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                            Resolution = Resolution.Join,
+                        });
+                        handlerNodeId ??= lifecycleId; // list order = priority; first hit is primary
+                        linked = true;
+                    }
+                }
+
+                if (!linked && hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
                 {
                     var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
                     handlerNodeId = memberNodeId;
@@ -71,7 +108,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                     // L2.3: dispatch edges are now produced by seam detectors over BodyFacts — no regex needed here.
                     linked = true;
                 }
-                else
+                else if (!linked)
                 {
                     var typeNodeId = NodeId.ForType(handlerFqn);
                     if (g.HasNode(typeNodeId))
@@ -89,7 +126,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             if (!linked)
             {
-                var ownerType = model.Types.Values.FirstOrDefault(t =>
+                var ownerType = model.OrderedTypes.FirstOrDefault(t =>
                     string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
 
                 if (isLambdaHandler && !string.IsNullOrEmpty(ep.HandlerBody))

@@ -133,7 +133,7 @@ public sealed class DevContextGrpcService(
         => WrapAsyncT(request.Handle, async session =>
         {
             var markdown = await session.RenderMapMarkdownAsync(context.CancellationToken).ConfigureAwait(false);
-            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown);
+            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown, session.Snapshot.Model.Solution?.Name);
         });
 
     public override Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)
@@ -459,7 +459,8 @@ public sealed class DevContextGrpcService(
                 entriesWithTarget,
                 (long)(snapshot.Report?.TotalWall.TotalMilliseconds ?? session.Engine.ElapsedMs),
                 snapshot.Insights,
-                snapshot.Entries);
+                snapshot.Entries,
+                snapshot.Model.ExtractionFailures);
         });
 
     public override Task<Proto.RenderResponse> Render(Proto.RenderRequest request, ServerCallContext context)
@@ -551,11 +552,11 @@ public sealed class DevContextGrpcService(
     // M3.3 — emit tool-call events on every session access
     private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
     {
-        // T6.10 — the desktop app calls over gRPC-web (content-type "application/grpc-web*"),
-        // the MCP sidecar over native gRPC ("application/grpc"): that one header separates the
-        // app's own render chatter from real agent traffic in the live feed.
-        var contentType = httpContext.HttpContext?.Request.ContentType ?? "";
-        var origin = contentType.Contains("grpc-web", StringComparison.OrdinalIgnoreCase) ? "ui" : "agent";
+        // T6.10/F5 — ui vs agent from the PRE-UseGrpcWeb content-type (stashed in Items by
+        // Program.cs: the middleware rewrites grpc-web requests to plain application/grpc,
+        // so reading Request.ContentType here mislabeled every app RPC as "agent").
+        var origin = httpContext.HttpContext?.Items[OriginTag.ItemKey] as string
+            ?? OriginTag.FromContentType(httpContext.HttpContext?.Request.ContentType);
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,

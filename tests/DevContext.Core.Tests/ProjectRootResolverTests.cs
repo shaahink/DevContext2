@@ -13,7 +13,7 @@ public sealed class ProjectRootResolverTests
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project\MyApp.sln", fs);
 
         Assert.Equal(ResolutionMethod.ExplicitSln, result.Method);
-        Assert.Equal(@"C:\project\MyApp.sln", result.SolutionFilePath);
+        Assert.Equal("C:/project/MyApp.sln", result.SolutionFilePath);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class ProjectRootResolverTests
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project", fs);
 
         Assert.Equal(ResolutionMethod.DirectoryContainsSln, result.Method);
-        Assert.Equal(@"C:\project\MyApp.slnx", result.SolutionFilePath);
+        Assert.Equal("C:/project/MyApp.slnx", result.SolutionFilePath);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class ProjectRootResolverTests
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project\src\Api", fs);
 
         Assert.Equal(ResolutionMethod.WalkedUp, result.Method);
-        Assert.Equal(@"C:\project\MyApp.slnx", result.SolutionFilePath);
+        Assert.Equal("C:/project/MyApp.slnx", result.SolutionFilePath);
     }
 
     [Fact]

@@ -176,18 +176,16 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var collector = new RunReportCollector();
         collector.SetBudget(options.MaxOutputTokens);
 
-        var spectreObserver = new SpectreDiscoveryObserver();
-        var inner = new List<IDiscoveryObserver> { spectreObserver };
-        inner.Add(collector);
-        var observer = new CompositeDiscoveryObserver([.. inner]);
-
-        // I8 — snapshot cache check
-        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+        // I8 — snapshot cache check. D3.1: keys carry the analysis flavor, so a --fast/--lite/
+        // --no-roslyn run caches in its own slot and can never be served to a full-fidelity run.
+        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options);
         var snapCache = new DevContext.Core.Analysis.SnapshotCacheService();
         var fromCache = false;
-        if (!settings.NoCache && snapCache.Exists(repoKey, versionKey))
+        // J2 — dry-run bypasses the cache read: a cached snapshot is a FULL analysis, and
+        // rendering it would answer a preview question with yesterday's real map.
+        if (!settings.NoCache && !settings.DryRun && snapCache.Exists(repoKey, versionKey))
         {
-            snapshot = await snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct);
+            snapshot = await snapCache.TryLoadAsync(repoKey, versionKey, ct);
             if (snapshot is not null)
             {
                 fromCache = true;
@@ -199,6 +197,20 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             AnsiConsole.MarkupLine("[red]No cached snapshot available and --cache-only was specified.[/]");
             return 3;
         }
+
+        // K1 (Prism D3.2) — interactive analyzes get the LIVE waterfall (per-stage rows, running
+        // extractors, discoveries ticker) instead of a blind spinner. Non-interactive runs keep the
+        // plain line stream byte-stable for harnesses. DEVCONTEXT_WATERFALL=on|off overrides the
+        // TTY probe (on = capturable fallback rendering for drives; off = plain lines on a TTY).
+        var useWaterfall = Environment.GetEnvironmentVariable("DEVCONTEXT_WATERFALL") switch
+        {
+            "on" => true,
+            "off" => false,
+            _ => AnsiConsole.Profile.Capabilities.Interactive,
+        };
+        var waterfall = useWaterfall && !fromCache ? new WaterfallDiscoveryObserver() : null;
+        var observer = new CompositeDiscoveryObserver(
+            waterfall is not null ? [waterfall, collector] : [new SpectreDiscoveryObserver(), collector]);
 
         var ctx = new DiscoveryContext
         {
@@ -213,33 +225,70 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             Logger = _loggerFactory.CreateLogger("DevContext")
         };
 
+        DevContext.Core.Analysis.SnapshotSaveResult? saveResult = null;
         if (!fromCache)
         {
-            await AnsiConsole.Status()
-                .StartAsync("Analyzing project...", async statusCtx =>
+            // Shared by both display paths. J2 — awaited save so the process can't exit mid-write;
+            // --no-cache bypasses the write too so an experiment run can't poison the cache.
+            // Failures are surfaced after the display closes, never swallowed (and never fatal).
+            async Task AnalyzeSaveRender()
+            {
+                var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
+                snapshot = capturedSnapshot;
+
+                if (!settings.NoCache && !capturedSnapshot.IsDryRun)
+                    saveResult = await snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
+
+                if (capturedSnapshot.IsDryRun)
                 {
-                    var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
-                    snapshot = capturedSnapshot;
+                    result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+                }
+                else
+                {
+                    result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
+                }
+            }
 
-                    // I8 — save snapshot to cache (write-behind after analysis)
-                    _ = snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
+            if (waterfall is not null)
+            {
+                // K1 — honest big-repo expectation up front (L7's CLI half): this run is uncached.
+                if (!settings.Quiet)
+                    AnsiConsole.MarkupLine(settings.NoCache
+                        ? "[dim]cache bypassed (--no-cache) — full analysis[/]"
+                        : "[dim]no cached snapshot for this tree — a first analysis can take minutes on a large repo; the result is snapshotted for instant re-runs[/]");
+                await AnsiConsole.Progress()
+                    .AutoClear(false)
+                    .HideCompleted(false)
+                    .Columns(
+                        new SpinnerColumn { CompletedText = "[green]✓[/]" },
+                        new TaskDescriptionColumn { Alignment = Justify.Left },
+                        new ElapsedTimeColumn())
+                    .StartAsync(async pctx =>
+                    {
+                        waterfall.Attach(pctx);
+                        await AnalyzeSaveRender();
+                    });
+                // Diagnostics were buffered during the live display (writing through it corrupts).
+                if (!settings.Quiet)
+                    foreach (var d in waterfall.BufferedDiagnostics)
+                        AnsiConsole.MarkupLine($"[dim][[{d.Level}]] {Markup.Escape(d.Source)}: {Markup.Escape(d.Message)}[/]");
+            }
+            else
+            {
+                await AnsiConsole.Status()
+                    .StartAsync("Analyzing project...", async statusCtx => await AnalyzeSaveRender());
+            }
 
-                    if (capturedSnapshot.IsDryRun)
-                    {
-                        result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
-                    }
-                    else
-                    {
-                        result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
-                    }
-                });
+            if (saveResult is { Success: false } && !settings.Quiet)
+                AnsiConsole.MarkupLine($"[yellow]snapshot cache save failed: {Markup.Escape(saveResult.Error ?? "unknown")}[/]");
         }
         else
         {
             // I8 — render from cached snapshot (no re-analysis needed)
             result = await Render(snapshot!, pipeline, settings, options, scenario, focusText, ct);
             var elapsed = sw.ElapsedMilliseconds;
-            var fromCacheStamp = $"  from cache · {versionKey[..Math.Min(7, versionKey.Length)]} · {elapsed}ms";
+            var analyzedAt = snapshot!.AnalyzedAtUtc is { } at ? $" · analyzed {at.ToLocalTime():yyyy-MM-dd HH:mm}" : "";
+            var fromCacheStamp = $"  from cache · {versionKey[..Math.Min(7, versionKey.Length)]}{analyzedAt} · {elapsed}ms";
             AnsiConsole.MarkupLine($"[dim]{fromCacheStamp}[/]");
         }
 
@@ -255,10 +304,25 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         if ((settings.Stats || settings.Metrics) && !settings.Quiet)
-            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default);
+        {
+            // J2 — honest hit/miss: say what the snapshot cache actually did this run.
+            var shortVer = versionKey[..Math.Min(7, versionKey.Length)];
+            var cacheLine = settings.NoCache
+                ? "bypassed (--no-cache)"
+                : fromCache
+                    ? $"HIT · {shortVer}"
+                    : saveResult switch
+                    {
+                        { Success: true } => $"miss · saved {shortVer}",
+                        { Success: false } => $"miss · save FAILED: {saveResult.Error}",
+                        _ => "miss · not saved",
+                    };
+            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default, cacheLine,
+                snapshot?.Model.ExtractionFailures);
+        }
 
         if (!settings.Quiet)
-            ShowSummary(sw, rootResult, options, result);
+            ShowSummary(sw, rootResult, options, result, snapshot?.Model.Solution?.Name);
 
         // Clean up clone if auto-clean
         if (gitClonePath is not null)
@@ -347,11 +411,16 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
     }
 
-    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default)
+    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default, string? snapshotCache = null,
+        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? failures = null)
     {
         if (report is null) return;
 
         AnsiConsole.WriteLine();
+
+        // J2 — snapshot cache honesty: hit/miss/save outcome for THIS run.
+        if (snapshotCache is not null)
+            AnsiConsole.MarkupLine($"[dim]Snapshot cache: {Markup.Escape(snapshotCache)}[/]");
 
         // Insights (per I3.3 — render first)
         if (insights is { IsDefaultOrEmpty: false })
@@ -409,16 +478,44 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 .AddColumn(new TableColumn("+Dets").RightAligned())
                 .AddColumn("Status");
 
+            // J3 — swallowed-failure counts per extractor (source names match extractor names).
+            var failsBySource = (failures ?? [])
+                .GroupBy(f => f.Source, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.Count), StringComparer.Ordinal);
+            extractorTable.AddColumn(new TableColumn("Fails").RightAligned());
+
             foreach (var ex in report.Extractors.Take(25))
             {
                 var status = ex.Skipped
                     ? $"[dim]skipped: {ex.SkipReason ?? "?"}[/]"
                     : "[green]ran[/]";
                 var name = ex.Skipped ? $"[dim]{ex.Name}[/]" : ex.Name;
+                var fails = failsBySource.TryGetValue(ex.Name, out var fc) && fc > 0
+                    ? $"[red]{fc}[/]" : "[dim]0[/]";
                 extractorTable.AddRow(name, $"{ex.Elapsed.TotalMilliseconds:F0}ms",
-                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status);
+                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status, fails);
             }
             AnsiConsole.Write(extractorTable);
+        }
+
+        // J1/J3 — the silent-failure amnesty made every swallowed exception count; this table is
+        // where they surface at analyze time. Absent = a genuinely clean run.
+        if (failures is { Count: > 0 })
+        {
+            AnsiConsole.WriteLine();
+            var failTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Swallowed Failures")
+                .AddColumn("Source")
+                .AddColumn("Category")
+                .AddColumn(new TableColumn("Count").RightAligned())
+                .AddColumn("Sample");
+            foreach (var f in failures.Take(15))
+                failTable.AddRow(f.Source, f.Category, f.Count.ToString(),
+                    $"[dim]{Markup.Escape(f.SampleException ?? "")}[/]");
+            if (failures.Count > 15)
+                failTable.AddRow($"[dim]… {failures.Count - 15} more[/]", "", "", "");
+            AnsiConsole.Write(failTable);
         }
 
         // Scorer funnel
@@ -475,9 +572,15 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         AnsiConsole.MarkupLine($"[dim]{chips}[/]");
     }
 
-    private static void ShowSummary(Stopwatch sw, ProjectRootResult root, ExtractionOptions options, RenderedContext result)
+    private static void ShowSummary(Stopwatch sw, ProjectRootResult root, ExtractionOptions options, RenderedContext result, string? solutionName)
     {
-        var label = Path.GetFileName(root.SolutionFilePath ?? root.RootPath);
+        // F4 (Prism D4.5) — the ANALYZED product's identity: the scored, target-scoped solution
+        // name. ProjectRootResolver's SolutionFilePath walks up to 5 parent levels unscored, so
+        // an `analyze <repo>` run from inside another solution's tree printed the ENCLOSING
+        // solution here (refit read "DevContext.slnx").
+        var label = solutionName is { Length: > 0 }
+            ? solutionName
+            : Path.GetFileName(root.SolutionFilePath ?? root.RootPath);
 
         var summary = new Table()
             .Border(TableBorder.Rounded)

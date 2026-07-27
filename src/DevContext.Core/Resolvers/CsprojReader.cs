@@ -11,16 +11,32 @@ namespace DevContext.Core.Resolvers;
 /// </summary>
 public static class CsprojReader
 {
-    /// <summary>The raw <c>&lt;ProjectReference Include="..."&gt;</c> paths (relative to the csproj dir).</summary>
+    /// <summary>The <c>&lt;ProjectReference Include="..."&gt;</c> paths (relative to the csproj dir),
+    /// separator-normalized to '/' (H1): csproj files conventionally write '\', which off-Windows
+    /// System.IO.Path reads as a name character — un-normalized, every downstream
+    /// GetFileNameWithoutExtension-style name derivation silently breaks on Linux/macOS.</summary>
     public static ImmutableArray<string> ParseProjectReferences(XDocument doc)
         => doc.Descendants("ProjectReference")
-            .Select(r => r.Attribute("Include")?.Value ?? "")
+            .Select(r => (r.Attribute("Include")?.Value ?? "").Replace('\\', '/'))
             .Where(v => !string.IsNullOrEmpty(v))
             .ToImmutableArray();
 
     /// <summary>The project's <c>&lt;OutputType&gt;</c> (e.g. "Exe", "Library"), or null when unset.</summary>
     public static string? ParseOutputType(XDocument doc)
         => doc.Descendants("OutputType").FirstOrDefault()?.Value?.Trim() is { Length: > 0 } v ? v : null;
+
+    /// <summary>The root <c>&lt;Project Sdk="..."&gt;</c> attribute (e.g. "Microsoft.NET.Sdk.Web",
+    /// "Microsoft.Build.NoTargets/3.3.0"), or null for old-style/attribute-less projects. A NoTargets or
+    /// Traversal SDK marks a HOLDER project — a csproj that builds no code (Prism D1.1b / audit E2).</summary>
+    public static string? ParseSdk(XDocument doc)
+        => doc.Root?.Attribute("Sdk")?.Value?.Trim() is { Length: > 0 } v ? v : null;
+
+    /// <summary>D1.1d — true when the project declares dotnet-tool packaging anywhere in the csproj
+    /// (<c>&lt;PackAsTool&gt;</c> or <c>&lt;ToolCommandName&gt;</c>, including inside conditional
+    /// PropertyGroups — GitVersion.App sets both under a CI-only condition). Element PRESENCE is the
+    /// evidence: a repo that ships a dotnet tool is a CLI tool regardless of the local build config.</summary>
+    public static bool ParseIsToolPackaged(XDocument doc)
+        => doc.Descendants("PackAsTool").Any() || doc.Descendants("ToolCommandName").Any();
 
     /// <summary>True when the project opts into packaging (<c>&lt;IsPackable&gt;true&lt;/c&gt;</c> or
     /// <c>&lt;GeneratePackageOnBuild&gt;true&lt;/c&gt;</c>) — a strong "this is a library" signal.</summary>
@@ -33,17 +49,44 @@ public static class CsprojReader
 
     /// <summary>Resolves OutputType by walking the <c>Directory.Build.props</c> ancestor chain from
     /// the csproj's directory. The csproj's own value (in <paramref name="doc"/>) takes precedence;
-    /// ancestor values fill in when the csproj doesn't set it. Nearest ancestor wins among imports.</summary>
+    /// ancestor values fill in when the csproj doesn't set it. Nearest ancestor wins among imports.
+    /// <para>A CONDITIONED ancestor value is not evidence for this project (Prism D1.2b): a shared
+    /// props file sets properties for a SUBSET of its projects, and we cannot evaluate MSBuild
+    /// conditions. xunit's src/Directory.Build.props sets OutputType=Exe inside a
+    /// <c>&lt;When Condition="...EndsWith('.tests')"&gt;</c>; taking it unconditionally made every
+    /// xunit CLASSLIB read as an exe, which erased the self-sourced framework signal (the exe is
+    /// "runnable") and flipped the repo Library -> App with a console-view render. The csproj's OWN
+    /// conditioned value is still honoured — it at least applies to that project.</para></summary>
     public static string? ResolveOutputType(XDocument doc, string csprojPath)
     {
         var direct = ParseOutputType(doc);
         if (direct is not null) return direct;
         foreach (var ancestor in WalkAncestorProps(csprojPath, "Directory.Build.props"))
         {
-            var v = ParseOutputType(ancestor);
+            var v = ParseUnconditionedOutputType(ancestor);
             if (v is not null) return v;
         }
         return null;
+    }
+
+    /// <summary>The first <c>&lt;OutputType&gt;</c> that no enclosing element makes conditional.</summary>
+    private static string? ParseUnconditionedOutputType(XDocument doc)
+        => doc.Descendants("OutputType")
+            .Where(e => !IsConditioned(e))
+            .Select(e => e.Value.Trim())
+            .FirstOrDefault(v => v.Length > 0);
+
+    /// <summary>True when the element or any ancestor carries a non-empty <c>Condition</c> attribute
+    /// (<c>&lt;When&gt;</c>, a conditioned <c>&lt;PropertyGroup&gt;</c>, or the property itself), or it
+    /// sits in an <c>&lt;Otherwise&gt;</c> branch — all of which make the value apply to only some projects.</summary>
+    private static bool IsConditioned(XElement e)
+    {
+        for (var n = e; n is not null; n = n.Parent)
+        {
+            if (n.Attribute("Condition")?.Value.Trim() is { Length: > 0 }) return true;
+            if (n.Name.LocalName is "Otherwise") return true;
+        }
+        return false;
     }
 
     /// <summary>Resolves <c>IsPackable</c> from the ancestor chain. The csproj's own value wins;
@@ -63,12 +106,17 @@ public static class CsprojReader
         => ParseTargetFrameworks(doc) is { Length: > 0 } tfms ? tfms
             : ResolveTargetFrameworksFromAncestors(csprojPath);
 
-    /// <summary>Parses target frameworks directly from a document (without ancestor fallback).</summary>
+    /// <summary>Parses target frameworks directly from a document (without ancestor fallback).
+    /// E5 (Prism D1.4b): a multi-targeting <c>&lt;TargetFrameworks&gt;</c> value is SPLIT on ';' so
+    /// consumers see real TFMs — Newtonsoft's "net46;net40;net35;net20" used to travel as one
+    /// unreadable token all the way to the STACK line.</summary>
     public static ImmutableArray<string> ParseTargetFrameworks(XDocument doc)
     {
         var tfm = doc.Descendants("TargetFramework").FirstOrDefault()?.Value
                ?? doc.Descendants("TargetFrameworks").FirstOrDefault()?.Value;
-        return tfm is { Length: > 0 } ? [tfm] : [];
+        return tfm is { Length: > 0 }
+            ? [.. tfm.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
+            : [];
     }
 
     private static ImmutableArray<string> ResolveTargetFrameworksFromAncestors(string csprojPath)
@@ -122,11 +170,14 @@ public static class CsprojReader
     {
         var cpmVersions = ResolveCpmVersions(csprojPath);
 
+        // E1 (Prism D1.4c): only `Include=` declares a dependency. An `Update=`-only element is an
+        // MSBuild metadata patch on an item declared elsewhere — GitVersion's
+        // `<PackageReference Update="@(PackageReference)">` ingested a "package" literally named
+        // `@(PackageReference)`. MSBuild expressions are never real package ids either way.
         return doc.Descendants("PackageReference")
             .Select(r =>
             {
-                var name = r.Attribute("Include")?.Value
-                        ?? r.Attribute("Update")?.Value ?? "";
+                var name = r.Attribute("Include")?.Value ?? "";
                 var version = r.Attribute("Version")?.Value
                            ?? r.Attribute("VersionOverride")?.Value
                            ?? "";
@@ -134,7 +185,9 @@ public static class CsprojReader
                     version = cpmVer;
                 return new PackageReferenceInfo(name, version);
             })
-            .Where(p => !string.IsNullOrEmpty(p.Name))
+            .Where(p => !string.IsNullOrEmpty(p.Name)
+                && !p.Name.Contains("@(", StringComparison.Ordinal)
+                && !p.Name.Contains("$(", StringComparison.Ordinal))
             .ToImmutableArray();
     }
 

@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using DevContext.Core.Pipeline;
+
 namespace DevContext.Core.Extractors.Specific;
 
 /// <summary>Walks syntax trees to build a BFS-depth-limited call graph for Debug and Full extraction profiles.</summary>
@@ -22,7 +24,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         {
             if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) continue;
             try { refs.Add(MetadataReference.CreateFromFile(path)); }
-            catch { /* skip unreadable assembly */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("CallGraphExtractor", "metadata-ref", ex); } // skip unreadable assembly
         }
         return refs.ToImmutable();
     });
@@ -117,6 +119,17 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct))); }
             catch { model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}"); }
         }
+
+        // C1 (Prism D2): Blazor components join the graph through their @code VIRTUAL trees (the
+        // markup is never parsed — RazorCodeVirtualizer extracts the block text only). Keyed by the
+        // .razor path so the entry-seed set (BlazorEntryExtractor detections) finds them in
+        // treeByPath, and #line directives keep call-site provenance on the true razor lines.
+        var razorTreeCount = 0;
+        await foreach (var (razorPath, razorTree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
+        {
+            trees.Add((razorPath, razorTree));
+            razorTreeCount++;
+        }
         swParse.Stop();
 
         // Build a best-effort semantic compilation. Source types always bind; external package types
@@ -183,7 +196,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                             diMap, interfaceImplMap, fqnMap, fqnCollisions);
                         if (resolution == Graph.Resolution.Semantic) Interlocked.Increment(ref semanticEdges);
 
-                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        // Mapped span honors the razor virtual trees' #line directives (identical to
+                        // the unmapped span for ordinary .cs files, which carry no #line).
+                        var lineNumber = invocation.GetLocation().GetMappedLineSpan().StartLinePosition.Line + 1;
                         allEdges.Add(new CallEdge(
                             callerType, callerMethod, calleeType, calleeMethod, $"{filePath}:{lineNumber}")
                         {
@@ -326,10 +341,11 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
         swBfs.Stop();
         var resolver = compilation is not null ? $"semantic ({semanticEdges} verified)" : "syntactic";
+        var razorNote = razorTreeCount > 0 ? $", {razorTreeCount} razor @code" : "";
         model.AddDiagnostic(DiagnosticLevel.Info, Name,
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}; "
             + $"phases: parse {swParse.ElapsedMilliseconds}ms · compile {swCompile.ElapsedMilliseconds}ms · "
-            + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files)");
+            + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files{razorNote})");
     }
 
     /// <summary>Files the focus points to — the seed for focus-scoped binding (perf P1). Type/Method
@@ -554,7 +570,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                         return (mapped, ma.Name.Identifier.ValueText, Graph.Resolution.Semantic);
                 }
             }
-            catch { /* fall through to syntactic */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("CallGraphExtractor", "semantic-bind", ex); } // fall through to syntactic
         }
 
         var (type, syntacticMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);

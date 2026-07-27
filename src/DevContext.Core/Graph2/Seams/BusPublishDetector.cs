@@ -16,7 +16,9 @@ public sealed class BusPublishDetector : ISeamDetector
         "publishEndpoint", "_publishEndpoint", "bus", "_bus", "endpoint",
         "sendEndpoint", "_sendEndpoint", "messageBus", "_messageBus", "session",
     };
-    private static readonly HashSet<string> Verbs = new(StringComparer.Ordinal)
+    // Internal: SemanticLitePopulator unions the detectors' verb sets into its arg-bind demand gate,
+    // so a verb added here is automatically part of the semantic bind demand.
+    internal static readonly HashSet<string> Verbs = new(StringComparer.Ordinal)
     {
         "Publish", "PublishAsync", "Send", "SendAsync", "SendMessageAsync",
     };

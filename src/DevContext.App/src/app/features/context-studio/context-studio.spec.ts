@@ -28,6 +28,11 @@ interface StudioTestSurface {
   onReanalyze(): void;
   saveFileName(format: OutputFormat): string;
   buildContext(format: OutputFormat): string | null;
+  // D4.5 (L4) — the live preview surface
+  previewText(): string | null;
+  packTotals(): { total: number; allocated: number } | null;
+  previewOpen(): boolean;
+  selectedFormat: { set(value: OutputFormat): void };
 }
 
 interface PackCardOverride {
@@ -419,5 +424,63 @@ describe('ContextStudio', () => {
     const date = new Date().toISOString().slice(0, 10);
     expect(studio.saveFileName('markdown')).toBe(`eshop-microservices-context-${date}.md`);
     expect(studio.saveFileName('plain')).toBe(`eshop-microservices-context-${date}.txt`);
+  });
+
+  // ---- D4.5 (L4): the live pack preview ------------------------------------------
+
+  it('preview text IS the export string; format switches it client-side, no re-pack (D4.5 L4)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+
+    expect(studio.previewText()).toBe(studio.buildContext('markdown'));
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+
+    studio.selectedFormat.set('json');
+    const json = studio.previewText();
+    expect(json).toContain('"markdown"');
+    expect(json).toBe(studio.buildContext('json'));
+    // Format is presentation, not scope — switching must not re-pack.
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces the server token accounting; cleared with the pack (D4.5 L4)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.packTotals()).toEqual({ total: 120, allocated: 4000 });
+
+    getContextPack.mockRejectedValue(new Error('boom'));
+    studio.onBudgetChange(8000);
+    await flush();
+    expect(studio.packTotals()).toBeNull();
+  });
+
+  it('normalizes server CRLF to LF — preview/Copy/Save serve one byte form (D4.5 L4)', async () => {
+    getContextPack.mockResolvedValue(
+      packResponse({ assembledMarkdown: '# Pack\r\n\r\n_meta_\r\ncontent' }),
+    );
+    const { studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.buildContext('markdown')).toBe('# Pack\n\n_meta_\ncontent');
+    expect(studio.previewText()).not.toContain('\r');
+  });
+
+  it('renders the preview pane with highlighted fences, open by default (D4.5 L4)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.previewOpen()).toBe(true);
+    const pane = (fixture.nativeElement as HTMLElement).querySelector('.pack-preview');
+    expect(pane).not.toBeNull();
+    // The mock pack carries a ```csharp fence — Prism token spans prove real rendering.
+    expect(pane!.innerHTML).toContain('token');
+    expect(pane!.textContent).toContain('# repo — Context Pack');
   });
 });

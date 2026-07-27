@@ -2,6 +2,7 @@ using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
 using DevContext.Core.Graph2.Seams;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +20,7 @@ public sealed partial class GraphBuilder
         // Pre-compute single-implementor map for fallback when no DI registration
         var singleImplMap = new Dictionary<string, string>(StringComparer.Ordinal);
         var implCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath) || !_noise.IsProductionCode(type)) continue;
             foreach (var iface in type.ImplementedInterfaces)
@@ -50,48 +51,66 @@ public sealed partial class GraphBuilder
             productionRegisteredSvc.Add(StripGenerics(di.ServiceType));
         }
 
-        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        // C5: N hosts each registering the same service→impl used to race for the one deduped edge —
+        // model.Detections is an unordered bag, so the cited registration was arbitrary AND flapped
+        // run-to-run. Group per (svc, impl) pair instead: ALL sites ride the edge (deterministically
+        // ordered), Provenance is the first, and the trace ranks by focus-host proximity at walk time.
+        var bindings = model.Detections.OfType<DiRegistrationDetection>()
+            .Where(di => scope.Contains(di.SourceFile)
+                && di.Shape == DiRegistrationShape.DirectBinding
+                && !string.IsNullOrEmpty(di.ImplementationType)
+                && di.ImplementationType != "?"
+                && !di.ImplementationType.StartsWith("sp =>")
+                && !di.ImplementationType.StartsWith("_ =>")
+                && !di.ImplementationType.StartsWith("(")
+                && !di.ImplementationType.Contains("GetRequiredService"))
+            .Where(di => _noise.IsProductionEntrySource(di.SourceFile)
+                // Production wins: skip a test-only registration when a production one exists for the same service.
+                || !productionRegisteredSvc.Contains(StripGenerics(di.ServiceType)))
+            .OrderBy(di => di.SourceFile, StringComparer.Ordinal).ThenBy(di => di.LineNumber)
+            .GroupBy(di => (
+                Svc: NodeId.ForType(names.Resolve(di.ServiceType, di.SourceFile)),
+                Impl: NodeId.ForType(names.Resolve(di.ImplementationType, di.SourceFile))));
+
+        foreach (var pair in bindings)
         {
-            if (!scope.Contains(di.SourceFile)) continue;
-            if (di.Shape != DiRegistrationShape.DirectBinding) continue;
-            if (string.IsNullOrEmpty(di.ImplementationType)
-                || di.ImplementationType == "?"
-                || di.ImplementationType.StartsWith("sp =>")
-                || di.ImplementationType.StartsWith("_ =>")
-                || di.ImplementationType.StartsWith("(")
-                || di.ImplementationType.Contains("GetRequiredService")) continue;
-
-            var svcShort = StripGenerics(di.ServiceType);
-            var isProdRegistration = _noise.IsProductionEntrySource(di.SourceFile);
-            // Production wins: skip a test-only registration when a production one exists for the same service.
-            if (!isProdRegistration && productionRegisteredSvc.Contains(svcShort)) continue;
-
-            var svcFqn = names.Resolve(di.ServiceType, di.SourceFile);
-            var implFqn = names.Resolve(di.ImplementationType, di.SourceFile);
-
-            var svcNodeId = NodeId.ForType(svcFqn);
-            var implNodeId = NodeId.ForType(implFqn);
+            var first = pair.First();
+            var svcShort = StripGenerics(first.ServiceType);
+            var (svcNodeId, implNodeId) = (pair.Key.Svc, pair.Key.Impl);
 
             // Ensure both nodes exist
             if (!g.HasNode(svcNodeId))
-                g.AddNode(new GraphNode(svcNodeId, di.ServiceType, NodeKind.Type)
+                g.AddNode(new GraphNode(svcNodeId, first.ServiceType, NodeKind.Type)
                 {
                     Layer = "Infrastructure", // DI extension methods (AddMediatR, AddDbContext, etc.)
                 });
-            g.AddNode(new GraphNode(implNodeId, di.ImplementationType, NodeKind.Type)
+            g.AddNode(new GraphNode(implNodeId, first.ImplementationType, NodeKind.Type)
             {
                 Tags = [RoleTags.Service],
                 Layer = "Infrastructure", // DI-registered implementations
             });
 
+            var sites = pair
+                .Select(di => (Site: $"{di.SourceFile}:{di.LineNumber}",
+                    Project: scope.ProjectForFile(di.SourceFile) ?? ""))
+                .DistinctBy(x => x.Site)
+                .ToList();
+
             // I1.6 — tag Resolves edges with multi-impl count for render annotation
             var multiCount = implCounts.TryGetValue(svcShort, out var c) && c > 1 ? c : 0;
+            var edgeTags = ImmutableArray.CreateBuilder<string>();
+            // T2.1: last-resort test binding — the production-wins filter above already dropped test
+            // sites when a production one exists, so a surviving non-prod site means test-only.
+            if (!_noise.IsProductionEntrySource(first.SourceFile)) edgeTags.Add(RoleTags.TestOnlyDi);
+            if (pair.Any(di => di.Lifetime == "HttpClient")) edgeTags.Add(RoleTags.HttpClientBinding); // C6 (D1.2f)
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
-                Provenance = $"{di.SourceFile}:{di.LineNumber}",
+                Provenance = sites[0].Site,
                 Resolution = Resolution.Join,
                 MultiImplCount = multiCount,
-                Tags = isProdRegistration ? [] : [RoleTags.TestOnlyDi], // T2.1: last-resort test binding
+                Tags = edgeTags.ToImmutable(),
+                RegistrationSites = sites.Count > 1 ? [.. sites.Select(x => x.Site)] : [],
+                RegistrationProjects = sites.Count > 1 ? [.. sites.Select(x => x.Project)] : [],
             });
         }
 
@@ -317,7 +336,7 @@ public sealed partial class GraphBuilder
         if (allBodyFacts is null || allBodyFacts.Count == 0)
         {
             var facts = new List<BodyFacts>();
-            foreach (var type in model.Types.Values)
+            foreach (var type in model.OrderedTypes)
             {
                 if (type.SourceBody is not { Length: > 0 } sb) continue;
                 try
@@ -343,7 +362,7 @@ public sealed partial class GraphBuilder
                     var project = scope.ProjectForFile(type.FilePath) ?? "";
                     facts.AddRange(BodyFactExtractor.Extract(tree, type.FilePath, project));
                 }
-                catch { /* parse failure → skip */ }
+                catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "body-facts-parse", ex); } // parse failure → skip
             }
             allBodyFacts = facts;
         }
@@ -489,7 +508,7 @@ public sealed partial class GraphBuilder
                         });
                     }
                 }
-                catch { /* detector failure → skip its matches, continue with others */ }
+                catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "seam-detector", ex); } // skip its matches, continue with others
             }
         }
     }
@@ -662,11 +681,11 @@ public sealed partial class GraphBuilder
                                 });
                             }
                         }
-                        catch { /* detector failure → skip its matches for this lambda */ }
+                        catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "seam-detector", ex); } // skip its matches for this lambda
                     }
                 }
             }
-            catch { /* parse failure → skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "lambda-parse", ex); } // parse failure → skip
         }
     }
 

@@ -16,6 +16,7 @@ import { Statusbar } from './statusbar/statusbar';
 import { Omnibox } from '../features/omnibox/omnibox';
 import { NodeCard } from '../features/node-card/node-card';
 import { NodePeek } from '../features/peek/node-peek';
+import { Toast, ToastService } from '../ui/toast/toast';
 
 /** Static filler tips (proposal §6 "at most 1-in-4") — posted once at shell startup;
  * `TickerService` persists which ones a user has already seen across sessions. */
@@ -85,7 +86,7 @@ const SHORTCUT_HELP = [
  */
 @Component({
   selector: 'app-workspace-shell',
-  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Omnibox, NodeCard, NodePeek],
+  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Omnibox, NodeCard, NodePeek, Toast],
   template: `
     <app-titlebar />
     <app-tab-strip />
@@ -100,6 +101,10 @@ const SHORTCUT_HELP = [
     <app-omnibox />
     <app-node-card />
     <app-node-peek />
+    <!-- D4.5 — found by the probe: ToastService had callers all over the app (Copy
+         confirmations, preset deltas) but the Toast component was mounted NOWHERE;
+         every toast.show() was silently invisible. The shell owns the overlay. -->
+    <app-toast [messages]="toasts.messages()" />
 
     @if (helpOpen()) {
       <div class="fixed inset-0 z-[60] flex items-center justify-center" (click)="helpOpen.set(false)" (keydown.escape)="helpOpen.set(false)" role="dialog" tabindex="0">
@@ -132,6 +137,7 @@ const SHORTCUT_HELP = [
 export class WorkspaceShell implements OnDestroy {
   private readonly router = inject(Router);
   private readonly session = inject(SessionStore);
+  protected readonly toasts = inject(ToastService);
   protected readonly helpItems = SHORTCUT_HELP;
   protected readonly helpOpen = signal(false);
 

@@ -1,0 +1,34 @@
+{
+  "repo": "eval/fixtures/BlazorSurface",
+  "checks": [
+    {
+      "id": "signal-blazor",
+      "type": "signal-present",
+      "value": "blazor",
+      "status": "expected",
+      "note": "C1 (Prism D2) fixture: Blazor via the Components package probe."
+    },
+    {
+      "id": "ui-entry-rendered",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "UI (1)",
+      "status": "expected",
+      "note": "The @page component is the app's single UI entry."
+    },
+    {
+      "id": "ui-entry-target-reaches-service",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "GET /discover  → ShowService.GetShows",
+      "status": "expected",
+      "note": "C1 contract: the .razor @code block is IN the call graph — the UI entry resolves through OnInitializedAsync to the injected service member, instead of the audit's score-0/reach-0/no-out-edges dead end. Requires the @code virtual tree (component type + call edges) AND the lifecycle-member entry link."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 60000,
+      "status": "expected"
+    }
+  ]
+}

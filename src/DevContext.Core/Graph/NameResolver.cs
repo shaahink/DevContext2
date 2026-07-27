@@ -27,7 +27,10 @@ public sealed class NameResolver
             ? new Dictionary<(string, string), List<string>>()
             : null;
         _namespaceByFqn = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var t in types)
+        // D5.3 determinism — callers pass ConcurrentDictionary.Values, whose enumeration order is
+        // randomized per process (string-hash seeding); sort by FQN so short-name collision lists
+        // hold candidates in the same order every run.
+        foreach (var t in types.OrderBy(t => t.Id, StringComparer.Ordinal))
         {
             _fqns.Add(t.Id);
             if (!_byShort.TryGetValue(t.Name, out var list))

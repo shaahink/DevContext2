@@ -1,0 +1,15 @@
+Slicing from POST /ciphers - handler resolved after scan.
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\bitwarden-server\trace-po
+st-ciphers.md
+analyzed 4927 files ú 15425 nodes ú 20505 edges ú 669 entries ú 668/669 target 
+ú depth 6 ú ~7611 tokens ú 182.0s stage2 x3.0 stage3 x2.5
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³         Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ bitwarden-server.slnx ³
+³   Time   ³       182670ms        ³
+³  Tokens  ³  ~7611 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265  ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

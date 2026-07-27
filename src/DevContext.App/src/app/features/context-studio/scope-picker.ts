@@ -1,8 +1,9 @@
-import { Component, computed, input, model, output, signal } from '@angular/core';
+import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 
 import type { EntryGroupVm, EntryVm } from '../../models/view-models';
 import { KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
+import { ToastService } from '../../ui/toast/toast';
 
 export interface ServiceGroup {
   readonly project: string;
@@ -105,17 +106,22 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
       }
     </div>
 
-    <div class="flex items-center gap-1 border-b border-line px-2 py-1">
+    <!-- D4.5 (L4): preset gets an explicit name + a one-line effect (the audit read
+         "I'm changing this entry" as an edit action with an invisible outcome). -->
+    <div class="border-b border-line px-2 py-1">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        class="flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         [disabled]="totalEntryCount() === 0"
-        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Seeds context cards matched to the endpoint, hub method, or worker you pick'"
+        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Pick an entry; its kind decides the cards (a hub seeds consumer wiring, a worker its config)'"
         (click)="showPresetPicker.set(!showPresetPicker())"
       >
         <app-icon name="edit" [size]="14" />
-        I&rsquo;m changing this entry
+        Change-impact pack
       </button>
+      <p class="px-1 pb-0.5 text-center text-2xs text-ink-subtle">
+        seeds flow &middot; bodies &middot; contracts &middot; tests for one entry, by kind
+      </p>
     </div>
 
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
@@ -136,6 +142,7 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
           <button
             type="button"
             class="flex w-full items-center gap-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
+            [title]="'Adds ' + presetEffect(entry)"
             (click)="applyPreset(entry); showPresetPicker.set(false)"
           >
             <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
@@ -293,9 +300,21 @@ export class ScopePicker {
     this.selectedEntries.set(new Set());
   }
 
+  private readonly toast = inject(ToastService);
+
+  /** D4.5 (L4) — the preset's card-type list, deduped in seed order ("flow + bodies +
+   * config + contracts + tests" for a worker). Shown pre-click (row tooltip) and
+   * post-apply (the scope-delta toast). */
+  protected presetEffect(entry: EntryVm): string {
+    return [...new Set(presetSeedsFor(entry).map((s) => s.type))].join(' + ');
+  }
+
   protected applyPreset(entry: EntryVm): void {
-    this.cardsChange.emit(presetSeedsFor(entry));
+    const seeds = presetSeedsFor(entry);
+    this.cardsChange.emit(seeds);
     this.showPresetPicker.set(false);
+    // D4.5 (L4) — the visible scope delta: name what the preset just added.
+    this.toast.show(`Preset added ${seeds.length} cards: ${this.presetEffect(entry)}`, 'success');
   }
 
   protected kindIcon(kind: string): string {

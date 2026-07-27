@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-run\refit\map.md
+analyzed 812 files · 834 nodes · 631 edges · 0 entries · ~1599 tokens · 18.2s 
+stage2 x3.0 stage3 x2.6
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   DevContext.slnx    │
+│   Time   │       18472ms        │
+│  Tokens  │ ~1599 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.293 │
+└──────────┴──────────────────────┘

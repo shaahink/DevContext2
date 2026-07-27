@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-run\ScreenToGif\map.md
+analyzed 648 files · 807 nodes · 209 edges · 35 entries · 35/35 target · ~1087 
+tokens · 22.7s stage2 x3.0 stage3 x2.0
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   GifRecorder.sln    │
+│   Time   │       23389ms        │
+│  Tokens  │ ~1087 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.293 │
+└──────────┴──────────────────────┘

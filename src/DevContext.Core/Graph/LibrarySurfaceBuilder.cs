@@ -34,7 +34,7 @@ public static class LibrarySurfaceBuilder
     {
         var classifier = new ProjectClassifier(model.Projects);
         var nonLibraryDirs = NonLibraryProjectDirs(model.Projects);
-        var publicTypes = model.Types.Values
+        var publicTypes = model.OrderedTypes
             .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
             .Where(t => !classifier.IsInTestProject(t.FilePath))
             // T8: samples-only repo — the sample types ARE the surface; never render "0 public types".
@@ -120,7 +120,7 @@ public static class LibrarySurfaceBuilder
     private static ImmutableArray<SurfaceAbstraction> BuildAbstractions(DiscoveryModel model, List<TypeDiscovery> mainTypes)
     {
         var implCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var t in model.Types.Values)
+        foreach (var t in model.OrderedTypes)
             foreach (var b in t.BaseTypes.Concat(t.ImplementedInterfaces))
             {
                 var key = StripGenerics(b);

@@ -3,6 +3,7 @@ using System.Text.Json;
 using DevContext.Core.Contracts;
 using DevContext.Core.Graph;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -44,6 +45,16 @@ public sealed record SemanticLiteResult
     public ImmutableArray<BodyFacts> UpgradedBodyFacts { get; init; }
     /// <summary>The built compilation (null if degraded entirely).</summary>
     public CSharpCompilation? Compilation { get; init; }
+    /// <summary>Wall ms loading framework (TPA) metadata references — first analysis in a process pays it.</summary>
+    public double FrameworkRefsMs { get; init; }
+    /// <summary>Wall ms resolving NuGet metadata references (assets.json parse + dll probe + load).</summary>
+    public double NuGetRefsMs { get; init; }
+    /// <summary>Wall ms collecting syntax trees from the analysis cache.</summary>
+    public double CollectTreesMs { get; init; }
+    /// <summary>Wall ms in <c>CSharpCompilation.Create</c> (lazy — near zero by design).</summary>
+    public double CreateMs { get; init; }
+    /// <summary>Wall ms semantically binding the BodyFacts demand set.</summary>
+    public double BindMs { get; init; }
 
     public SemanticLiteResult() { UpgradedBodyFacts = []; }
 }
@@ -58,6 +69,22 @@ public sealed record SemanticLiteResult
 /// Law R2 applies: only upgrades (Syntactic → Semantic), never downgrades.</summary>
 public static class SemanticLitePopulator
 {
+    /// <summary>The invocation verbs whose <c>Args[0]</c> a seam detector can actually consume
+    /// (<see cref="Seams.SeamDetectorHelpers.ResolveArgTarget"/> call sites). Built from the detectors'
+    /// own verb catalogs so the bind demand can never drift from what detection reads. Binding every
+    /// argument of every invocation instead was the measured big-repo wall (DntSite: 390k arg binds,
+    /// 79.7s of an 81.8s SemanticLite stage).</summary>
+    internal static readonly HashSet<string> ArgDemandVerbs = BuildArgDemandVerbs();
+
+    private static HashSet<string> BuildArgDemandVerbs()
+    {
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        set.UnionWith(Seams.MediatRDispatchDetector.Verbs);
+        set.UnionWith(Seams.BusPublishDetector.Verbs);
+        set.UnionWith(Seams.DomainEventRaiseDetector.RaiseVerbs);
+        return set;
+    }
+
     /// <summary>Framework reference assemblies loaded once from the TPA.</summary>
     private static readonly Lazy<(ImmutableArray<MetadataReference> Refs, HashSet<string> Names)> FrameworkRefs = new(() =>
     {
@@ -73,7 +100,7 @@ public static class SemanticLitePopulator
                 refs.Add(MetadataReference.CreateFromFile(path));
                 names.Add(Path.GetFileNameWithoutExtension(path));
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "metadata-ref", ex); }
         }
         return (refs.ToImmutable(), names);
     });
@@ -93,8 +120,23 @@ public static class SemanticLitePopulator
         var result = new SemanticLiteResult();
         if (projects.Count == 0) return result;
 
+        // Force the (process-wide, lazy) framework refs under their own clock so the NuGet timing
+        // below doesn't silently absorb the first-run TPA load.
+        var swFw = System.Diagnostics.Stopwatch.StartNew();
+        _ = FrameworkRefs.Value;
+        swFw.Stop();
+
+        var swNuGet = System.Diagnostics.Stopwatch.StartNew();
         var (nugetRefs, assetsProjects, degradedProjects) = ResolveNuGetMetadataRefs(projects, rootPath);
-        result = result with { ProjectsWithAssets = assetsProjects, ProjectsDegraded = degradedProjects };
+        swNuGet.Stop();
+        result = result with
+        {
+            ProjectsWithAssets = assetsProjects,
+            ProjectsDegraded = degradedProjects,
+            FrameworkRefsMs = swFw.Elapsed.TotalMilliseconds,
+            NuGetRefsMs = swNuGet.Elapsed.TotalMilliseconds,
+        };
+        var swTrees = System.Diagnostics.Stopwatch.StartNew();
         var allTrees = new List<SyntaxTree>();
         var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -130,12 +172,14 @@ public static class SemanticLitePopulator
                 allTrees.Add(tree);
                 perProject[owner] = perProject.TryGetValue(owner, out var c) ? c + 1 : 1;
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "syntax-parse", ex); }
         }
 
         foreach (var (_, name) in projectDirs)
             if (!perProject.ContainsKey(name))
                 result = result with { ProjectsSkipped = result.ProjectsSkipped + 1 };
+        swTrees.Stop();
+        result = result with { CollectTreesMs = swTrees.Elapsed.TotalMilliseconds };
 
         if (allTrees.Count == 0 || nugetRefs.Length == 0 && FrameworkRefs.Value.Refs.Length == 0)
             return result with
@@ -146,6 +190,7 @@ public static class SemanticLitePopulator
             };
 
         CSharpCompilation? compilation = null;
+        var swCreate = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             var allRefs = ImmutableArray.CreateBuilder<MetadataReference>();
@@ -167,7 +212,9 @@ public static class SemanticLitePopulator
                 DegradeReason = $"{ex.GetType().Name}: {ex.Message}",
             };
         }
+        swCreate.Stop();
 
+        var swBind = System.Diagnostics.Stopwatch.StartNew();
         var upgraded = bodyFacts.ToImmutableArray();
         var varDeclsResolved = 0;
         var receiversResolved = 0;
@@ -176,7 +223,8 @@ public static class SemanticLitePopulator
         var argTypesResolved = 0;
         if (bodyFacts.Count > 0)
             (upgraded, varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved) =
-                UpgradeBodyFacts(bodyFacts, compilation, allTrees);
+                UpgradeBodyFacts(bodyFacts, compilation, allTrees, ct);
+        swBind.Stop();
 
         result = result with
         {
@@ -190,6 +238,8 @@ public static class SemanticLitePopulator
             TreeCount = allTrees.Count,
             ReferenceCount = nugetRefs.Length,
             CompilationBuilt = true,
+            CreateMs = swCreate.Elapsed.TotalMilliseconds,
+            BindMs = swBind.Elapsed.TotalMilliseconds,
         };
 
         return result;
@@ -270,9 +320,10 @@ public static class SemanticLitePopulator
 
                 assetsProjects++;
             }
-            catch
+            catch (Exception ex)
             {
                 degradedProjects++;
+                PipelineDiagnostics.Swallowed("SemanticLitePopulator", "assets-json", ex);
             }
         }
 
@@ -283,7 +334,7 @@ public static class SemanticLitePopulator
         {
             if (fwNames.Contains(name)) continue;
             try { refs.Add(MetadataReference.CreateFromFile(path)); }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "metadata-ref", ex); }
         }
         return (refs.ToImmutable(), assetsProjects, degradedProjects);
     }
@@ -339,130 +390,166 @@ public static class SemanticLitePopulator
     private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers, int Creations, int GenericArgs, int ArgTypes) UpgradeBodyFacts(
         IReadOnlyList<BodyFacts> facts,
         CSharpCompilation compilation,
-        List<SyntaxTree> allTrees)
+        List<SyntaxTree> allTrees,
+        CancellationToken ct = default)
     {
         var treeIndex = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
         foreach (var tree in allTrees)
             treeIndex[tree.FilePath] = tree;
 
-        var modelCache = new Dictionary<SyntaxTree, SemanticModel?>();
+        // Split pass-throughs from the bind demand set, keeping every body at its original index so
+        // the parallel pass below cannot reorder output (results land in disjoint slots).
+        var results = new BodyFacts[facts.Count];
+        var demand = new List<(int Index, BodyFacts Body, SyntaxTree Tree)>();
+        for (var i = 0; i < facts.Count; i++)
+        {
+            var body = facts[i];
+            if (string.IsNullOrEmpty(body.File)
+                || !treeIndex.TryGetValue(body.File, out var tree)
+                || !HasBindDemand(body))
+                results[i] = body;
+            else
+                demand.Add((i, body, tree));
+        }
+
         var varDeclsResolved = 0;
         var receiversResolved = 0;
         var creationOpsResolved = 0;
         var genericArgsResolved = 0;
         var argTypesResolved = 0;
-        var upgraded = ImmutableArray.CreateBuilder<BodyFacts>();
 
-        foreach (var body in facts)
+        // The bind is the measured wall of big-repo analysis (DntSite: 79.7s of an 81.8s SemanticLite
+        // stage, serial) and is CPU-bound. Parallel BY TREE — each task binds one file's bodies against
+        // its own GetSemanticModel, the same isolation CallGraphExtractor's parallel bind uses; no
+        // SemanticModel is ever shared across threads.
+        var parallelOpts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
+        Parallel.ForEach(demand.GroupBy(d => d.Tree), parallelOpts, group =>
         {
-            if (string.IsNullOrEmpty(body.File)
-                || !treeIndex.TryGetValue(body.File, out var tree)
-                || !HasBindDemand(body))
-            {
-                upgraded.Add(body);
-                continue;
-            }
+            SemanticModel? semanticModel;
+            try { semanticModel = compilation.GetSemanticModel(group.Key); }
+            catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
 
-            if (!modelCache.TryGetValue(tree, out var semanticModel))
-            {
-                try { semanticModel = compilation.GetSemanticModel(tree); }
-                catch { semanticModel = null; }
-                modelCache[tree] = semanticModel;
-            }
+            var localVarDecls = 0;
+            var localReceivers = 0;
+            var localCreations = 0;
+            var localGenericArgs = 0;
+            var localArgTypes = 0;
 
-            if (semanticModel is null)
+            foreach (var (index, body, tree) in group)
             {
-                upgraded.Add(body);
-                continue;
-            }
-
-            var ops = body.Ops;
-            var changed = false;
-
-            for (var i = 0; i < ops.Length; i++)
-            {
-                switch (ops[i])
+                if (semanticModel is null)
                 {
-                    case LocalDeclOp local when local.InferredFrom is not { Tier: ResolutionTier.Semantic }:
+                    results[index] = body;
+                    continue;
+                }
+
+                results[index] = UpgradeOneBody(body, tree, semanticModel,
+                    ref localVarDecls, ref localReceivers, ref localCreations, ref localGenericArgs, ref localArgTypes);
+            }
+
+            Interlocked.Add(ref varDeclsResolved, localVarDecls);
+            Interlocked.Add(ref receiversResolved, localReceivers);
+            Interlocked.Add(ref creationOpsResolved, localCreations);
+            Interlocked.Add(ref genericArgsResolved, localGenericArgs);
+            Interlocked.Add(ref argTypesResolved, localArgTypes);
+        });
+
+        return (ImmutableArray.Create(results), varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved);
+    }
+
+    /// <summary>Upgrades a single body's ops against the (task-local) semantic model. Pure over its
+    /// inputs apart from the count refs; identical op-by-op logic to the pre-parallel serial loop.</summary>
+    private static BodyFacts UpgradeOneBody(
+        BodyFacts body, SyntaxTree tree, SemanticModel semanticModel,
+        ref int varDeclsResolved, ref int receiversResolved, ref int creationOpsResolved,
+        ref int genericArgsResolved, ref int argTypesResolved)
+    {
+        var ops = body.Ops;
+        var changed = false;
+
+        for (var i = 0; i < ops.Length; i++)
+        {
+            switch (ops[i])
+            {
+                case LocalDeclOp local when local.InferredFrom is not { Tier: ResolutionTier.Semantic }:
+                {
+                    var bound = TryBindLocalDeclType(local, tree, semanticModel);
+                    var merged = MergeSemantic(local.InferredFrom, bound, local.Line, tree.FilePath);
+                    if (merged is not null)
                     {
-                        var bound = TryBindLocalDeclType(local, tree, semanticModel);
-                        var merged = MergeSemantic(local.InferredFrom, bound, local.Line, tree.FilePath);
+                        ops = ops.SetItem(i, local with { InferredFrom = merged });
+                        changed = true;
+                        varDeclsResolved++;
+                    }
+                    break;
+                }
+                case InvocationOp inv:
+                {
+                    var newInv = inv;
+                    var invChanged = false;
+
+                    // (a) Receiver type — gates dispatch detection (ISender/IMediator etc.).
+                    if (inv.ReceiverType is not { Tier: ResolutionTier.Semantic })
+                    {
+                        var bound = TryBindReceiverType(inv, tree, semanticModel);
+                        var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
+                        if (merged is not null) { newInv = newInv with { ReceiverType = merged }; invChanged = true; receiversResolved++; }
+                    }
+
+                    // (b) Generic type arguments (e.g. Adapt<T>, Map<T>) — bound directly (assembly-independent).
+                    if (newInv.GenericArgs.Length > 0)
+                    {
+                        var gargs = newInv.GenericArgs;
+                        var gargsChanged = false;
+                        for (var gi = 0; gi < gargs.Length; gi++)
+                        {
+                            if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
+                            var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
+                            var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
+                            if (merged is not null) { gargs = gargs.SetItem(gi, merged); gargsChanged = true; genericArgsResolved++; }
+                        }
+                        if (gargsChanged) { newInv = newInv with { GenericArgs = gargs }; invChanged = true; }
+                    }
+
+                    // (c) Argument types — the inline dispatch target `sender.Send(new XCommand(..))` /
+                    //     `sender.Send(request.Adapt<XCommand>())`, where there is no `var` local to carry
+                    //     the type. Binding the argument expression (or its mapping generic arg) makes the
+                    //     dispatched contract verified. Demand-scoped to what detection consumes: only
+                    //     Args[0] of a dispatch/publish/raise verb is ever read (ResolveArgTarget call
+                    //     sites), so only that is bound.
+                    if (!newInv.Args.IsDefaultOrEmpty
+                        && ArgDemandVerbs.Contains(newInv.MethodName)
+                        && newInv.Args[0].Type is not { Tier: ResolutionTier.Semantic })
+                    {
+                        var bound = TryBindArgType(inv, 0, tree, semanticModel);
+                        var merged = MergeSemantic(newInv.Args[0].Type, bound, inv.Line, tree.FilePath);
                         if (merged is not null)
                         {
-                            ops = ops.SetItem(i, local with { InferredFrom = merged });
-                            changed = true;
-                            varDeclsResolved++;
+                            newInv = newInv with { Args = newInv.Args.SetItem(0, newInv.Args[0] with { Type = merged }) };
+                            invChanged = true;
+                            argTypesResolved++;
                         }
-                        break;
                     }
-                    case InvocationOp inv:
+
+                    if (invChanged) { ops = ops.SetItem(i, newInv); changed = true; }
+                    break;
+                }
+                case CreationOp cr when cr.Type is not { Tier: ResolutionTier.Semantic }:
+                {
+                    var bound = TryBindCreationType(cr, tree, semanticModel);
+                    var merged = MergeSemantic(cr.Type, bound, cr.Line, tree.FilePath);
+                    if (merged is not null)
                     {
-                        var newInv = inv;
-                        var invChanged = false;
-
-                        // (a) Receiver type — gates dispatch detection (ISender/IMediator etc.).
-                        if (inv.ReceiverType is not { Tier: ResolutionTier.Semantic })
-                        {
-                            var bound = TryBindReceiverType(inv, tree, semanticModel);
-                            var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
-                            if (merged is not null) { newInv = newInv with { ReceiverType = merged }; invChanged = true; receiversResolved++; }
-                        }
-
-                        // (b) Generic type arguments (e.g. Adapt<T>, Map<T>) — bound directly (assembly-independent).
-                        if (newInv.GenericArgs.Length > 0)
-                        {
-                            var gargs = newInv.GenericArgs;
-                            var gargsChanged = false;
-                            for (var gi = 0; gi < gargs.Length; gi++)
-                            {
-                                if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
-                                var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
-                                var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
-                                if (merged is not null) { gargs = gargs.SetItem(gi, merged); gargsChanged = true; genericArgsResolved++; }
-                            }
-                            if (gargsChanged) { newInv = newInv with { GenericArgs = gargs }; invChanged = true; }
-                        }
-
-                        // (c) Argument types — the inline dispatch target `sender.Send(new XCommand(..))` /
-                        //     `sender.Send(request.Adapt<XCommand>())`, where there is no `var` local to carry
-                        //     the type. Binding the argument expression (or its mapping generic arg) makes the
-                        //     dispatched contract verified.
-                        if (!newInv.Args.IsDefaultOrEmpty)
-                        {
-                            var args = newInv.Args;
-                            var argsChanged = false;
-                            for (var ai = 0; ai < args.Length; ai++)
-                            {
-                                if (args[ai].Type is { Tier: ResolutionTier.Semantic }) continue;
-                                var bound = TryBindArgType(inv, ai, tree, semanticModel);
-                                var merged = MergeSemantic(args[ai].Type, bound, inv.Line, tree.FilePath);
-                                if (merged is not null) { args = args.SetItem(ai, args[ai] with { Type = merged }); argsChanged = true; argTypesResolved++; }
-                            }
-                            if (argsChanged) { newInv = newInv with { Args = args }; invChanged = true; }
-                        }
-
-                        if (invChanged) { ops = ops.SetItem(i, newInv); changed = true; }
-                        break;
+                        ops = ops.SetItem(i, cr with { Type = merged });
+                        changed = true;
+                        creationOpsResolved++;
                     }
-                    case CreationOp cr when cr.Type is not { Tier: ResolutionTier.Semantic }:
-                    {
-                        var bound = TryBindCreationType(cr, tree, semanticModel);
-                        var merged = MergeSemantic(cr.Type, bound, cr.Line, tree.FilePath);
-                        if (merged is not null)
-                        {
-                            ops = ops.SetItem(i, cr with { Type = merged });
-                            changed = true;
-                            creationOpsResolved++;
-                        }
-                        break;
-                    }
+                    break;
                 }
             }
-
-            upgraded.Add(changed ? body with { Ops = ops } : body);
         }
 
-        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved);
+        return changed ? body with { Ops = ops } : body;
     }
 
     /// <summary>Binds the type of argument <paramref name="argIndex"/> of the invocation at <c>inv.Line</c>
@@ -489,7 +576,7 @@ public static class SemanticLitePopulator
 
             return BindExpressionType(invocation.ArgumentList.Arguments[argIndex].Expression, model);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -518,7 +605,7 @@ public static class SemanticLitePopulator
             if (expr is null) return null;
             return NamedType(model.GetTypeInfo(expr).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -547,7 +634,7 @@ public static class SemanticLitePopulator
             var arg = name.TypeArgumentList.Arguments[argIndex];
             return NamedType(model.GetTypeInfo(arg).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -590,7 +677,7 @@ public static class SemanticLitePopulator
             if (!modelCache.TryGetValue(tree, out var semanticModel))
             {
                 try { semanticModel = compilation.GetSemanticModel(tree); }
-                catch { semanticModel = null; }
+                catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
                 modelCache[tree] = semanticModel;
             }
 
@@ -620,7 +707,7 @@ public static class SemanticLitePopulator
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "edge-upgrade", ex); }
 
             upgraded.Add(edge);
         }
@@ -708,7 +795,7 @@ public static class SemanticLitePopulator
                 return BindExpressionType(init, model);
             }
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -774,7 +861,7 @@ public static class SemanticLitePopulator
             if (receiver is null) return null;
             return NamedType(model.GetTypeInfo(receiver).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 

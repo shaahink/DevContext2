@@ -43,6 +43,8 @@ export class SessionStore {
   readonly statsLoading = computed(() => this.activeSession().statsLoading);
   readonly progress = computed(() => this.activeSession().progress);
   readonly consoleLog = computed(() => this.activeSession().consoleLog);
+  /** D4.6 (L2) — analyzed-at + HEAD sha for the freshness card. */
+  readonly freshness = computed(() => this.activeSession().freshness);
 
   readonly busy = computed(() => this.status() === 'analyzing' || this.status() === 'cloning');
   readonly ready = computed(() => this.status() === 'ready');
@@ -124,8 +126,29 @@ export class SessionStore {
         mapMarkdown: map.markdown,
         entryGroups,
         status: 'ready',
+        // D4.6 (L2) — provisional stamp; the ListSessions round-trip below refines it
+        // with the server's HEAD sha (fresh runs have age ≈ 0 anyway).
+        freshness: { analyzedAtMs: Date.now(), commitSha: '' },
       }));
       this.activity.clear();
+
+      // D4.6 (L2) — the server already knows the analyzed HEAD (SessionInfo.commit_sha,
+      // previously fetched-and-dropped on adopt only); one cheap call feeds the card.
+      this.api
+        .listSessions()
+        .then((ls) => {
+          const own = ls.sessions.find((s) => s.handle === outcome.handle);
+          if (own) {
+            this.workspace.updateSession(tabId, (s) => ({
+              ...s,
+              freshness: {
+                analyzedAtMs: Date.now() - Number(own.ageSeconds) * 1000,
+                commitSha: own.commitSha,
+              },
+            }));
+          }
+        })
+        .catch(() => { /* freshness is advisory — the card degrades to the client stamp */ });
 
       // L4.3 — service map + flow list come from the graph projections (one truth), fetched
       // once here; Home hero and Atlas read graphFacets instead of re-deriving client-side.
@@ -179,7 +202,11 @@ export class SessionStore {
       const entryGroups = groupEntries(entries.entryPoints, path);
       const flat = entryGroups.flatMap((g) => g.entries);
       const summary = create(AnalysisSummarySchema, {
-        label: path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? path,
+        // F4 (D4.5) — adopt converges on the same identity as fresh analyze: the scored
+        // solution name (MapResponse.solution_name), directory basename only as fallback.
+        // Pre-D4.5 adopt used the basename while analyze used engine.Label — the audit's
+        // "home says Refit.slnx, tab says refit" split.
+        label: map.solutionName || (path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? path),
         projects: map.projectCount,
         nodes: match.nodes,
         edges: match.edges,
@@ -199,6 +226,11 @@ export class SessionStore {
         entryGroups,
         status: 'ready',
         error: null,
+        // D4.6 (L2) — the adopted SessionInfo carries age + HEAD; stop dropping them.
+        freshness: {
+          analyzedAtMs: Date.now() - Number(match.ageSeconds) * 1000,
+          commitSha: match.commitSha,
+        },
       }));
       this.workspace.setPathLabel(tabId, path, summary.label);
 

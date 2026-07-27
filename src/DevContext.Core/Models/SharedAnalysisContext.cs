@@ -21,7 +21,9 @@ public sealed class SharedAnalysisContext
     /// and folded into the semantic compilation (huge perf hit on Razor-heavy repos + garbage trees).</summary>
     public IReadOnlyList<string> AllSourceFiles { get; set; } = [];
     /// <summary>Razor markup file paths (.razor / .cshtml). Consumed as TEXT (regex/@page scanning) by the
-    /// Razor Pages and Blazor extractors — never Roslyn-parsed as C#.</summary>
+    /// Razor Pages and Blazor extractors — never Roslyn-parsed as C#. The ONE sanctioned C# path is
+    /// <c>RazorCodeVirtualizer</c> (C1): it extracts the <c>@code</c>/<c>@functions</c> block text and
+    /// parses ONLY that, cached in <see cref="RazorVirtualTrees"/> — the markup still never sees Roslyn.</summary>
     public IReadOnlyList<string> AllContentFiles { get; set; } = [];
     /// <summary>All .csproj project file paths discovered.</summary>
     public IReadOnlyList<string> AllProjectFiles { get; set; } = [];
@@ -62,6 +64,19 @@ public sealed class SharedAnalysisContext
     /// <summary>All body facts gathered across files after the BodyFacts pass (facts-v1). Empty until
     /// <c>BodyFactsExtractor</c> runs; consumed by the seam detectors (L2) and the assembler (L2.3).</summary>
     public IReadOnlyList<BodyFacts> AllBodyFacts { get; set; } = [];
+
+    /// <summary>C1: virtual C# trees built from <c>.razor</c> <c>@code</c> blocks (null = the file has no
+    /// extractable C#). Keyed by razor path; built once via <c>RazorCodeVirtualizer</c>, shared by the
+    /// structure and call-graph extractors. Not persisted — rebuilt from source on a cache miss.</summary>
+    public ConcurrentDictionary<string, Lazy<Task<Microsoft.CodeAnalysis.SyntaxTree?>>> RazorVirtualTrees { get; } = new();
+
+    /// <summary>Gets or lazily builds the razor virtual tree for a given file path (C1).</summary>
+    public async Task<Microsoft.CodeAnalysis.SyntaxTree?> GetOrBuildRazorVirtualTreeAsync(
+        string filePath, Func<Task<Microsoft.CodeAnalysis.SyntaxTree?>> factory)
+    {
+        var lazy = RazorVirtualTrees.GetOrAdd(filePath, _ => new Lazy<Task<Microsoft.CodeAnalysis.SyntaxTree?>>(factory));
+        return await lazy.Value;
+    }
 }
 
 /// <summary>Represents the dependency graph of projects within the solution.</summary>

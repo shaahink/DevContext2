@@ -32,16 +32,24 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         // resolve across files (G2).
         var routeConsts = await FastEndpointsHelper.BuildRouteConstIndex(context, ct);
 
+        // Repo-wide caller-prefix index so a group's prefix crosses the extension-method boundary
+        // (B3): `var shows = app.MapGroup("/shows"); shows.MapShowsApi();` in Program.cs must reach
+        // the `group.MapGet("/", …)` calls inside MapShowsApi in another file. Composed only when
+        // every observed call site agrees on one prefix — an ambiguous or mixed-receiver method
+        // keeps its routes bare rather than guessing.
+        var extensionCallerPrefixes = await BuildExtensionCallerPrefixIndex(context, ct);
+
         foreach (var filePath in context.Analysis.AllSourceFiles)
         {
             ct.ThrowIfCancellationRequested();
-            await ScanFile(filePath, context, model, detectedKeys, routeConsts, ct);
+            await ScanFile(filePath, context, model, detectedKeys, routeConsts, extensionCallerPrefixes, ct);
         }
     }
 
     private static async Task ScanFile(
         string filePath, DiscoveryContext context, DiscoveryModel model,
-        HashSet<string> detectedKeys, IReadOnlyDictionary<string, string> routeConsts, CancellationToken ct)
+        HashSet<string> detectedKeys, IReadOnlyDictionary<string, string> routeConsts,
+        IReadOnlyDictionary<string, string> extensionCallerPrefixes, CancellationToken ct)
     {
         SyntaxTree syntaxTree;
         try
@@ -68,31 +76,30 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         var groupPrefixes = ExtractGroupPrefixes(root);
         var groupAuth = ExtractGroupAuth(root, groupPrefixes);
 
-        // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
-        foreach (var invocation in allInvocations)
-        {
-            ct.ThrowIfCancellationRequested();
-            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
-            if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
-
-            // Check if this is a call on a MapGroup variable (e.g. api.MapGet(...))
-            var groupVarName = memberAccess.Expression is IdentifierNameSyntax groupVar ? groupVar.Identifier.ValueText : null;
-            var groupPrefix = groupVarName is not null && groupPrefixes.TryGetValue(groupVarName, out var gp) ? gp : null;
-            var groupAuthAttrs = groupVarName is not null && groupAuth.TryGetValue(groupVarName, out var ga) ? ga : [];
-
-            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix, groupAuthAttrs);
-        }
-
-        // Phase 2: Find extension methods that take IEndpointRouteBuilder/WebApplication
-        // and scan their bodies for Map* calls (catches MapTodoEndpoints, etc.)
+        // Phase 2 FIRST (B3): extension methods that take IEndpointRouteBuilder/WebApplication/
+        // RouteGroupBuilder, scanned with per-method scope. It runs before the whole-file pass because
+        // AddEndpoint dedups on file:line and the per-method resolution is strictly better scoped: the
+        // method's own group vars can't collide with same-named vars elsewhere in the file, and the
+        // receiver parameter can be seeded with the caller's composed prefix from the repo-wide index.
         var extMethods = root.DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Where(m => IsEndpointExtension(m));
 
         foreach (var extMethod in extMethods)
         {
-            // Scan for MapGroup calls within the extension method body for prefix resolution
-            var extGroupPrefixes = ExtractGroupPrefixes(extMethod);
+            // Seed the receiver parameter with the caller's group prefix (B3) — only for group-capable
+            // receiver types; a WebApplication receiver can never be a RouteGroupBuilder at a call site,
+            // so an index hit there is a same-name different method.
+            Dictionary<string, string>? seed = null;
+            var firstParam = extMethod.ParameterList.Parameters[0];
+            var firstParamType = firstParam.Type?.ToString() ?? "";
+            if ((firstParamType.Contains("RouteGroupBuilder") || firstParamType.Contains("IEndpointRouteBuilder"))
+                && extensionCallerPrefixes.TryGetValue(extMethod.Identifier.ValueText, out var callerPrefix))
+            {
+                seed = new Dictionary<string, string> { [firstParam.Identifier.ValueText] = callerPrefix };
+            }
+
+            var extGroupPrefixes = ExtractGroupPrefixes(extMethod, seed);
             var extGroupAuth = ExtractGroupAuth(extMethod, extGroupPrefixes);
             var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (var invocation in extInvocations)
@@ -107,6 +114,22 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
                 AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix, groupAuthAttrs);
             }
+        }
+
+        // Phase 1: direct MapGet/MapPost/etc calls (app.MapGet("/route", handler)) anywhere else in
+        // the file — extension-method endpoints were already claimed above with better-scoped prefixes.
+        foreach (var invocation in allInvocations)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
+
+            // Check if this is a call on a MapGroup variable (e.g. api.MapGet(...))
+            var groupVarName = memberAccess.Expression is IdentifierNameSyntax groupVar ? groupVar.Identifier.ValueText : null;
+            var groupPrefix = groupVarName is not null && groupPrefixes.TryGetValue(groupVarName, out var gp) ? gp : null;
+            var groupAuthAttrs = groupVarName is not null && groupAuth.TryGetValue(groupVarName, out var ga) ? ga : [];
+
+            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix, groupAuthAttrs);
         }
 
         // Phase 3+4: FastEndpoints-style class detection
@@ -341,9 +364,16 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         }
     }
 
-    private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)
+    /// <summary>Maps group-builder variable names to their FULL route prefixes within one scope (a file
+    /// root or a single extension method). Nesting composes through the MapGroup receiver — `var v1 =
+    /// api.MapGroup("/v1")` where `api` is itself a group var resolves to "/api/v1" (B3). An optional
+    /// <paramref name="seed"/> pre-binds names that enter the scope from outside — the extension-method
+    /// receiver parameter carrying its caller's composed prefix. Unresolvable receivers (`app`,
+    /// `NewVersionedApi(...)` chains) contribute nothing: the var keeps its own literal, as before.</summary>
+    private static Dictionary<string, string> ExtractGroupPrefixes(
+        SyntaxNode root, IReadOnlyDictionary<string, string>? seed = null)
     {
-        var prefixes = new Dictionary<string, string>();
+        var defs = new Dictionary<string, (string? Receiver, string Prefix)>();
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
@@ -358,22 +388,133 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             var variableName = FindAssignedVariable(invocation);
             if (variableName is null) continue;
 
-            prefixes[variableName] = prefix;
+            var receiver = memberAccess.Expression is IdentifierNameSyntax recv
+                ? recv.Identifier.ValueText
+                : null;
+            defs[variableName] = (receiver, prefix);
         }
 
-        // Resolve multi-level chains
-        foreach (var key in prefixes.Keys.ToList())
+        var resolved = new Dictionary<string, string>();
+        string Resolve(string name, HashSet<string> visiting)
         {
-            var resolved = prefixes[key];
-            foreach (var (varName, varPrefix) in prefixes)
+            if (resolved.TryGetValue(name, out var done)) return done;
+            var (receiver, prefix) = defs[name];
+            var full = prefix;
+            if (receiver is not null && visiting.Add(name))
             {
-                if (resolved != varPrefix && resolved.Contains(varName))
-                    resolved = resolved.Replace(varName, varPrefix);
+                if (defs.ContainsKey(receiver) && !visiting.Contains(receiver))
+                    full = CombinePrefix(Resolve(receiver, visiting), prefix);
+                else if (seed is not null && seed.TryGetValue(receiver, out var seedPrefix))
+                    full = CombinePrefix(seedPrefix, prefix);
             }
-            prefixes[key] = resolved;
+            resolved[name] = full;
+            return full;
+        }
+        foreach (var key in defs.Keys)
+            Resolve(key, []);
+
+        // Seed names with no local re-definition resolve to the seed value itself
+        // (`group.MapGet("/", …)` directly on the receiver parameter).
+        if (seed is not null)
+        {
+            foreach (var (name, prefix) in seed)
+                resolved.TryAdd(name, prefix);
         }
 
-        return prefixes;
+        return resolved;
+    }
+
+    /// <summary>Composes a parent group prefix with a child's own prefix, normalizing the seam slash.</summary>
+    private static string CombinePrefix(string parent, string child)
+        => NormalizeRoute($"{parent}/{child}".Replace("//", "/"));
+
+    /// <summary>Builds the repo-wide method-name → caller-group-prefix index for B3. Records every
+    /// member call whose receiver is a resolved group builder — `shows.MapShowsApi()` (group variable)
+    /// and `app.MapGroup("/shows").MapShowsApi()` (inline chain) both index MapShowsApi → "/shows".
+    /// A name survives only when (a) every prefixed call site agrees on ONE prefix and (b) it is never
+    /// also called on a plain identifier receiver (`app.MapXApi()`), where composing would be a guess —
+    /// single-hop honesty: an extension calling another extension does not forward its seeded prefix.</summary>
+    private static async Task<IReadOnlyDictionary<string, string>> BuildExtensionCallerPrefixIndex(
+        DiscoveryContext context, CancellationToken ct)
+    {
+        var prefixed = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var unprefixed = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var filePath in context.Analysis.AllSourceFiles)
+        {
+            ct.ThrowIfCancellationRequested();
+            SyntaxTree syntaxTree;
+            try
+            {
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            }
+            catch
+            {
+                continue; // the main scan logs the parse failure
+            }
+
+            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var groupPrefixes = ExtractGroupPrefixes(root);
+
+            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            {
+                if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+                var name = memberAccess.Name.Identifier.ValueText;
+                if (name == "MapGroup" || MapMethods.Contains(name)) continue;
+
+                string? prefix = memberAccess.Expression switch
+                {
+                    IdentifierNameSyntax id when groupPrefixes.TryGetValue(id.Identifier.ValueText, out var p) => p,
+                    InvocationExpressionSyntax chain => ChainMapGroupPrefix(chain, groupPrefixes),
+                    _ => null,
+                };
+
+                if (prefix is not null)
+                {
+                    if (!prefixed.TryGetValue(name, out var set))
+                        prefixed[name] = set = [];
+                    set.Add(prefix);
+                }
+                else if (memberAccess.Expression is IdentifierNameSyntax)
+                {
+                    unprefixed.Add(name);
+                }
+            }
+        }
+
+        return prefixed
+            .Where(kv => kv.Value.Count == 1 && !unprefixed.Contains(kv.Key))
+            .ToDictionary(kv => kv.Key, kv => kv.Value.First(), StringComparer.Ordinal);
+    }
+
+    /// <summary>Walks INWARD through a fluent chain receiver to the innermost `MapGroup("literal")`
+    /// link — `app.MapGroup("/x").RequireAuthorization().MapXApi()` yields "/x", composed with the
+    /// MapGroup receiver's own prefix when that receiver is a resolved group variable. Returns null
+    /// when the chain carries no literal MapGroup (e.g. `NewVersionedApi(...)` chains).</summary>
+    private static string? ChainMapGroupPrefix(
+        InvocationExpressionSyntax chain, Dictionary<string, string> groupPrefixes)
+    {
+        var current = chain;
+        while (true)
+        {
+            if (current.Expression is not MemberAccessExpressionSyntax memberAccess) return null;
+            if (memberAccess.Name.Identifier.ValueText == "MapGroup")
+            {
+                var prefixArg = current.ArgumentList.Arguments.FirstOrDefault();
+                if (prefixArg?.Expression is not LiteralExpressionSyntax lit) return null;
+                var own = lit.Token.ValueText;
+                return memberAccess.Expression is IdentifierNameSyntax recv
+                    && groupPrefixes.TryGetValue(recv.Identifier.ValueText, out var parent)
+                    ? CombinePrefix(parent, own)
+                    : own;
+            }
+            if (memberAccess.Expression is InvocationExpressionSyntax inner)
+            {
+                current = inner;
+                continue;
+            }
+            return null;
+        }
     }
 
     private static string? FindAssignedVariable(InvocationExpressionSyntax invocation)

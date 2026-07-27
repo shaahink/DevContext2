@@ -1,0 +1,15 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\d1.1b-2\StackExchange.Redis
+\map.md
+analyzed 561 files · 1612 nodes · 1038 edges · 0 entries · ~1954 tokens · 27.4s 
+stage2 ×2.3 stage3 ×1.9
+╭──────────┬──────────────────────────╮
+│  Metric  │          Value           │
+├──────────┼──────────────────────────┤
+│ Solution │ StackExchange.Redis.slnx │
+│   Time   │         27873ms          │
+│  Tokens  │   ~1954 (budget 8000)    │
+│ Version  │   v1.0.5-preview.0.275   │
+╰──────────┴──────────────────────────╯

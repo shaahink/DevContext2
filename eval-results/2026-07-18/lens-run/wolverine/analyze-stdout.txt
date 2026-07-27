@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+  from cache · 7019b7d · analyzed 2026-07-18 02:08 · 2535ms
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-18\lens-run\wolverine\map.md
+analyzed 4053 files · 11864 nodes · 10000 edges · 51 entries · 49/51 →target · 
+~6292 tokens · 53.9s stage2 ×3.0 stage3 ×3.4
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │    wolverine.slnx    │
+│   Time   │        2554ms        │
+│  Tokens  │ ~6292 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.307 │
+╰──────────┴──────────────────────╯

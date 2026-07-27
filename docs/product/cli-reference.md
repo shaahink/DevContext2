@@ -55,8 +55,12 @@ devcontext analyze C:\src\Shop --focus OrdersController --depth 3 --detail full
 | `--no-roslyn` | Disable the Roslyn deep tier — faster, deterministic; some deep/dispatch edges drop. |
 | `--lite` | Skip the full graph build (source bodies + call graph); the Map still renders but loses dispatch targets/deep traces, and a focus re-analyzes. |
 | `--fast` | Skip heavy extractors (call graph, anti-patterns, unconditional scanners) for max speed. |
-| `--no-cache` | Always perform a fresh analysis (result is still cached for future runs). |
+| `--no-cache` | Bypass the snapshot cache entirely: fresh analysis, and the result is NOT written back (an experiment run can't poison the cache). |
 | `--cache-only` | Fail if a cached snapshot is not available (CI reproducibility). |
+
+The snapshot cache lives in `%LOCALAPPDATA%\DevContext\cache`; set the `DEVCONTEXT_CACHE_ROOT`
+environment variable to relocate it (test hosts and CI use this to stay off the user's cache).
+A dirty git working tree gets its own cache key, so uncommitted edits never render a stale map.
 
 ## Diagnostics
 

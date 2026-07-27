@@ -45,6 +45,11 @@ public static class RoleTags
     /// <summary>Edge tag on a Resolves edge whose ONLY DI registration is in a test project — a
     /// last-resort wiring the reader should not mistake for the production binding (T2.1).</summary>
     public const string TestOnlyDi = "test-only-di";
+    /// <summary>C6 (Prism D1.2f): edge tag on a Resolves edge born from a typed-HttpClient
+    /// registration (<c>AddHttpClient&lt;IFeedClient, FeedClient&gt;</c>). There the interface is
+    /// pure plumbing — entry targets name the implementation, never the bare interface. Domain
+    /// ports (AddScoped bindings) keep their interface-as-contract display.</summary>
+    public const string HttpClientBinding = "http-client-binding";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport
@@ -157,6 +162,14 @@ public sealed record GraphEdge(
     /// <summary>When >1, how many DI implementations exist for this Resolves edge's service type
     /// (I1.6 multi-impl honesty). Zero otherwise.</summary>
     public int MultiImplCount { get; init; }
+    /// <summary>All "file:line" registration sites when this Resolves binding is registered from more
+    /// than one place (C5: N hosts each wiring the same service→impl). <see cref="Provenance"/> holds the
+    /// deterministic first; the trace prefers the focus host's own site at walk time. Empty for
+    /// single-site bindings and non-DI edges.</summary>
+    public ImmutableArray<string> RegistrationSites { get; init; } = [];
+    /// <summary>Owning project name per <see cref="RegistrationSites"/> entry (parallel array, "" when
+    /// unresolvable) — how the trace matches a site to its focus host exactly instead of by path guess.</summary>
+    public ImmutableArray<string> RegistrationProjects { get; init; } = [];
 }
 
 /// <summary>Immutable, queryable graph. Construct via <see cref="CodeGraphBuilder"/>.</summary>
@@ -174,28 +187,35 @@ public sealed class CodeGraph
         _nodes = nodes.ToFrozenDictionary();
         _outEdges = outEdges.ToFrozenDictionary();
 
+        // D5.3 determinism — FrozenDictionary enumeration order is hash-layout-dependent (randomized
+        // per process), so every order-exposing surface captures the CALLER's enumeration order here:
+        // the builder's Dictionaries enumerate in insertion order, which is deterministic once the
+        // model is sealed. Nodes/AllEdges (and the derived in-edge lists below) must never enumerate
+        // the frozen dictionaries directly.
+        Nodes = [.. nodes.Values];
+        AllEdges = [.. outEdges.Values.SelectMany(e => e)];
+
         // Inverse adjacency (Phase 5 req 3): derived from out-edges so neighbors(id, in) and
         // find_usages(id) are O(degree), not a full-graph scan. Kept DERIVED — rebuilt here on
         // construct, never serialized — so the graph stays serialization-clean (Phase 9 disk index
         // remains additive).
         var inverse = new Dictionary<NodeId, List<GraphEdge>>();
-        foreach (var edges in _outEdges.Values)
-            foreach (var e in edges)
-            {
-                if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
-                list.Add(e);
-            }
+        foreach (var e in AllEdges)
+        {
+            if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
+            list.Add(e);
+        }
         _inEdges = inverse.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
     }
 
-    /// <summary>All nodes.</summary>
-    public IReadOnlyCollection<GraphNode> Nodes => _nodes.Values;
+    /// <summary>All nodes, in builder insertion order (deterministic — never frozen-dictionary order).</summary>
+    public ImmutableArray<GraphNode> Nodes { get; }
     /// <summary>Total node count.</summary>
     public int NodeCount => _nodes.Count;
     /// <summary>Total edge count.</summary>
-    public int EdgeCount => _outEdges.Values.Sum(e => e.Length);
-    /// <summary>All edges in the graph (from every node's outgoing adjacency). Lazy, one-allocation.</summary>
-    public IEnumerable<GraphEdge> AllEdges => _outEdges.Values.SelectMany(e => e);
+    public int EdgeCount => AllEdges.Length;
+    /// <summary>All edges in the graph, in builder insertion order (deterministic).</summary>
+    public ImmutableArray<GraphEdge> AllEdges { get; }
     /// <summary>L3.4 — True when the graph required hub-scoping because normal call-edge binding produced
     /// too few edges (entries &lt; 5 or edge/node ratio &lt; 0.1). Reported honestly in Stats.</summary>
     public bool IsSparseGraph { get; init; }

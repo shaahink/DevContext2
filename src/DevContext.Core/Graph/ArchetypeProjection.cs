@@ -15,6 +15,7 @@ public sealed record ArchetypeView
         Archetype.Desktop => "DESKTOP VIEW",
         Archetype.Worker  => "WORKER VIEW",
         Archetype.Blazor  => "COMPONENT TREE",
+        Archetype.CliTool => "COMMAND SURFACE",
         _                 => "",
     };
 
@@ -51,6 +52,7 @@ public sealed class ArchetypeProjection : IGraphProjection<ArchetypeView>
             Archetype.Worker  => CollectWorkerEntries(graph),
             Archetype.Blazor  => CollectBlazorEntries(graph),
             Archetype.Library => CollectPublicApiEntries(graph),
+            Archetype.CliTool => CollectCliEntries(graph),
             _                 => ImmutableArray<(EntryPointKind Kind, EntryPoint Entry)>.Empty,
         };
 
@@ -108,6 +110,18 @@ public sealed class ArchetypeProjection : IGraphProjection<ArchetypeView>
         foreach (var flow in graph.Flows)
         {
             if (flow.Entry.Kind == EntryPointKind.HttpEndpoint)
+                result.Add((flow.Entry.Kind, flow.Entry));
+        }
+        return result.ToImmutable();
+    }
+
+    private static ImmutableArray<(EntryPointKind, EntryPoint)> CollectCliEntries(CodeGraph graph)
+    {
+        // D1.1d — the command surface: parser-based commands and plain-Main fallback entries.
+        var result = ImmutableArray.CreateBuilder<(EntryPointKind, EntryPoint)>();
+        foreach (var flow in graph.Flows)
+        {
+            if (flow.Entry.Kind == EntryPointKind.CliCommand)
                 result.Add((flow.Entry.Kind, flow.Entry));
         }
         return result.ToImmutable();

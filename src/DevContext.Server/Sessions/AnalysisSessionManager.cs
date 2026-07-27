@@ -84,6 +84,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
             _repoToHandle.TryRemove(repoKey, out _);
 
         await entry.Session.DisposeAsync().ConfigureAwait(false);
+        await ReleaseHostIfOrphanedAsync(entry.Session).ConfigureAwait(false);
         return true;
     }
 
@@ -118,6 +119,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
                 var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha);
                 _repoToHandle.TryRemove(repoKey, out _);
                 await entry.Session.DisposeAsync().ConfigureAwait(false);
+                await ReleaseHostIfOrphanedAsync(entry.Session).ConfigureAwait(false);
             }
         }
 
@@ -129,8 +131,28 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
                 var repoKey = RepoKey(lruEntry.Session.RepoPath, lruEntry.Session.CommitSha);
                 _repoToHandle.TryRemove(repoKey, out _);
                 await lruEntry.Session.DisposeAsync().ConfigureAwait(false);
+                await ReleaseHostIfOrphanedAsync(lruEntry.Session).ConfigureAwait(false);
             }
         }
+    }
+
+    /// <summary>D5.3 laden-server — a removed session takes its EngineHost with it when no other
+    /// live session shares the root, so the host cache (which pins the repo's parsed trees) stays
+    /// bounded by the session cap instead of growing per analyzed root for the server's lifetime.
+    /// The host key is the ANALYZED root (<see cref="Core.Pipeline.AnalysisSnapshot.RootPath"/> =
+    /// ProjectRootResolver's EffectiveRootPath), which can differ from the session's RepoPath.
+    /// A concurrent analyze on the same root recreates the host via GetOrCreate — worst case a
+    /// cold re-parse, never a wrong result.</summary>
+    private async Task ReleaseHostIfOrphanedAsync(AnalysisSession closed)
+    {
+        var root = closed.Snapshot.RootPath;
+        if (string.IsNullOrEmpty(root)) return;
+        foreach (var (_, e) in _sessions)
+        {
+            if (string.Equals(e.Session.Snapshot.RootPath, root, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+        await _hostCache.ReleaseAsync(root).ConfigureAwait(false);
     }
 
     private static string RepoKey(string repoPath, string commitSha)

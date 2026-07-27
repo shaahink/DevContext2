@@ -1,0 +1,52 @@
+{
+  "repo": "eval-repos/StackExchange.Redis",
+  "checks": [
+    {
+      "id": "archetype-library",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "Library",
+      "status": "expected",
+      "note": "A2 FIXED (Prism D1.1b): toys/ = sample path + Traversal Build.csproj = holder; Library verdict fires. Flipped 2026-07-17."
+    },
+    {
+      "id": "library-header",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "LIBRARY",
+      "status": "expected",
+      "note": "A2/A5 FIXED (Prism D1.1b): 1955-token LIBRARY render (141 public types)."
+    },
+    {
+      "id": "no-minimalapi-style",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "MinimalApi",
+      "status": "expected",
+      "note": "A2 FIXED (Prism D1.1b): style line suppressed on library render; toys hosts no longer style evidence."
+    },
+    {
+      "id": "no-holder-projects",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": ".github",
+      "status": "expected",
+      "note": "E2 FIXED (Prism D1.1b): NoTargets/Traversal SDK holder rung; .github/docs/docker/RedisConfigs out of topology."
+    },
+    {
+      "id": "no-test-path-topology",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "RedisConfigs",
+      "status": "expected",
+      "note": "E2 FIXED (Prism D1.1b): RedisConfigs is a NoTargets holder; excluded by the holder rung."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 120000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 30s CLI wall."
+    }
+  ]
+}

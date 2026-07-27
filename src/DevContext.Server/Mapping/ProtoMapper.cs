@@ -50,7 +50,7 @@ internal static class ProtoMapper
         return p;
     }
 
-    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown)
+    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown, string? solutionName = null)
     {
         var resp = new Proto.MapResponse
         {
@@ -61,6 +61,7 @@ internal static class ProtoMapper
             IsLibrary = map?.Archetype == Archetype.Library,
             Archetype = map?.Archetype.ToString() ?? "App",
         };
+        if (solutionName is { Length: > 0 }) resp.SolutionName = solutionName;
 
         if (map is null) return resp;
 
@@ -87,6 +88,32 @@ internal static class ProtoMapper
             foreach (var g in surface.Groups)
                 resp.Surface.Groups.Add(MapSurfaceGroup(g));
             resp.Surface.ExtensionPoints.AddRange(surface.ExtensionPoints);
+            // D4.4 — the full capability-grouped surface (was dropped: markdown-only).
+            foreach (var e in surface.EntryApi)
+            {
+                var pe = new Proto.SurfaceEntry { Title = e.Title, Kind = e.Kind };
+                if (e.Doc is { Length: > 0 } d) pe.Doc = d;
+                if (e.Location is { Length: > 0 } loc) pe.Location = loc;
+                resp.Surface.EntryApi.Add(pe);
+            }
+            foreach (var a in surface.Abstractions)
+                resp.Surface.Abstractions.Add(new Proto.SurfaceAbstraction
+                {
+                    Name = a.Name,
+                    Kind = a.Kind.ToString().ToLowerInvariant(),
+                    ImplementorCount = a.ImplementorCount,
+                });
+            foreach (var g in surface.Internals)
+                resp.Surface.Internals.Add(MapSurfaceGroup(g));
+            resp.Surface.ConsumerPaths.AddRange(surface.ConsumerPaths);
+            foreach (var gen in surface.Generators)
+            {
+                var pg2 = new Proto.SurfaceGenerator { Name = gen.Name, Kind = gen.Kind };
+                if (gen.Doc is { Length: > 0 } d) pg2.Doc = d;
+                resp.Surface.Generators.Add(pg2);
+            }
+            foreach (var pkg in surface.Packages)
+                resp.Surface.Packages.Add(new Proto.PackageGroup { Label = pkg.Label, Packages = { pkg.Packages } });
         }
 
         // M1.9 / D5 — per-service styles
@@ -198,9 +225,20 @@ internal static class ProtoMapper
         ImmutableArray<SeamStat> seams, int entriesWithTarget,
         long totalWallMs,
         ImmutableArray<Insight> insights,
-        ImmutableArray<DevContext.Core.Graph.EntryPoint> entries)
+        ImmutableArray<DevContext.Core.Graph.EntryPoint> entries,
+        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? extractionFailures = null)
     {
         var resp = new Proto.StatsResponse { TotalWallMs = totalWallMs };
+
+        // J1/J3 — swallowed-failure counters ride the stats surface
+        foreach (var f in extractionFailures ?? [])
+            resp.ExtractionFailures.Add(new Proto.SwallowedFailureStat
+            {
+                Source = f.Source,
+                Category = f.Category,
+                Count = f.Count,
+                Sample = f.SampleException ?? "",
+            });
 
         resp.Graph = new Proto.GraphStat
         {
@@ -636,6 +674,7 @@ internal static class ProtoMapper
         {
             var st = new Proto.SurfaceType { Name = t.Name, Kind = t.Kind.ToString() };
             st.Members.AddRange(t.Members);
+            if (t.Doc is { Length: > 0 } d) st.Doc = d;
             sg.Types_.Add(st);
         }
         return sg;

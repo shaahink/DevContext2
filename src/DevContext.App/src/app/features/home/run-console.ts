@@ -1,54 +1,51 @@
-import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild, ElementRef, OnDestroy } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
 import { Icon } from '../../ui/icon/icon';
 import { formatCompact } from '../../core/format';
-
-interface PhaseStatus {
-  key: string;
-  label: string;
-  seen: boolean;
-  completed: boolean;
-  lastMessage: string;
-  lastPercent: number;
-}
+import { StageTimeline } from '../shared/stage-timeline';
+import { buildWaterfall, formatElapsedShort } from './waterfall.vm';
 
 /**
  * Home's console ⇄ report (proposal §2 "console during analysis → digest"). Two
  * modes off the same live log: `boot` streams while analyzing, `report` renders once
- * `session.stats()` lands. L1.3 adds a phase checklist (no jumping bar — each phase
- * shows its live count), while keeping the detailed log below as a collapsible detail.
+ * `session.stats()` lands. D4.6 (L7): boot renders a LIVE WATERFALL — one ticking row
+ * per pipeline stage under the server's own stage names, elapsed derived from the log's
+ * receipt timestamps (the old checklist substring-mapped stages onto a hand-kept phase
+ * list and showed no timing at all). K2: the report's stages render as a proportional
+ * timeline (shared with the insights page) instead of equal-width bars.
  */
 @Component({
   selector: 'app-run-console',
-  imports: [Icon],
+  imports: [Icon, StageTimeline],
   template: `
     <div class="console-surface" #surface>
       @if (mode() === 'boot') {
-        <!-- L1.3 — phase checklist with live counts -->
+        <!-- D4.6 (L7) — live waterfall: server stage names, ticking elapsed, honest expectations -->
+        <p class="mb-3 text-2xs text-ink-subtle">
+          First analysis can take minutes on a large repo — the result is snapshotted, so re-runs are instant.
+        </p>
         <div class="space-y-1.5 mb-4">
-          @for (phase of phases(); track phase.key) {
+          @for (row of waterfall(); track row.stage) {
             <div class="flex items-center gap-2 text-2xs"
-              [class.text-ink-muted]="!phase.seen"
-              [class.text-ink]="phase.seen && !phase.completed"
-              [class.text-ink-subtle]="phase.completed">
-              <!-- Status icon -->
-              @if (phase.completed) {
-                <span class="i-lucide-check h-3 w-3 shrink-0 text-green-400"></span>
-              } @else if (phase.seen) {
+              [class.text-ink]="row.active"
+              [class.text-ink-subtle]="!row.active">
+              @if (row.active) {
                 <span class="i-lucide-loader h-3 w-3 shrink-0 animate-spin text-accent"></span>
               } @else {
-                <span class="i-lucide-minus h-3 w-3 shrink-0 opacity-30"></span>
+                <span class="i-lucide-check h-3 w-3 shrink-0 text-green-400"></span>
               }
-              <!-- Phase label -->
-              <span class="w-32 shrink-0 font-medium">{{ phase.label }}</span>
-              <!-- Live detail -->
-              @if (phase.seen) {
-                <span class="truncate">{{ phase.lastMessage }}</span>
-                @if (phase.lastPercent > 0 && phase.lastPercent < 100) {
-                  <span class="tabular-nums text-ink-subtle ml-auto">{{ phase.lastPercent }}%</span>
-                }
+              <span class="w-32 shrink-0 truncate font-medium" [title]="row.stage">{{ row.stage }}</span>
+              <span class="min-w-0 truncate">{{ row.lastMessage }}</span>
+              @if (row.active && row.lastPercent > 0 && row.lastPercent < 100) {
+                <span class="shrink-0 tabular-nums text-ink-subtle">{{ row.lastPercent }}%</span>
               }
+              <span class="ml-auto shrink-0 tabular-nums" [class.text-accent]="row.active">{{ elapsed(row.elapsedMs) }}</span>
+            </div>
+          } @empty {
+            <div class="flex items-center gap-2 text-2xs text-ink-muted">
+              <span class="i-lucide-loader h-3 w-3 shrink-0 animate-spin text-accent"></span>
+              Starting analysis…
             </div>
           }
         </div>
@@ -89,21 +86,10 @@ interface PhaseStatus {
 
             @if (s.stages.length) {
               <div>
-                <h3 class="console-section-title">Stages</h3>
-                <div class="flex items-end gap-1 h-8">
-                  @for (stage of s.stages; track stage.stage) {
-                    <div
-                      class="flex-1 rounded-t-sm bg-accent transition-all"
-                      [style.height]="pct(num(stage.elapsedMs), maxStageMs()) + '%'"
-                      [title]="stage.stage + ': ' + ms(stage.elapsedMs) + 's'"
-                    ></div>
-                  }
-                </div>
-                <div class="mt-1 flex gap-1 text-2xs text-ink-subtle">
-                  @for (stage of s.stages; track stage.stage) {
-                    <span class="flex-1 truncate text-center">{{ stage.stage }} {{ ms(stage.elapsedMs) }}s</span>
-                  }
-                </div>
+                <h3 class="console-section-title">Stage timeline</h3>
+                <!-- D4.6 (K2) — proportional gantt rows; persists with the snapshot (D3.3),
+                     so rehydrated sessions show the ORIGINAL run's timings verbatim. -->
+                <app-stage-timeline [stages]="s.stages" />
               </div>
             }
 
@@ -193,7 +179,7 @@ interface PhaseStatus {
   `,
   host: { class: 'contents' },
 })
-export class RunConsole {
+export class RunConsole implements OnDestroy {
   protected readonly session = inject(SessionStore);
   private readonly scrollAnchor = viewChild<ElementRef>('surface');
 
@@ -204,36 +190,18 @@ export class RunConsole {
     return 'idle';
   });
 
-  /** L1.3 — derive a phase checklist from the raw log lines. Each phase is
-   *  tracked by its canonical stage key; the last-seen message + percent powers
-   *  the live count display. */
-  protected readonly phases = computed<PhaseStatus[]>(() => {
-    const log = this.session.consoleLog();
-    const seen = new Map<string, { msg: string; pct: number }>();
+  /** D4.6 (L7) — a 500ms clock drives the active row's ticking elapsed; runs only in
+   * boot mode (the effect below manages it) so an idle Home costs nothing. */
+  private readonly now = signal(Date.now());
+  private clock: ReturnType<typeof setInterval> | null = null;
 
-    for (const line of log) {
-      const key = normalizePhaseKey(line.stage);
-      seen.set(key, { msg: line.message, pct: line.percent });
-    }
+  protected readonly waterfall = computed(() =>
+    buildWaterfall(this.session.consoleLog(), this.now(), this.mode() === 'boot'),
+  );
 
-    return PHASE_ORDER.map(({ key, label }) => {
-      const last = seen.get(key);
-      return {
-        key,
-        label,
-        seen: last !== undefined,
-        completed: last !== undefined && last.pct >= 99,
-        lastMessage: last?.msg ?? '—',
-        lastPercent: last?.pct ?? 0,
-      };
-    });
-  });
-
-  protected readonly maxStageMs = computed(() => {
-    const s = this.session.stats();
-    if (!s?.stages.length) return 1;
-    return Math.max(...s.stages.map((st) => Number(st.elapsedMs)));
-  });
+  protected elapsed(ms: number): string {
+    return formatElapsedShort(ms);
+  }
 
   protected readonly textCacheHitRate = computed(() => {
     const c = this.session.stats()?.cache;
@@ -271,37 +239,23 @@ export class RunConsole {
       const el = this.scrollAnchor()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;
     });
+    // Start/stop the waterfall clock with boot mode.
+    effect(() => {
+      const boot = this.mode() === 'boot';
+      if (boot && this.clock === null) {
+        this.clock = setInterval(() => this.now.set(Date.now()), 500);
+      } else if (!boot && this.clock !== null) {
+        clearInterval(this.clock);
+        this.clock = null;
+      }
+    });
   }
 
-  protected num(v: bigint): number { return Number(v); }
+  ngOnDestroy(): void {
+    if (this.clock !== null) clearInterval(this.clock);
+  }
+
   protected ms(v: bigint): string { return (Number(v) / 1000).toFixed(1); }
   protected ms2(v: bigint): string { return (Number(v) / 1000).toFixed(2); }
-  protected pct(ms: number, max: number): number { return max > 0 ? Math.max((ms / max) * 100, 3) : 0; }
   protected fmtK(n: number): string { return formatCompact(n); }
 }
-
-function normalizePhaseKey(stage: string): string {
-  const s = stage.toLowerCase();
-  if (s.includes('clon') || s.includes('enumerat') || s.includes('count') || s.includes('compress') || s.includes('receiv') || s.includes('resolv') || s.includes('checkout')) return 'clone';
-  if (s.includes('discov') || s.includes('cach') || s.includes('warmup')) return 'discover';
-  if (s.includes('extract') || s.includes('generic') || s.includes('struct')) return 'extract';
-  if (s.includes('seal') || s.includes('signal')) return 'seal';
-  if (s.includes('deep') || s.includes('specific') || s.includes('roslyn')) return 'deep';
-  if (s.includes('scor')) return 'score';
-  if (s.includes('compress')) return 'compress';
-  if (s.includes('render')) return 'render';
-  if (s.includes('done') || s.includes('complete')) return 'done';
-  return 'other';
-}
-
-const PHASE_ORDER = [
-  { key: 'clone', label: 'Clone' },
-  { key: 'discover', label: 'Discover' },
-  { key: 'extract', label: 'Extract' },
-  { key: 'seal', label: 'Seal' },
-  { key: 'deep', label: 'Deep analysis' },
-  { key: 'score', label: 'Score' },
-  { key: 'compress', label: 'Compress' },
-  { key: 'render', label: 'Render' },
-  { key: 'done', label: 'Done' },
-] as const;

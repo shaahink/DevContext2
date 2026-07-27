@@ -29,22 +29,25 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                 var rootResult = await ProjectRootResolver.ResolveAsync(registryEntry.Path, _fs, ct)
                     .ConfigureAwait(false);
 
-                var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+                // D3.1 — keys carry the analysis flavor (a NoRoslyn run lives in its own slot).
+                var resolvedIntent0 = ResolveIntent(spec);
+                var options0 = BuildOptions(rootResult, resolvedIntent0, spec);
+                var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options0);
                 if (_snapCache.Exists(repoKey, versionKey))
                 {
-                    var cached = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct)
+                    var cached = await _snapCache.TryLoadAsync(repoKey, versionKey, ct)
                         .ConfigureAwait(false);
                     if (cached is not null)
                     {
                         var (stale, staleMessage) = await ProbeStalenessAsync(registryEntry.Path, ct)
                             .ConfigureAwait(false);
 
-                        var resolvedIntent = ResolveIntent(spec);
-                        var options = BuildOptions(rootResult, resolvedIntent, spec);
+                        var resolvedIntent = resolvedIntent0;
+                        var options = options0;
 
                         var host = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
                         var rehydrated = cached with { Options = options, RootPath = rootResult.EffectiveRootPath };
-                        var label = Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.RootPath.TrimEnd('\\', '/'));
+                        var label = BuildLabel(rehydrated, rootResult);
                         var projectCount = rehydrated.Map?.Topology.Length ?? 0;
                         sw.Stop();
                         return new EngineResult(rehydrated, host.Pipeline, label, projectCount,
@@ -63,16 +66,16 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         var resolvedIntent2 = ResolveIntent(spec);
         var options2 = BuildOptions(rootResult2, resolvedIntent2, spec);
 
-        var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath);
+        var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath, options2);
         if (_snapCache.Exists(repoKey2, versionKey2))
         {
-            var cached2 = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey2, versionKey2, ct)
+            var cached2 = await _snapCache.TryLoadAsync(repoKey2, versionKey2, ct)
                 .ConfigureAwait(false);
             if (cached2 is not null)
             {
                 var host2 = hostCache.GetOrCreate(rootResult2.EffectiveRootPath);
                 var rehydrated2 = cached2 with { Options = options2, RootPath = rootResult2.EffectiveRootPath };
-                var label2 = Path.GetFileName(rootResult2.SolutionFilePath ?? rootResult2.RootPath.TrimEnd('\\', '/'));
+                var label2 = BuildLabel(rehydrated2, rootResult2);
                 var projectCount2 = rehydrated2.Map?.Topology.Length ?? 0;
                 sw.Stop();
                 return new EngineResult(rehydrated2, host2.Pipeline, label2, projectCount2,
@@ -109,11 +112,16 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
 
         var snapshot = await host3.Pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
 
-        _ = _snapCache.SaveAsync(repoKey2, versionKey2, snapshot, ct);
+        // J2 — awaited save (the fire-and-forget form could die with the request scope) with the
+        // failure surfaced in the server log instead of swallowed.
+        var saveResult = await _snapCache.SaveAsync(repoKey2, versionKey2, snapshot, ct).ConfigureAwait(false);
+        if (!saveResult.Success)
+            loggerFactory.CreateLogger<EngineRunner>().LogWarning(
+                "Snapshot cache save failed for {Root}: {Error}", rootResult2.EffectiveRootPath, saveResult.Error);
 
         sw.Stop();
 
-        var label3 = Path.GetFileName(rootResult2.SolutionFilePath ?? rootResult2.RootPath.TrimEnd('\\', '/'));
+        var label3 = BuildLabel(snapshot, rootResult2);
         var projectCount3 = snapshot.Map?.Topology.Length ?? 0;
 
         return new EngineResult(
@@ -121,6 +129,19 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             resolvedIntent2.Explanation, resolvedIntent2.Warnings, gitClonePath,
             spec.Cleanup);
     }
+
+    /// <summary>
+    /// F4 (Prism D4.5) — the session label is the ANALYZED product's identity: the scored,
+    /// target-scoped solution name (SolutionDiscoveryExtractor's pick — same source as
+    /// MapResponse.solution_name), falling back to the resolver's file/directory name.
+    /// The old formula read ProjectRootResolver.SolutionFilePath, whose unscored 5-level
+    /// parent walk leaked the ENCLOSING solution (a refit checkout inside this repo's tree
+    /// titled its session "DevContext.slnx").
+    /// </summary>
+    private static string BuildLabel(DevContext.Core.Pipeline.AnalysisSnapshot snapshot, ProjectRootResult rootResult)
+        => snapshot.Model.Solution?.Name is { Length: > 0 } name
+            ? name
+            : Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.RootPath.TrimEnd('\\', '/'));
 
     private static ResolvedIntent ResolveIntent(AnalyzeSpec spec)
     {

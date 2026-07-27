@@ -10,7 +10,9 @@ public sealed class DomainEventRaiseDetector : ISeamDetector
 {
     public string Id => "DomainEventRaise";
 
-    private static readonly HashSet<string> RaiseVerbs = new(StringComparer.Ordinal)
+    // Internal: SemanticLitePopulator unions the detectors' verb sets into its arg-bind demand gate,
+    // so a verb added here is automatically part of the semantic bind demand.
+    internal static readonly HashSet<string> RaiseVerbs = new(StringComparer.Ordinal)
     {
         "AddDomainEvent", "RaiseDomainEvent", "Raise", "AddEvent", "ApplyEvent",
     };

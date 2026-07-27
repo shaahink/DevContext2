@@ -15,7 +15,8 @@ public sealed class SolutionFileParserTests
 
         var projects = SolutionFileParser.ParseProjectPaths(content, @"C:\app\App.sln");
 
-        Assert.Equal([@"src\Web\Web.csproj", @"src\Core\Core.csproj"], projects.ToArray());
+        // The .sln format writes '\'; the parser returns '/'-normalized (H1).
+        Assert.Equal(["src/Web/Web.csproj", "src/Core/Core.csproj"], projects.ToArray());
     }
 
     [Fact]

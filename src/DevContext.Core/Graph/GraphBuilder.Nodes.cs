@@ -1,3 +1,4 @@
+using DevContext.Core.Extractors.Specific;
 using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
 using DevContext.Core.Graph2.Seams;
@@ -14,7 +15,7 @@ public sealed partial class GraphBuilder
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, ArchitectureArchetype archetype)
     {
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!_noise.IsProductionCode(type) || !scope.Contains(type.FilePath)) continue;
             var feature = DeriveFeature(type, model);
@@ -104,7 +105,7 @@ public sealed partial class GraphBuilder
         // M1.1 transitive: scan model types for classes whose BaseTypes transitively
         // implement handler interfaces but weren't picked up by the syntax-level extractor.
         var handlerByShortName = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
-        foreach (var t in model.Types.Values)
+        foreach (var t in model.OrderedTypes)
         {
             var sn = StripGenerics(t.Name);
             if (!handlerByShortName.TryGetValue(sn, out var list))
@@ -116,7 +117,7 @@ public sealed partial class GraphBuilder
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
             knownHandlerTypes.Add(names.Resolve(h.HandlerType, h.SourceFile));
 
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (type.Kind != Models.TypeKind.Class) continue;
             if (!scope.Contains(type.FilePath)) continue;
@@ -163,7 +164,7 @@ public sealed partial class GraphBuilder
             FilePath = sourceFile,
             Tags = [RoleTags.Handler],
             Layer = "Application",
-            SourceBody = model.Types.Values
+            SourceBody = model.OrderedTypes
                 .FirstOrDefault(t => t.Id == names.Resolve(handlerShortName, sourceFile))
                 ?.SourceBody,
         });
@@ -317,7 +318,7 @@ public sealed partial class GraphBuilder
                 FilePath = file,
                 Tags = [RoleTags.Service, RoleTags.Pipeline],
                 Layer = "Infrastructure",
-                SourceBody = model.Types.Values
+                SourceBody = model.OrderedTypes
                     .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
             });
 
@@ -378,7 +379,7 @@ public sealed partial class GraphBuilder
         // Iteration 6 deferred: when a base entity is detected but its subtypes aren't (because they were
         // registered via reflection — DntSite's RegisterAllDerivedEntities from BaseEntity), create
         // entity-tagged nodes for every in-scope production type whose base resolves to a known entity.
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath) || type.IsHardExcluded) continue;
             if (type.BaseTypes.IsDefaultOrEmpty) continue;
@@ -419,7 +420,7 @@ public sealed partial class GraphBuilder
             entityShortNames.Add(node.Title);
         }
 
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath)) continue;
             if (!entityShortNames.Contains(type.Name)) continue;
@@ -546,11 +547,17 @@ public sealed partial class GraphBuilder
         {
             if (!scope.Contains(mc.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
-            var eventId = NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
+            // B5 (Prism D1.2d): a queue CHANNEL is not a type — its display title doubles as the node
+            // key (never resolved as a type name) so the publisher half (below) lands on the same node
+            // and the event wiring joins them, and the wire renders "feed-queue [AzureStorageQueue]".
+            var isChannel = mc.MessageType.StartsWith("queue:", StringComparison.Ordinal);
+            var eventId = isChannel
+                ? NodeId.ForType(ChannelTitle(mc.MessageType))
+                : NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
             var consumerType = names.Resolve(mc.ConsumerType, mc.SourceFile);
             var handlerId = NodeId.ForType(consumerType);
 
-            g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Type)
+            g.AddNode(new GraphNode(eventId, isChannel ? ChannelTitle(mc.MessageType) : mc.MessageType, NodeKind.Type)
             {
                 Tags = [RoleTags.IntegrationEvent, mc.BusKind],
                 Layer = "Contracts",
@@ -568,6 +575,47 @@ public sealed partial class GraphBuilder
                 Resolution = Resolution.Join,
             });
         }
+
+        // B5 (Prism D1.2d): queue-channel PUBLISHERS (EventBusExtractor queue seams). The Raises edge
+        // onto the shared channel node completes the wire — FeedsApi → [feed-queue] → Worker renders
+        // on the event board and as a cross-service bus link. Syntactic resolution → [approx].
+        foreach (var ef in model.Detections.OfType<EventFlowDetection>())
+        {
+            if (ef.Kind != "Publish" || !ef.EventType.StartsWith("queue:", StringComparison.Ordinal)) continue;
+            if (!scope.Contains(ef.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(ef.SourceFile)) continue;
+
+            var channelId = NodeId.ForType(ChannelTitle(ef.EventType));
+            var publisherId = NodeId.ForType(names.Resolve(ef.Target, ef.SourceFile));
+
+            g.AddNode(new GraphNode(channelId, ChannelTitle(ef.EventType), NodeKind.Type)
+            {
+                Tags = [RoleTags.IntegrationEvent, ef.BusKind],
+                Layer = "Contracts",
+            });
+            g.AddNode(new GraphNode(publisherId, ef.Target, NodeKind.Type)
+            {
+                FilePath = ef.SourceFile,
+                Project = scope.ProjectForFile(ef.SourceFile),
+            });
+            g.AddEdge(new GraphEdge(publisherId, channelId, EdgeKind.Raises)
+            {
+                Provenance = $"{ef.SourceFile}:{ef.LineNumber}",
+                Resolution = Resolution.Syntactic,
+                Confidence = ef.Confidence,
+            });
+        }
+    }
+
+    /// <summary>"queue:AzureStorageQueue:feed-queue" → "feed-queue [AzureStorageQueue]";
+    /// an unresolved channel shows the transport alone.</summary>
+    private static string ChannelTitle(string channelKey)
+    {
+        var parts = channelKey.Split(':');
+        if (parts.Length < 3) return channelKey;
+        var transport = parts[1];
+        var name = parts[2];
+        return name == "unresolved" ? $"{transport} queue" : $"{name} [{transport}]";
     }
 
 }

@@ -1,0 +1,6 @@
+﻿== build CLI (stale-dll guard) ==
+
+== wolverine ==
+wolverine  wall=3.3s  tokens=6293  cs=4053  archetype=Library/Library  style=CleanArchitecture  => PASS
+
+LENS-AUDIT: PASS (1 repo(s))

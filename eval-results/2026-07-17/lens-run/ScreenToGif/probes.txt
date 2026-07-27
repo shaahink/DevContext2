@@ -1,0 +1,2 @@
+﻿run: 2026-07-17 18:41:47
+ScreenToGif  wall=24.1s  tokens=1088  cs=648  archetype=Desktop/Desktop  style=DesktopMvvm  => PASS

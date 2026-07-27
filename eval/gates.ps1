@@ -25,11 +25,32 @@
 
     Step 3 runs the expectation theory SPLIT ACROSS TWO test hosts by default (~halves its
     wall time; repos are independent). -SerialEval restores the single-process form.
+
+    -EvalTier (Prism D2.0, 2026-07-17 - owner pipeline-speed directive): 'quick' excludes the
+    five HEAVY repos (bitwarden-server, screentogif, wolverine, newtonsoft-json,
+    stackexchange-redis) from Step 3 so a mid-delivery checkpoint sweep lands in <5 min split.
+    BOTH poles (dogfood-microservices, shamshir-pole) always ride. A quick-tier green NEVER
+    writes the eval stamp (a partial verdict must not transfer) and the final line self-labels
+    "not a merge gate" - delivery-close and boundary sweeps stay full-cohort (the default).
+
+    POLES ride in Step 3 (Prism D1.2-fix2, 2026-07-17). dogfood-microservices.json and
+    shamshir-pole.json are ordinary expectation files pointing at MACHINE-LOCAL absolute
+    paths, so the battery guards the poles instead of leaving them to a hand-checked prose
+    table. Why they exist: D1.1c silently flipped the dogfood's style Microservices ->
+    CleanArchitecture and deleted its ROUTES block + 4 cross-service edges, and it survived
+    FOUR checkpoints of green gates — because no pole was in the cohort, a 42/42 eval said
+    nothing about them. On a machine without those repos (CI, a clean clone) the harness
+    SKIPs the rows; Step 3 now PRINTS every skip, because a silent skip is how a gate lies
+    about what it covered. Poles pin SEMANTICS (style, signals, rendered sections), never
+    node/edge counts — a count row on a live repo flakes, and a flaky row gets muted.
 #>
 param(
     [switch]$SkipEval,
     [ValidateSet('full', 'engine', 'app')]
     [string]$Scope = 'full',
+    # D2.0: 'quick' = exclude the heavy repos from Step 3 (mid-delivery cadence; not a merge gate).
+    [ValidateSet('quick', 'full')]
+    [string]$EvalTier = 'full',
     [switch]$SerialEval,
     # The MCP QA drive (step 2b) targets a machine-local dogfood repo (eval/mcp-qa/run.js) that
     # can't exist on a hosted runner — CI (.github/workflows/eval.yml) passes this. Local runs don't.
@@ -147,11 +168,20 @@ function Get-EngineStamp {
 }
 $stampFile = Join-Path $repoRoot "eval\.eval-stamp.json"
 
+# D2.0: the QUICK tier's exclusion list. These five dominate the ~16-min serial cohort wall
+# (bitwarden alone ~4-5 min); excluding them targets <5 min split for mid-delivery sweeps.
+# Exact expectation basenames - poles are NOT here on purpose (they always ride).
+$HeavyRepos = @('bitwarden-server', 'screentogif', 'wolverine', 'newtonsoft-json', 'stackexchange-redis')
+
 if ($SkipEval) {
     Write-Step "Step 3: Eval expectation tests - SKIPPED (-SkipEval; mid-stage fast run)"
     Write-Host "  the full battery must still run at the stage/push/merge boundary" -ForegroundColor Yellow
 } else {
     Write-Step "Step 3: Eval expectation tests"
+    if ($EvalTier -eq 'quick') {
+        # No silent caps: a tiered verdict says out loud what it did not cover.
+        Write-Host "  QUICK tier - $($HeavyRepos.Count) heavy repos EXCLUDED from this verdict: $($HeavyRepos -join ', ')" -ForegroundColor Yellow
+    }
     $engineStamp = Get-EngineStamp
     $lastGreen = $null
     if (Test-Path $stampFile) {
@@ -166,15 +196,31 @@ if ($SkipEval) {
         $evalExit = 0
         $evalResult = @()
         if ($SerialEval) {
-            $evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
+            $serialFilter = "Category=Eval"
+            if ($EvalTier -eq 'quick') {
+                $serialFilter += (($HeavyRepos | ForEach-Object { "&DisplayName!~$_" }) -join '')
+            }
+            $evalResult = dotnet test $sln --filter $serialFilter --no-build 2>&1
             $evalExit = $LASTEXITCODE
             Write-Host $evalResult
         } else {
             $names = Get-ChildItem (Join-Path $repoRoot 'eval\expectations\*.json') -ErrorAction SilentlyContinue |
                 Where-Object { $_.BaseName -notmatch '-output$' } | ForEach-Object { $_.BaseName } | Sort-Object
+            if ($EvalTier -eq 'quick') {
+                $names = @($names | Where-Object { $HeavyRepos -notcontains $_ })
+            }
+            # D2.0: known-slow repos ride FIRST, heaviest first, so the round-robin below spreads
+            # them across the hosts (LPT-style). Plain alphabetical alternation stacked
+            # shamshir-pole + dntsite + dotnet-podcasts in one bucket - 8m28 vs 3m56 halves
+            # (prism-d2/gates-d20-quick.txt). Names absent from the cohort (quick tier) drop out.
+            $slowFirst = @('bitwarden-server', 'shamshir-pole', 'dntsite', 'screentogif', 'wolverine',
+                           'newtonsoft-json', 'dotnet-podcasts', 'stackexchange-redis', 'eshop', 'dogfood-microservices')
+            $names = @($slowFirst | Where-Object { $names -contains $_ }) + @($names | Where-Object { $slowFirst -notcontains $_ })
             $bucketA = New-Object System.Collections.Generic.List[string]
             $bucketB = New-Object System.Collections.Generic.List[string]
-            $i = 0
+            # Start the alternation at B: host A additionally carries every non-expectation eval
+            # class (filterA's FullyQualifiedName!~ arm), so the single heaviest repo goes opposite.
+            $i = 1
             foreach ($n in $names) {
                 $sub = $null
                 foreach ($seen in ($bucketA + $bucketB)) {
@@ -219,15 +265,32 @@ if ($SkipEval) {
             }
         }
 
+        # D1.2-fix2: a SKIPPED repo is a hole in the verdict, so say so out loud. The poles
+        # (dogfood, shamshir) are machine-local by nature — on CI they skip, and a gate that
+        # printed nothing would let "42/42 green" imply pole coverage it never had.
+        $skipLines = $evalResult | Select-String "^\s*SKIP " | ForEach-Object { $_.Line.Trim() }
+        if ($skipLines) {
+            Write-Host ""
+            Write-Host "Repos SKIPPED - not covered by this verdict:" -ForegroundColor Yellow
+            foreach ($line in $skipLines) {
+                Write-Host "  $line" -ForegroundColor Yellow
+            }
+        }
+
         if ($evalExit -ne 0) {
             Write-Fail "Eval tests failed" -Step 3
             Write-Host ""
             Write-Host "GATE: FAIL (step 3 - eval)" -ForegroundColor Red
             exit 3
         }
-        @{ stamp = $engineStamp; date = (Get-Date -Format 'yyyy-MM-dd HH:mm') } | ConvertTo-Json |
-            Out-File $stampFile -Encoding utf8
-        Write-Pass "Eval tests passed (stamp written)"
+        if ($EvalTier -eq 'quick') {
+            # A quick-tier green is a partial verdict - it must not transfer to later full gates.
+            Write-Pass "Eval tests passed (QUICK tier - stamp NOT written; heavy repos not covered)"
+        } else {
+            @{ stamp = $engineStamp; date = (Get-Date -Format 'yyyy-MM-dd HH:mm') } | ConvertTo-Json |
+                Out-File $stampFile -Encoding utf8
+            Write-Pass "Eval tests passed (stamp written)"
+        }
     }
 }
 
@@ -295,10 +358,11 @@ if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Propertie
 
 $stJson = & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json 2>&1 | Out-String
 try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
-if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind) {
-    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, per-kind counts present" -ForegroundColor Green
+# K2 (Prism D3.3): stats must carry the analyze-time stage timeline (fresh fixture => never empty).
+if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -gt 0) {
+    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, $($st.stages.Count) waterfall stages" -ForegroundColor Green
 } else {
-    Write-Host "    stats: expected node counts + entriesByKind" -ForegroundColor Red; $queryFailed++
+    Write-Host "    stats: expected node counts + entriesByKind + non-empty stages timeline" -ForegroundColor Red; $queryFailed++
 }
 
 # trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
@@ -361,6 +425,8 @@ if ($Scope -eq 'app') {
     Write-Host "GATE: PASS (ENGINE scope - app check skipped; not a merge gate)" -ForegroundColor Yellow
 } elseif ($SkipEval) {
     Write-Host "GATE: PASS (FAST - eval skipped; not a merge gate)" -ForegroundColor Yellow
+} elseif ($EvalTier -eq 'quick') {
+    Write-Host "GATE: PASS (QUICK eval tier - heavy repos excluded; not a merge gate)" -ForegroundColor Yellow
 } else {
     Write-Host "GATE: PASS" -ForegroundColor Green
 }

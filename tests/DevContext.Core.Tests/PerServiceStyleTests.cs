@@ -25,6 +25,23 @@ public sealed class PerServiceStyleTests
     }
 
     [Fact]
+    public void Maui_by_tfm_triple_reads_maui_without_any_package()
+    {
+        // B2 (Prism D1.2b) — podcasts shape: <UseMaui>true</UseMaui> (SDK-provided) + mobile TFMs,
+        // ZERO Microsoft.Maui package references. Read Unknown at audit.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Microsoft.NetConf2021.Maui", $@"{Root}\Mobile\Microsoft.NetConf2021.Maui.csproj",
+                    "C#", ["net7.0-android", "net7.0-ios", "net7.0-maccatalyst"], [], [], "Exe"),
+            ],
+        };
+
+        Assert.Equal("MAUI App [.NET MAUI]", StyleOf(model, "Microsoft.NetConf2021.Maui"));
+    }
+
+    [Fact]
     public void Blazor_storefront_outranks_its_yarp_bff_reference()
     {
         var model = new DiscoveryModel

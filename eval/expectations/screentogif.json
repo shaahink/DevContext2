@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/ScreenToGif",
+  "checks": [
+    { "id": "archetype-desktop", "type": "json-equals", "path": "$.archetype", "value": "Desktop", "status": "expected", "note": "Audit 2026-07-17: correctly Desktop. Ratchet." },
+    { "id": "desktop-header", "type": "output-contains", "format": "markdown", "value": "DESKTOP APP", "status": "expected", "note": "Audit 2026-07-17: renders. Ratchet." },
+    { "id": "style-mvvm", "type": "json-contains", "path": "$.architecture.style", "value": "Mvvm", "status": "expected", "note": "C4 FIXED (Prism D1.3a): ArchitectureStyle.DesktopMvvm fallback rung (UseWPF/WinForms probe + >=3 ViewModels). Flipped 2026-07-17." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected", "note": "Audit 2026-07-17: 20s CLI wall." }
+  ]
+}

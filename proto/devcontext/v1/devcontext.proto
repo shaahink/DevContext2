@@ -206,6 +206,9 @@ message MapResponse {
   repeated ServiceStyle service_styles = 15;
   // L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor)
   optional ArchetypeView archetype_view = 16;
+  // D1.5 — the analyzed solution's name (e.g. "Newtonsoft.Json"): the product identity,
+  // distinct from runnable hosts (a library's ServiceMap holds its test consoles).
+  optional string solution_name = 17;
 }
 
 message ProjectNode {
@@ -229,6 +232,14 @@ message ServiceStyle {
 message LibrarySurface {
   repeated SurfaceGroup groups = 1;
   repeated string extension_points = 2;
+  // D4.4 — the full capability-grouped surface, structured (previously these sections
+  // existed only inside MapResponse.markdown). Mirrors Core's LibrarySurface record.
+  repeated SurfaceEntry entry_api = 3;
+  repeated SurfaceAbstraction abstractions = 4;
+  repeated SurfaceGroup internals = 5;       // *.Internal namespaces, demoted out of groups
+  repeated string consumer_paths = 6;
+  repeated SurfaceGenerator generators = 7;
+  repeated PackageGroup packages = 8;        // runtime-only (test/benchmark/sample deps excluded)
 }
 
 message SurfaceGroup {
@@ -240,6 +251,29 @@ message SurfaceType {
   string name = 1;
   string kind = 2;
   repeated string members = 3;
+  optional string doc = 4;                   // D4.4 — XML-doc <summary> one-liner
+}
+
+// D4.4 — a ranked ENTRY API front door: kind ∈ annotate|register|build|derive|implement|extend.
+message SurfaceEntry {
+  string title = 1;
+  string kind = 2;
+  optional string doc = 3;
+  optional string location = 4;              // short file name, e.g. "GetAttribute.cs"
+}
+
+// D4.4 — an ABSTRACTIONS seat consumers implement/derive, with its in-repo implementor count.
+message SurfaceAbstraction {
+  string name = 1;
+  string kind = 2;                           // "interface" | "class"
+  int32 implementor_count = 3;
+}
+
+// D4.4 — Roslyn tooling the library ships: kind ∈ generator|analyzer|code-fixer.
+message SurfaceGenerator {
+  string name = 1;
+  string kind = 2;
+  optional string doc = 3;
 }
 
 // L7.2 — archetype-shaped entry-point view for Desktop, Worker, Blazor, and Library.
@@ -378,6 +412,15 @@ message StatsResponse {
   int64 total_wall_ms = 8;
   repeated Insight insights = 9;
   ConfidenceLedger confidence_ledger = 10;
+  // J1/J3 (Prism D2) — per-component swallowed-failure counters. Empty = clean run.
+  repeated SwallowedFailureStat extraction_failures = 11;
+}
+
+message SwallowedFailureStat {
+  string source = 1;
+  string category = 2;
+  int32 count = 3;
+  string sample = 4;
 }
 
 message ConfidenceLedger {

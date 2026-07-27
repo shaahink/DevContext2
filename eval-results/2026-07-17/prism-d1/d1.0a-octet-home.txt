@@ -1,0 +1,12 @@
+D1.0a evidence — octet stable home + pinned SHAs (2026-07-17)
+Stable home: eval-repos/<name> (gitignored), copied from audit scratchpad clones.
+
+repo | HEAD sha | pin-match
+Newtonsoft.Json | 4f73e74372445108d2c1bda37b36e6f5e43402e0 | OK
+refit | 71634f2c5d0845c311b1cf4f4bb512437fe86fb5 | OK
+StackExchange.Redis | 0b03ed1d12a6a783873a44cd1f6fad3acf54395f | OK
+wolverine | 7019b7d1b4520f84f90adbc6d407998c85e5e750 | OK
+GitVersion | 6476e5c478ec1b56a45914b3af4f6edcfd20deb0 | OK
+dotnet-podcasts | 5ee8be2990b81eb681bbd100875c263aaa5ab68a | OK
+ScreenToGif | 27a49c3be69486f2db964290f4f2274e790fb687 | OK
+bitwarden-server | 3e79593151787eb94853cb29420530d32f9b543c | OK

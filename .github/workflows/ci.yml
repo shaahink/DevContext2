@@ -15,9 +15,17 @@ jobs:
   # Mirrors the local gate battery (AGENTS.md): Debug build with warnings-as-errors,
   # fast test suite, loom-guards (banned patterns + Category=Truth gate), CLI --strict smoke.
   # eval/gates.ps1 is deliberately NOT here — it clones real repos and stays a local/nightly gate.
+  # D5.2 (Prism H1): the engine legs run on all three OSes — the CLI ships to NuGet as a
+  # cross-platform net10.0 tool, so build + fast suite + CLI strict smoke must pass off-Windows.
+  # loom-guards (Windows PowerShell 5.1 harness) stays on the windows leg; its checks are
+  # source-text gates whose verdict is OS-invariant.
   engine:
-    name: Engine — build, tests, guards
-    runs-on: windows-latest
+    name: Engine (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +45,7 @@ jobs:
         run: dotnet test DevContext.slnx --no-build --filter "Category!=Eval&Category!=Network&Category!=McpQa"
 
       - name: Loom guards + truth gate
+        if: runner.os == 'Windows'
         run: powershell -File scripts/loom-guards.ps1
 
       - name: CLI --strict smoke

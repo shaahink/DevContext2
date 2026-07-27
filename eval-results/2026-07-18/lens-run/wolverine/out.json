@@ -1,0 +1,748 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-18T01:13:03.2902125+00:00",
+  "archetype": "Library",
+  "architectureStyle": "CleanArchitecture",
+  "styleConfidence": 0.7,
+  "projectCount": 215,
+  "projectNames": [
+    "AppHost",
+    "AppHost",
+    "AppWithMiddleware",
+    "AppWithMiddleware.Tests",
+    "BackLogService",
+    "BackPressureTests",
+    "BankingService",
+    "BankingService.Tests",
+    "BatchMessaging",
+    "Benchmarks",
+    "build",
+    "ChaosSender",
+    "ChaosTesting",
+    "CircuitBreakingTests",
+    "Client",
+    "Client",
+    "Client",
+    "Client",
+    "CodeGenTarget",
+    "CommandBus",
+    "ConsoleApp",
+    "Consumer",
+    "Contracts",
+    "CoreTests",
+    "CosmosDbTests",
+    "CosmosDbTests.LeaderElection",
+    "CrazyStartingWebApp",
+    "DeepMiddlewareUsage",
+    "DiagnosticsApp",
+    "DiagnosticsModule",
+    "DiagnosticsTests",
+    "DocumentationSamples",
+    "DuplicateMessageSending",
+    "EfCoreTests",
+    "EfCoreTests.MultiTenancy",
+    "EncryptionDemo",
+    "FaultEventsDemo",
+    "IncidentService",
+    "IncidentService.Tests",
+    "InMemoryMediator",
+    "InventoryServer",
+    "ItemService",
+    "ItemService.Tests",
+    "LoadTesting",
+    "MartenAndRabbitEmailService",
+    "MartenAndRabbitIssueService",
+    "MartenAndRabbitMessages",
+    "MartenSubscriptionTests",
+    "MartenTests",
+    "MessageRoutingTests",
+    "Messages",
+    "Messages",
+    "Messages",
+    "Messages",
+    "Messages",
+    "Messages",
+    "Messages",
+    "Messages",
+    "MetricsDemonstrator",
+    "MetricsTests",
+    "Module1",
+    "Module2",
+    "MultiTenantedEfCoreWithPostgreSQL",
+    "MultiTenantedEfCoreWithSqlServer",
+    "MultiTenantedTodoWebService",
+    "MultiTenantedTodoWebService.Tests",
+    "MySqlTests",
+    "MySqlTests.LeaderElection",
+    "NSwagDemonstrator",
+    "OpenApiDemonstrator",
+    "OptimizedArtifactWorkflowSample",
+    "OracleTests",
+    "OracleTests.LeaderElection",
+    "OrderClient",
+    "OrderEventSourcingSample",
+    "OrderExtension",
+    "Orders",
+    "OrderSagaSample",
+    "OrderServer",
+    "OtelMessages",
+    "OtelWebApi",
+    "OtelWebApiWolverineMarten",
+    "PausingAndRestartingListener",
+    "PersistenceTests",
+    "Pinger",
+    "Pinger",
+    "Pinger",
+    "Pinger",
+    "Pinger",
+    "PolecatIncidentService",
+    "PolecatIncidentService.Tests",
+    "PolecatTests",
+    "PolicyTests",
+    "Ponger",
+    "Ponger",
+    "Ponger",
+    "Ponger",
+    "Ponger",
+    "PostgresqlTests",
+    "PostgresqlTests.LeaderElection",
+    "ProcessManagerViaHandlers",
+    "ProcessManagerViaHandlers.Tests",
+    "Publisher",
+    "Quickstart",
+    "RabbitMqBootstrapping",
+    "RacerClient",
+    "RacerContracts",
+    "RacerServer",
+    "RavenDbTests",
+    "RavenDbTests.LeaderElection",
+    "RetailClient",
+    "SampleTests",
+    "Server",
+    "Server",
+    "Server",
+    "Server",
+    "SharedPersistenceModels",
+    "SlowTests",
+    "SqliteTests",
+    "SqlServerOutboxWebService",
+    "SqlServerTests",
+    "SqlServerTests.LeaderElection",
+    "StartupStyleTarget",
+    "StaticCodeGenDemonstrator",
+    "Subscriber1",
+    "Subscriber2",
+    "TeleHealth.Backend",
+    "TeleHealth.Common",
+    "TeleHealth.Tests",
+    "TeleHealth.WebApi",
+    "TodoWebService",
+    "TodoWebServiceTests",
+    "TracingTests",
+    "WebApiWithMarten",
+    "WebAppWithSQS",
+    "Wolverine",
+    "Wolverine.AdminApi",
+    "Wolverine.AmazonSns",
+    "Wolverine.AmazonSns.Tests",
+    "Wolverine.AmazonSqs",
+    "Wolverine.AmazonSqs.Tests",
+    "Wolverine.AotSmoke",
+    "Wolverine.AotSmoke.Static",
+    "Wolverine.AzureServiceBus",
+    "Wolverine.AzureServiceBus.Tests",
+    "Wolverine.Behavioural.FSharpTests",
+    "Wolverine.ClaimCheck.AmazonS3",
+    "Wolverine.ClaimCheck.AmazonS3.Tests",
+    "Wolverine.ClaimCheck.AzureBlobStorage",
+    "Wolverine.ClaimCheck.AzureBlobStorage.Tests",
+    "Wolverine.ComplianceTests",
+    "Wolverine.Core.FSharpContracts",
+    "Wolverine.Core.FSharpTests",
+    "Wolverine.Cosmos.FSharpTests",
+    "Wolverine.CosmosDb",
+    "Wolverine.DataAnnotationsValidation",
+    "Wolverine.DataAnnotationsValidation.Tests",
+    "Wolverine.EfCore.FSharpTests",
+    "Wolverine.EntityFrameworkCore",
+    "Wolverine.FluentValidation",
+    "Wolverine.FluentValidation.Grpc",
+    "Wolverine.FluentValidation.Tests",
+    "Wolverine.Grpc",
+    "Wolverine.Grpc.Tests",
+    "Wolverine.HealthChecks",
+    "Wolverine.HealthChecks.Tests",
+    "Wolverine.Http",
+    "Wolverine.Http.AspVersioning",
+    "Wolverine.Http.AspVersioning.Tests",
+    "Wolverine.Http.FluentValidation",
+    "Wolverine.Http.FSharpContracts",
+    "Wolverine.Http.FSharpTests",
+    "Wolverine.Http.Marten",
+    "Wolverine.Http.Newtonsoft",
+    "Wolverine.Http.Polecat",
+    "Wolverine.Http.Tests",
+    "Wolverine.Http.Tests.DifferentAssembly",
+    "Wolverine.Http.Tests.EfCoreOnly",
+    "Wolverine.Kafka",
+    "Wolverine.Kafka.Tests",
+    "Wolverine.Marten",
+    "Wolverine.Marten.FSharpTests",
+    "Wolverine.MartenAggregate.FSharpTests",
+    "Wolverine.MemoryPack",
+    "Wolverine.MemoryPack.Tests",
+    "Wolverine.MessagePack",
+    "Wolverine.MessagePack.Tests",
+    "Wolverine.MQTT",
+    "Wolverine.MQTT.Tests",
+    "Wolverine.MySql",
+    "Wolverine.Nats",
+    "Wolverine.Nats.Tests",
+    "Wolverine.Newtonsoft",
+    "Wolverine.Oracle",
+    "Wolverine.Polecat",
+    "Wolverine.Postgresql",
+    "Wolverine.Protobuf",
+    "Wolverine.Protobuf.Tests",
+    "Wolverine.Pubsub",
+    "Wolverine.Pubsub.Tests",
+    "Wolverine.Pulsar",
+    "Wolverine.Pulsar.Tests",
+    "Wolverine.RabbitMQ",
+    "Wolverine.RabbitMQ.Tests",
+    "Wolverine.RavenDb",
+    "Wolverine.RDBMS",
+    "Wolverine.Redis",
+    "Wolverine.Redis.Tests",
+    "Wolverine.RuntimeCompilation",
+    "Wolverine.SignalR",
+    "Wolverine.SignalR.Tests",
+    "Wolverine.Sqlite",
+    "Wolverine.SqlServer",
+    "WolverineChat",
+    "WolverineWebApi"
+  ],
+  "typeCount": 9086,
+  "entryCount": 51,
+  "topologyProjectCount": 64,
+  "graphNodeCount": 11864,
+  "graphEdgeCount": 10000,
+  "signals": [
+    {
+      "key": "azure-servicebus",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "fluentvalidation",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "grpc",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "razor-pages",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "redis",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "refit",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "signalr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "swagger",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "wolverine",
+      "confidence": 0.7,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "risk.unvalidated-endpoints",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Missing validation: 13/14 write endpoints have no FluentValidation validator",
+      "detail": "",
+      "evidence": [
+        "POST /orders/itemready \u2192 Enroll",
+        "POST /test \u2192 TestMessagesHandler",
+        "POST /invoke \u2192 HttpTransportExtensions",
+        "POST /batch/{queue} \u2192 HttpTransportExtensions",
+        "DELETE / \u2192 WolverineRequiredException"
+      ]
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "17/17 endpoints anonymous, incl. 14 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "POST /orders/itemready",
+        "POST /test",
+        "POST /invoke",
+        "POST /batch/{queue}",
+        "GET /"
+      ]
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 8 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "asb_five",
+        "asb_four",
+        "asb_ns_one",
+        "asb_ns_three",
+        "asb_ns_two",
+        "azure-service-bus",
+        "postgres",
+        "sqlserver"
+      ]
+    },
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 5 heavily-referenced internal types",
+      "detail": "",
+      "evidence": [
+        "HostWrapper (1464 refs)",
+        "CapturingLogger (344 refs)",
+        "NoopTestOutputHelper (212 refs)",
+        "EmptyServiceProvider (140 refs)",
+        "TrackedSession (62 refs)"
+      ]
+    },
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: IWolverineExtension (9 impls) \u00B7 IMissingHandler (5 impls) \u00B7 Migrator (4 impls)",
+      "detail": "",
+      "evidence": [
+        "IWolverineExtension (9 impls)",
+        "IMissingHandler (5 impls)",
+        "Migrator (4 impls)"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: Wolverine (27 dependents) \u00B7 Wolverine.Marten (21 dependents) \u00B7 Wolverine.Marten (17 dependents)",
+      "detail": "",
+      "evidence": [
+        "Wolverine (27 dependents)",
+        "Wolverine.Marten (21 dependents)",
+        "Wolverine.Marten (17 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IWolverineExtension (9 impls) \u00B7 IMissingHandler (5 impls) \u00B7 IDatabase (3 impls)",
+      "detail": "",
+      "evidence": [
+        "IWolverineExtension (9 impls)",
+        "IMissingHandler (5 impls)",
+        "IDatabase (3 impls)"
+      ]
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 413 interfaces, 5655 classes (7956 total public types)",
+      "detail": "",
+      "evidence": [
+        "413 interfaces",
+        "5655 classes"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 49/51 (96%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 1225 Extension \u00B7 461 Singleton \u00B7 113 Scoped \u00B7 11 Transient \u00B7 1 Bulk (1811 total)",
+      "detail": "",
+      "evidence": []
+    }
+  ],
+  "eventWiring": {
+    "total": 33,
+    "integration": 25,
+    "crossService": 0,
+    "orphan": 13,
+    "events": [
+      {
+        "event": "ApproveItem1",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "SharedPersistenceModels"
+        ],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "ApproveItem2",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "ApproveItem3",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "ArchiveIncident",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "PolecatIncidentService"
+        ],
+        "consumers": [
+          "PolecatIncidentService"
+        ]
+      },
+      {
+        "event": "AzureServiceBus queue",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.AzureServiceBus"
+        ],
+        "consumers": [
+          "Wolverine.AzureServiceBus"
+        ]
+      },
+      {
+        "event": "BadMessage",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "StaticCodeGenDemonstrator"
+        ],
+        "consumers": [
+          "StaticCodeGenDemonstrator"
+        ]
+      },
+      {
+        "event": "CommitToSprint",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "BackLogService"
+        ]
+      },
+      {
+        "event": "ContinueTrip",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "LoadTesting"
+        ],
+        "consumers": [
+          "LoadTesting"
+        ]
+      },
+      {
+        "event": "Guid",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.Oracle",
+          "Wolverine"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "HttpContext",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "Wolverine.Http"
+        ]
+      },
+      {
+        "event": "MarkItemReady",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "OrderEventSourcingSample"
+        ]
+      },
+      {
+        "event": "MessageHandlingMetrics",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "Wolverine"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "Ping",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "DuplicateMessageSending"
+        ],
+        "consumers": [
+          "DuplicateMessageSending"
+        ]
+      },
+      {
+        "event": "PingRequest",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.Grpc"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "Pong",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "DuplicateMessageSending"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "RabbitMQ queue",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.RabbitMQ"
+        ],
+        "consumers": [
+          "Wolverine.RabbitMQ"
+        ]
+      },
+      {
+        "event": "RecordTravel",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "LoadTesting"
+        ],
+        "consumers": [
+          "LoadTesting"
+        ]
+      },
+      {
+        "event": "RejectOrder",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "SharedPersistenceModels"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "RepairRequested",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "LoadTesting"
+        ],
+        "consumers": [
+          "LoadTesting"
+        ]
+      },
+      {
+        "event": "ServiceBusMessage",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.AzureServiceBus"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "ShipOrder",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "OrderEventSourcingSample"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "StartAndTriggerApproval",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "StartNewItem",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "StartOrder",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "SharedPersistenceModels"
+        ]
+      },
+      {
+        "event": "StartTrip",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "LoadTesting"
+        ],
+        "consumers": [
+          "LoadTesting"
+        ]
+      },
+      {
+        "event": "T",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.SignalR",
+          "Wolverine",
+          "Wolverine.Http",
+          "BackLogService"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "TMessage",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "TResponse",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Wolverine"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "TestEvent",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "SqlServerOutboxWebService"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "TestMessage",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "BatchMessaging"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "TestMessage[]",
+        "integration": true,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "BatchMessaging"
+        ]
+      },
+      {
+        "event": "TodoCreated",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "NSwagDemonstrator"
+        ],
+        "consumers": [
+          "NSwagDemonstrator"
+        ]
+      },
+      {
+        "event": "object",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "Wolverine.SignalR",
+          "Wolverine"
+        ],
+        "consumers": []
+      }
+    ]
+  }
+}

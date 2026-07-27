@@ -36,6 +36,14 @@ if (string.IsNullOrEmpty(builder.Configuration["urls"]))
 
 var app = builder.Build();
 
+// F5 (Prism D4.5) — tag the ui/agent origin BEFORE UseGrpcWeb rewrites the content-type
+// to plain application/grpc (post-rewrite sniffing labeled the app's own RPCs "agent").
+app.Use((context, next) =>
+{
+    context.Items[DevContext.Server.Endpoints.OriginTag.ItemKey] =
+        DevContext.Server.Endpoints.OriginTag.FromContentType(context.Request.ContentType);
+    return next(context);
+});
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
 app.UseCors("web");
 

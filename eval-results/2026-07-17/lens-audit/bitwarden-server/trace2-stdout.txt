@@ -1,0 +1,15 @@
+Slicing from CipherService, call graph on.
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\bitwarden-server\trace-ci
+pherservice.md
+analyzed 4927 files ú 14876 nodes ú 19213 edges ú 669 entries ú 668/669 target 
+ú depth 6 ú ~24774 tokens ú 150.7s stage2 x3.0 stage3 x2.6
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³         Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ bitwarden-server.slnx ³
+³   Time   ³       151802ms        ³
+³  Tokens  ³ ~24774 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265  ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

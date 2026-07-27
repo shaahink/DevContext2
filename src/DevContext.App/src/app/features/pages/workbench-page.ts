@@ -9,7 +9,9 @@ import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
+import { EntryBrowser } from '../entry-browser/entry-browser';
 import { EntryDeck } from '../explorer/entry-deck';
+import { LibraryWorkbench } from '../library/library-workbench';
 import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
@@ -42,7 +44,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens, LibraryWorkbench, EntryBrowser],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -50,7 +52,11 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
   template: `
     <app-trail-bar (restore)="onRestore($event)" />
 
-    @if (session.ready()) {
+    @if (session.ready() && isLibrary()) {
+      <!-- D4.4 (F1): archetype Library routes Explore to the public-surface browser —
+           a library has surface, not entry-point flows. -->
+      <app-library-workbench class="min-h-0 flex-1" />
+    } @else if (session.ready()) {
       <div class="flex min-h-0 flex-1">
         @if (dockLevel() < 3) {
           <app-entry-deck
@@ -72,7 +78,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
-            (tableRequested)="tableOpen.set(true)"
+            (tableRequested)="browserOpen.set(true)"
           />
         }
         @if (dockLevel() > 0) {
@@ -87,6 +93,19 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       <div class="flex flex-1 flex-col items-center justify-center gap-2 text-xs text-ink-subtle">
         <p>The Workbench needs an analyzed repo.</p>
         <a routerLink="/" class="text-accent hover:underline">Analyze one on the Home screen →</a>
+      </div>
+    }
+
+    <!-- D4.5 (L5): the entry BROWSER is the primary all-entries surface; the raw
+         audit table survives as the Shift+E power view. -->
+    @if (browserOpen()) {
+      <div class="fixed inset-0 z-50 flex flex-col bg-base">
+        <app-entry-browser
+          [groups]="session.entryGroups()"
+          (selectionChange)="onEntry($event)"
+          (dismissed)="browserOpen.set(false)"
+          (tableRequest)="browserOpen.set(false); tableOpen.set(true)"
+        />
       </div>
     }
 
@@ -127,6 +146,10 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly tableOpen = signal(false);
+  /** D4.5 (L5) — the grouped/ranked entry browser (primary); table = Shift+E power view. */
+  protected readonly browserOpen = signal(false);
+  /** D4.4 (F1) — Library archetype swaps the whole explore surface for the workbench. */
+  protected readonly isLibrary = computed(() => this.session.mapResponse()?.isLibrary ?? false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -255,8 +278,10 @@ export class WorkbenchPage implements OnDestroy {
     if (step.kind === 'node') void this.trace.selectNode(step.id);
   }
 
+  /** D4.5 (L5) — the deck's "browse all" affordance opens the grouped browser now;
+   * the raw table stays on Shift+E (power view). */
   protected onOpenAudit(): void {
-    this.tableOpen.set(true);
+    this.browserOpen.set(true);
   }
 
   protected onGlobalKey(event: KeyboardEvent): void {
@@ -358,6 +383,10 @@ export class WorkbenchPage implements OnDestroy {
     }
     if (this.tableOpen()) {
       this.tableOpen.set(false);
+      return;
+    }
+    if (this.browserOpen()) {
+      this.browserOpen.set(false);
       return;
     }
     if (this.nodePeek.nodeId()) {

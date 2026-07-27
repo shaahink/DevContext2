@@ -14,10 +14,10 @@ public sealed class MapBuilderTests
         {
             Projects =
             [
-                new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#",
+                new ProjectInfo("Orders.Api", @"C:/repo/src/Orders.Api/Orders.Api.csproj", "C#",
                     ["net10.0"], [],
                     [new PackageReferenceInfo("MediatR", "12.0.0"), new PackageReferenceInfo("Serilog", "4.0.0")]),
-                new ProjectInfo("Orders.Infrastructure", @"C:\repo\src\Orders.Infrastructure\Orders.Infrastructure.csproj", "C#",
+                new ProjectInfo("Orders.Infrastructure", @"C:/repo/src/Orders.Infrastructure/Orders.Infrastructure.csproj", "C#",
                     ["net10.0"], [],
                     [new PackageReferenceInfo("MediatR", "11.0.0"), new PackageReferenceInfo("Dapper", "2.1.0")]),
             ],
@@ -37,13 +37,13 @@ public sealed class MapBuilderTests
     {
         var model = new DiscoveryModel
         {
-            Solution = new SolutionInfo(@"C:\repo\App.sln", "App",
-                [@"C:\repo\src\A\A.csproj", @"C:\repo\src\B\B.csproj"]),
+            Solution = new SolutionInfo(@"C:/repo/App.sln", "App",
+                [@"C:/repo/src/A/A.csproj", @"C:/repo/src/B/B.csproj"]),
             Projects =
             [
-                new ProjectInfo("A", @"C:\repo\src\A\A.csproj", "C#", ["net10.0"], ["B"], []),
-                new ProjectInfo("B", @"C:\repo\src\B\B.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("C", @"C:\repo\src\C\C.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("A", @"C:/repo/src/A/A.csproj", "C#", ["net10.0"], ["B"], []),
+                new ProjectInfo("B", @"C:/repo/src/B/B.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("C", @"C:/repo/src/C/C.csproj", "C#", ["net10.0"], [], []),
             ],
         };
 
@@ -53,6 +53,29 @@ public sealed class MapBuilderTests
         var a = map.Topology.First(n => n.Name == "A");
         Assert.Single(a.DependsOn);
         Assert.Equal("B", a.DependsOn[0]);
+    }
+
+    [Fact]
+    public void Build_topology_disambiguates_duplicate_project_names()
+    {
+        // E3 (Prism D1.4a): `Messages` ×N rendered as indistinguishable rows. Duplicates get the
+        // nearest non-echo ancestor directory as a qualifier; unique names stay bare.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Messages", @"C:/repo/src/OrderService/Messages/Messages.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Messages", @"C:/repo/src/BillingService/Messages/Messages.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Api", @"C:/repo/src/Api/Api.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+
+        var map = MapBuilder.Build(model, EmptyGraph, []);
+
+        var names = map.Topology.Select(n => n.Name).ToList();
+        Assert.Contains("Messages (OrderService)", names);
+        Assert.Contains("Messages (BillingService)", names);
+        Assert.Contains("Api", names);
     }
 
     [Fact]

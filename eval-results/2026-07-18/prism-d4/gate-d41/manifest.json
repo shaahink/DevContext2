@@ -1,0 +1,66 @@
+{
+  "capturedAt": "2026-07-18T14:18:27.091Z",
+  "out": "C:\\code\\DevContext2\\eval-results\\2026-07-18\\prism-d4\\gate-d41",
+  "results": [
+    {
+      "tag": "podcasts",
+      "repo": "C:\\code\\DevContext2\\eval-repos\\dotnet-podcasts",
+      "analyzeMs": 1706,
+      "loading": "captured",
+      "shots": [
+        "podcasts-1-loading.png",
+        "podcasts-2-home.png",
+        "podcasts-3-explore.png",
+        "podcasts-4-atlas.png"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failure": null
+    },
+    {
+      "tag": "refit",
+      "repo": "C:\\code\\DevContext2\\eval-repos\\refit",
+      "analyzeMs": 1169,
+      "loading": "captured",
+      "shots": [
+        "refit-1-loading.png",
+        "refit-2-home.png",
+        "refit-3-explore.png",
+        "refit-4-atlas.png"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failure": null
+    },
+    {
+      "tag": "eshop",
+      "repo": "C:\\code\\DevContext2\\eval-repos\\eShop",
+      "analyzeMs": 955,
+      "loading": "captured",
+      "shots": [
+        "eshop-1-loading.png",
+        "eshop-2-home.png",
+        "eshop-3-explore.png",
+        "eshop-4-atlas.png"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failure": null
+    },
+    {
+      "tag": "bitwarden",
+      "repo": "C:\\code\\DevContext2\\eval-repos\\bitwarden-server",
+      "analyzeMs": 5153,
+      "loading": "captured",
+      "shots": [
+        "bitwarden-1-loading.png",
+        "bitwarden-2-home.png",
+        "bitwarden-3-explore.png",
+        "bitwarden-4-atlas.png"
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failure": null
+    }
+  ]
+}

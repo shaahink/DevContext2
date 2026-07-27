@@ -433,10 +433,10 @@ public static partial class OutputSelfCheck
         return count;
     }
 
-    // IndexOf extension helper for List<Detection> (used in no-duplicate-detections detail message)
-    private static int IndexOf(this ConcurrentBag<Detection> bag, Detection target)
+    // IndexOf extension helper (used in no-duplicate-detections detail message)
+    private static int IndexOf(this SealableBag<Detection> bag, Detection target)
     {
-        // ConcurrentBag doesn't provide indexed access; snapshot it
+        // SealableBag doesn't provide indexed access; snapshot it
         var snapshot = bag.ToList();
         for (int i = 0; i < snapshot.Count; i++)
             if (ReferenceEquals(snapshot[i], target))

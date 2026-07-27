@@ -5,13 +5,15 @@ import { SessionStore } from '../../state/session.store';
 import { AtlasStore } from '../../state/atlas.store';
 import { TraceStore } from '../../state/trace.store';
 import { humanizeTfms, projectDisplayName } from '../../core/format';
-import { ServiceMapHero } from '../shared/service-map-hero';
 import { FlowStepper } from '../shared/flow-stepper';
-import { ServiceCards } from '../shared/service-cards';
+import { ServiceCards, type EntryMix } from '../shared/service-cards';
+import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-canvas';
+import { classifyTransport } from '../../ui/graph-canvas/semantics';
+import { KIND_LABELS } from '../../models/view-models';
 
 @Component({
   selector: 'app-atlas-page',
-  imports: [RouterLink, ServiceMapHero, FlowStepper, ServiceCards],
+  imports: [RouterLink, FlowStepper, ServiceCards, GraphCanvas],
   template: `
     <div class="mx-auto max-w-4xl space-y-8 px-5 pb-10 pt-6">
       @if (!session.ready()) {
@@ -49,13 +51,16 @@ import { ServiceCards } from '../shared/service-cards';
           @if (map()?.archetype; as a) {
             <span class="chip">{{ a }}</span>
           }
-          @if (map()?.style; as st) {
-            <span class="text-ink-muted" [title]="map()?.styleEvidence || ''">
-              {{ st }}
-              @if (confidenceTier(); as tier) {
-                <span class="text-ink-subtle" [title]="'Style detection confidence: ' + ((map()?.styleConfidence ?? 0) * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
-              }
-            </span>
+          <!-- D4.4 (F1): style suppressed for libraries, exactly as the CLI's Library renderer. -->
+          @if (!map()?.isLibrary) {
+            @if (map()?.style; as st) {
+              <span class="text-ink-muted" [title]="map()?.styleEvidence || ''">
+                {{ st }}
+                @if (confidenceTier(); as tier) {
+                  <span class="text-ink-subtle" [title]="'Style detection confidence: ' + ((map()?.styleConfidence ?? 0) * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
+                }
+              </span>
+            }
           }
           @if (stackChips().length) {
             <span class="flex flex-wrap items-center gap-1.5">
@@ -66,28 +71,49 @@ import { ServiceCards } from '../shared/service-cards';
           }
         </div>
 
-        <!-- ① Service diagram (larger) -->
+        <!-- ① Layered architecture view (D4.3/L3): the FULL canvas — zoom, legend, level
+             toggle, service expansion — not the 280px hero the baseline squeezed 33
+             projects into. Double-click a box to open it in Explore. -->
         <div>
-          <h2 class="section-h mb-3">Service diagram</h2>
+          <h2 class="section-h mb-3">Architecture</h2>
           <p class="mb-2 text-2xs text-ink-subtle">
             {{ topology().length }} projects &middot;
             {{ topology().reduce((n, p) => n + p.dependsOn.length, 0) }} dependency edges
+            @if (atlasTransports().length) {
+              &middot; {{ atlasTransports().length }} transport links
+            }
           </p>
-          <app-service-map-hero
-            [topology]="topology()"
-            [serviceStyles]="serviceStyles()"
+          <app-graph-canvas
+            [data]="atlasCanvasData()"
+            (nodeActivated)="onProjectTap($event)"
           />
         </div>
 
         <!-- ② Top flows as stepper strips -->
         <div>
           <h2 class="section-h mb-3">Top flows</h2>
-          <app-flow-stepper [flows]="atlasTopFlows()" />
+          @if ((session.summary()?.entries ?? 0) === 0) {
+            <p class="py-4 text-center text-xs text-ink-subtle">No entry points — a library exposes surface, not flows.</p>
+          } @else {
+            <app-flow-stepper [flows]="atlasTopFlows()" />
+          }
         </div>
 
-        <!-- ③ Event wiring board -->
+        <!-- ③ Event & queue board (D4.3: queue transports join the async seams) -->
         <div>
-          <h2 class="section-h mb-3">Event wiring board</h2>
+          <h2 class="section-h mb-3">Event &amp; queue board</h2>
+          @if (queueLinks().length) {
+            <div class="mb-2 space-y-1">
+              @for (q of queueLinks(); track q.key) {
+                <div class="flex items-center gap-2 rounded border border-line bg-surface px-3 py-1.5 text-xs" [title]="q.evidence">
+                  <span class="font-mono text-ink">{{ q.from }}</span>
+                  <span class="chip text-2xs text-warn">{{ q.transport }}</span>
+                  <span class="text-ink-subtle">&rarr;</span>
+                  <span class="font-mono text-ink">{{ q.to }}</span>
+                </div>
+              }
+            </div>
+          }
           @if (eventWiring().length) {
             <div class="overflow-x-auto rounded border border-line">
               <table class="w-full text-left text-xs">
@@ -129,15 +155,34 @@ import { ServiceCards } from '../shared/service-cards';
                 </tbody>
               </table>
             </div>
-          } @else {
+          } @else if (!queueLinks().length) {
             <p class="py-4 text-center text-xs text-ink-subtle">{{ eventWiringEmptyText() }}</p>
           }
         </div>
 
-        <!-- ④ Per-service cards -->
+        <!-- ④ Data stores (D4.3/L3) -->
+        <div>
+          <h2 class="section-h mb-3">Data stores</h2>
+          @if (dataStores().length) {
+            <div class="space-y-1">
+              @for (d of dataStores(); track d.service) {
+                <div class="flex items-center gap-2 rounded border border-line bg-surface px-3 py-1.5 text-xs">
+                  <span class="min-w-0 flex-1 truncate font-mono text-ink">{{ d.service }}</span>
+                  @for (tech of d.stores; track tech) {
+                    <span class="chip shrink-0 text-2xs">{{ tech }}</span>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="py-4 text-center text-xs text-ink-subtle">No data-store signals detected.</p>
+          }
+        </div>
+
+        <!-- ⑤ Per-service cards (style + entry mix, D4.3) -->
         <div>
           <h2 class="section-h mb-3">Per-service breakdown</h2>
-          <app-service-cards [services]="serviceStyles()" />
+          <app-service-cards [services]="serviceStyles()" [entryMix]="entryMix()" />
         </div>
 
         <!-- ⑤ Cross-cutting (behaviors, packages) -->
@@ -234,6 +279,71 @@ export class AtlasPage {
   protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
   protected readonly pipelineBehaviors = computed(() => this.session.mapResponse()?.pipelineBehaviors ?? []);
   protected readonly packages = computed(() => this.session.mapResponse()?.packages ?? []);
+
+  /** D4.3: the atlas diagram is the full canvas fed by the ServiceMap facet — same
+   * deterministic geometry as Home/Explore (one map, three sizes). */
+  protected readonly atlasTransports = computed(() => this.session.graphFacets()?.serviceMap?.transports ?? []);
+  protected readonly atlasCanvasData = computed<GraphCanvasData>(() => ({
+    mode: 'topology',
+    projects: this.topology(),
+    services: this.session.graphFacets()?.serviceMap?.services ?? [],
+    transports: this.atlasTransports(),
+  }));
+
+  /** Queue-class transports for the async board (events already have their table). */
+  protected readonly queueLinks = computed(() => {
+    const seen = new Set<string>();
+    const rows: { key: string; from: string; to: string; transport: string; evidence: string }[] = [];
+    for (const t of this.atlasTransports()) {
+      if (classifyTransport(t.transport).cls !== 'queue') continue;
+      const key = `${t.fromService}|${t.toService}|${t.transport}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rows.push({ key, from: t.fromService, to: t.toService, transport: t.transport, evidence: t.evidence ?? '' });
+    }
+    return rows;
+  });
+
+  /** Data stores per service: tech signals from the style stack (EFCore/Redis/…) plus the
+   * engine's RoleTags.DataStore mark on the ServiceMap card. Signals only — never invented. */
+  private static readonly STORE_TECH = /ef.?core|entity.?framework|npgsql|postgres|sql.?server|sqlite|mysql|mariadb|redis|mongo|cosmos|dynamo|dapper|litedb|ravendb|marten|elastic/i;
+  protected readonly dataStores = computed(() => {
+    const byService = new Map<string, Set<string>>();
+    for (const s of this.serviceStyles()) {
+      const techs = s.stack.filter((t) => AtlasPage.STORE_TECH.test(t));
+      if (techs.length) byService.set(s.projectName, new Set(techs));
+    }
+    for (const card of this.session.graphFacets()?.serviceMap?.services ?? []) {
+      if (!card.stack.includes('datastore')) continue;
+      const set = byService.get(card.displayName) ?? new Set<string>();
+      if (set.size === 0) set.add('data store');
+      byService.set(card.displayName, set);
+    }
+    return [...byService.entries()]
+      .map(([service, stores]) => ({ service, stores: [...stores].sort() }))
+      .sort((a, b) => a.service.localeCompare(b.service, 'en'));
+  });
+
+  /** Entry mix per project for the service cards (counts by kind, ranked). */
+  protected readonly entryMix = computed<EntryMix>(() => {
+    const counts = new Map<string, Map<string, number>>();
+    for (const g of this.session.entryGroups()) {
+      for (const e of g.entries) {
+        if (!e.project) continue;
+        const per = counts.get(e.project) ?? new Map<string, number>();
+        const label = KIND_LABELS[e.kind] ?? e.kind;
+        per.set(label, (per.get(label) ?? 0) + 1);
+        counts.set(e.project, per);
+      }
+    }
+    const mix = new Map<string, readonly { label: string; count: number }[]>();
+    for (const [project, per] of counts) {
+      mix.set(project, [...per.entries()]
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count));
+    }
+    return mix;
+  });
   protected readonly eventWiring = this.atlas.eventWiring;
   protected readonly hubsWithDegree = this.atlas.hubsWithDegree;
   protected readonly atlasTopFlows = computed(() => this.atlas.topFlows().slice(0, 5));
@@ -242,6 +352,7 @@ export class AtlasPage {
    * on a monolith the truthful message is "there are no cross-service events", not an
    * instruction that changes nothing. */
   protected readonly eventWiringEmptyText = computed(() => {
+    if ((this.session.summary()?.entries ?? 0) === 0) return 'No entry points — event wiring does not apply to a pure library surface.';
     const status = this.atlas.status();
     if (status === 'indexing' || status === 'paused') return 'Indexing flows… event wiring appears as publishers are found.';
     if (status === 'done') return 'No events detected — every indexed flow stays in-process.';
@@ -314,6 +425,24 @@ export class AtlasPage {
       lines.push(`- **${f.title}** (${f.nodeCount} steps, ${f.maxDepth} deep, ${f.boundaryCrossings} cross-service)`);
     }
     lines.push('');
+
+    // D4.3: the export mirrors the page — transports + data stores ride along.
+    const queues = this.queueLinks();
+    if (queues.length) {
+      lines.push('## Queue Links');
+      for (const q of queues) {
+        lines.push(`- ${q.from} —[${q.transport}]→ ${q.to}`);
+      }
+      lines.push('');
+    }
+    const stores = this.dataStores();
+    if (stores.length) {
+      lines.push('## Data Stores');
+      for (const d of stores) {
+        lines.push(`- ${d.service}: ${d.stores.join(', ')}`);
+      }
+      lines.push('');
+    }
 
     // Event wiring — the server's one T2.6 join (T6.11); cross-service hops labeled.
     const wiring = this.eventWiring();

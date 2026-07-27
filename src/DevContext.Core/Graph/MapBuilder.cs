@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>The orientation artifact: architecture, topology, packages, entry inventory, cross-cutting — no code.</summary>
@@ -42,7 +44,7 @@ public sealed class MapBuilder
         var archetype = ArchetypeDetector.Detect(model, entries);
         var topology = BuildTopology(model, graph);
         var archetypeView = archetype is Archetype.Desktop or Archetype.Worker
-            or Archetype.Blazor or Archetype.Library
+            or Archetype.Blazor or Archetype.Library or Archetype.CliTool
             ? new ArchetypeProjection().Project(graph,
                 new ProjectionOptions { Archetype = archetype })
             : null;
@@ -57,7 +59,7 @@ public sealed class MapBuilder
             Aggregates = BuildAggregates(model),
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
-            Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
+            Surface = BuildSurface(model, archetype, entries),
             ArchetypeView = archetypeView,
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
@@ -79,11 +81,30 @@ public sealed class MapBuilder
         return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
     }
 
+    /// <summary>A5 (Prism D1.1e) — the render backstop's data source. The Library archetype always gets
+    /// its surface; an App map with ZERO entries also builds one, so the renderer can show the public
+    /// surface instead of a dead 19-line map (audit: Newtonsoft 209 tokens, GitVersion 485). Returns
+    /// null when the built surface has no content (renderer then falls back to the console view).</summary>
+    private static LibrarySurface? BuildSurface(DiscoveryModel model, Archetype archetype, ImmutableArray<EntryPoint> entries)
+    {
+        if (archetype == Archetype.Library)
+            return LibrarySurfaceBuilder.Build(model);
+        if (archetype == Archetype.App && entries.IsDefaultOrEmpty)
+        {
+            var surface = LibrarySurfaceBuilder.Build(model);
+            return surface.Groups.Length > 0 || surface.EntryApi.Length > 0 ? surface : null;
+        }
+        return null;
+    }
+
     private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model, CodeGraph graph)
     {
         var classifier = new ProjectClassifier(model.Projects);
+        // PathText first (H1): solution-relative paths can arrive '\'-separated, which off-Windows
+        // GetFileNameWithoutExtension reads as one big file name — the scope filter then matches
+        // nothing and the topology renders empty.
         var scoped = model.Solution is { ProjectPaths.Length: > 0 } sln
-            ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToHashSet(StringComparer.OrdinalIgnoreCase)
+            ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(PathText.Normalize(p))).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : null;
 
         var layerCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
@@ -114,24 +135,84 @@ public sealed class MapBuilder
 
         // ProjectReferences come through as raw ".../X.csproj" relative paths; reduce to project
         // names so the topology reads "A ── B" (and so the name-based scope filter actually matches —
-        // it previously dropped every dependency for solution-scoped repos). Test/benchmark projects
-        // are excluded, consistent with the graph's NoiseFilter.
+        // it previously dropped every dependency for solution-scoped repos).
+        // E2 (Prism D1.1b): the topology is production-only — the same filters as the service list.
+        // SE.Redis rendered .github/docs/docker holder csproj and tests/RedisConfigs as topology nodes
+        // (all NoTargets-SDK holders). NOTE: no raw IsTestPath filter here — our own fixture repos live
+        // under tests/fixtures/ and absolute-path matching would empty their topology; classification +
+        // the holder rule cover the audit cases. Dependency names are filtered to the kept set so
+        // excluded projects don't linger as edge text.
+        var kept = model.Projects
+            .Where(p => !classifier.IsInTestProject(p.FilePath))
+            .Where(p => classifier.IsProduction(p))
+            .Where(p => scoped is null || scoped.Contains(p.Name))
+            .ToList();
+        var keptNames = kept.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // E3 (Prism D1.4a): duplicate short names render indistinguishably (`Messages` ×6,
+        // `AppHost` ×2) — a duplicated name gets a parent-directory qualifier, extended upward
+        // until the rows are distinct.
+        var displayNames = DisambiguateNames(kept);
         return
         [
-            .. model.Projects
-                .Where(p => !classifier.IsInTestProject(p.FilePath))
-                .Where(p => scoped is null || scoped.Contains(p.Name))
-                .OrderBy(p => p.Name)
-                .Select(p => new ProjectNode(p.Name,
+            .. kept
+                .OrderBy(p => displayNames[p])
+                .Select(p => new ProjectNode(displayNames[p],
                     [.. p.ProjectReferences
-                        .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
-                        .Where(r => r.Length > 0 && (scoped is null || scoped.Contains(r)))
+                        .Select(r => Path.GetFileNameWithoutExtension(PathText.Normalize(r)) ?? "")
+                        .Where(r => r.Length > 0 && keptNames.Contains(r) && (scoped is null || scoped.Contains(r)))
                         .OrderBy(r => r)])
                 {
                     Layer = perProjectLayer.GetValueOrDefault(p.Name),
                     Feature = perProjectFeature.GetValueOrDefault(p.Name),
                 })
         ];
+    }
+
+    /// <summary>E3: maps each kept project to its display name — the bare name when unique, else
+    /// `Name (dir)` where dir is the nearest ancestor directory segment that isn't just the project
+    /// name again, widened one segment at a time until the duplicate group is fully distinct.</summary>
+    private static Dictionary<ProjectInfo, string> DisambiguateNames(List<ProjectInfo> kept)
+    {
+        static string[] AncestorSegments(ProjectInfo p)
+        {
+            var segments = new List<string>();
+            var dir = PathText.DirOf(p.FilePath);
+            while (!string.IsNullOrEmpty(dir))
+            {
+                var seg = PathText.NameOf(dir);
+                if (string.IsNullOrEmpty(seg)) break;
+                // src/Messages/Messages.csproj — the name-echo segment disambiguates nothing.
+                if (!seg.Equals(p.Name, StringComparison.OrdinalIgnoreCase)) segments.Add(seg);
+                dir = PathText.DirOf(dir);
+            }
+            return [.. segments];
+        }
+
+        var result = new Dictionary<ProjectInfo, string>();
+        foreach (var group in kept.GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var members = group.ToList();
+            if (members.Count == 1)
+            {
+                result[members[0]] = members[0].Name;
+                continue;
+            }
+
+            var ancestors = members.ToDictionary(p => p, AncestorSegments);
+            for (var depth = 1; depth <= ancestors.Values.Max(a => a.Length); depth++)
+            {
+                string Qualified(ProjectInfo p) =>
+                    $"{p.Name} ({string.Join("/", ancestors[p].Take(depth).Reverse())})";
+                if (members.Select(Qualified).Distinct(StringComparer.OrdinalIgnoreCase).Count() == members.Count)
+                {
+                    foreach (var p in members) result[p] = Qualified(p);
+                    break;
+                }
+            }
+            // Pathologically identical paths: fall back to the bare name rather than looping forever.
+            foreach (var p in members) result.TryAdd(p, p.Name);
+        }
+        return result;
     }
 
     /// <summary>Groups NuGet package references (dedup by name, highest version) by category. Takes an

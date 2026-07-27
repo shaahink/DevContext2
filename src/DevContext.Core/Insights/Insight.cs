@@ -70,3 +70,12 @@ public interface IInsightSource
     InsightCategory Category { get; }
     IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries);
 }
+
+/// <summary>I1 (Prism D2) — a source whose claims need extraction-layer facts beyond the graph
+/// (body-level object creations, coverage ratios). The pipeline dispatches this overload when the
+/// analysis context is available; the base overload remains the fallback contract.</summary>
+public interface IAnalysisAwareInsightSource : IInsightSource
+{
+    IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries,
+        SharedAnalysisContext analysis);
+}

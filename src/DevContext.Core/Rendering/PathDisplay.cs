@@ -5,20 +5,31 @@ namespace DevContext.Core.Rendering;
 public static class PathDisplay
 {
     /// <summary>Converts an absolute path to one relative to <paramref name="basePath"/>, using forward
-    /// slashes. Returns the input unchanged when there's no base, it isn't rooted, or relativization fails.</summary>
+    /// slashes. Containment is decided by TEXT prefix first (H1: off-Windows, IsPathRooted reads a
+    /// drive-style path as relative and GetRelativePath would CWD-prefix it); GetRelativePath remains
+    /// the fallback for rooted-but-not-contained paths ("../sibling" display). Returns the input
+    /// (slash-normalized) when there's no base or relativization fails.</summary>
     public static string Relative(string? basePath, string path)
     {
-        if (string.IsNullOrEmpty(basePath) || string.IsNullOrEmpty(path) || !Path.IsPathRooted(path))
-            return path.Replace('\\', '/');
-        try
+        if (string.IsNullOrEmpty(basePath) || string.IsNullOrEmpty(path))
+            return (path ?? "").Replace('\\', '/');
+        var p = path.Replace('\\', '/');
+        var b = basePath.Replace('\\', '/').TrimEnd('/');
+        if (p.StartsWith(b + "/", StringComparison.OrdinalIgnoreCase))
+            return p[(b.Length + 1)..];
+        if (Path.IsPathRooted(path))
         {
-            var rel = Path.GetRelativePath(basePath, path);
-            return rel.Replace('\\', '/');
+            try
+            {
+                return Path.GetRelativePath(basePath, path).Replace('\\', '/');
+            }
+            catch (ArgumentException ex)
+            {
+                // Invalid path chars — display the normalized input instead.
+                Pipeline.PipelineDiagnostics.Swallowed("PathDisplay", "relativize", ex);
+            }
         }
-        catch
-        {
-            return path.Replace('\\', '/');
-        }
+        return p;
     }
 
     /// <summary>Relativizes a "file:line" provenance string, preserving the trailing ":line". Tolerates

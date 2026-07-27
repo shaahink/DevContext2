@@ -51,7 +51,7 @@ public sealed partial class GraphBuilder
         IReadOnlyList<BodyFacts>? bodyFacts = null)
     {
         var g = new CodeGraphBuilder();
-        var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
+        var names = new NameResolver(model.OrderedTypes, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
         var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
         AddTypeNodes(g, model, scope, archetype);

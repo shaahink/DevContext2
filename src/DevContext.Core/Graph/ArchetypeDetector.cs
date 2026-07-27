@@ -6,10 +6,11 @@ using DevContext.Core.Graph.EntrySurfaces;
 /// What kind of codebase this is — independent of architecture <c>Style</c>. An <see cref="App"/> has
 /// application entry points (HTTP/bus/hosted/scheduled); a <see cref="Library"/> is a packable component
 /// with a public API and no entry points (e.g. AutoMapper); <see cref="Worker"/> is a background-service
-/// app with no web endpoints; <see cref="Blazor"/> is a Blazor WASM/Server app with component pages.
-/// The archetype decides which renderer runs. (L7.2 — Worker + Blazor added.)
+/// app with no web endpoints; <see cref="Blazor"/> is a Blazor WASM/Server app with component pages;
+/// <see cref="CliTool"/> is a command-line tool (console exes with PackAsTool/parser evidence, no web
+/// surface — GitVersion). The archetype decides which renderer runs. (L7.2 Worker + Blazor; D1.1d CliTool.)
 /// </summary>
-public enum Archetype { App, Library, Gateway, Desktop, Worker, Blazor }
+public enum Archetype { App, Library, Gateway, Desktop, Worker, Blazor, CliTool }
 
 /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.</summary>
 public static class ArchetypeDetector
@@ -62,6 +63,36 @@ public static class ArchetypeDetector
         if (!model.SamplesAreTheProduct && IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
 
+        // A3/B4 (Prism D1.1d): CliTool — the product is a command-line tool. Fires when production
+        // code has console executables with explicit TOOL evidence (PackAsTool/ToolCommandName in the
+        // csproj, or a CLI-parser package) and NO web/desktop surface anywhere (a microservices repo
+        // shipping a migrator utility stays App; a desktop app stays Desktop). Checked before the
+        // entries rung so parser-based command entries route here, not to the generic App map.
+        {
+            var cliClassifier = new ProjectClassifier(model.Projects);
+            var prodConsoleExes = model.Projects
+                .Where(p => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
+                    && p.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true)
+                .Where(p => !cliClassifier.IsInTestProject(p.FilePath)
+                    && cliClassifier.IsProduction(p, model.SamplesAreTheProduct)
+                    && !(p.FilePath is { } fp && IsWebSdkProject(fp)))
+                .ToList();
+            var hasWebOrDesktopSurface =
+                model.Architecture.Has(ArchitectureSignals.Keys.Controllers)
+                || model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis)
+                || model.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints)
+                || model.Architecture.Has(ArchitectureSignals.Keys.RazorPages)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Blazor)
+                || model.Architecture.Has(ArchitectureSignals.Keys.DesktopUi)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Maui)
+                || model.Architecture.Has(ArchitectureSignals.Keys.SignalR)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Grpc);
+            if (prodConsoleExes.Count > 0
+                && !hasWebOrDesktopSurface
+                && prodConsoleExes.Any(IsCliToolCandidate))
+                return Archetype.CliTool;
+        }
+
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
         // ignore their entries and projects so they don't flip the archetype to App. T8: unless the
         // samples ARE the product (samples-only repo) — then their entries are the app evidence.
@@ -72,8 +103,12 @@ public static class ArchetypeDetector
             return DetectAppSubtype(model, entries);
 
         var classifier = new ProjectClassifier(model.Projects);
+        // D1.1b: holder csproj (NoTargets/Traversal SDKs) and build-tooling exes (Cake/Nuke/Bullseye)
+        // are not archetype evidence — SE.Redis's root Traversal Build.csproj is an "Exe" that
+        // references no library and blocked the Library verdict.
         var nonTest = model.Projects
             .Where(p => !classifier.IsInTestProject(p.FilePath))
+            .Where(p => !ProjectClassifier.IsHolderProject(p) && !classifier.IsBuildTooling(p))
             .Where(p => model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(p.FilePath))
             .ToList();
         if (nonTest.Count == 0)
@@ -86,16 +121,39 @@ public static class ArchetypeDetector
             return Archetype.App; // pure executable(s)
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // A1 (Prism D1.1a): the auxiliary-exe reference may be TRANSITIVE — Newtonsoft.Json.TestConsole
+        // references only Newtonsoft.Json.Tests, which references the library. Walk the in-solution
+        // project-reference graph (through test projects too) from the exe to any library project.
+        var projectsByName = model.Projects
+            .GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        bool ReferencesLibraryTransitively(ProjectInfo start)
+        {
+            var stack = new Stack<string>(start.ProjectReferences.Select(r => Path.GetFileNameWithoutExtension(r)));
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (stack.Count > 0)
+            {
+                var name = stack.Pop();
+                if (!seen.Add(name)) continue;
+                if (libNames.Contains(name)) return true;
+                if (projectsByName.TryGetValue(name, out var via))
+                    foreach (var r in via.ProjectReferences)
+                        stack.Push(Path.GetFileNameWithoutExtension(r));
+            }
+            return false;
+        }
+
         var allExeAreAuxiliary = exe.All(e =>
             !model.SamplesAreTheProduct && ProjectClassifier.IsSamplePath(e.FilePath)
             || ProjectClassifier.IsTestPath(e.FilePath)
             || e.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true
-                && e.ProjectReferences.Any(r => libNames.Contains(Path.GetFileNameWithoutExtension(r))));
+                && ReferencesLibraryTransitively(e));
         if (!allExeAreAuxiliary)
             return Archetype.App; // a standalone executable that isn't just a sample of the library
 
         var packable = nonExe.Any(p => p.IsPackable);
-        var hasPublicSurface = model.Types.Values.Any(t =>
+        var hasPublicSurface = model.OrderedTypes.Any(t =>
             t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
             && !classifier.IsInTestProject(t.FilePath)
             && (model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(t.FilePath)));
@@ -139,6 +197,19 @@ public static class ArchetypeDetector
 
         return Archetype.App;
     }
+
+    // D1.1d: CLI argument-parser frameworks — referencing one from a console exe is tool evidence.
+    private static readonly string[] CliParserPackages =
+        ["Spectre.Console.Cli", "System.CommandLine", "McMaster.Extensions.CommandLineUtils",
+         "CommandLineParser", "Cocona", "ConsoleAppFramework"];
+
+    /// <summary>D1.1d — true when the project carries explicit CLI-tool evidence: it packs as a dotnet
+    /// tool (<c>PackAsTool</c>/<c>ToolCommandName</c>) or references a CLI argument-parser framework.
+    /// Shared by the archetype rung and the plain-Main entry fallback (CliCommandExtractor).</summary>
+    public static bool IsCliToolCandidate(ProjectInfo p)
+        => p.IsToolPackaged
+            || p.PackageReferences.Any(pr =>
+                CliParserPackages.Any(m => pr.Name.StartsWith(m, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>T1.2 — true when the project is a genuinely runnable host: an executable (OutputType Exe)
     /// or a Web SDK project (Microsoft.NET.Sdk.Web). Deliberately does NOT treat "references an AspNetCore

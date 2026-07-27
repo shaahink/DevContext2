@@ -1,0 +1,44 @@
+{
+  "repo": "eval-repos/GitVersion",
+  "checks": [
+    {
+      "id": "archetype-clitool",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "CliTool",
+      "status": "expected",
+      "note": "A3/B4 FIXED (Prism D1.1d): Archetype.CliTool — console exes with PackAsTool/ToolCommandName evidence, no web surface. Flipped 2026-07-17."
+    },
+    {
+      "id": "cli-entries",
+      "type": "entry-kind-present",
+      "value": "CliCommandDetection",
+      "format": "CLI",
+      "status": "expected",
+      "note": "B4 FIXED (Prism D1.1d): plain Main() fallback entry (GitVersion.App Program.cs) renders under CLI; detection type corrected from EndpointDetection (authoring error in D1.0b)."
+    },
+    {
+      "id": "no-msbuild-expr-package",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "@(PackageReference)",
+      "status": "expected",
+      "note": "Prism E1: PackageReference Update=/MSBuild-expression refs must be skipped, not ingested as a package named @(PackageReference)."
+    },
+    {
+      "id": "no-build-tooling-rows",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "docker:",
+      "status": "expected",
+      "note": "A3 FIXED (Prism D1.1b): Cake/Nuke build-tooling rung, transitive over project refs (artifacts/publish/release -> common). Flipped 2026-07-17."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 120000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 18s CLI wall."
+    }
+  ]
+}

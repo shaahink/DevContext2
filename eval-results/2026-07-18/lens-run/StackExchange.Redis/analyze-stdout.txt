@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-18\lens-run\StackExchange.Redis\map.md
+analyzed 561 files · 1612 nodes · 1038 edges · 0 entries · ~1954 tokens · 26.8s 
+stage2 ×2.4 stage3 ×2.2
+╭──────────┬──────────────────────────╮
+│  Metric  │          Value           │
+├──────────┼──────────────────────────┤
+│ Solution │ StackExchange.Redis.slnx │
+│   Time   │         27069ms          │
+│  Tokens  │   ~1954 (budget 8000)    │
+│ Version  │   v1.0.5-preview.0.307   │
+╰──────────┴──────────────────────────╯

@@ -1,0 +1,14 @@
+﻿Slicing from CipherService, call graph on.
+  from cache · 3e79593 · analyzed 2026-07-18 01:36 · 4776ms
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-18\prism-d2\d3\trace-cipherservice2.md
+analyzed 4927 files · 14891 nodes · 19238 edges · 676 entries · 675/676 →target 
+· depth 2 · ~8026 tokens · 137.1s stage2 ×3.0 stage3 ×2.5
+╭──────────┬───────────────────────╮
+│  Metric  │         Value         │
+├──────────┼───────────────────────┤
+│ Solution │ bitwarden-server.slnx │
+│   Time   │        4794ms         │
+│  Tokens  │  ~8026 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.306  │
+╰──────────┴───────────────────────╯

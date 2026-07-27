@@ -75,6 +75,40 @@ public sealed class CsprojReaderCpmTests
     }
 
     [Fact]
+    public void ResolveOutputType_ignores_a_conditioned_ancestor_value()
+    {
+        // Prism D1.2b — xunit's src/Directory.Build.props shape: OutputType=Exe applies ONLY to
+        // '.v3.*.tests' projects via <Choose><When Condition=...>. Taking it unconditionally made
+        // every xunit CLASSLIB read as an exe, which erased the self-sourced 'testing' signal and
+        // flipped the whole repo Library -> App (archetype != reality).
+        var dir = Path.Combine(Path.GetTempPath(), "dcx-cond-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(dir, "src"));
+        File.WriteAllText(Path.Combine(dir, "Directory.Build.props"), """
+            <Project>
+              <Choose>
+                <When Condition=" $(MSBuildProjectName.EndsWith('.tests')) ">
+                  <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                  </PropertyGroup>
+                </When>
+              </Choose>
+            </Project>
+            """);
+        try
+        {
+            var classlib = XDocument.Parse("""<Project Sdk="Microsoft.NET.Sdk"></Project>""");
+            var resolved = CsprojReader.ResolveOutputType(
+                classlib, Path.Combine(dir, "src", "xunit.v3.assert.csproj"));
+
+            Assert.Null(resolved);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ResolveOutputType_returns_csproj_value_when_set()
     {
         var csprojDoc = XDocument.Parse("""

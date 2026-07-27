@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\d1.1b-2\GitVersion\map.md
+analyzed 657 files · 1217 nodes · 965 edges · 0 entries · ~437 tokens · 20.6s 
+stage2 ×3.0 stage3 ×1.9
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   DevContext.slnx    │
+│   Time   │       21014ms        │
+│  Tokens  │  ~437 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.275 │
+╰──────────┴──────────────────────╯

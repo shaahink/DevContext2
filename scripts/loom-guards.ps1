@@ -14,6 +14,11 @@
 # D5 (L0.4): Truth gate wired into battery. Runs Category=Truth tests and
 #   fails on actual failures (skips are the pending ratchet — green).
 #   This prevents silent truth regressions from reaching the branch.
+# Prism D1.0d rule:
+#   6. No NEW bare `catch` in src/DevContext.Core (empty or comment-only body -- a swallow).
+#      Existing swallows are grandfathered per-file below until Prism D2 (silent-failure
+#      amnesty) converts them to catch-log-count and drives every allowance to 0.
+#      The table is a MAX per file: adding one anywhere fails the gate.
 
 param(
     [switch]$Quiet
@@ -59,6 +64,30 @@ foreach ($f in $allSrcFiles) {
 
 # Rule 3: No `fqns[0]` in Graph2/ (SymbolTable uses Candidates, never picks)
 Check-Pattern -Pattern 'fqns[0]' -Label 'fqns[0] in Graph2/' -Path $graph2Dir
+
+# Rule 6 (Prism D1.0d): no bare catch in Core — empty or comment-only body, across lines.
+# J1 (Prism D2) drove the grandfathered 2026-07-17 census (30) to ZERO: every former swallow now
+# reports through PipelineDiagnostics.Swallowed(source, category, ex). The allowance stays empty
+# forever — new swallows must count themselves the same way.
+$bareCatchAllowance = @{}
+$bareCatchPattern = [regex]::new(
+    'catch(\s*\([^)]*\))?\s*\{\s*(?:(?://[^\r\n]*|/\*.*?\*/)\s*)*\}',
+    [System.Text.RegularExpressions.RegexOptions]::Singleline)
+$coreFiles = Get-ChildItem -LiteralPath $coreDir -Recurse -Filter *.cs -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch '\\obj\\' -and $_.FullName -notmatch '\\bin\\' }
+foreach ($f in $coreFiles) {
+    $raw = [System.IO.File]::ReadAllText($f.FullName)
+    $count = $bareCatchPattern.Matches($raw).Count
+    if ($count -eq 0) { continue }
+    $relCore = $f.FullName.Substring($coreDir.Length + 1)
+    $allowed = 0
+    if ($bareCatchAllowance.ContainsKey($relCore)) { $allowed = $bareCatchAllowance[$relCore] }
+    if ($count -gt $allowed) {
+        $extra = $count - $allowed
+        if (-not $Quiet) { Write-Host "  BANNED: $extra new bare catch in src/DevContext.Core/${relCore} ($count found, $allowed grandfathered until D2)" }
+        $script:failures += $extra
+    }
+}
 
 # Advisory: count remaining banned patterns in Graph/ (fixed by later stages)
 $nodeIdCount = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'NodeId.ForType(' -SimpleMatch -CaseSensitive 2>$null).Count

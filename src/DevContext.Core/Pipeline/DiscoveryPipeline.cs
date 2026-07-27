@@ -98,6 +98,10 @@ public sealed class DiscoveryPipeline
             _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
 
         var model = new DiscoveryModel();
+        // J1 — one silent-failure scope per run: every counted swallow between here and the drain
+        // below lands in model.ExtractionFailures (AsyncLocal, so parallel stages + concurrent
+        // server analyses stay isolated).
+        using var diagScope = PipelineDiagnostics.BeginScope();
         context.Observer.OnPipelineStarted(context);
 
         var collector = (context.Observer as CompositeDiscoveryObserver)?.GetInner()
@@ -111,6 +115,11 @@ public sealed class DiscoveryPipeline
         ApplyArchitectureStyle(model);
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
+
+        // D5.3 determinism — parallel Stage-2/3 extractors appended to Detections/CallEdges in
+        // arrival order, which varies run-to-run; seal the canonical order HERE so no first-match
+        // anchor pick below (per-service styles, graph assembly, insights) ever sees it.
+        model.SealDeterministicOrder();
 
         // T1.4 — per-service style rollup runs AFTER Stage 3 so it can read the specific detections
         // (Blazor @page routes, gRPC RPCs, message consumers) that distinguish a Blazor storefront from a
@@ -166,7 +175,7 @@ public sealed class DiscoveryPipeline
                         foreach (var path in fileToProject.Keys)
                         {
                             try { allTrees.Add(context.Cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult()); }
-                            catch { }
+                            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "syntax-parse", ex); }
                         }
 
                         var ceSw = Stopwatch.StartNew();
@@ -200,7 +209,10 @@ public sealed class DiscoveryPipeline
                         $"tier routing — A (syntax): {semanticLiteResult.ProjectsDegraded} project(s), "
                         + $"B (semantic-lite): {semanticLiteResult.ProjectsWithAssets} project(s); "
                         + $"compilation={semanticLiteResult.CompilationBuilt} trees={semanticLiteResult.TreeCount} "
-                        + $"refs={semanticLiteResult.ReferenceCount}; timing populate={populateMs:F0}ms upgrade-edges={upgradeMs:F0}ms; upgraded "
+                        + $"refs={semanticLiteResult.ReferenceCount}; timing populate={populateMs:F0}ms "
+                        + $"(fw={semanticLiteResult.FrameworkRefsMs:F0} nuget={semanticLiteResult.NuGetRefsMs:F0} "
+                        + $"trees={semanticLiteResult.CollectTreesMs:F0} create={semanticLiteResult.CreateMs:F0} "
+                        + $"bind={semanticLiteResult.BindMs:F0}) upgrade-edges={upgradeMs:F0}ms; upgraded "
                         + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
                         + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
                         + $"+ {semanticLiteResult.ArgTypesResolved} arg-type "
@@ -219,9 +231,11 @@ public sealed class DiscoveryPipeline
 
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
+            // E4 (Prism D1.4d): never recommend a flag the user can't see — `--profile` is hidden on
+            // analyze and absent on query, so naming it made an unactionable hint.
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
-                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from call graph. " +
-                "Re-run with '--profile debug' to enable call graph.");
+                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from the call graph, " +
+                "which the debug extraction profile enables.");
         }
 
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
@@ -284,7 +298,7 @@ public sealed class DiscoveryPipeline
         // I3 — compute insights post-graph (pure, cheap, no scoring)
         context.Observer.OnStageStarted(PipelineStage.Insights);
         var insightsSw = Stopwatch.StartNew();
-        var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
+        var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel, context.Analysis);
         context.Observer.OnStageCompleted(PipelineStage.Insights, insightsSw.Elapsed);
 
         await RunCompressionAsync(context, model, ct);
@@ -298,6 +312,9 @@ public sealed class DiscoveryPipeline
             codeGraph.Nodes.Where(n => n.FilePath is not null).Select(n => n.FilePath!));
         var gitHead = GitHeadReader.Read(context.RootPath);
         context.Observer.OnStageCompleted(PipelineStage.Snapshot, snapshotSw.Elapsed);
+
+        // J1 — drain the swallow counters into the model so stats/waterfall can render them (J3).
+        model.ExtractionFailures.AddRange(PipelineDiagnostics.Drain());
 
         context.Observer.OnPipelineCompleted(model);
 
@@ -470,6 +487,13 @@ public sealed class DiscoveryPipeline
         };
     }
 
+    private static int CountTraceSteps(Graph.TraceStep step)
+    {
+        var n = 1;
+        foreach (var child in step.Children) n += CountTraceSteps(child);
+        return n;
+    }
+
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
@@ -492,11 +516,30 @@ public sealed class DiscoveryPipeline
 
             if (!string.IsNullOrEmpty(request.Entry))
             {
-                var trace = query.Trace(request.Entry, request.Depth ?? 6, 12);
-                if (trace is not null)
+                // D3 (Prism D2): the trace path now honors the token budget the stats line has always
+                // CLAIMED (`Tokens ~24774 (budget 8000)` on bitwarden's CipherService was a silent 3×
+                // breach). ShapeToBudget cuts breadth-first with per-subtree "(N omitted)" honesty;
+                // the unshaped walk remains reachable by raising --max-tokens.
+                var unshaped = query.Trace(request.Entry, request.Depth ?? 6, 12);
+                // The shaper only estimates the tree itself; the rendered document adds TOUCHES/EMITS,
+                // hints, and the diagnostics tail (~1.2k tokens measured on the bitwarden exemplar) —
+                // reserve for them or the total still overshoots the budget it just enforced.
+                var traceBudget = Math.Max(1000, request.MaxTokens - 1200);
+                var trace = unshaped is not null && request.MaxTokens > 0
+                    ? Graph.TraceBuilder.ShapeToBudget(unshaped, traceBudget)
+                    : unshaped;
+                if (trace is not null && unshaped is not null)
                 {
                     var traceCtx = NarrativeSections.ToRenderedContext(
                         TraceRenderer.RenderSections(trace, request.Detail, snapshot.RootPath));
+
+                    var cut = CountTraceSteps(unshaped.Root) - CountTraceSteps(trace.Root);
+                    if (cut > 0)
+                    {
+                        traceCtx = NarrativeSections.WithExtraSection(traceCtx, "TraceBudget",
+                            $"NOTE: trace shaped to the ~{request.MaxTokens}-token budget — {cut} deeper "
+                            + "step(s) omitted (marked \"(N omitted)\" in place; raise --max-tokens to widen)\n\n");
+                    }
 
                     // Keep the architecture/Map sections visible alongside the trace when requested (the
                     // desktop), so drilling a call stack from any node doesn't hide the orientation view.
@@ -513,8 +556,10 @@ public sealed class DiscoveryPipeline
                     // so the user isn't left staring at a bare ENTRY line wondering what went wrong.
                     if (trace.Root.Children.Length == 0)
                     {
+                        // E4 (Prism D1.4d): the old text recommended `--profile debug`, a flag the trace
+                        // path doesn't take (and analyze hides) — a ghost hint the user can't act on.
                         traceCtx = NarrativeSections.WithExtraSection(traceCtx, "TraceHint",
-                            $"NOTE: no out-edges resolved for '{request.Entry}' — try `Type:Method`, or `--profile debug` to enable the call graph\n\n");
+                            $"NOTE: no out-edges resolved for '{request.Entry}' — try a more specific `Type:Method` focus\n\n");
                     }
 
                     return NarrativeSections.WithExtraSection(
@@ -842,7 +887,7 @@ public sealed class DiscoveryPipeline
                     model.GatewayRoutes.Add(new GatewayRoute(upstream, methods, downstream, hosts));
                 }
             }
-            catch { /* non-json or malformed — skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-config", ex); } // non-json or malformed — skip
         }
 
         // M1.8: YARP ReverseProxy config from appsettings*.json
@@ -915,7 +960,7 @@ public sealed class DiscoveryPipeline
                     model.GatewayRoutes.Add(new GatewayRoute(path, "", pathPattern, downstreamHost));
                 }
             }
-            catch { /* non-json or malformed — skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-config", ex); } // non-json or malformed — skip
         }
 
         static string FormatMethods(System.Text.Json.JsonElement el)
@@ -938,7 +983,7 @@ public sealed class DiscoveryPipeline
     /// <summary>I3 — runs all registered insight sources after GraphAssembly and stores the
     /// ranked, capped result. Pure post-graph computation; no scoring or scoring system.</summary>
     private static ImmutableArray<Insight> ComputeInsights(DiscoveryModel model, CodeGraph graph,
-        ImmutableArray<EntryPoint> entries, MapModel map)
+        ImmutableArray<EntryPoint> entries, MapModel map, SharedAnalysisContext analysis)
     {
         var sources = new List<IInsightSource>
         {
@@ -977,8 +1022,15 @@ public sealed class DiscoveryPipeline
         var all = new List<Insight>();
         foreach (var source in sources)
         {
-            try { all.AddRange(source.Compute(model, graph, entries)); }
-            catch { }
+            try
+            {
+                // I1 — analysis-aware sources get the extraction-layer facts (body creations,
+                // coverage) their claims must be gated on.
+                all.AddRange(source is IAnalysisAwareInsightSource aware
+                    ? aware.Compute(model, graph, entries, analysis)
+                    : source.Compute(model, graph, entries));
+            }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", $"insight-{source.GetType().Name}", ex); }
         }
 
         // Rank severity-first, then confidence TIER (T6.3: the eShop audit saw a "12% conf"

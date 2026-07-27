@@ -51,7 +51,8 @@ public static class LibrarySurfaceRenderer
             sections.Add(new NarrativeSection(key, sb.ToString()));
     }
 
-    private static void AppendEntryApi(StringBuilder sb, LibrarySurface? surface)
+    // internal: reused by MapRenderer's A5 no-entries backstop (D1.1e).
+    internal static void AppendEntryApi(StringBuilder sb, LibrarySurface? surface)
     {
         if (surface is null || surface.EntryApi.IsDefaultOrEmpty) return;
         sb.AppendLine("ENTRY API");
@@ -65,7 +66,8 @@ public static class LibrarySurfaceRenderer
         sb.AppendLine();
     }
 
-    private static void AppendAbstractions(StringBuilder sb, LibrarySurface? surface)
+    // internal: reused by MapRenderer's A5 no-entries backstop (D1.1e).
+    internal static void AppendAbstractions(StringBuilder sb, LibrarySurface? surface)
     {
         if (surface is null || surface.Abstractions.IsDefaultOrEmpty) return;
         sb.AppendLine("ABSTRACTIONS");

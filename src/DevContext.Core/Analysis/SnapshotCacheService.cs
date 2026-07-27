@@ -3,6 +3,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+
+using DevContext.Core.Pipeline;
 
 namespace DevContext.Core.Analysis;
 
@@ -10,14 +13,45 @@ namespace DevContext.Core.Analysis;
 /// Stale snapshots with a different version are rejected on load.</summary>
 public static class SnapshotSchema
 {
-    public const int Version = 1;
+    /// <summary>v2 (J2, Prism D2.0b): payload is <see cref="PersistedSnapshot"/> — v1 never
+    /// produced a valid file (the save always threw and was swallowed), so no migration exists.
+    /// v3 (C1, Prism D2): razor @code virtualization changed analysis output for Blazor repos —
+    /// a v2 snapshot of an UNCHANGED repo would render the pre-C1 map. Discipline until J2 grows an
+    /// engine-version key: bump this whenever a change alters persisted analysis semantics.
+    /// v4 (C5+J1, Prism D2): Resolves edges carry RegistrationSites (a v3 snapshot would trace with
+    /// pre-C5 arbitrary DI provenance) and the model carries ExtractionFailures (J1 health rows).
+    /// v5 (I1 fix at D2 close): orphans insight coverage-gated + library-exempt — a v4 snapshot can
+    /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).</summary>
+    public const int Version = 5;
+
+    /// <summary>D5.3 (the J2 engine-version key) — the engine build that produced a snapshot.
+    /// Deterministic compilation makes the Core MVID a content hash over sources + references, so
+    /// ANY Core change (extractor, renderer, insight) rejects persisted snapshots automatically on
+    /// load — retiring the "bump <see cref="Version"/> on every semantics change" discipline.
+    /// <see cref="Version"/> stays for deliberate structural breaks (its doc history names why).</summary>
+    public static string EngineVersion { get; } =
+        typeof(SnapshotSchema).Assembly.ManifestModule.ModuleVersionId.ToString("N");
+}
+
+/// <summary>Outcome of a snapshot save. The save is best-effort but NEVER silent (J2): a failure
+/// carries the reason so callers surface it instead of quietly shipping a cache that never fills.</summary>
+public sealed record SnapshotSaveResult(bool Success, string? Error)
+{
+    public static SnapshotSaveResult Ok { get; } = new(true, null);
+    public static SnapshotSaveResult Fail(string error) => new(false, error);
 }
 
 public static class SnapshotCacheRoot
 {
+    /// <summary>J2 — <c>DEVCONTEXT_CACHE_ROOT</c> overrides the cache location. Exists so test
+    /// hosts (ServerTestFactory) and CI redirect writes away from the user's real cache — and so
+    /// an unchanged-tree re-run of AnalyzeFlowTests can't cache-HIT into asserting on progress
+    /// events that a hit never streams.</summary>
     public static string DefaultPath =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DevContext", "cache");
+        Environment.GetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT") is { Length: > 0 } overridden
+            ? overridden
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "DevContext", "cache");
 
     public static string EnsureDirectory()
     {
@@ -39,6 +73,10 @@ public sealed class SnapshotCacheService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new JsonStringEnumConverter() },
         IncludeFields = true,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        {
+            Modifiers = { SnapshotPersistence.AddDetectionPolymorphism },
+        },
     };
 
     public SnapshotCacheService(string? cacheRoot = null)
@@ -47,44 +85,88 @@ public sealed class SnapshotCacheService
     }
 
     public static (string RepoKey, string VersionKey) ComputeKeys(string rootPath)
+        => ComputeKeys(rootPath, null);
+
+    /// <summary>D3.1 — the version key carries the analysis FLAVOR when it deviates from the
+    /// default full-fidelity run: a <c>--fast</c>/<c>--lite</c>/<c>--no-roslyn</c>/custom-excludes
+    /// analysis extracts genuinely less, and saving it under the default key would let a later full
+    /// run HIT a degraded snapshot. Default-flavor runs keep the unsuffixed key, so CLI analyze,
+    /// CLI query, and the server all share one slot per (repo, tree).</summary>
+    public static (string RepoKey, string VersionKey) ComputeKeys(string rootPath, ExtractionOptions? options)
     {
         var normalized = Path.GetFullPath(rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var repoKey = HashString(normalized);
-        var versionKey = GitHeadReader.Read(normalized) ?? $"manifest-{HashManifest(normalized)}";
+        var head = GitHeadReader.Read(normalized);
+        string versionKey;
+        if (head is null)
+        {
+            versionKey = $"manifest-{HashManifest(normalized)}";
+        }
+        else
+        {
+            // J2 — a dirty working tree must not collide with the clean-HEAD snapshot, or every
+            // uncommitted edit would render yesterday's map as "from cache". The key gains a
+            // fingerprint over git's changed-file list (path + mtime + length per file).
+            var dirty = GitHeadReader.ReadDirtyFingerprint(normalized);
+            versionKey = dirty is null ? head : $"{head}-dirty-{dirty}";
+        }
+        if (options is not null && ComputeFlavorSuffix(options) is { } flavor)
+            versionKey = $"{versionKey}-opt-{flavor}";
         return (repoKey, versionKey);
     }
 
-    public string GetSnapshotPath(string repoKey, string versionKey)
+    /// <summary>Null for the default full-fidelity flavor (the shared slot); otherwise a short hash
+    /// over every option that changes what extraction PRODUCES. Render-only options (format, budget,
+    /// profile with full graph on, provenance, focus) deliberately don't key — the persisted snapshot
+    /// is render-complete and load sites re-render per request.</summary>
+    private static string? ComputeFlavorSuffix(ExtractionOptions o)
     {
-        var dir = Path.Combine(_cacheRoot, repoKey);
-        Directory.CreateDirectory(dir);
-        return Path.Combine(dir, $"{versionKey}.snap.json.gz");
+        var defaultFlavor = o is { AllowRoslyn: true, BuildFullGraph: true, Fast: false, ExcludeExtractors.Length: 0 }
+            && o.ExcludePatterns.SequenceEqual(ExtractionOptions.DefaultExcludePatterns);
+        if (defaultFlavor) return null;
+        var canonical = $"roslyn:{o.AllowRoslyn}|graph:{o.BuildFullGraph}|fast:{o.Fast}"
+            + $"|excl:{string.Join(",", o.ExcludeExtractors.Sort(StringComparer.Ordinal))}"
+            + $"|pat:{string.Join(",", o.ExcludePatterns.Sort(StringComparer.Ordinal))}";
+        return HashString(canonical)[..12];
     }
 
-    public async Task<bool> SaveAsync(string repoKey, string versionKey, object data, CancellationToken ct)
+    /// <summary>Pure path computation — creates nothing. (The pre-J2 form did CreateDirectory here,
+    /// so even a read-only <see cref="Exists"/> probe littered empty cache dirs — the audit's
+    /// "all cache dirs 0 bytes".)</summary>
+    public string GetSnapshotPath(string repoKey, string versionKey)
+        => Path.Combine(_cacheRoot, repoKey, $"{versionKey}.snap.json.gz");
+
+    public async Task<SnapshotSaveResult> SaveAsync(string repoKey, string versionKey, AnalysisSnapshot snapshot, CancellationToken ct)
     {
-        var path = GetSnapshotPath(repoKey, versionKey);
         try
         {
-            var envelope = new SnapshotEnvelope { SchemaVersion = SnapshotSchema.Version, Payload = JsonSerializer.Serialize(data, JsonOptions) };
-            var json = JsonSerializer.Serialize(envelope, JsonOptions);
-            await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-            await using var gz = new GZipStream(fs, CompressionLevel.Fastest);
-            await using var sw = new StreamWriter(gz, Encoding.UTF8);
-            await sw.WriteAsync(json);
-            await sw.FlushAsync(ct);
+            if (snapshot.IsDryRun)
+                return SnapshotSaveResult.Fail("dry-run analyses are not cached");
+            Directory.CreateDirectory(Path.Combine(_cacheRoot, repoKey));
+            var path = GetSnapshotPath(repoKey, versionKey);
+            var envelope = new SnapshotEnvelope
+            {
+                SchemaVersion = SnapshotSchema.Version,
+                EngineVersion = SnapshotSchema.EngineVersion,
+                Payload = SnapshotPersistence.FromSnapshot(snapshot),
+            };
+            await using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
+            await using (var gz = new GZipStream(fs, CompressionLevel.Fastest))
+            {
+                await JsonSerializer.SerializeAsync(gz, envelope, JsonOptions, ct);
+            }
 
             UpdateMeta(repoKey, versionKey);
             EvictIfNeeded(repoKey);
-            return true;
+            return SnapshotSaveResult.Ok;
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            return SnapshotSaveResult.Fail($"{ex.GetType().Name}: {ex.Message}");
         }
     }
 
-    public async Task<T?> TryLoadAsync<T>(string repoKey, string versionKey, CancellationToken ct) where T : class
+    public async Task<AnalysisSnapshot?> TryLoadAsync(string repoKey, string versionKey, CancellationToken ct)
     {
         var path = GetSnapshotPath(repoKey, versionKey);
         if (!File.Exists(path)) return null;
@@ -92,18 +174,22 @@ public sealed class SnapshotCacheService
         {
             await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
             await using var gz = new GZipStream(fs, CompressionMode.Decompress);
-            using var sr = new StreamReader(gz, Encoding.UTF8);
-            var json = await sr.ReadToEndAsync(ct);
-            var envelope = JsonSerializer.Deserialize<SnapshotEnvelope>(json, JsonOptions);
+            var envelope = await JsonSerializer.DeserializeAsync<SnapshotEnvelope>(gz, JsonOptions, ct);
             if (envelope is null) return null;
             if (envelope.SchemaVersion != SnapshotSchema.Version) return null;
-            var data = JsonSerializer.Deserialize<T>(envelope.Payload ?? "null", JsonOptions);
-            if (data is not null)
-                TouchMeta(repoKey);
-            return data;
+            // D5.3 — a snapshot from a DIFFERENT engine build is a miss: the current engine may
+            // render/claim differently than the one that produced it (pre-D5.3 files carry no
+            // engine version and are rejected the same way — null never equals the live MVID).
+            if (envelope.EngineVersion != SnapshotSchema.EngineVersion) return null;
+            if (envelope.Payload is null) return null;
+            var snapshot = SnapshotPersistence.ToSnapshot(envelope.Payload);
+            TouchMeta(repoKey);
+            return snapshot;
         }
-        catch
+        catch (Exception)
         {
+            // A corrupt or schema-drifted snapshot is a MISS, not an error — the caller
+            // re-analyzes and the fresh save overwrites the bad file.
             return null;
         }
     }
@@ -111,7 +197,8 @@ public sealed class SnapshotCacheService
     private sealed record SnapshotEnvelope
     {
         public int SchemaVersion { get; init; }
-        public string? Payload { get; init; }
+        public string? EngineVersion { get; init; }
+        public PersistedSnapshot? Payload { get; init; }
     }
 
     public bool Exists(string repoKey, string versionKey)
@@ -138,7 +225,7 @@ public sealed class SnapshotCacheService
                         lastUsed = meta.LastUsed;
                     }
                 }
-                catch { }
+                catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "meta-read", ex); }
             }
             foreach (var f in Directory.GetFiles(repoDir, "*.snap.json.gz"))
                 totalBytes += new FileInfo(f).Length;
@@ -202,7 +289,7 @@ public sealed class SnapshotCacheService
             var meta = JsonSerializer.Deserialize<CacheMeta>(File.ReadAllText(path));
             if (meta is not null) { meta.LastUsed = DateTime.UtcNow; File.WriteAllText(path, JsonSerializer.Serialize(meta)); }
         }
-        catch { }
+        catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "meta-touch", ex); }
     }
 
     private void EvictIfNeeded(string repoKey)
@@ -215,7 +302,7 @@ public sealed class SnapshotCacheService
             .ToList();
         if (snaps.Count > _maxVersionsPerRepo)
             foreach (var old in snaps.Skip(_maxVersionsPerRepo))
-                try { File.Delete(old.FullName); } catch { }
+                try { File.Delete(old.FullName); } catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "evict", ex); }
 
         long totalSize = 0;
         foreach (var rdir in Directory.GetDirectories(_cacheRoot))

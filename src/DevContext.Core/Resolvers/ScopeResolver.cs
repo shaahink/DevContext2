@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Resolvers;
 
 /// <summary>
@@ -32,9 +34,10 @@ public static class ScopeResolver
                     .ToList();
                 slnSet = slnProjects.Select(Normalize).ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
                 // Unreadable solution — fall back to unbounded closure from the anchor csproj.
+                Pipeline.PipelineDiagnostics.Swallowed("ScopeResolver", "sln-read", ex);
             }
         }
 
@@ -107,7 +110,7 @@ public static class ScopeResolver
 
             foreach (var rel in refs)
             {
-                var abs = ToAbsolute(projDir, rel.Replace('\\', '/'));
+                var abs = ToAbsolute(projDir, rel);
                 if (slnSet is not null && !slnSet.Contains(Normalize(abs))) continue;
                 if (!visited.Contains(Normalize(abs))) queue.Enqueue(abs);
             }
@@ -115,10 +118,10 @@ public static class ScopeResolver
         return ordered;
     }
 
-    private static string ToAbsolute(string baseDir, string path)
-        => Path.IsPathRooted(path) || baseDir.Length == 0
-            ? path
-            : Path.GetFullPath(Path.Combine(baseDir, path));
+    // String-pure (H1): ProjectReference/solution paths arrive '\'-separated; System.IO.Path's
+    // IsPathRooted/GetFullPath read those wrongly off-Windows (and GetFullPath CWD-prefixes
+    // drive-style relatives), silently emptying the closure.
+    private static string ToAbsolute(string baseDir, string path) => PathText.Join(baseDir, path);
 
-    private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
+    private static string Normalize(string path) => PathText.Normalize(path);
 }

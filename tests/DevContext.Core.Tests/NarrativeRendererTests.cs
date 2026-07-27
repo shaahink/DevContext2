@@ -66,13 +66,13 @@ public sealed class NarrativeRendererTests
     {
         var model = new DiscoveryModel
         {
-            Solution = new SolutionInfo(@"C:\repo\App.sln", "App",
-                [@"C:\repo\src\A\A.csproj", @"C:\repo\src\B\B.csproj"]),
+            Solution = new SolutionInfo(@"C:/repo/App.sln", "App",
+                [@"C:/repo/src/A/A.csproj", @"C:/repo/src/B/B.csproj"]),
             Projects =
             [
-                new ProjectInfo("A", @"C:\repo\src\A\A.csproj", "C#", ["net10.0"], ["B"],
+                new ProjectInfo("A", @"C:/repo/src/A/A.csproj", "C#", ["net10.0"], ["B"],
                     [new PackageReferenceInfo("MediatR", "12.0.0")]),
-                new ProjectInfo("B", @"C:\repo\src\B\B.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("B", @"C:/repo/src/B/B.csproj", "C#", ["net10.0"], [], []),
             ],
             DetectedStyle = ArchitectureStyle.MinimalApi,
             StyleConfidence = 0.9f,
@@ -118,13 +118,13 @@ public sealed class NarrativeRendererTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("A", @"C:\a\A.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("A", @"C:/a/A.csproj", "C#", ["net10.0"], [], [])],
         };
         // 15 entries — the old renderer capped at 10 with "... and N more".
         var entries = Enumerable.Range(1, 15)
             .Select(i => new EntryPoint(EntryPointKind.HttpEndpoint, $"GET /r{i}", NodeId.ForEntry($"GET /r{i}"))
             {
-                Provenance = @"C:\a\Endpoints.cs:" + i,
+                Provenance = @"C:/a/Endpoints.cs:" + i,
                 Target = i == 1 ? "FooCommand" : null,
             })
             .ToImmutableArray();
@@ -132,7 +132,7 @@ public sealed class NarrativeRendererTests
 
         var snapshot = new AnalysisSnapshot
         {
-            Model = model, Analysis = new SharedAnalysisContext(), RootPath = @"C:\a",
+            Model = model, Analysis = new SharedAnalysisContext(), RootPath = @"C:/a",
             Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(),
             Report = DefaultReport, Graph = EmptyGraph, Map = map, Entries = entries,
         };

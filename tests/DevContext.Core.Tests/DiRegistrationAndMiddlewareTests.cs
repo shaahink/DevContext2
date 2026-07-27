@@ -6,7 +6,7 @@ public sealed class DiRegistrationAndMiddlewareTests
     public async Task ProgramCsFlowExtractor_DetectsMiddlewareAndBackgroundWorkers()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\Program.cs", """
+        fs.AddFile(@"C:/repo/src/MyApp/Program.cs", """
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddHostedService<OrderProcessingService>();
 
@@ -23,10 +23,10 @@ public sealed class DiRegistrationAndMiddlewareTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Program.cs"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/MyApp/Program.cs"];
 
         var model = new DiscoveryModel();
 
@@ -59,7 +59,7 @@ public sealed class DiRegistrationAndMiddlewareTests
     public async Task DiRegistrationExtractor_DetectsServiceRegistrations()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\Program.cs", """
+        fs.AddFile(@"C:/repo/src/MyApp/Program.cs", """
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
@@ -73,10 +73,10 @@ public sealed class DiRegistrationAndMiddlewareTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Program.cs"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/MyApp/Program.cs"];
 
         var model = new DiscoveryModel();
 
@@ -107,7 +107,7 @@ public sealed class DiRegistrationAndMiddlewareTests
     public async Task ProgramCsFlowExtractor_DetectsOrphanPatterns()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\Program.cs", """
+        fs.AddFile(@"C:/repo/src/MyApp/Program.cs", """
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddCors();
             builder.Services.AddAuthentication();
@@ -119,10 +119,10 @@ public sealed class DiRegistrationAndMiddlewareTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Program.cs"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/MyApp/Program.cs"];
 
         var model = new DiscoveryModel();
 
@@ -141,7 +141,7 @@ public sealed class DiRegistrationAndMiddlewareTests
     public async Task DiRegistrationExtractor_DetectsChainedExtensions()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\Program.cs", """
+        fs.AddFile(@"C:/repo/src/MyApp/Program.cs", """
             var builder = WebApplication.CreateBuilder(args);
             builder.Services
                 .AddCors()
@@ -154,10 +154,10 @@ public sealed class DiRegistrationAndMiddlewareTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Program.cs"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/MyApp/Program.cs"];
 
         var model = new DiscoveryModel();
 

@@ -98,27 +98,27 @@ public sealed class GraphBuilderTests
         {
             Projects =
             [
-                new ProjectInfo("Engine", @"C:\repo\src\Engine\Engine.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("Engine.Tests", @"C:\repo\test\Engine.Tests\Engine.Tests.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Engine", @"C:/repo/src/Engine/Engine.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Engine.Tests", @"C:/repo/test/Engine.Tests/Engine.Tests.csproj", "C#", ["net10.0"], [], []),
             ],
         };
         model.Types.TryAdd("Engine.ITradeRepository", new TypeDiscovery
         {
             Id = "Engine.ITradeRepository", Name = "ITradeRepository", Namespace = "Engine",
-            FilePath = @"C:\repo\src\Engine\ITradeRepository.cs", Kind = TypeKind.Interface,
+            FilePath = @"C:/repo/src/Engine/ITradeRepository.cs", Kind = TypeKind.Interface,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
         });
         model.Types.TryAdd("Engine.SqliteTradeRepository", new TypeDiscovery
         {
             Id = "Engine.SqliteTradeRepository", Name = "SqliteTradeRepository", Namespace = "Engine",
-            FilePath = @"C:\repo\src\Engine\SqliteTradeRepository.cs", Kind = TypeKind.Class,
+            FilePath = @"C:/repo/src/Engine/SqliteTradeRepository.cs", Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
             ImplementedInterfaces = ["ITradeRepository"],
         });
         model.Detections.Add(new DiRegistrationDetection("ITradeRepository", "SqliteTradeRepository", "Scoped", [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\test\Engine.Tests\InProcessEngineSmokeTests.cs",
+            SourceFile = @"C:/repo/test/Engine.Tests/InProcessEngineSmokeTests.cs",
             LineNumber = 89,
         });
 
@@ -139,33 +139,33 @@ public sealed class GraphBuilderTests
         {
             Projects =
             [
-                new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("Orders.Tests", @"C:\repo\src\Orders.Tests\Orders.Tests.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Orders.Api", @"C:/repo/src/Orders.Api/Orders.Api.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Orders.Tests", @"C:/repo/src/Orders.Tests/Orders.Tests.csproj", "C#", ["net10.0"], [], []),
             ],
         };
 
         model.Types.TryAdd("Orders.Api.CreateOrderCommandHandler", new TypeDiscovery
         {
             Id = "Orders.Api.CreateOrderCommandHandler", Name = "CreateOrderCommandHandler",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\CreateOrderCommandHandler.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/CreateOrderCommandHandler.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
         });
         model.Types.TryAdd("Orders.Tests.OrderHandlerTests", new TypeDiscovery
         {
             Id = "Orders.Tests.OrderHandlerTests", Name = "OrderHandlerTests",
-            Namespace = "Orders.Tests", FilePath = @"C:\repo\src\Orders.Tests\OrderHandlerTests.cs",
+            Namespace = "Orders.Tests", FilePath = @"C:/repo/src/Orders.Tests/OrderHandlerTests.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Testing,
         });
 
         model.Detections.Add(new EndpointDetection("POST", "/api/orders", "OrdersApi", "CreateOrderAsync", [], [])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\OrdersApi.cs", LineNumber = 10,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Orders.Api/OrdersApi.cs", LineNumber = 10,
         });
         model.Detections.Add(new MediatRHandlerDetection("CreateOrderCommand", "bool", "CreateOrderCommandHandler", MediatRKind.Command)
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\CreateOrderCommandHandler.cs", LineNumber = 20,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Orders.Api/CreateOrderCommandHandler.cs", LineNumber = 20,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -199,15 +199,15 @@ public sealed class GraphBuilderTests
         // API endpoint alongside it must still read as HttpEndpoint.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("WebApp", @"C:\repo\src\WebApp\WebApp.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("WebApp", @"C:/repo/src/WebApp/WebApp.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Detections.Add(new EndpointDetection("GET", "/checkout", "Checkout", "<component>", [], [])
         {
-            ExtractorName = "BlazorEntryExtractor", SourceFile = @"C:\repo\src\WebApp\Pages\Checkout.razor", LineNumber = 1,
+            ExtractorName = "BlazorEntryExtractor", SourceFile = @"C:/repo/src/WebApp/Pages/Checkout.razor", LineNumber = 1,
         });
         model.Detections.Add(new EndpointDetection("GET", "/api/orders", "OrdersApi", "GetAsync", [], [])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\WebApp\OrdersApi.cs", LineNumber = 12,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/WebApp/OrdersApi.cs", LineNumber = 12,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -232,15 +232,15 @@ public sealed class GraphBuilderTests
         // ids (the deck fired NG0955 dup-keys when they collapsed onto one), disambiguated by the action.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Catalog.API", @"C:\repo\src\Catalog.API\Catalog.API.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Catalog.API", @"C:/repo/src/Catalog.API/Catalog.API.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items", "CatalogApi", "GetAllItemsV1", [], [])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.API\CatalogApi.cs", LineNumber = 21,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Catalog.API/CatalogApi.cs", LineNumber = 21,
         });
         model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items", "CatalogApi", "GetAllItems", [], [])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.API\CatalogApi.cs", LineNumber = 26,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Catalog.API/CatalogApi.cs", LineNumber = 26,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -253,7 +253,12 @@ public sealed class GraphBuilderTests
         Assert.Equal(2, catalogItems.Count);                              // never merged
         Assert.Equal(2, catalogItems.Select(e => e.Node).Distinct().Count()); // distinct node ids → no dup-key
         Assert.Equal(2, catalogItems.Select(e => e.Title).Distinct().Count()); // distinct titles
-        Assert.Contains(catalogItems, e => e.Title.Contains("GetAllItemsV1", StringComparison.Ordinal));
+        // D5.3 — detections are canonically ordered (file, then line), so the FIRST endpoint in
+        // source order (line 21, GetAllItemsV1) keeps the bare route title and the collision
+        // (line 26) carries the [action] suffix — deterministically, not by bag arrival order.
+        Assert.Contains(catalogItems, e => e.Title.Contains("[GetAllItems]", StringComparison.Ordinal));
+        Assert.Equal("GET /api/catalog/items",
+            catalogItems.Single(e => e.Provenance!.EndsWith(":21", StringComparison.Ordinal)).Title);
     }
 
     [Fact]
@@ -264,14 +269,14 @@ public sealed class GraphBuilderTests
         // one "Api (N entries)" module row. Versioned routes fold into the same feature.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("TradingEngine.Web", @"C:\repo\src\TradingEngine.Web\TradingEngine.Web.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("TradingEngine.Web", @"C:/repo/src/TradingEngine.Web/TradingEngine.Web.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Detections.Add(new EndpointDetection("GET", "/api/runs/{id}", "RunsApi", "GetRun", [], [])
-        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 10 });
+        { ExtractorName = "test", SourceFile = @"C:/repo/src/TradingEngine.Web/Api/RunsApi.cs", LineNumber = 10 });
         model.Detections.Add(new EndpointDetection("POST", "/api/runs", "RunsApi", "CreateRun", [], [])
-        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 20 });
+        { ExtractorName = "test", SourceFile = @"C:/repo/src/TradingEngine.Web/Api/RunsApi.cs", LineNumber = 20 });
         model.Detections.Add(new EndpointDetection("GET", "/api/v2/strategies", "StrategiesApi", "List", [], [])
-        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\StrategiesApi.cs", LineNumber = 5 });
+        { ExtractorName = "test", SourceFile = @"C:/repo/src/TradingEngine.Web/Api/StrategiesApi.cs", LineNumber = 5 });
 
         var scope = SolutionScope.FromModel(model);
         var (_, entries) = new GraphBuilder(
@@ -289,17 +294,17 @@ public sealed class GraphBuilderTests
         // DntSite audit: 24 DNTScheduler jobs were detected but never surfaced as entries.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Web", @"C:/repo/src/Web/Web.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Web.Jobs.BackupDatabaseJob", new TypeDiscovery
         {
             Id = "Web.Jobs.BackupDatabaseJob", Name = "BackupDatabaseJob", Namespace = "Web.Jobs",
-            FilePath = @"C:\repo\src\Web\Jobs\BackupDatabaseJob.cs", Kind = TypeKind.Class,
+            FilePath = @"C:/repo/src/Web/Jobs/BackupDatabaseJob.cs", Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
         });
         model.Detections.Add(new BackgroundWorkerDetection("DNTScheduler", "BackupDatabaseJob", BackgroundWorkerKind.HostedService)
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Web\SchedulersConfig.cs", LineNumber = 18,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Web/SchedulersConfig.cs", LineNumber = 18,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -319,14 +324,14 @@ public sealed class GraphBuilderTests
     {
         // Regression: the old name-suffix heuristic dropped DDD *Spec types as "tests".
         var projects = ImmutableArray.Create(
-            new ProjectInfo("Orders.Core", @"C:\repo\src\Orders.Core\Orders.Core.csproj", "C#", ["net10.0"], [], []));
+            new ProjectInfo("Orders.Core", @"C:/repo/src/Orders.Core/Orders.Core.csproj", "C#", ["net10.0"], [], []));
         var noise = new NoiseFilter(new ProjectClassifier(projects));
 
         var spec = new TypeDiscovery
         {
             Id = "Orders.Core.Specifications.OrderByIdSpec", Name = "OrderByIdSpec",
             Namespace = "Orders.Core.Specifications",
-            FilePath = @"C:\repo\src\Orders.Core\Specifications\OrderByIdSpec.cs",
+            FilePath = @"C:/repo/src/Orders.Core/Specifications/OrderByIdSpec.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         };
@@ -341,13 +346,13 @@ public sealed class GraphBuilderTests
         // and sample-app handlers/endpoints must not surface as application entry points (MediatR audit:
         // samples/MediatR.Examples + MediatR.Tests handlers were leaking 18 phantom entries).
         var projects = ImmutableArray.Create(
-            new ProjectInfo("Orders.Core", @"C:\repo\src\Orders.Core\Orders.Core.csproj", "C#", ["net10.0"], [], []),
-            new ProjectInfo("Orders.Tests", @"C:\repo\test\Orders.Tests\Orders.Tests.csproj", "C#", ["net10.0"], [], []));
+            new ProjectInfo("Orders.Core", @"C:/repo/src/Orders.Core/Orders.Core.csproj", "C#", ["net10.0"], [], []),
+            new ProjectInfo("Orders.Tests", @"C:/repo/test/Orders.Tests/Orders.Tests.csproj", "C#", ["net10.0"], [], []));
         var noise = new NoiseFilter(new ProjectClassifier(projects));
 
-        Assert.True(noise.IsProductionEntrySource(@"C:\repo\src\Orders.Core\Endpoints\OrderEndpoints.cs"));
-        Assert.False(noise.IsProductionEntrySource(@"C:\repo\test\Orders.Tests\PingHandler.cs"));
-        Assert.False(noise.IsProductionEntrySource(@"C:\repo\samples\Demo\PingHandler.cs"));
+        Assert.True(noise.IsProductionEntrySource(@"C:/repo/src/Orders.Core/Endpoints/OrderEndpoints.cs"));
+        Assert.False(noise.IsProductionEntrySource(@"C:/repo/test/Orders.Tests/PingHandler.cs"));
+        Assert.False(noise.IsProductionEntrySource(@"C:/repo/samples/Demo/PingHandler.cs"));
     }
 
     [Fact]
@@ -355,19 +360,19 @@ public sealed class GraphBuilderTests
     {
         var model = new DiscoveryModel
         {
-            Solution = new SolutionInfo(@"C:\repo\AppA.sln", "AppA", [@"C:\repo\src\AppA\AppA.csproj"]),
+            Solution = new SolutionInfo(@"C:/repo/AppA.sln", "AppA", [@"C:/repo/src/AppA/AppA.csproj"]),
             Projects =
             [
-                new ProjectInfo("AppA", @"C:\repo\src\AppA\AppA.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("AppB", @"C:\repo\src\AppB\AppB.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("AppA", @"C:/repo/src/AppA/AppA.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("AppB", @"C:/repo/src/AppB/AppB.csproj", "C#", ["net10.0"], [], []),
             ],
         };
 
         var scope = SolutionScope.FromModel(model);
 
         Assert.Equal("AppA", scope.SolutionName);
-        Assert.True(scope.Contains(@"C:\repo\src\AppA\Service.cs"));   // in the resolved solution
-        Assert.False(scope.Contains(@"C:\repo\src\AppB\Service.cs"));  // independent solution → excluded
+        Assert.True(scope.Contains(@"C:/repo/src/AppA/Service.cs"));   // in the resolved solution
+        Assert.False(scope.Contains(@"C:/repo/src/AppB/Service.cs"));  // independent solution → excluded
     }
 
     [Fact]
@@ -375,26 +380,26 @@ public sealed class GraphBuilderTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Orders.Api", @"C:/repo/src/Orders.Api/Orders.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Orders.Api.CreateOrderCommandHandler", new TypeDiscovery
         {
             Id = "Orders.Api.CreateOrderCommandHandler", Name = "CreateOrderCommandHandler",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\CreateOrderCommandHandler.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/CreateOrderCommandHandler.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
         });
         model.Types.TryAdd("Orders.Api.ValidateBuyerHandler", new TypeDiscovery
         {
             Id = "Orders.Api.ValidateBuyerHandler", Name = "ValidateBuyerHandler",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\ValidateBuyerHandler.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/ValidateBuyerHandler.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
         });
 
         model.Detections.Add(new MediatRHandlerDetection("OrderStartedDomainEvent", "void", "ValidateBuyerHandler", MediatRKind.Notification)
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\ValidateBuyerHandler.cs", LineNumber = 15,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Orders.Api/ValidateBuyerHandler.cs", LineNumber = 15,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -415,19 +420,19 @@ public sealed class GraphBuilderTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Orders.Api", @"C:/repo/src/Orders.Api/Orders.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Orders.Api.IOrderRepository", new TypeDiscovery
         {
             Id = "Orders.Api.IOrderRepository", Name = "IOrderRepository",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\IOrderRepository.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/IOrderRepository.cs",
             Kind = TypeKind.Interface, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         });
         model.Types.TryAdd("Orders.Api.OrderRepository", new TypeDiscovery
         {
             Id = "Orders.Api.OrderRepository", Name = "OrderRepository",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrderRepository.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/OrderRepository.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
             ImplementedInterfaces = ["IOrderRepository"],
@@ -435,7 +440,7 @@ public sealed class GraphBuilderTests
 
         model.Detections.Add(new DiRegistrationDetection("IOrderRepository", "OrderRepository", "Scoped", [], DiRegistrationShape.DirectBinding)
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Program.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Orders.Api/Program.cs", LineNumber = 5,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -450,23 +455,89 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void C5_multi_host_di_binding_cites_the_focus_hosts_own_registration()
+    {
+        // bitwarden: Api's trace resolved CurrentContext to bitwarden_license/src/Sso/Startup.cs:46 —
+        // an arbitrary (bag-order) pick among N hosts' registrations. All sites must ride the one edge
+        // deterministically; the trace cites the focus host's own site, or "[×N hosts]" when it has none.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Api", @"C:/repo/src/Api/Api.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Sso", @"C:/repo/bitwarden_license/src/Sso/Sso.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Notifications", @"C:/repo/src/Notifications/Notifications.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Core", @"C:/repo/src/Core/Core.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("Core.ICurrentContext", new TypeDiscovery
+        {
+            Id = "Core.ICurrentContext", Name = "ICurrentContext", Namespace = "Core",
+            FilePath = @"C:/repo/src/Core/ICurrentContext.cs", Kind = TypeKind.Interface,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Core.CurrentContext", new TypeDiscovery
+        {
+            Id = "Core.CurrentContext", Name = "CurrentContext", Namespace = "Core",
+            FilePath = @"C:/repo/src/Core/CurrentContext.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
+            ImplementedInterfaces = ["ICurrentContext"],
+        });
+        // Same binding registered by TWO hosts. The Sso site sorts FIRST ordinally (bitwarden_license < src),
+        // reproducing the audit's wrong cite if determinism alone were the fix.
+        model.Detections.Add(new DiRegistrationDetection("ICurrentContext", "CurrentContext", "Scoped", [], DiRegistrationShape.DirectBinding)
+        {
+            ExtractorName = "test", SourceFile = @"C:/repo/bitwarden_license/src/Sso/Startup.cs", LineNumber = 46,
+        });
+        model.Detections.Add(new DiRegistrationDetection("ICurrentContext", "CurrentContext", "Scoped", [], DiRegistrationShape.DirectBinding)
+        {
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Api/Startup.cs", LineNumber = 120,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var resolves = Assert.Single(graph.AllEdges, e => e.Kind == EdgeKind.Resolves);
+        Assert.Equal(2, resolves.RegistrationSites.Length);
+        Assert.Equal(@"C:/repo/bitwarden_license/src/Sso/Startup.cs:46", resolves.Provenance); // deterministic first
+        Assert.Equal(["Sso", "Api"], resolves.RegistrationProjects.ToArray());
+
+        // Focus host Api: its OWN registration is cited, no host-count annotation.
+        var apiTrace = new TraceBuilder(graph).Build(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /accounts", resolves.From) { Project = "Api" });
+        var apiStep = Assert.Single(apiTrace.Root.Children, s => s.Seam == SeamKind.Resolve);
+        Assert.Equal(@"C:/repo/src/Api/Startup.cs:120", apiStep.Provenance);
+        Assert.Equal(0, apiStep.DiHostCount);
+
+        // Focus host Notifications registers nothing: deterministic first + honest "[×2 hosts]".
+        var foreignTrace = new TraceBuilder(graph).Build(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /hub", resolves.From) { Project = "Notifications" });
+        var foreignStep = Assert.Single(foreignTrace.Root.Children, s => s.Seam == SeamKind.Resolve);
+        Assert.Equal(@"C:/repo/bitwarden_license/src/Sso/Startup.cs:46", foreignStep.Provenance);
+        Assert.Equal(2, foreignStep.DiHostCount);
+    }
+
+    [Fact]
     public void B1_aggregate_nodes_tagged()
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Orders.Api", @"C:/repo/src/Orders.Api/Orders.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Orders.Api.Order", new TypeDiscovery
         {
             Id = "Orders.Api.Order", Name = "Order",
-            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\Domain\Order.cs",
+            Namespace = "Orders.Api", FilePath = @"C:/repo/src/Orders.Api/Domain/Order.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         });
 
         model.Detections.Add(new EfEntityDetection("Order", "OrderingContext", true, ["Id"])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Domain\Order.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Orders.Api/Domain/Order.cs", LineNumber = 5,
         });
 
         var scope = SolutionScope.FromModel(model);
@@ -488,14 +559,14 @@ public sealed class GraphBuilderTests
         // Ocelot's GET /configuration is the canonical case.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Web", @"C:/repo/src/Web/Web.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Web.Controllers.FileConfigurationController", new TypeDiscovery
         {
             Id = "Web.Controllers.FileConfigurationController",
             Name = "FileConfigurationController",
             Namespace = "Web.Controllers",
-            FilePath = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            FilePath = @"C:/repo/src/Web/Controllers/FileConfigurationController.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Presentation,
@@ -504,7 +575,7 @@ public sealed class GraphBuilderTests
             "FileConfigurationController", "Get", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            SourceFile = @"C:/repo/src/Web/Controllers/FileConfigurationController.cs",
             LineNumber = 23,
         });
 
@@ -529,44 +600,44 @@ public sealed class GraphBuilderTests
         // (honest, not a wrong specific claim) applies instead.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Catalog.Api", @"C:/repo/src/Catalog.Api/Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Api,
         });
         model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogContext.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
         });
         model.Types.TryAdd("Catalog.Api.CatalogItem", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogItem", Name = "CatalogItem",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogItem.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogItem.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         });
         model.Detections.Add(new EfEntityDetection("CatalogItem", "CatalogContext", true, ["Id"])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogItem.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Catalog.Api/CatalogItem.cs", LineNumber = 5,
         });
         model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items/{id}/pic",
             "CatalogApi", "GetItemPictureById", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            SourceFile = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             LineNumber = 46,
         });
         model.CallEdges.Add(new CallEdge(
             "Catalog.Api.CatalogApi", "GetItemPictureById",
             "Catalog.Api.CatalogContext", "FindAsync",
-            @"C:\repo\src\Catalog.Api\CatalogApi.cs:50"));
+            @"C:/repo/src/Catalog.Api/CatalogApi.cs:50"));
 
         var scope = SolutionScope.FromModel(model);
         var (_, entries) = new GraphBuilder(
@@ -586,55 +657,55 @@ public sealed class GraphBuilderTests
         // that happens to sit alongside a data-access call.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Catalog.Api", @"C:/repo/src/Catalog.Api/Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Api,
         });
         model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogContext.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
         });
         model.Types.TryAdd("Catalog.Api.CatalogItem", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogItem", Name = "CatalogItem",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogItem.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogItem.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         });
         model.Types.TryAdd("Catalog.Api.ImageStore", new TypeDiscovery
         {
             Id = "Catalog.Api.ImageStore", Name = "ImageStore",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\ImageStore.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/ImageStore.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
         });
         model.Detections.Add(new EfEntityDetection("CatalogItem", "CatalogContext", true, ["Id"])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogItem.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Catalog.Api/CatalogItem.cs", LineNumber = 5,
         });
         model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items/{id}/pic",
             "CatalogApi", "GetItemPictureById", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            SourceFile = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             LineNumber = 46,
         });
         model.CallEdges.Add(new CallEdge(
             "Catalog.Api.CatalogApi", "GetItemPictureById",
             "Catalog.Api.CatalogContext", "FindAsync",
-            @"C:\repo\src\Catalog.Api\CatalogApi.cs:50"));
+            @"C:/repo/src/Catalog.Api/CatalogApi.cs:50"));
         model.CallEdges.Add(new CallEdge(
             "Catalog.Api.CatalogApi", "GetItemPictureById",
             "Catalog.Api.ImageStore", "ReadImageAsync",
-            @"C:\repo\src\Catalog.Api\CatalogApi.cs:52"));
+            @"C:/repo/src/Catalog.Api/CatalogApi.cs:52"));
 
         var scope = SolutionScope.FromModel(model);
         var (_, entries) = new GraphBuilder(
@@ -654,45 +725,45 @@ public sealed class GraphBuilderTests
         // ("inline (N calls)") instead of naming the whole registration type, which reads as a real handler.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Catalog.Api", @"C:/repo/src/Catalog.Api/Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Api,
         });
         model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogContext.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
         });
         model.Types.TryAdd("Catalog.Api.CatalogType", new TypeDiscovery
         {
             Id = "Catalog.Api.CatalogType", Name = "CatalogType",
-            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogType.cs",
+            Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogType.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
         });
         model.Detections.Add(new EfEntityDetection("CatalogType", "CatalogContext", true, ["Id"])
         {
-            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogType.cs", LineNumber = 5,
+            ExtractorName = "test", SourceFile = @"C:/repo/src/Catalog.Api/CatalogType.cs", LineNumber = 5,
         });
         model.Detections.Add(new EndpointDetection("GET", "/api/catalog/catalogtypes",
             "CatalogApi", "<lambda>", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            SourceFile = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             LineNumber = 77,
             HandlerBody = "async (CatalogContext context) => await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync()",
         });
         model.CallEdges.Add(new CallEdge(
             "Catalog.Api.CatalogApi", "<lambda> GET /api/catalog/catalogtypes",
             "Catalog.Api.CatalogContext", "ToListAsync",
-            @"C:\repo\src\Catalog.Api\CatalogApi.cs:77"));
+            @"C:/repo/src/Catalog.Api/CatalogApi.cs:77"));
 
         var scope = SolutionScope.FromModel(model);
         var (_, entries) = new GraphBuilder(
@@ -715,14 +786,14 @@ public sealed class GraphBuilderTests
         // an EntityRelation edge OrderItem → Order (BelongsTo direction).
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Orders.Domain", @"C:\repo\src\Orders.Domain\Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Orders.Domain", @"C:/repo/src/Orders.Domain/Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Orders.Domain.Order", new TypeDiscovery
         {
             Id = "Orders.Domain.Order",
             Name = "Order",
             Namespace = "Orders.Domain",
-            FilePath = @"C:\repo\src\Orders.Domain\Order.cs",
+            FilePath = @"C:/repo/src/Orders.Domain/Order.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -732,7 +803,7 @@ public sealed class GraphBuilderTests
             Id = "Orders.Domain.OrderItem",
             Name = "OrderItem",
             Namespace = "Orders.Domain",
-            FilePath = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            FilePath = @"C:/repo/src/Orders.Domain/OrderItem.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -745,13 +816,13 @@ public sealed class GraphBuilderTests
         model.Detections.Add(new EfEntityDetection("Order", "OrdersDbContext", true, ["Id"])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Orders.Domain\Order.cs",
+            SourceFile = @"C:/repo/src/Orders.Domain/Order.cs",
             LineNumber = 5,
         });
         model.Detections.Add(new EfEntityDetection("OrderItem", "OrdersDbContext", false, ["Id"])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            SourceFile = @"C:/repo/src/Orders.Domain/OrderItem.cs",
             LineNumber = 5,
         });
 
@@ -783,14 +854,14 @@ public sealed class GraphBuilderTests
         // A-F14: Order has ICollection<OrderItem> → creates EntityRelation OrderItem→Order
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Orders.Domain", @"C:\repo\src\Orders.Domain\Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Orders.Domain", @"C:/repo/src/Orders.Domain/Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Orders.Domain.Order", new TypeDiscovery
         {
             Id = "Orders.Domain.Order",
             Name = "Order",
             Namespace = "Orders.Domain",
-            FilePath = @"C:\repo\src\Orders.Domain\Order.cs",
+            FilePath = @"C:/repo/src/Orders.Domain/Order.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -805,7 +876,7 @@ public sealed class GraphBuilderTests
             Id = "Orders.Domain.OrderItem",
             Name = "OrderItem",
             Namespace = "Orders.Domain",
-            FilePath = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            FilePath = @"C:/repo/src/Orders.Domain/OrderItem.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -813,13 +884,13 @@ public sealed class GraphBuilderTests
         model.Detections.Add(new EfEntityDetection("Order", "OrdersDbContext", true, ["Id"])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Orders.Domain\Order.cs",
+            SourceFile = @"C:/repo/src/Orders.Domain/Order.cs",
             LineNumber = 5,
         });
         model.Detections.Add(new EfEntityDetection("OrderItem", "OrdersDbContext", false, ["Id"])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            SourceFile = @"C:/repo/src/Orders.Domain/OrderItem.cs",
             LineNumber = 5,
         });
 
@@ -843,12 +914,12 @@ public sealed class GraphBuilderTests
         // 11 builders with the same gap — this pins the fix on the most common (HTTP) case.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Web", @"C:/repo/src/Web/Web.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Detections.Add(new EndpointDetection("GET", "/products", "?", "<lambda>", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Web\Program.cs",
+            SourceFile = @"C:/repo/src/Web/Program.cs",
             LineNumber = 13,
         });
 
@@ -873,14 +944,14 @@ public sealed class GraphBuilderTests
         // returned entry inventory (used by `entrypoints`, which already worked).
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+            Projects = [new ProjectInfo("Web", @"C:/repo/src/Web/Web.csproj", "C#", ["net10.0"], [], [])],
         };
         model.Types.TryAdd("Web.Controllers.FileConfigurationController", new TypeDiscovery
         {
             Id = "Web.Controllers.FileConfigurationController",
             Name = "FileConfigurationController",
             Namespace = "Web.Controllers",
-            FilePath = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            FilePath = @"C:/repo/src/Web/Controllers/FileConfigurationController.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Presentation,
@@ -889,7 +960,7 @@ public sealed class GraphBuilderTests
             "FileConfigurationController", "Get", [], [])
         {
             ExtractorName = "test",
-            SourceFile = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            SourceFile = @"C:/repo/src/Web/Controllers/FileConfigurationController.cs",
             LineNumber = 23,
         });
 

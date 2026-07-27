@@ -4,9 +4,12 @@ namespace DevContext.Core.Tests;
 
 /// <summary>
 /// Locks the Iteration-1 / PRODUCT-DIRECTION §8 invariant: <b>token budgeting is out of the kernel</b>.
-/// The CodeGraph + Map/Trace are assembled before the pruners run and never read <c>model.Budget</c>,
-/// so the narrative (markdown) Map and Trace must be <b>byte-identical across different --max-tokens</b>.
-/// If someone re-couples the token budget to graph assembly or the narrative renderers, these fail.
+/// The CodeGraph + Map/Trace are assembled before the pruners run and never read <c>model.Budget</c>.
+/// The MAP must stay <b>byte-identical across different --max-tokens</b>. The TRACE is shaped to the
+/// budget at the RENDER boundary since D3 (Prism D2) — the audit's `Tokens ~24774 (budget 8000)` was
+/// a silent 3× breach — via the same post-build ShapeToBudget the pack builder uses; kernel assembly
+/// still never reads the budget. A shaped trace must SAY so (the TraceBudget NOTE + per-subtree
+/// "(N omitted)" labels), which is what the trace half pins now.
 /// (The legacy JSON/HTML catalog path is intentionally still budget-driven and is not covered here.)
 /// </summary>
 [Trait("Category", "Eval")]
@@ -26,7 +29,7 @@ public sealed class BudgetIndependenceTests
     }
 
     [Fact]
-    public async Task Trace_is_invariant_across_token_budgets()
+    public async Task Trace_is_shaped_to_the_budget_and_says_so()
     {
         var repo = RepoPath("eval-repos/eShop/src/Ordering.API");
         if (!Directory.Exists(repo)) return; // eval repo not cloned — skip silently
@@ -35,7 +38,13 @@ public sealed class BudgetIndependenceTests
         var large = await RenderAsync(repo, entry: "POST /api/orders/", maxTokens: 20000);
 
         Assert.Contains("TRACE", small, StringComparison.Ordinal);
-        Assert.Equal(large, small);
+        Assert.Contains("TRACE", large, StringComparison.Ordinal);
+        if (small == large) return; // whole trace fits the small budget — nothing to shape
+
+        // Shaping fired: the small render must be smaller AND name what it did — never a silent cut.
+        Assert.True(small.Length < large.Length,
+            $"small-budget render ({small.Length} chars) is not smaller than large ({large.Length})");
+        Assert.Contains("shaped to the ~2000-token budget", small, StringComparison.Ordinal);
     }
 
     private static async Task<string> RenderAsync(string repoPath, string? entry, int maxTokens)

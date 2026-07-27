@@ -115,7 +115,7 @@ path or put the directory on `PATH`):
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
-| `get_context` | Budget-priced context pack for a focus: identity header, flows, signatures, bodies, DI wiring, config, contracts, tests — with per-section provenance. | `focus`/`query`, `budgetTokens` (default 8000), `intent: trace\|explain\|review` |
+| `get_context` | Budget-priced context pack for a focus: identity header, flows, signatures, bodies, DI wiring, config, contracts, tests — with per-section provenance. A pack filling <85% of budget says why (`fillNote`: budget-cut vs content-exhausted) and, when the focus is weakly connected, suggests better-connected focuses (`suggestedFocuses`). | `focus`/`query`, `budgetTokens` (default 8000), `intent: trace\|explain\|review` |
 | `verify_context` | Has the source drifted since `analyze`? Per-section stale flags, changed files with line deltas, repo HEAD then/now (hash + line-count delta, no diff). | `focus`/`query`, `budgetTokens` |
 
 ## A typical agent session
