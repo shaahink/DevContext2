@@ -73,8 +73,14 @@ Session log (one line each: date · what closed · surprises):
   eShop ProductImageUrlProvider + all 10 OrchardCore dup-names are REAL cross-project DI wiring
   (expectations corrected with edge lists); eShop bus 5→9 links is resolver-COMPLETED truth (all
   verified real). Member keys carry no method-arity (documented deviation — producers can't know
-  it). Snapshot schema v6. Next: S3 Batch B (R2 §2.B) transports+joins, informed by the S1 DC3/DC8
-  probe answers; declare Batch B acceptance at open + widen matrix to 22.
+  it). Snapshot schema v6. CLOSE VERDICTS: full battery GATE: PASS unqualified (all 8 steps, eval
+  re-ran fresh post-expectation-corrections — log gates-s2-close2.txt; the first run's only red was
+  an app graph-layout spec timing out 5052ms vs its 5000ms cap under vitest load, passed clean on a
+  quiet machine) · bench PERF-2026-07-27-2348: DntSite Map 34.5s→24.9s (−28%), Trace 30.2→26.7s;
+  PERF-2026-07-27-2343: OrchardCore Map 30.8s→14.1s (−54%) — the deleted second compilation +
+  UpgradeCallEdges pass show up directly; perf rider PASSED with headroom (2343's DntSite 54s row is
+  vitest-contention noise, superseded by 2348). Next: S3 Batch B (R2 §2.B) transports+joins,
+  informed by the S1 DC3/DC8 probe answers; declare Batch B acceptance at open + widen matrix to 22.
 
 ## 3. Session map
 
