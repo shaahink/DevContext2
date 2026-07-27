@@ -1,0 +1,141 @@
+# PLAN — R1→R2→R3 execution plan (authored 2026-07-27)
+
+> Owner decision: run R1 and R2 first (interleaved, token-optimized batching), do R3 on the cleaner
+> engine. R4 is a parallel lane for a spare session. Claude's sequencing votes were adopted (§1).
+> A fresh session starts here: read §2 STATUS, then ONLY the strand doc + files your session needs
+> (§5 token rules). R1–R4 docs hold the detail; this doc is the execution overlay — do not duplicate
+> their content here, reference it.
+
+## 1. Decisions adopted (don't re-litigate)
+
+- **Interleave R1/R2, don't run full breadth first.** Build the truth-matrix instrument + run it
+  over a 12-repo pole set (matrix v1), then start Batch A against those cells. Breadth widens
+  incrementally: +10 repos at each batch close, full 47 + loop-until-dry by Batch E close.
+  The instrument matters more than the exhaustive first run.
+- **Base: ask the owner to sign the Prism merge (`feat/prism-d1…d5` → `develop`) at S1 open.**
+  If signed → base = fresh `develop`. If not → base = d5 tip (fa9d706). NEVER merge unasked.
+- **One program branch `feat/graph-v2`** off the base. Commit prefixes `r1:` / `batchA:` … `batchE:`.
+  Batches are sequential on this one branch (no per-batch branch juggling). Owner-signed merge to
+  develop at program close (or a mid-point checkpoint after Batch B if the owner wants one).
+- **Batch order A→B→C→D+E** as in R2. D and E share one session (D is mechanical); still two batch
+  closes — launch D's full battery DETACHED and start E while it runs.
+- **R3 waits for Batch B** (canvas/workspace mocks need true edges + transports). R3 is
+  owner-interactive; schedule it after S3, overlapping S4/S5 if convenient.
+- **R4 dogfood grading is fairest after Batch B** (judge usefulness on a true graph). R4 *fixes*
+  (items 1–7, 11–12) are server-local and can run any time in a parallel session/worktree;
+  primitives 8–10 + trace defaults coordinate with Batch E (one-trace-contract).
+
+## 2. STATUS (update at every session close — this is the cold-start entry point)
+
+- [ ] S1 — base decided DONE (merge SIGNED 2026-07-27 → develop @ 8dbb510, pushed, CI riding) ·
+      program assets committed DONE (first commit on `feat/graph-v2`) · `eval/graph-truth.ps1` built ·
+      matrix v1 (12 poles) at `eval-results/<date>/graph-truth/MATRIX.md` · DC3/DC8 probes answered ·
+      Batch A acceptance cells declared in MATRIX.md
+- [ ] S2 — Batch A landed · battery green · matrix v1 cells flipped as declared
+- [ ] S3 — Batch B landed · battery green · matrix widened to 22 repos
+- [ ] S4 — Batch C landed · battery green · matrix widened to 32 repos
+- [ ] S5 — Batch D landed · Batch E landed · battery green ×2 · matrix = full 47 · loop-until-dry
+      confirmed (no new DC class in last 10 repos)
+- [ ] S6 — R3 decision session held · DECISIONS.md written · implementation per decisions + render kernel
+- [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
+
+Session log (one line each: date · what closed · surprises):
+- 2026-07-27 · S1 steps 1-2 done ahead of session: Prism merge signed+landed (develop 8dbb510,
+  pushed), `feat/graph-v2` created off it, program assets committed. Next session starts at S1
+  step 3 (build `eval/graph-truth.ps1`). eval-results/2026-07-19/ left untracked (clutter = open
+  owner call).
+
+## 3. Session map
+
+### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
+1. ~~Open: ask owner for the signed Prism merge; set base per §1; create `feat/graph-v2`.~~
+   DONE 2026-07-27: merge signed, develop @ 8dbb510, `feat/graph-v2` created.
+2. ~~First commit: the program assets currently untracked on the d5 working tree.~~ DONE 2026-07-27.
+3. Build `eval/graph-truth.ps1` implementing the 7 checks in R1 §2.1 (transport counts vs
+   expectation, handler-join reachability, hub sanity, entry-target sanity, style vs expectation,
+   sln scope, dup-name cross-service proxy). Per-repo expectations live in `eval/expectations/`
+   (extend the existing scheme). Output: machine-readable per-repo verdicts + a human MATRIX.md grid.
+4. Run matrix v1 over the 12 poles: eShop, dotnet-podcasts, CleanArchitecture, aspire-samples,
+   GitVersion, Spectre.Console, FluentValidation, Polly, gRPC, MassTransit-Sample, functions-app,
+   OrchardCore. (Names = `eval-repos/` dir names, verified.) Fan out per-repo runs to subagents;
+   only verdicts return to context (§5).
+5. Answer the two R1 probes: (a) eShop gRPC client registration — which detection fires (DC3);
+   (b) GitVersion command framework — why F10 sees 1 command (DC8). Record answers in MATRIX.md;
+   they shape Batch B items 1+3.
+6. Batch A prep: re-verify the [audit] file:line refs for Batch A files ONLY (R2 §2.A list);
+   declare Batch A acceptance in MATRIX.md — which cells must flip, which must not move
+   (CleanArchitecture is the healthy-baseline canary: its cells must NOT move in any batch).
+- Done when: STATUS S1 line all true. If S1 runs long, Batch A prep (step 6) may slip to S2 open.
+
+### S2 — Batch A: identity + resolution (R2 §2.A — the deep cut)
+- Steps 1–5 as written in R2 §2.A (structural NodeId converging on SymbolId; call edges through
+  SymbolTable, Ambiguous→skip; one Roslyn compilation; delete compensating deny-lists after proving
+  redundancy; collapse NameResolver into SymbolTable).
+- Keep: entry-seeded closure scoping (D3 perf win) · determinism seals (`DeterministicOrderTests`
+  green — HANDOVER-PRISM §4).
+- Close: full battery detached + matrix v1 rerun + bench vs PERF-2026-07-18-1346 (DntSite 34.5s /
+  OrchardCore 30.8s, no >10% regression). Acceptance = the cells declared in S1.
+
+### S3 — Batch B: transports + joins (R2 §2.B)
+- Items 1–4 as written, informed by the S1 probe answers. External targets render as dashed
+  external nodes (drop both-ends-in-solution gate).
+- Close: battery + matrix widened to 22 (add: SignalR, signalr-app, Blazor, RazorPages,
+  VerticalSlice, TodoApi, Functions, AzureFunctions, YARP, Ocelot). Declare acceptance at open.
+
+### S4 — Batch C: entry quality + classification + scope (R2 §2.C)
+- Items 1–4 as written (primary-call pick, multi-sln explicit scope + `--sln` flag, ProjectClassifier
+  fixtures, style verdicts suppressed at detector).
+- Close: battery + matrix widened to 32 (add: wolverine, Hangfire, Quartz.NET, Orleans, MediatR,
+  Serilog, AutoMapper, Newtonsoft.Json, refit, RestSharp). Declare acceptance at open.
+
+### S5 — Batch D then Batch E (R2 §2.D + §2.E)
+- Batch D (mechanical hygiene/perf): land, launch full battery DETACHED, immediately start Batch E
+  (one trace contract, number reconciliation, retire eShop string tables).
+- Close: E battery + matrix = full 47 (remainder incl. desktop pole PowerToys/ScreenToGif/MahApps/
+  CommunityToolkit.Mvvm/Desktop, StackExchange.Redis, Dapper, xUnit, CLI, blazor-samples,
+  razorpages-app, company-functions, bitwarden-server, DntSite, HotChocolate, MassTransit, MediatR…).
+  R1 exit: no new DC class in the last 10 repos; every DC has fix-or-accepted-limitation noted.
+
+### S6 — R3 decision session (owner-interactive; after S3 at earliest)
+- Run per R3 §1: mock-ups per decision area (D-A first), owner decides, record DECISIONS.md,
+  implement only complete pages. Render kernel built AFTER decisions, serving app/CLI/MCP as
+  projections. Re-point `screenshot-gate.mts` as pages land.
+
+### Parallel lane — R4 (separate session/worktree, any time)
+- Fixes 1–7 + 11–12 per R4 §1; primitives 8–10 wait for/coordinate with Batch E.
+- Dogfood protocol per R4 §2 AFTER Batch B is in. Output: `eval-results/<date>/mcp-dogfood/REPORT.md`.
+
+## 4. Batch discipline (from R2 §1 — the contract every session follows)
+
+- Inside a batch: `dotnet build src/DevContext.Cli -clp:ErrorsOnly` + `--filter`ed unit tests only.
+  NO full gate mid-batch.
+- Batch close: full `eval/gates.ps1` once (DETACHED, overlap next work) + matrix run once.
+  Acceptance cells declared BEFORE coding starts.
+- Session-killers, pre-empted: `start-dev-bg.ps1 -Kill` FIRST always · rebuild Cli after Core edits ·
+  ASCII only in detached PS 5.1 scripts · capture CLI output to file, never `Select-Object -First`.
+- Snapshot cache: every batch invalidates all snapshots (MVID keying) — cold re-analyzes during
+  verification are EXPECTED, not regressions.
+
+## 5. Token economy (why this plan is shaped this way — follow strictly)
+
+1. **Cold-start reading list per session**: this PLAN (§2 STATUS first) + the ONE strand doc for the
+   session + HANDOVER-PRISM §4 if touching resolver/determinism code. Do NOT re-read FINDINGS.md,
+   the audits, or other strand docs wholesale — R1's DC list is the condensed form of all of them.
+2. **[audit] refs are re-verified lazily**: only for files the current batch touches, immediately
+   before editing. Never sweep-verify the whole inventory.
+3. **Matrix runs happen in subagents / detached scripts**: per-repo analyze+query output goes to
+   files under `eval-results/<date>/graph-truth/raw/`; only the verdict grid enters context.
+   Read MATRIX.md, never the raw dumps.
+4. **One build/test cycle per batch** (§4). The matrix answers "did it regress" wholesale — do not
+   run per-fix verification loops.
+5. **Declare acceptance up front, in writing** (MATRIX.md). This converts verification from
+   open-ended exploration into a checklist diff.
+6. **Update §2 STATUS + session log at close** — the next session cold-starts from it instead of
+   re-deriving state from git archaeology.
+
+## 6. Standing constraints (inherited — see research/README.md)
+
+- NEVER merge to develop unasked; the Prism merge and the graph-v2 merge are owner-signed events.
+- Determinism seals stay green through all surgery (SealableBag/OrderedTypes/insertion-order/
+  call-site edge canon).
+- PRODUCT-DIRECTION.md §3 five-artifact contract binds R3; a sixth artifact needs owner override.
