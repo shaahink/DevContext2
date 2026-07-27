@@ -1,6 +1,7 @@
 {
   "repo": "eval-repos/OrchardCore",
-  "note": "Big modular-monolith pole + perf canary (bench 2026-07-18: 30.8s). Style truth ModularMonolith. No cross-service transports (modules talk in-process).",
+  "note": "Big modular-monolith pole + perf canary (bench 2026-07-18: 30.8s). Style truth ModularMonolith. No cross-service transports (modules talk in-process). Batch A correction (2026-07-27, evidence in MATRIX.md): all 10 dup-name types are REAL cross-module DI Resolves edges - OC modules deliberately reuse type names (AdminMenu, SetupEventHandler, per-search-provider ContentPart/TypePartIndexSettingsDisplayDriver) registered against shared Abstractions interfaces; each resolves to its own module's fully-qualified type. maxCrossTypes 10 encodes the convention.",
   "transports": {},
+  "dupNames": { "maxCrossTypes": 10 },
   "style": { "archetype": "App", "styles": ["ModularMonolith"] }
 }

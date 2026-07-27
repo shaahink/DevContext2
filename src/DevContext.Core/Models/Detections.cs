@@ -43,12 +43,12 @@ public abstract record Detection
 /// <summary>
 /// Marks a detection whose <see cref="Detection.SourceFile"/> declares an application entry surface
 /// (a <c>SurfaceRole.AppEntry</c> shape in <see cref="Graph.EntrySurfaces.EntrySurfaceCatalog"/>). Its
-/// file seeds Map-mode call-graph binding (<c>CallGraphExtractor.EntrySeedFiles</c>) so the entry's
+/// file seeds Map-mode call-graph binding (<c>CallGraphBinder.EntrySeedFiles</c>) so the entry's
 /// handler method gets Calls edges — the basis for entry→target resolution and a non-shallow precomputed
 /// Flow. Before T1.1 the seed set was a hardcoded four (endpoints, MediatR, workers, hubs); gRPC/
 /// Functions/Orleans/GraphQL/consumer/CLI entries got no call edges in Map mode and traced as shallow as
 /// hubs once did. Implementing this on a new AppEntry detection feeds it into the seed set automatically —
-/// no <c>CallGraphExtractor</c> edit. (Desktop UI stays out until its entry taxonomy is cleaned up in T1.7.)
+/// no <c>CallGraphBinder</c> edit. (Desktop UI stays out until its entry taxonomy is cleaned up in T1.7.)
 /// </summary>
 public interface IEntrySurfaceDetection;
 

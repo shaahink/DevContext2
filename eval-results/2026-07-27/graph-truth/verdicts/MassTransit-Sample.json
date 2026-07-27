@@ -1,7 +1,7 @@
 ﻿{
     "repo":  "MassTransit-Sample",
-    "run":  "2026-07-27 20:56:12",
-    "wallSec":  7.5,
+    "run":  "2026-07-27 23:06:05",
+    "wallSec":  2.9,
     "snapshotCache":  "HIT · 9eb8503",
     "nodeCount":  16,
     "edgeCount":  10,

@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds CLI command entry points from <see cref="CliCommandDetection"/>s.</summary>
@@ -5,7 +7,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -21,7 +23,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"cli:{cmd.CommandType}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = cmd.SourceFile, LineNumber = cmd.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(cmd.CommandType, cmd.SourceFile));
+            var typeId = NodeId.ForType(names.ResolveName(cmd.CommandType, cmd.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {

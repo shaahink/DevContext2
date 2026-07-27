@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "aspire-samples",
-    "run":  "2026-07-27 20:56:32",
-    "wallSec":  18.8,
+    "run":  "2026-07-27 23:04:48",
+    "wallSec":  10.6,
     "snapshotCache":  "HIT · 4cd8939",
-    "nodeCount":  87,
-    "edgeCount":  45,
+    "nodeCount":  48,
+    "edgeCount":  20,
     "checks":  {
                    "transport":  {
                                      "verdict":  "SKIP",
@@ -34,33 +34,33 @@
                                     },
                    "hub-sanity":  {
                                       "verdict":  "PASS",
-                                      "detail":  "top-5 clean: IdentityAuthenticationStateProvider.SetUserInfo(4), IBasketRepository(4), Weather.AutoRefreshChanged(3), Weather.LoadWeatherAsync(3), CatalogDbContext(3)",
+                                      "detail":  "top-5 clean: IdentityAuthenticationStateProvider.SetUserInfo(3), IdentityAuthenticationStateProvider(3), LoginUser(2), Logout(2), Weather.LoadWeatherAsync(2)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
                                                                        "title":  "IdentityAuthenticationStateProvider.SetUserInfo",
-                                                                       "id":  "Member:MetricsApp.Client.Auth.IdentityAuthenticationStateProvider.SetUserInfo",
-                                                                       "degree":  4
-                                                                   },
-                                                                   {
-                                                                       "title":  "IBasketRepository",
-                                                                       "id":  "Type:AspireShop.BasketService.Repositories.IBasketRepository",
-                                                                       "degree":  4
-                                                                   },
-                                                                   {
-                                                                       "title":  "Weather.AutoRefreshChanged",
-                                                                       "id":  "Member:MetricsApp.Client.Pages.Weather.AutoRefreshChanged",
+                                                                       "id":  "Member:MetricsApp.Client.Auth.IdentityAuthenticationStateProvider::SetUserInfo",
                                                                        "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "IdentityAuthenticationStateProvider",
+                                                                       "id":  "Type:MetricsApp.Client.Auth.IdentityAuthenticationStateProvider",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "LoginUser",
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Auth::LoginUser",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "Logout",
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Auth::Logout",
+                                                                       "degree":  2
                                                                    },
                                                                    {
                                                                        "title":  "Weather.LoadWeatherAsync",
-                                                                       "id":  "Member:MetricsApp.Client.Pages.Weather.LoadWeatherAsync",
-                                                                       "degree":  3
-                                                                   },
-                                                                   {
-                                                                       "title":  "CatalogDbContext",
-                                                                       "id":  "Type:AspireShop.CatalogDb.CatalogDbContext",
-                                                                       "degree":  3
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Weather::LoadWeatherAsync",
+                                                                       "degree":  2
                                                                    }
                                                                ]
                                                   }

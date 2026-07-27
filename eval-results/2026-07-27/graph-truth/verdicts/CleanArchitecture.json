@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "CleanArchitecture",
-    "run":  "2026-07-27 20:58:04",
-    "wallSec":  1.3,
+    "run":  "2026-07-27 23:05:03",
+    "wallSec":  9.7,
     "snapshotCache":  "HIT · a064d0b",
-    "nodeCount":  323,
-    "edgeCount":  155,
+    "nodeCount":  143,
+    "edgeCount":  53,
     "checks":  {
                    "transport":  {
                                      "verdict":  "PASS",
@@ -21,50 +21,50 @@
                                  },
                    "handler-join":  {
                                         "verdict":  "FAIL",
-                                        "detail":  "19 of 24 send targets have no Handles edge: AddToCartCommand, AddToDoItemCommand, CheckoutCommand, ContributorDeletedEvent, CreateContributorCommand",
+                                        "detail":  "5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand",
                                         "metrics":  {
-                                                        "sendsTotal":  24,
+                                                        "sendsTotal":  6,
                                                         "handlesTotal":  2,
                                                         "consumesTotal":  2,
-                                                        "unhandledTargets":  19,
+                                                        "unhandledTargets":  5,
                                                         "sample":  [
-                                                                       "AddToCartCommand",
-                                                                       "AddToDoItemCommand",
-                                                                       "CheckoutCommand",
-                                                                       "ContributorDeletedEvent",
-                                                                       "CreateContributorCommand"
+                                                                       "CreateContributorCommand",
+                                                                       "DeleteContributorCommand",
+                                                                       "GetContributorQuery",
+                                                                       "ListContributorsQuery",
+                                                                       "UpdateContributorCommand"
                                                                    ]
                                                     }
                                     },
                    "hub-sanity":  {
                                       "verdict":  "PASS",
-                                      "detail":  "top-5 clean: IServiceCollection(14), Configure(6), Create.Configure(5), Delete.Configure(5), GetById.Configure(5)",
+                                      "detail":  "top-5 clean: IServiceCollection(5), Handle(3), List.HandleAsync(3), Contributor(3), ContributorDeletedEvent(3)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
                                                                        "title":  "IServiceCollection",
                                                                        "id":  "Type:Microsoft.Extensions.DependencyInjection.IServiceCollection",
-                                                                       "degree":  14
-                                                                   },
-                                                                   {
-                                                                       "title":  "Configure",
-                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.List.Configure",
-                                                                       "degree":  6
-                                                                   },
-                                                                   {
-                                                                       "title":  "Create.Configure",
-                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.Create.Configure",
                                                                        "degree":  5
                                                                    },
                                                                    {
-                                                                       "title":  "Delete.Configure",
-                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.Delete.Configure",
-                                                                       "degree":  5
+                                                                       "title":  "Handle",
+                                                                       "id":  "Member:Clean.Architecture.Core.ContributorAggregate.Handlers.ContributorNameUpdatedEmailNotificationHandler::Handle",
+                                                                       "degree":  3
                                                                    },
                                                                    {
-                                                                       "title":  "GetById.Configure",
-                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.GetById.Configure",
-                                                                       "degree":  5
+                                                                       "title":  "List.HandleAsync",
+                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.List::HandleAsync",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "Contributor",
+                                                                       "id":  "Type:Clean.Architecture.Core.ContributorAggregate.Contributor",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "ContributorDeletedEvent",
+                                                                       "id":  "Type:Clean.Architecture.Core.ContributorAggregate.Events.ContributorDeletedEvent",
+                                                                       "degree":  3
                                                                    }
                                                                ]
                                                   }
@@ -109,7 +109,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  6,
+                                                    "crossProjectEdges":  4,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

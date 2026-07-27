@@ -1,4 +1,5 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
 using DevContext.Core.Models;
 
 using Microsoft.CodeAnalysis;
@@ -156,9 +157,9 @@ public class DeterministicOrderTests
             Type("App.Other", "Unrelated", "a/Unrelated.cs"),
         };
 
-        var forward = new NameResolver(types);
-        var reversed = new NameResolver(types.Reverse());
+        var forward = new DevContext.Core.Graph2.SymbolTable(types);
+        var reversed = new DevContext.Core.Graph2.SymbolTable(types.Reverse());
 
-        Assert.Equal(forward.Resolve("CipherService"), reversed.Resolve("CipherService"));
+        Assert.Equal(forward.ResolveName("CipherService"), reversed.ResolveName("CipherService"));
     }
 }

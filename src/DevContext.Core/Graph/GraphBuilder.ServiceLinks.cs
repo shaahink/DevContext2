@@ -18,7 +18,7 @@ public sealed partial class GraphBuilder
     /// (client type usage in project A) to <see cref="GrpcServiceDetection"/> (service implementation
     /// in project B) by matching the service name.</summary>
     private static void AddGrpcServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
-        NameResolver names, SolutionScope scope, NoiseFilter noise)
+        SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
 
         var clients = model.Detections.OfType<GrpcClientDetection>().ToList();
@@ -67,7 +67,7 @@ public sealed partial class GraphBuilder
     /// path-pattern normalization: strips YARP template variables ({**catch-all}, {param}) to
     /// static-prefix-match against Refit route segments.</summary>
     private static void AddHttpServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
-        NameResolver names, SolutionScope scope, NoiseFilter noise)
+        SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
 
         if (model.GatewayRoutes.Count == 0) return;
@@ -328,13 +328,13 @@ public sealed partial class GraphBuilder
         return (integrationTypes, domainTypes);
     }
 
-    private static SeamContext BuildSeamContext(DiscoveryModel model, SolutionScope scope,
+    private static SeamContext BuildSeamContext(SymbolTable symbols,
         IEnumerable<string> integrationEventTypes, IEnumerable<string> domainEventTypes,
-        IEnumerable<string> knownEntities, IReadOnlyList<BodyFacts>? bodyFacts = null)
+        IEnumerable<string> knownEntities)
     {
         return new SeamContext
         {
-            Symbols = new SymbolTable(model.OrderedTypes, scope.ProjectForFile, bodyFacts),
+            Symbols = symbols, // the ONE table built in Build() — never a second index (Batch A)
             KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
             IntegrationEventTypes = integrationEventTypes.ToImmutableHashSet(StringComparer.Ordinal),
             DomainEventTypes = domainEventTypes.ToImmutableHashSet(StringComparer.Ordinal),

@@ -1,8 +1,8 @@
 ﻿{
     "repo":  "functions-app",
-    "run":  "2026-07-27 20:57:09",
-    "wallSec":  3.5,
-    "snapshotCache":  "miss · saved 7a05caf",
+    "run":  "2026-07-27 23:05:30",
+    "wallSec":  3.1,
+    "snapshotCache":  "HIT · af84168",
     "nodeCount":  3,
     "edgeCount":  1,
     "checks":  {
@@ -44,7 +44,7 @@
                                                                    },
                                                                    {
                                                                        "title":  "ProcessOrder.Run",
-                                                                       "id":  "Member:FunctionsApp.ProcessOrder.Run",
+                                                                       "id":  "Member:FunctionsApp.ProcessOrder::Run",
                                                                        "degree":  1
                                                                    }
                                                                ]

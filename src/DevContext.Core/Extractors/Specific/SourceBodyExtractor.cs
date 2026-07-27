@@ -54,12 +54,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
 
             foreach (var typeDecl in typeDecls)
             {
-                var ns = typeDecl.Ancestors()
-                    .OfType<BaseNamespaceDeclarationSyntax>()
-                    .FirstOrDefault()
-                    ?.Name
-                    .ToString() ?? "global";
-                var fullName = $"{ns}.{typeDecl.Identifier.ValueText}";
+                var fullName = Graph2.SymbolCanon.ForTypeDecl(typeDecl);
 
                 var type = group.FirstOrDefault(t => t.Id == fullName);
                 if (type == null) continue;

@@ -15,7 +15,7 @@ public sealed partial class GraphBuilder
     /// <summary>B1: DiRegistrationDetection → Resolves (interface → impl) edges.
     /// Only DirectBinding registrations (explicit interface-to-implementation). Uses ISymbolResolver
     /// for single-implementor fallback. Creates Resolves edges from interface TypeNode to impl TypeNode.</summary>
-    private void AddDiResolves(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private void AddDiResolves(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope)
     {
         // Pre-compute single-implementor map for fallback when no DI registration
         var singleImplMap = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -69,8 +69,8 @@ public sealed partial class GraphBuilder
                 || !productionRegisteredSvc.Contains(StripGenerics(di.ServiceType)))
             .OrderBy(di => di.SourceFile, StringComparer.Ordinal).ThenBy(di => di.LineNumber)
             .GroupBy(di => (
-                Svc: NodeId.ForType(names.Resolve(di.ServiceType, di.SourceFile)),
-                Impl: NodeId.ForType(names.Resolve(di.ImplementationType, di.SourceFile))));
+                Svc: NodeId.ForType(names.ResolveName(di.ServiceType, di.SourceFile)),
+                Impl: NodeId.ForType(names.ResolveName(di.ImplementationType, di.SourceFile))));
 
         foreach (var pair in bindings)
         {
@@ -120,13 +120,13 @@ public sealed partial class GraphBuilder
         {
             if (!scope.Contains(di.SourceFile)) continue;
             if (di.Shape != DiRegistrationShape.DirectBinding) continue;
-            var svcFqn = names.Resolve(di.ServiceType, di.SourceFile);
+            var svcFqn = names.ResolveName(di.ServiceType, di.SourceFile);
             diResolvedSvcIds.Add(NodeId.ForType(svcFqn));
         }
 
         foreach (var (ifaceShort, implFqn) in singleImplMap)
         {
-            var ifaceFqn = names.Resolve(ifaceShort);
+            var ifaceFqn = names.ResolveName(ifaceShort);
             var svcNodeId = NodeId.ForType(ifaceFqn);
             var implNodeId = NodeId.ForType(implFqn);
             if (!g.HasNode(svcNodeId) || !g.HasNode(implNodeId)) continue;
@@ -145,78 +145,24 @@ public sealed partial class GraphBuilder
     // ── P2 Trace-facing seams (C1) — joins that complete the indirection-bridged trace ─────────
 
     /// <summary>C1: model.CallEdges → <b>member→member</b> Calls edges, but ONLY between types that are
-    /// real nodes in the graph (in-scope solution types). The syntactic call graph emits a callee per
-    /// invocation, many of which are local variables, fluent-chain fragments, or framework methods (e.g.
-    /// "group", "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise.
-    /// By requiring both endpoints to already exist as declared Type nodes (non-null FilePath), the trace
-    /// keeps only edges to types we actually know. Origin is the caller <b>method</b> and target the callee
-    /// <b>method</b> (both carried on <see cref="CallEdge"/>), so a focused trace descends method-to-method
-    /// — the spine — instead of inheriting every sibling method's edges. Member nodes carry their owning
-    /// Type's FilePath (salient lines fall back to the Type body in <see cref="TraceBuilder"/>).
-    /// Resolution flows through from the edge (semantic → [verified], syntactic → [approx]).</summary>
-    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
-        IReadOnlyList<BodyFacts>? bodyFacts = null)
+    /// real nodes in the graph (in-scope solution types). Since Batch A the edges arrive from
+    /// <see cref="Graph2.CallGraphBinder"/> already carrying CANONICAL type ids (resolved through the
+    /// one SymbolTable, ambiguous receivers skipped at the source) and their honest Resolution tier —
+    /// no re-resolution and no post-hoc semantic overlay here. Gating on a non-null FilePath keeps
+    /// Calls restricted to types we actually declared. Origin is the caller <b>method</b> and target
+    /// the callee <b>method</b>, so a focused trace descends method-to-method — the spine — instead
+    /// of inheriting every sibling method's edges.</summary>
+    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model)
     {
-        // L3.3 — build semantic index from upgraded BodyFacts for Call edge verification.
-        var semanticLocs = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        if (bodyFacts is { Count: > 0 })
-        {
-            foreach (var body in bodyFacts)
-            {
-                foreach (var op in body.Ops)
-                {
-                    var prov = $"{body.File}:{op.Line}";
-                    switch (op)
-                    {
-                        case CreationOp c when c.Type is { Tier: ResolutionTier.Semantic } s:
-                            AddToIndex(semanticLocs, prov, s.Text);
-                            break;
-                        case LocalDeclOp l when l.InferredFrom is { Tier: ResolutionTier.Semantic } s:
-                            AddToIndex(semanticLocs, prov, s.Text);
-                            break;
-                        case InvocationOp i when i.ReceiverType is { Tier: ResolutionTier.Semantic } s:
-                            AddToIndex(semanticLocs, prov, s.Text);
-                            break;
-                        case InvocationOp i:
-                            foreach (var ga in i.GenericArgs)
-                                if (ga is { Tier: ResolutionTier.Semantic } s)
-                                    AddToIndex(semanticLocs, prov, s.Text);
-                            break;
-                    }
-                }
-            }
-        }
-
         foreach (var ce in model.CallEdges)
         {
-            var callerFqn = names.Resolve(ce.CallerType, ce.CallSiteLocation);
-            var calleeFqn = names.Resolve(ce.CalleeType, ce.CallSiteLocation);
-
-            // Filter self-calls to known noise targets — syntactic-resolver mis-attributions (nameof,
-            // controller result-helpers) that member-origin precision surfaced (Iteration 4 noise polish).
-            if (callerFqn == calleeFqn && IsSelfCallNoise(ce.CalleeMethod)) continue;
-
-            // Declared in-scope types only. After the Type+tags collapse, requests/events/handlers that
-            // live in referenced projects also exist as Type nodes (name-only, added by joins) — gating
-            // on a non-null FilePath (set only by AddTypeNodes) keeps Calls restricted to types we
-            // actually declared, exactly as before the collapse, so no phantom call edges appear.
-            var callerType = g.GetNode(NodeId.ForType(callerFqn));
-            var calleeType = g.GetNode(NodeId.ForType(calleeFqn));
+            var callerType = g.GetNode(NodeId.ForType(ce.CallerType));
+            var calleeType = g.GetNode(NodeId.ForType(ce.CalleeType));
             if (callerType?.FilePath is null || calleeType?.FilePath is null) continue;
 
-            var callerId = NodeId.ForMember(callerFqn, ce.CallerMethod);
-            var calleeId = NodeId.ForMember(calleeFqn, ce.CalleeMethod);
+            var callerId = NodeId.ForMember(ce.CallerType, ce.CallerMethod);
+            var calleeId = NodeId.ForMember(ce.CalleeType, ce.CalleeMethod);
             if (callerId == calleeId) continue;                              // skip direct self-recursion
-
-            // L3.3 — check if this call site was semantically verified via Tier B body facts.
-            var resolution = ce.Resolution;
-            if (resolution == Resolution.Syntactic
-                && ce.CallSiteLocation is { } loc
-                && semanticLocs.TryGetValue(loc, out var semTargets)
-                && IsAnyShortMatch(ce.CalleeType, semTargets))
-            {
-                resolution = Resolution.Semantic;
-            }
 
             // Member nodes for both endpoints, carrying the owning Type's file (body filled — when at all —
             // by the body-scan seams / HTTP entry; salient otherwise falls back to the parent Type body).
@@ -232,8 +178,8 @@ public sealed partial class GraphBuilder
             g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
             {
                 Provenance = ce.CallSiteLocation,
-                Resolution = resolution,
-                Confidence = resolution == Resolution.Semantic ? 0.95f : 0.6f,
+                Resolution = ce.Resolution,
+                Confidence = ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f,
             });
         }
     }
@@ -243,7 +189,7 @@ public sealed partial class GraphBuilder
     /// Detects sparseness (entries &lt; 5 or edge/node ratio &lt; 0.1), identifies top-K central
     /// type nodes by degree, and binds their inter-type call edges from the model's CallEdges.
     /// Budget-capped at 500 additional edges; honest scope reported in Stats.</summary>
-    private static (bool IsSparse, int HubCount) AddHubScopeEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+    private static (bool IsSparse, int HubCount) AddHubScopeEdges(CodeGraphBuilder g, DiscoveryModel model,
         ImmutableArray<EntryPoint> entries)
     {
         var nodeCount = g.NodeCount;
@@ -252,14 +198,14 @@ public sealed partial class GraphBuilder
 
         if (entries.Length >= 5 && ratio >= 0.1) return (false, 0);
 
-        // Compute degree centrality for all types with a FilePath (in-scope, production code)
+        // Compute degree centrality for all types with a FilePath (in-scope, production code).
+        // Edge types are canonical since Batch A — count them directly; the existingTypes filter
+        // below still restricts hubs to declared in-scope nodes.
         var typeDegrees = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var ce in model.CallEdges)
         {
-            var cfqn = names.Resolve(ce.CallerType);
-            var dfqn = names.Resolve(ce.CalleeType);
-            if (cfqn != ce.CallerType) typeDegrees[cfqn] = typeDegrees.GetValueOrDefault(cfqn) + 1;
-            if (dfqn != ce.CalleeType) typeDegrees[dfqn] = typeDegrees.GetValueOrDefault(dfqn) + 1;
+            typeDegrees[ce.CallerType] = typeDegrees.GetValueOrDefault(ce.CallerType) + 1;
+            typeDegrees[ce.CalleeType] = typeDegrees.GetValueOrDefault(ce.CalleeType) + 1;
         }
 
         // Build a set of type nodes already present with FilePath (production code)
@@ -284,8 +230,8 @@ public sealed partial class GraphBuilder
         {
             if (added >= 500) break;
 
-            var cfqn = names.Resolve(ce.CallerType);
-            var dfqn = names.Resolve(ce.CalleeType);
+            var cfqn = ce.CallerType;
+            var dfqn = ce.CalleeType;
             if (cfqn == dfqn) continue;
 
             // At least one endpoint must be a hub
@@ -328,7 +274,7 @@ public sealed partial class GraphBuilder
     /// comes from the body-fact line number, anchored on the correct Member node by construction — never a
     /// char-offset estimate. The Raises edges written here are the publisher half of the T2.6
     /// <see cref="EventWiringProjection"/>.</summary>
-    private static void AddSeamsFromDetectors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+    private void AddSeamsFromDetectors(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names,
         SolutionScope scope, IReadOnlyList<BodyFacts>? allBodyFacts)
     {
         // Auto-extract BodyFacts from model TypeDiscovery SourceBodies when the pipeline hasn't
@@ -375,7 +321,7 @@ public sealed partial class GraphBuilder
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             knownEntities.Add(e.EntityType);
-            knownEntities.Add(names.Resolve(e.EntityType, e.SourceFile));
+            knownEntities.Add(names.ResolveName(e.EntityType, e.SourceFile));
         }
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
             integrationTypes.Add(mc.MessageType);
@@ -388,13 +334,13 @@ public sealed partial class GraphBuilder
         // Entity and event names that are also FQNs
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
-            var entityFqn = names.Resolve(e.EntityType, e.SourceFile);
+            var entityFqn = names.ResolveName(e.EntityType, e.SourceFile);
             if (!string.IsNullOrEmpty(entityFqn) && entityFqn != "?" && entityFqn != e.EntityType)
                 knownEntities.Add(entityFqn);
         }
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
-            var msgFqn = names.Resolve(mc.MessageType, mc.SourceFile);
+            var msgFqn = names.ResolveName(mc.MessageType, mc.SourceFile);
             if (!string.IsNullOrEmpty(msgFqn) && msgFqn != "?" && msgFqn != mc.MessageType)
                 integrationTypes.Add(msgFqn);
         }
@@ -404,7 +350,7 @@ public sealed partial class GraphBuilder
                 knownEntities.Add(node.Title);
         }
 
-        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, knownEntities, allBodyFacts);
+        var ctx = BuildSeamContext(names, integrationTypes, domainTypes, knownEntities);
 
         var detectors = new ISeamDetector[]
         {
@@ -446,6 +392,12 @@ public sealed partial class GraphBuilder
 
         foreach (var body in allBodyFacts)
         {
+            // Batch A: seam ORIGINS respect the same production+scope gate as every other join
+            // (AddHandlerJoins, AddDiResolves, entry builders). Test bodies were the one ungated
+            // path into the graph — Moq fluent chains in Ordering.UnitTests minted a Sends edge to
+            // System.Boolean and test→production Calls seams that read as cross-project wiring.
+            if (!scope.Contains(body.File) || !_noise.IsProductionEntrySource(body.File)) continue;
+
             foreach (var detector in detectors)
             {
                 try
@@ -541,40 +493,22 @@ public sealed partial class GraphBuilder
         return false;
     }
 
-    private static bool IsAnyShortMatch(string fqn, HashSet<string> shortNames)
-    {
-        // The short name matches if it equals the last segment of the FQN or the full FQN.
-        foreach (var sn in shortNames)
-            if (string.Equals(fqn, sn, StringComparison.Ordinal)
-                || fqn.EndsWith("." + sn, StringComparison.Ordinal))
-                return true;
-        return false;
-    }
-
-    /// <summary>Converts a BodyFacts <see cref="SymbolId"/> (format <c>TypeFqn::MethodName(N)</c>) to the
-    /// <see cref="NodeId"/> format used by the graph (<c>TypeFqn.MethodName</c>).</summary>
+    /// <summary>Converts a BodyFacts <see cref="SymbolId"/> (<c>TypeFqn::MethodName(N)</c>) to the graph
+    /// member NodeId (<c>TypeFqn::MethodName</c>) — Batch A convergence: same structural scheme, the
+    /// declared-arity suffix is the one sanctioned drop (<see cref="SymbolCanon.MemberKeyFromSymbolId"/>).</summary>
     private static NodeId ToMemberNodeId(SymbolId memberId)
-    {
-        var canonical = memberId.Canonical;
-        var sep = canonical.IndexOf("::", StringComparison.Ordinal);
-        if (sep < 0) return NodeId.ForMember(canonical, canonical);
-        var typeFqn = canonical[..sep];
-        var after = canonical[(sep + 2)..];
-        var paren = after.IndexOf('(');
-        var methodName = paren > 0 ? after[..paren] : after;
-        return NodeId.ForMember(typeFqn, methodName);
-    }
+        => new(NodeKind.Member, SymbolCanon.MemberKeyFromSymbolId(memberId.Canonical));
 
     /// <summary>L2.4 — Runs seam detectors on lambda entry-handler member nodes that carry a SourceBody
     /// (populated by <see cref="HttpEntryPointBuilder"/>). Lambdas live inside the enclosing method's
     /// BodyFacts, so the main pass attributes edges to the enclosing method. This post-pass extracts
     /// per-lambda facts and attributes edges to the lambda member node so entry→lambda→dispatch traces
     /// work correctly for the checkout flow.</summary>
-    private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope,
+    private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope,
         IReadOnlyList<BodyFacts>? upgradedFacts)
     {
         var (integrationTypes, domainTypes) = BuildTypeEventSets(model);
-        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, ImmutableHashSet<string>.Empty, upgradedFacts);
+        var ctx = BuildSeamContext(names, integrationTypes, domainTypes, ImmutableHashSet<string>.Empty);
 
         // L3.2/L3.3 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in
         // the Tier-B compilation), so its ops carry only syntactic types. Re-attach the semantic tier that the
@@ -769,15 +703,9 @@ public sealed partial class GraphBuilder
     }
 
 
-    /// <summary>True for a self-call target that is syntactic-resolver noise, not real wiring: the
-    /// <c>nameof</c> pseudo-call, and the common ASP.NET <c>ControllerBase</c> result helpers (inherited,
-    /// not declared on the controller) that resolve to <c>this</c> (Iteration 4 noise polish).</summary>
-    private static bool IsSelfCallNoise(string method)
-        => method is "nameof"
-            or "Ok" or "NotFound" or "BadRequest" or "NoContent" or "Created" or "CreatedAtAction"
-            or "CreatedAtRoute" or "Accepted" or "Unauthorized" or "Forbid" or "StatusCode"
-            or "Content" or "Json" or "Redirect" or "RedirectToAction" or "File" or "ValidationProblem"
-            or "Problem" or "Conflict" or "UnprocessableEntity";
+    // Batch A: IsSelfCallNoise deleted — the CallGraphBinder's declared-member gate makes it
+    // structural (a bare `Ok()`/`nameof` never joins the caller type because the type doesn't
+    // declare it), so the hand-kept ControllerBase helper list is compensating no defect.
 
     /// <summary>True for a node that represents a MediatR request (a Type tagged command/query/
     /// notification) � the targets a pipeline behavior wraps. Replaces the old NodeKind.Request check.</summary>

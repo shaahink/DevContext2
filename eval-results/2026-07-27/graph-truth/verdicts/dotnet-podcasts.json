@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "dotnet-podcasts",
-    "run":  "2026-07-27 20:55:49",
-    "wallSec":  20.1,
+    "run":  "2026-07-27 23:05:09",
+    "wallSec":  1.5,
     "snapshotCache":  "HIT · 5ee8be2",
-    "nodeCount":  402,
-    "edgeCount":  246,
+    "nodeCount":  344,
+    "edgeCount":  277,
     "checks":  {
                    "transport":  {
                                      "verdict":  "SKIP",
@@ -34,33 +34,33 @@
                                     },
                    "hub-sanity":  {
                                       "verdict":  "PASS",
-                                      "detail":  "top-5 clean: INativeAudioService(12), SubscriptionsService(9), ShowsService(8), ListenTogetherHub(7), HandleAsync(7)",
+                                      "detail":  "top-5 clean: AddFeedAsync(12), PodcastDbContext(10), IAudioInterop(9), Feed(9), Show(9)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "INativeAudioService",
-                                                                       "id":  "Type:SharedMauiLib.INativeAudioService",
+                                                                       "title":  "AddFeedAsync",
+                                                                       "id":  "Member:Podcast.Infrastructure.Http.Feeds.FeedClient::AddFeedAsync",
                                                                        "degree":  12
                                                                    },
                                                                    {
-                                                                       "title":  "SubscriptionsService",
-                                                                       "id":  "Type:Microsoft.NetConf2021.Maui.Services.SubscriptionsService::SubscriptionsService(0)",
+                                                                       "title":  "PodcastDbContext",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.PodcastDbContext",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "IAudioInterop",
+                                                                       "id":  "Type:Podcast.Components.IAudioInterop",
                                                                        "degree":  9
                                                                    },
                                                                    {
-                                                                       "title":  "ShowsService",
-                                                                       "id":  "Type:Microsoft.NetConf2021.Maui.Services.ShowsService::ShowsService(1)",
-                                                                       "degree":  8
+                                                                       "title":  "Feed",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.Models.Feed",
+                                                                       "degree":  9
                                                                    },
                                                                    {
-                                                                       "title":  "ListenTogetherHub",
-                                                                       "id":  "EntryPoint:signalr:ListenTogetherHub",
-                                                                       "degree":  7
-                                                                   },
-                                                                   {
-                                                                       "title":  "HandleAsync",
-                                                                       "id":  "Member:ListenTogether.Application.Rooms.GetRoomsQueryQueryHandler.HandleAsync",
-                                                                       "degree":  7
+                                                                       "title":  "Show",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.Models.Show",
+                                                                       "degree":  9
                                                                    }
                                                                ]
                                                   }
@@ -103,13 +103,13 @@
                                                  }
                                  },
                    "dup-name":  {
-                                    "verdict":  "FAIL",
-                                    "detail":  "1 dup-name types touched by cross-project edges: Room [ListenTogether.Domain]",
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  12,
-                                                    "dupNameTypesTouched":  1,
+                                                    "crossProjectEdges":  32,
+                                                    "dupNameTypesTouched":  0,
                                                     "sample":  [
-                                                                   "Room [ListenTogether.Domain]"
+
                                                                ]
                                                 }
                                 }

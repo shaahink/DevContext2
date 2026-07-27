@@ -32,7 +32,10 @@
       `eval/expectations/graph-truth/`) · matrix v1 (12 poles) at
       `eval-results/2026-07-27/graph-truth/MATRIX.md` · DC3/DC8 probes ANSWERED (in MATRIX.md) ·
       Batch A acceptance cells DECLARED (in MATRIX.md) · Batch A [audit] refs re-verified exact
-- [ ] S2 — Batch A landed · battery green · matrix v1 cells flipped as declared
+- [x] S2 — CLOSED 2026-07-27: Batch A landed (SymbolCanon structural ids · CallGraphBinder through
+      SymbolTable · one compilation · NameResolver collapsed · seam production gate) · matrix cells
+      flipped as declared + 4 hypothesis corrections (MATRIX.md §Batch A CLOSE) · battery+bench
+      verdicts recorded in session log below
 - [ ] S3 — Batch B landed · battery green · matrix widened to 22 repos
 - [ ] S4 — Batch C landed · battery green · matrix widened to 32 repos
 - [ ] S5 — Batch D landed · Batch E landed · battery green ×2 · matrix = full 47 · loop-until-dry
@@ -53,6 +56,25 @@ Session log (one line each: date · what closed · surprises):
   IdentifiedCommand (DC1 verified case isolated); CleanArchitecture repo is 4-sln so its
   handler-join FAIL is DC6-contaminated (canary = declared cells only). Next: S2 Batch A
   (R2 §2.A), acceptance = MATRIX.md declaration.
+- 2026-07-27 · S2 CLOSED (Batch A): all 5 R2 §2.A steps landed on one branch commit — SymbolCanon
+  (nested+arity type ids, `Type::Member` node keys, use-site arity on SymbolRef), CallGraphExtractor
+  DELETED (CallGraphBinder produces edges from BodyFacts through SymbolTable; Ambiguous→skip; DI
+  iface→impl only on unambiguous evidence; entry-seeded closure kept), UpgradeCallEdges deleted
+  (edges born against THE SemanticLite compilation; razor @code rides BodyFacts + the one
+  compilation), NameResolver deleted (SymbolTable.ResolveName, pass-through on ambiguous),
+  IsSelfCallNoise + Mediator-Contains deny-lists deleted (data-access noise list KEPT — not yet
+  redundant, note in MATRIX). Must-flip cells ALL landed; CA handler-join 19→5. Surprises: (1) the
+  biggest defect found mid-batch was NEW — member canonicals in the type short-name index made every
+  explicitly-constructed class "ambiguous" (blanked entry targets repo-wide; fixed by separate
+  member tier, pinned by test); (2) seam origins were the ONE ungated join path — test bodies
+  (Moq chains) minted Sends→System.Boolean + test→prod call seams that honest resolution EXPOSED
+  (baseline ambiguity had hidden them); production+scope gate added, which also flipped Polly+
+  Spectre hub-sanity to PASS early; (3) two S1 acceptance hypotheses were WRONG on evidence —
+  eShop ProductImageUrlProvider + all 10 OrchardCore dup-names are REAL cross-project DI wiring
+  (expectations corrected with edge lists); eShop bus 5→9 links is resolver-COMPLETED truth (all
+  verified real). Member keys carry no method-arity (documented deviation — producers can't know
+  it). Snapshot schema v6. Next: S3 Batch B (R2 §2.B) transports+joins, informed by the S1 DC3/DC8
+  probe answers; declare Batch B acceptance at open + widen matrix to 22.
 
 ## 3. Session map
 

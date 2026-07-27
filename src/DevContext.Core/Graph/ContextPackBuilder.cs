@@ -194,11 +194,10 @@ public sealed class ContextPackBuilder
         if (node.Kind != NodeKind.Member) return null;
 
         var key = node.Id.Key;
-        var lastDot = key.LastIndexOf('.');
-        if (lastDot <= 0) return null;
-        var owner = _query.Graph.Node(new NodeId(NodeKind.Type, key[..lastDot]));
+        if (!key.Contains("::", StringComparison.Ordinal)) return null;
+        var owner = _query.Graph.Node(new NodeId(NodeKind.Type, Graph2.SymbolCanon.OwnerTypeOf(key)));
         if (owner?.SourceBody is not { Length: > 0 } typeBody) return null;
-        return TraceBuilder.FindMemberDeclarationText(typeBody, key[(lastDot + 1)..]);
+        return TraceBuilder.FindMemberDeclarationText(typeBody, Graph2.SymbolCanon.MemberNameOf(key));
     }
 
     /// <summary>Body lines the reader would actually see — blank and lone-brace lines don't count,
@@ -377,14 +376,10 @@ public sealed class ContextPackBuilder
             {
                 if (step.Node.Kind == NodeKind.Type)
                     types.Add(step.Node.Id);
-                else if (step.Node.Kind == NodeKind.Member)
+                else if (step.Node.Kind == NodeKind.Member
+                    && step.Node.Id.Key.Contains("::", StringComparison.Ordinal))
                 {
-                    var lastDot = step.Node.Id.Key.LastIndexOf('.');
-                    if (lastDot > 0)
-                    {
-                        var typeKey = step.Node.Id.Key[..lastDot];
-                        types.Add(new NodeId(NodeKind.Type, typeKey));
-                    }
+                    types.Add(new NodeId(NodeKind.Type, Graph2.SymbolCanon.OwnerTypeOf(step.Node.Id.Key)));
                 }
             }
 

@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds Orleans grain entry points from <see cref="GrainDetection"/>s.</summary>
@@ -5,7 +7,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -20,7 +22,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"grain:{grain.GrainType}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = grain.SourceFile, LineNumber = grain.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(grain.GrainType, grain.SourceFile));
+            var typeId = NodeId.ForType(names.ResolveName(grain.GrainType, grain.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {

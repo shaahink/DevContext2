@@ -138,70 +138,26 @@ public sealed class DiscoveryPipeline
         // assets.json is missing. Upgraded BodyFacts feed into seam detectors for higher-quality
         // resolution (receiver types, var/Adapt<T> decls).
         SemanticLiteResult? semanticLiteResult = null;
+        SolutionScope? scopeForGraph = null;
+        NoiseFilter? noiseFilter = null;
+        ProjectClassifier? projectClassifier = null;
+        SymbolTable? graphSymbols = null;
         if (context.Options.BuildFullGraph || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full)
         {
             var populateMs = 0.0;
-            var upgradeMs = 0.0;
             try
             {
+                // C1 (Batch A): Blazor @code virtual trees join THE compilation and the BodyFacts
+                // world — components keep their call edges without a second compilation.
+                var razorTrees = new List<SyntaxTree>();
+                await foreach (var (_, razorTree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
+                    razorTrees.Add(razorTree);
+
                 var slSw = Stopwatch.StartNew();
                 semanticLiteResult = SemanticLitePopulator.Populate(
-                    model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
+                    model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath,
+                    razorTrees, ct);
                 populateMs = slSw.Elapsed.TotalMilliseconds;
-
-                // L3.3 — Upgrade CallEdges using the merged compilation (with NuGet refs) so cross-project
-                // calls that the per-file CallGraphExtractor couldn't resolve get verified Semantic edges.
-                if (semanticLiteResult.CompilationBuilt && semanticLiteResult.Compilation is { } tierBCompilation)
-                {
-                    try
-                    {
-                        var fileToProject = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-                        var projectDirs = new List<(string Dir, string Name)>();
-                        foreach (var proj in model.Projects)
-                        {
-                            var projDir = Path.GetDirectoryName(proj.FilePath);
-                            if (projDir is not null) projectDirs.Add((projDir, proj.Name));
-                        }
-                        projectDirs.Sort((a, b) => b.Dir.Length - a.Dir.Length);
-                        foreach (var path in context.Cache.KnownFilePaths)
-                        {
-                            if (fileToProject.ContainsKey(path)) continue;
-                            foreach (var (dir, name) in projectDirs)
-                                if (path.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
-                                { fileToProject[path] = name; break; }
-                        }
-
-                        var allTrees = new List<SyntaxTree>();
-                        foreach (var path in fileToProject.Keys)
-                        {
-                            try { allTrees.Add(context.Cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult()); }
-                            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "syntax-parse", ex); }
-                        }
-
-                        var ceSw = Stopwatch.StartNew();
-                        var existing = model.CallEdges.ToList();
-                        var upgraded = SemanticLitePopulator.UpgradeCallEdges(
-                            existing, tierBCompilation, allTrees, fileToProject);
-                        upgradeMs = ceSw.Elapsed.TotalMilliseconds;
-                        var upgradedCount = upgraded.Count(e => e.Resolution == Resolution.Semantic)
-                                           - existing.Count(e => e.Resolution == Resolution.Semantic);
-                        if (upgradedCount > 0)
-                        {
-                            model.CallEdges.Clear();
-                            foreach (var e in upgraded) model.CallEdges.Add(e);
-                            context.Analysis.CallGraph = new CallGraph(
-                                upgraded.GroupBy(e => $"{e.CallerType}.{e.CallerMethod}")
-                                    .ToDictionary(g => g.Key,
-                                        g => g.ToImmutableArray()));
-                            semanticLiteResult = semanticLiteResult with { CallEdgesUpgraded = upgradedCount };
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
-                            $"Call-edge upgrade unavailable (degrading to syntactic edges): {ex.GetType().Name}");
-                    }
-                }
 
                 if (semanticLiteResult.ProjectsWithAssets > 0 || semanticLiteResult.ProjectsDegraded > 0)
                 {
@@ -212,11 +168,10 @@ public sealed class DiscoveryPipeline
                         + $"refs={semanticLiteResult.ReferenceCount}; timing populate={populateMs:F0}ms "
                         + $"(fw={semanticLiteResult.FrameworkRefsMs:F0} nuget={semanticLiteResult.NuGetRefsMs:F0} "
                         + $"trees={semanticLiteResult.CollectTreesMs:F0} create={semanticLiteResult.CreateMs:F0} "
-                        + $"bind={semanticLiteResult.BindMs:F0}) upgrade-edges={upgradeMs:F0}ms; upgraded "
+                        + $"bind={semanticLiteResult.BindMs:F0}); upgraded "
                         + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
                         + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
-                        + $"+ {semanticLiteResult.ArgTypesResolved} arg-type "
-                        + $"+ {semanticLiteResult.CallEdgesUpgraded} call-edge(s) to Semantic tier"
+                        + $"+ {semanticLiteResult.ArgTypesResolved} arg-type"
                         + (semanticLiteResult.DegradeReason.Length > 0 ? $" [{semanticLiteResult.DegradeReason}]" : ""));
                 }
             }
@@ -224,6 +179,28 @@ public sealed class DiscoveryPipeline
             {
                 model.AddDiagnostic(DiagnosticLevel.Warning, "SemanticLitePopulator",
                     $"Tier B unavailable; using Tier A ({ex.GetType().Name}).");
+            }
+
+            // ── Batch A (R2 §2.A): call edges are born here — from the Tier-B-upgraded BodyFacts
+            // resolved through the ONE SymbolTable. CallGraphExtractor's second compilation, its
+            // short-name maps and the post-hoc UpgradeCallEdges pass are all gone.
+            try
+            {
+                scopeForGraph = SolutionScope.FromModel(model);
+                projectClassifier = new ProjectClassifier(model.Projects, context.RootPath);
+                model.SamplesAreTheProduct = projectClassifier.SamplesAreTheProduct;
+                noiseFilter = new NoiseFilter(projectClassifier, context.RootPath);
+                var binderFacts = semanticLiteResult?.UpgradedBodyFacts.IsDefaultOrEmpty == false
+                    ? (IReadOnlyList<Graph2.BodyFacts>)semanticLiteResult.UpgradedBodyFacts
+                    : context.Analysis.AllBodyFacts;
+                graphSymbols = new SymbolTable(model.OrderedTypes, scopeForGraph.ProjectForFile, binderFacts);
+                CallGraphBinder.Bind(context, model, graphSymbols, binderFacts, noiseFilter, ct);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, "CallGraphBinder",
+                    $"Call-graph bind failed — graph continues without Calls edges ({ex.GetType().Name}: {ex.Message}).");
             }
         }
 
@@ -250,7 +227,7 @@ public sealed class DiscoveryPipeline
         context.Observer.OnStageStarted(PipelineStage.GraphAssembly);
         var graphAssemblySw = Stopwatch.StartNew();
 
-        var scope = SolutionScope.FromModel(model);
+        var scope = scopeForGraph ?? SolutionScope.FromModel(model);
 
         // G1 Phase 4 — perf guardrail. Whole-solution runs (no closure narrowing) over a large solution
         // scale the file walk + graph; surface a hint rather than a hard cap (measured eShop=24 projects
@@ -268,12 +245,15 @@ public sealed class DiscoveryPipeline
         PopulateGatewayRoutes(model, context);
 
         var graphResolver = new SyntacticSymbolResolver();
-        var projectClassifier = new ProjectClassifier(model.Projects, context.RootPath);
-        model.SamplesAreTheProduct = projectClassifier.SamplesAreTheProduct;
-        var noiseFilter = new NoiseFilter(projectClassifier, context.RootPath);
+        if (projectClassifier is null)
+        {
+            projectClassifier = new ProjectClassifier(model.Projects, context.RootPath);
+            model.SamplesAreTheProduct = projectClassifier.SamplesAreTheProduct;
+        }
+        noiseFilter ??= new NoiseFilter(projectClassifier, context.RootPath);
         var graphBodyFacts = semanticLiteResult?.UpgradedBodyFacts ?? context.Analysis.AllBodyFacts;
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope,
-            graphBodyFacts);
+            graphBodyFacts, graphSymbols);
 
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();
@@ -656,7 +636,7 @@ public sealed class DiscoveryPipeline
     {
         if (!request.IncludeDiagnostics) return string.Empty;
         var lines = snapshot.Model.Diagnostics
-            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder" or "SemanticLitePopulator")
+            .Where(d => d.Source is "GraphAssembly" or "CallGraphBinder" or "GraphBuilder" or "SemanticLitePopulator")
             .Select(d => $"  {d.Source}: {d.Message}")
             .ToList();
         if (lines.Count == 0) return string.Empty;

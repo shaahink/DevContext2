@@ -1,4 +1,5 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
 using DevContext.Core.Utilities;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -227,8 +228,18 @@ public sealed class RazorCodeVirtualizerTests
         Assert.Contains(component.Properties, p => p.Name == "PodcastService");
     }
 
+    /// <summary>Batch A: the binder path — razor facts ride BodyFactsExtractor's virtual-tree pass,
+    /// and call edges resolve through the SymbolTable (no second extraction universe).</summary>
+    private static async Task BindCallGraphAsync(DiscoveryContext ctx, DiscoveryModel model)
+    {
+        await new BodyFactsExtractor().ExtractAsync(ctx, model, default);
+        var symbols = new SymbolTable(model.OrderedTypes, null, ctx.Analysis.AllBodyFacts);
+        CallGraphBinder.Bind(ctx, model, symbols, ctx.Analysis.AllBodyFacts,
+            new NoiseFilter(new ProjectClassifier(model.Projects)), default);
+    }
+
     [Fact]
-    public async Task CallGraphExtractor_binds_component_code_calls_with_razor_line_provenance()
+    public async Task CallGraphBinder_binds_component_code_calls_with_razor_line_provenance()
     {
         var (ctx, model) = BuildBlazorRepo();
         await new SyntaxStructureExtractor().ExtractAsync(ctx, model, default);
@@ -242,7 +253,7 @@ public sealed class RazorCodeVirtualizerTests
             LineNumber = 1,
         });
 
-        await new CallGraphExtractor().ExtractAsync(ctx, model, default);
+        await BindCallGraphAsync(ctx, model);
 
         var edge = Assert.Single(model.CallEdges, e =>
             e.CallerMethod == "OnInitializedAsync" && e.CalleeMethod == "GetShows");
@@ -268,7 +279,7 @@ public sealed class RazorCodeVirtualizerTests
             SourceFile = @"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor",
             LineNumber = 1,
         });
-        await new CallGraphExtractor().ExtractAsync(ctx, model, default);
+        await BindCallGraphAsync(ctx, model);
 
         var scope = SolutionScope.FromModel(model);
         var (graph, entries) = new GraphBuilder(

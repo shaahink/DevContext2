@@ -1,13 +1,30 @@
+using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Tests;
 
 public sealed class CallGraphAndSourceBodyTests
 {
     [Fact]
-    public async Task CallGraphExtractor_DiscoversBasicInvocations()
+    public async Task CallGraphBinder_DiscoversBasicInvocations()
     {
+        // Batch A contract: edges come from BodyFacts resolved through the SymbolTable — an
+        // interface receiver routes to its sole in-solution implementor; out-of-solution
+        // receivers produce NO edge (never a guessed one).
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\Services\ProductService.cs", """
+        var file = @"C:\repo\src\MyApp\Services\ProductService.cs";
+        fs.AddFile(file, """
             namespace MyApp.Services;
+
+            public interface IProductRepository
+            {
+                Product? GetById(int id);
+            }
+
+            public sealed class ProductRepository : IProductRepository
+            {
+                public Product? GetById(int id) => null;
+            }
 
             public sealed class ProductService
             {
@@ -27,31 +44,22 @@ public sealed class CallGraphAndSourceBodyTests
             .WithRootPath(@"C:\repo");
         var (ctx, _) = builder.BuildWithRecording();
 
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Services\ProductService.cs"];
+        ctx.Analysis.AllSourceFiles = [file];
         ctx.Analysis.FocusPoints = [];
 
         var model = new DiscoveryModel();
-        model.Types.TryAdd("MyApp.Services.ProductService", new TypeDiscovery
-        {
-            Id = "MyApp.Services.ProductService",
-            Name = "ProductService",
-            Namespace = "MyApp.Services",
-            FilePath = @"C:\repo\src\MyApp\Services\ProductService.cs",
-            Kind = TypeKind.Class,
-            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
-            Layer = ArchitectureLayer.Application,
-            Methods = [
-                new MethodSignature(".ctor", "void", ["IProductRepository"], ["repo"],
-                    Microsoft.CodeAnalysis.Accessibility.Public, false, false),
-                new MethodSignature("GetProduct", "Product?", ["int"], ["id"],
-                    Microsoft.CodeAnalysis.Accessibility.Public, false, false),
-            ],
-        });
+        await new SyntaxStructureExtractor().ExtractAsync(ctx, model, default);
+        await new BodyFactsExtractor().ExtractAsync(ctx, model, default);
 
-        var extractor = new CallGraphExtractor();
-        await extractor.ExtractAsync(ctx, model, default);
+        var symbols = new SymbolTable(model.OrderedTypes, null, ctx.Analysis.AllBodyFacts);
+        CallGraphBinder.Bind(ctx, model, symbols, ctx.Analysis.AllBodyFacts,
+            new NoiseFilter(new ProjectClassifier(model.Projects)), default);
 
-        Assert.NotEmpty(model.CallEdges);
+        Assert.Contains(model.CallEdges, e =>
+            e.CallerType == "MyApp.Services.ProductService"
+            && e.CallerMethod == "GetProduct"
+            && e.CalleeType == "MyApp.Services.ProductRepository"
+            && e.CalleeMethod == "GetById");
     }
 
     [Fact]

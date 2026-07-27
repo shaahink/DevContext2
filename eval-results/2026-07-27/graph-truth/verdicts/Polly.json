@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "Polly",
-    "run":  "2026-07-27 20:55:52",
-    "wallSec":  32.6,
+    "run":  "2026-07-27 23:07:23",
+    "wallSec":  1.1,
     "snapshotCache":  "HIT · 7a1d10f",
-    "nodeCount":  1207,
-    "edgeCount":  893,
+    "nodeCount":  674,
+    "edgeCount":  323,
     "checks":  {
                    "transport":  {
                                      "verdict":  "PASS",
@@ -33,34 +33,34 @@
                                                     }
                                     },
                    "hub-sanity":  {
-                                      "verdict":  "FAIL",
-                                      "detail":  "test/fixture hubs in top-5: StubCacheProvider(108)",
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: AsyncPolicy(25), Policy(22), ResilienceStrategyTelemetry(19), ResilienceContext(15), PipelineComponent(15)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "PolicyBuilder",
-                                                                       "id":  "Type:Polly.PolicyBuilder",
-                                                                       "degree":  160
-                                                                   },
-                                                                   {
-                                                                       "title":  "StubCacheProvider",
-                                                                       "id":  "Type:Polly.Specs.Helpers.Caching.StubCacheProvider",
-                                                                       "degree":  108
-                                                                   },
-                                                                   {
-                                                                       "title":  "Func",
-                                                                       "id":  "Type:Polly.Benchmarks.Workloads::Func(0)",
-                                                                       "degree":  38
+                                                                       "title":  "AsyncPolicy",
+                                                                       "id":  "Type:Polly.AsyncPolicy",
+                                                                       "degree":  25
                                                                    },
                                                                    {
                                                                        "title":  "Policy",
                                                                        "id":  "Type:Polly.Policy",
-                                                                       "degree":  38
+                                                                       "degree":  22
                                                                    },
                                                                    {
-                                                                       "title":  "ServiceCollection",
-                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.ServiceCollection",
-                                                                       "degree":  29
+                                                                       "title":  "ResilienceStrategyTelemetry",
+                                                                       "id":  "Type:Polly.Telemetry.ResilienceStrategyTelemetry",
+                                                                       "degree":  19
+                                                                   },
+                                                                   {
+                                                                       "title":  "ResilienceContext",
+                                                                       "id":  "Type:Polly.ResilienceContext",
+                                                                       "degree":  15
+                                                                   },
+                                                                   {
+                                                                       "title":  "PipelineComponent",
+                                                                       "id":  "Type:Polly.Utils.Pipeline.PipelineComponent",
+                                                                       "degree":  15
                                                                    }
                                                                ]
                                                   }
@@ -103,7 +103,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  395,
+                                                    "crossProjectEdges":  84,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

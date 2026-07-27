@@ -39,11 +39,10 @@ public static class FocusPointResolver
     {
         if (string.IsNullOrEmpty(typeName)) return null;
 
-        // Try exact match on Id (fully-qualified name ending with .TypeName)
+        // Try exact match on Id (fully-qualified name ending with .TypeName; arity-blind for generics)
         foreach (var (id, type) in model.Types)
         {
-            if (id.EndsWith("." + typeName, StringComparison.Ordinal)
-                || id == typeName
+            if (Graph2.SymbolCanon.TypeIdMatches(id, typeName)
                 || type.Name == typeName)
             {
                 return type;

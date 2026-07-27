@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds message-consumer entry points from <see cref="MessageConsumerDetection"/>s
@@ -6,7 +8,7 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -26,7 +28,7 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
             g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile, LineNumber = mc.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType, mc.SourceFile));
+            var typeId = NodeId.ForType(names.ResolveName(mc.ConsumerType, mc.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {

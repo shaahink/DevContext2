@@ -58,22 +58,17 @@ public sealed class GraphQuery
         foreach (var n in _graph.Nodes)
         {
             if (n.Id.Kind != NodeKind.Member) continue;
-            var dot = n.Id.Key.LastIndexOf('.');
-            if (dot <= 0) continue;
-            var typeId = NodeId.ForType(n.Id.Key[..dot]);
+            if (!n.Id.Key.Contains("::", StringComparison.Ordinal)) continue;
+            var typeId = NodeId.ForType(Graph2.SymbolCanon.OwnerTypeOf(n.Id.Key));
             if (!map.TryGetValue(typeId, out var list)) map[typeId] = list = [];
             list.Add(n.Id);
         }
         return map;
     }
 
-    /// <summary>"TypeFqn.Member" → "TypeFqn"; a Type/Entry key passes through.</summary>
+    /// <summary>"TypeFqn::Member" → "TypeFqn"; a Type/Entry key passes through.</summary>
     private static string OwnerTypeKey(NodeId id)
-    {
-        if (id.Kind != NodeKind.Member) return id.Key;
-        var dot = id.Key.LastIndexOf('.');
-        return dot > 0 ? id.Key[..dot] : id.Key;
-    }
+        => id.Kind != NodeKind.Member ? id.Key : Graph2.SymbolCanon.OwnerTypeOf(id.Key);
 
     /// <summary>C3 — a node's edges in one direction, ROLLED UP for Type nodes: the type's own edges
     /// plus its members' CROSS-TYPE edges (intra-type member→member wiring stays internal — a type's
@@ -176,17 +171,18 @@ public sealed class GraphQuery
             if (_graph.Contains(new NodeId(kind, s)))
                 return new NodeId(kind, s);
 
-        // "Type:Method" → Member by FQN suffix.
-        var colon = s.IndexOf(':');
+        // "Type:Method" (and the full "Type::Method" key form) → Member by FQN suffix.
+        var sep = s.IndexOf("::", StringComparison.Ordinal);
+        var colon = sep >= 0 ? sep : s.IndexOf(':');
         if (colon > 0)
         {
             var type = s[..colon];
-            var method = s[(colon + 1)..].Trim();
+            var method = s[(colon + (sep >= 0 ? 2 : 1))..].Trim();
             foreach (var n in _graph.Nodes)
                 if (n.Kind == NodeKind.Member
-                    && n.Id.Key.EndsWith($".{method}", StringComparison.Ordinal)
-                    && (n.Id.Key.Equals($"{type}.{method}", StringComparison.OrdinalIgnoreCase)
-                        || n.Id.Key.EndsWith($".{type}.{method}", StringComparison.OrdinalIgnoreCase)))
+                    && n.Id.Key.EndsWith($"::{method}", StringComparison.Ordinal)
+                    && Graph2.SymbolCanon.TypeIdMatches(
+                        Graph2.SymbolCanon.OwnerTypeOf(n.Id.Key), type, StringComparison.OrdinalIgnoreCase))
                     return n.Id;
         }
 
@@ -195,8 +191,10 @@ public sealed class GraphQuery
         foreach (var n in _graph.Nodes)
         {
             if (n.Kind is not (NodeKind.Type or NodeKind.EntryPoint)) continue;
-            if (!string.Equals(n.Title, s, StringComparison.OrdinalIgnoreCase)
-                && !n.Id.Key.EndsWith("." + s, StringComparison.OrdinalIgnoreCase)) continue;
+            var keyMatches = n.Kind == NodeKind.Type
+                ? Graph2.SymbolCanon.TypeIdMatches(n.Id.Key, s, StringComparison.OrdinalIgnoreCase)
+                : n.Id.Key.EndsWith("." + s, StringComparison.OrdinalIgnoreCase);
+            if (!string.Equals(n.Title, s, StringComparison.OrdinalIgnoreCase) && !keyMatches) continue;
             // C3: rolled degree — the resolver must prefer the type that is actually connected
             // (through its members), not whichever bare Type node happens to carry a stray edge.
             if (best is null

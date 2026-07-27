@@ -77,13 +77,14 @@ public static class BodyFactExtractor
             foreach (var p in cd.ParameterList.Parameters) AddParam(scope, p);
 
         // Pass 0: locals populate the scope so later uses (and receivers) resolve regardless of order.
+        // Scope values carry the RAW type text (generic args intact) — Ref() derives base + arity.
         foreach (var decl in body.DescendantNodes().OfType<VariableDeclarationSyntax>())
         {
             var declaredType = decl.Type.IsVar ? null : decl.Type.ToString();
             foreach (var v in decl.Variables)
             {
                 var inferred = InferInitializer(v.Initializer?.Value, methodReturns);
-                var effective = inferred ?? (declaredType is null ? null : StripGenerics(declaredType));
+                var effective = inferred ?? declaredType;
                 if (!string.IsNullOrEmpty(effective)) scope[v.Identifier.ValueText] = effective!;
             }
         }
@@ -105,13 +106,13 @@ public static class BodyFactExtractor
                         ops.Add(new LocalDeclOp(
                             Line(v),
                             v.Identifier.ValueText,
-                            declaredTypeText is null ? null : Ref(StripGenerics(declaredTypeText), v, filePath, project),
+                            declaredTypeText is null ? null : Ref(declaredTypeText, v, filePath, project),
                             inferred is null ? null : Ref(inferred, v, filePath, project)));
                     }
                     break;
                 }
                 case ObjectCreationExpressionSyntax oc:
-                    ops.Add(new CreationOp(Line(oc), Ref(StripGenerics(oc.Type.ToString()), oc, filePath, project)));
+                    ops.Add(new CreationOp(Line(oc), Ref(oc.Type.ToString(), oc, filePath, project)));
                     break;
                 case InvocationExpressionSyntax inv:
                     ops.Add(BuildInvocation(inv, scope, methodReturns, filePath, project));
@@ -165,7 +166,7 @@ public static class BodyFactExtractor
         {
             var rt = ResolveFromScope(scope, inv, receiverText);
             if (rt is not null)
-                receiverType = Ref(StripGenerics(rt), inv, filePath, project);
+                receiverType = Ref(rt, inv, filePath, project);
         }
 
         var args = ImmutableArray.CreateBuilder<ArgFact>();
@@ -175,7 +176,7 @@ public static class BodyFactExtractor
             SymbolRef? argType = null;
             var at = ResolveFromScope(scope, inv, argText);
             if (at is not null)
-                argType = Ref(StripGenerics(at), arg, filePath, project);
+                argType = Ref(at, arg, filePath, project);
             else if (InferInitializer(arg.Expression, methodReturns) is { } inlineType)
                 argType = Ref(inlineType, arg, filePath, project); // inline `new X(...)` / `.Adapt<X>()`
             args.Add(new ArgFact(argText, argType));
@@ -193,7 +194,7 @@ public static class BodyFactExtractor
         if (name is GenericNameSyntax gn)
         {
             var generics = gn.TypeArgumentList.Arguments
-                .Select(t => Ref(StripGenerics(t.ToString()), site, filePath, project))
+                .Select(t => Ref(t.ToString(), site, filePath, project))
                 .ToImmutableArray();
             return (gn.Identifier.ValueText, generics);
         }
@@ -212,7 +213,7 @@ public static class BodyFactExtractor
         switch (expr)
         {
             case ObjectCreationExpressionSyntax oc:
-                return StripGenerics(oc.Type.ToString());
+                return oc.Type.ToString();
             case InvocationExpressionSyntax inv:
             {
                 var name = inv.Expression switch
@@ -225,7 +226,7 @@ public static class BodyFactExtractor
                     && gn.TypeArgumentList.Arguments.Count == 1
                     && MappingMethods.Contains(gn.Identifier.ValueText))
                 {
-                    return StripGenerics(gn.TypeArgumentList.Arguments[0].ToString());
+                    return gn.TypeArgumentList.Arguments[0].ToString();
                 }
 
                 // Call to a method declared in the same type — its written return type is a Tier-A fact.
@@ -245,8 +246,9 @@ public static class BodyFactExtractor
         }
     }
 
-    /// <summary>Map of method short-name → its declared return type (Task/ValueTask unwrapped, generics
-    /// stripped), skipping void/Task-returning methods. Enables same-file return-type inference.</summary>
+    /// <summary>Map of method short-name → its declared return type text (Task/ValueTask unwrapped,
+    /// raw — generic args intact so use-site arity survives to the ref), skipping void/Task-returning
+    /// methods. Enables same-file return-type inference.</summary>
     private static Dictionary<string, string> BuildMethodReturns(TypeDeclarationSyntax typeDecl)
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -264,13 +266,10 @@ public static class BodyFactExtractor
         var t = returnType.Trim();
         foreach (var wrapper in (ReadOnlySpan<string>)["Task<", "ValueTask<", "ActionResult<"])
         {
-            if (t.StartsWith(wrapper, StringComparison.Ordinal))
-            {
-                var inner = t[wrapper.Length..].TrimEnd('>');
-                return StripGenerics(inner);
-            }
+            if (t.StartsWith(wrapper, StringComparison.Ordinal) && t.EndsWith('>'))
+                return t[wrapper.Length..^1].Trim();
         }
-        return StripGenerics(t);
+        return t;
     }
 
     private static Dictionary<string, string> BuildTypeScope(TypeDeclarationSyntax typeDecl)
@@ -279,11 +278,11 @@ public static class BodyFactExtractor
 
         foreach (var field in typeDecl.Members.OfType<FieldDeclarationSyntax>())
         {
-            var t = StripGenerics(field.Declaration.Type.ToString());
+            var t = field.Declaration.Type.ToString();
             foreach (var v in field.Declaration.Variables) map[v.Identifier.ValueText] = t;
         }
         foreach (var prop in typeDecl.Members.OfType<PropertyDeclarationSyntax>())
-            map[prop.Identifier.ValueText] = StripGenerics(prop.Type.ToString());
+            map[prop.Identifier.ValueText] = prop.Type.ToString();
 
         // Primary constructor params (C# 12 class/record) behave like fields for resolution.
         if (typeDecl.ParameterList is not null)
@@ -295,7 +294,7 @@ public static class BodyFactExtractor
     private static void AddParam(Dictionary<string, string> scope, ParameterSyntax? p)
     {
         if (p?.Type is null) return;
-        scope[p.Identifier.ValueText] = StripGenerics(p.Type.ToString());
+        scope[p.Identifier.ValueText] = p.Type.ToString();
     }
 
     private static string? ResolveFromScope(Dictionary<string, string> scope, SyntaxNode node, string name)
@@ -314,20 +313,20 @@ public static class BodyFactExtractor
                 {
                     foreach (var prm in pl.ParameterList.Parameters)
                         if (prm.Type is not null && prm.Identifier.ValueText == name)
-                            return StripGenerics(prm.Type.ToString());
+                            return prm.Type.ToString();
                     break;
                 }
                 case SimpleLambdaExpressionSyntax sl:
                 {
                     if (sl.Parameter is { Type: not null } prm && prm.Identifier.ValueText == name)
-                        return StripGenerics(prm.Type.ToString());
+                        return prm.Type.ToString();
                     break;
                 }
                 case LocalFunctionStatementSyntax lf:
                 {
                     foreach (var prm in lf.ParameterList.Parameters)
                         if (prm.Type is not null && prm.Identifier.ValueText == name)
-                            return StripGenerics(prm.Type.ToString());
+                            return prm.Type.ToString();
                     break;
                 }
             }
@@ -357,28 +356,27 @@ public static class BodyFactExtractor
         }
     }
 
-    private static SymbolRef Ref(string text, SyntaxNode site, string filePath, string project) => new()
+    /// <summary>Builds a ref from RAW type text: Text is the bare base name (detector catalogs match
+    /// on it), the use-site generic arity rides separately so <see cref="SymbolTable"/> can pick the
+    /// structurally-matching declaration (<c>new IdentifiedCommand&lt;T, R&gt;(…)</c> → arity-2 type).</summary>
+    private static SymbolRef Ref(string text, SyntaxNode site, string filePath, string project)
     {
-        Text = text,
-        Site = new RefSite { File = filePath, Line = Line(site), Project = project },
-    };
-
-    private static int Line(SyntaxNode node) => node.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-    private static string StripGenerics(string typeName)
-    {
-        var idx = typeName.IndexOf('<');
-        var t = idx > 0 ? typeName[..idx] : typeName;
-        return t.Trim();
+        var (baseName, arity) = SymbolCanon.SplitGenericText(text);
+        return new()
+        {
+            Text = baseName,
+            Site = new RefSite { File = filePath, Line = Line(site), Project = project },
+            Arity = arity,
+        };
     }
+
+    // Mapped span honors razor virtual trees' #line directives (identical to the unmapped span for
+    // ordinary .cs files) — op lines and edge provenance land on the TRUE razor lines.
+    private static int Line(SyntaxNode node) => node.GetLocation().GetMappedLineSpan().StartLinePosition.Line + 1;
 
     private static string GetTypeFullName(TypeDeclarationSyntax typeDecl)
-    {
-        // Global-namespace types get the "global" prefix that SyntaxStructureExtractor uses for the
-        // TypeDiscovery.Id (namespaceName ?? "global"). Without it the BodyFacts member id ("OrdersApi")
-        // diverges from the graph's node id ("global.OrdersApi"), so a seam edge on the member is orphaned
-        // from the entry's handler node — the eShop OrdersApi (no namespace) /draft flow (T2.5).
-        var ns = typeDecl.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault()?.Name.ToString() ?? "global";
-        return $"{ns}.{typeDecl.Identifier.ValueText}";
-    }
+        // One canonical algebra with TypeDiscovery.Id (SymbolCanon: "global" prefix, nested-type
+        // chain, generic arity) — a BodyFacts member id must never diverge from the graph node id
+        // of its declaring type, or seam edges orphan from the entry's handler node (T2.5).
+        => SymbolCanon.ForTypeDecl(typeDecl);
 }

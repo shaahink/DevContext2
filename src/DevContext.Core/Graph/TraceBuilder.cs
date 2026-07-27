@@ -101,10 +101,9 @@ public sealed class TraceBuilder
         foreach (var node in graph.Nodes)
         {
             if (node.Id.Kind != NodeKind.Member) continue;
-            var dot = node.Id.Key.LastIndexOf('.');
-            if (dot <= 0) continue;
-            var method = node.Id.Key[(dot + 1)..];
-            var typeId = NodeId.ForType(node.Id.Key[..dot]);
+            if (!node.Id.Key.Contains("::", StringComparison.Ordinal)) continue;
+            var method = Graph2.SymbolCanon.MemberNameOf(node.Id.Key);
+            var typeId = NodeId.ForType(Graph2.SymbolCanon.OwnerTypeOf(node.Id.Key));
 
             bool bridge;
             if (IsHandlerEntryMethod(method))
@@ -446,11 +445,12 @@ public sealed class TraceBuilder
     private static bool IsFrameworkLeaf(GraphNode node)
     {
         var title = node.Title;
+        // Batch A: the "*Mediator*" Contains-overfit is gone — the honest binder never produces
+        // edges onto out-of-solution mediator types, so only literal framework names remain.
         return title.StartsWith("Microsoft.", StringComparison.Ordinal)
             || title.StartsWith("System.", StringComparison.Ordinal)
             || title == "DbContext"
-            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher"
-            || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
+            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher";
     }
 
     /// <summary>Out-edges of a node, with the controlled member bridge (Phase 1). A <b>Member</b> node
@@ -539,12 +539,8 @@ public sealed class TraceBuilder
         }
     }
 
-    /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>
-    private static string ExtractTypeKey(string memberKey)
-    {
-        var dot = memberKey.LastIndexOf('.');
-        return dot > 0 ? memberKey[..dot] : memberKey;
-    }
+    /// <summary>"TypeFqn::MethodName" → "TypeFqn"</summary>
+    private static string ExtractTypeKey(string memberKey) => Graph2.SymbolCanon.OwnerTypeOf(memberKey);
 
     private static SeamKind ToSeam(EdgeKind kind) => kind switch
     {
@@ -577,14 +573,14 @@ public sealed class TraceBuilder
         var owner = _graph.Node(NodeId.ForType(ExtractTypeKey(callee.Id.Key)));
         if (owner?.SourceBody is not { Length: > 0 } typeBody) return [];
 
-        var memberName = callee.Id.Key[(callee.Id.Key.LastIndexOf('.') + 1)..];
+        var memberName = Graph2.SymbolCanon.MemberNameOf(callee.Id.Key);
         return TakeOpeningLines(FindMemberDeclarationText(typeBody, memberName));
     }
 
     /// <summary>Parses a type's SourceBody and returns the source text of the direct member (method,
     /// ctor, or property) whose name matches — or null when nothing matches (e.g. an inherited/
     /// framework method the type doesn't declare itself). Ctor name is the type's own short name,
-    /// matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s caller-method key.
+    /// matching <see cref="DevContext.Core.Graph2.CallGraphBinder"/>'s caller-method key.
     /// Internal: ContextPackBuilder uses the same lookup to expand salient snippets to full bodies (T4.2).</summary>
     internal static string? FindMemberDeclarationText(string typeSourceBody, string memberName)
     {

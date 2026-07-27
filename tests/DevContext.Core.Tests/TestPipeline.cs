@@ -19,7 +19,6 @@ internal static class TestPipeline
             new ControllerActionExtractor(),
             new EfCoreExtractor(),
             new EventBusExtractor(),
-            new CallGraphExtractor(),
             new SourceBodyExtractor(),
             new BodyFactsExtractor(),
             new IndirectWiringDetector(),

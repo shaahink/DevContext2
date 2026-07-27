@@ -184,11 +184,13 @@ public sealed partial class GraphBuilder
     {
         if (node is null) return true;
         var title = node.Title;
+        // Batch A: the "*Mediator*" Contains-overfit is gone — honest call-edge resolution no longer
+        // produces edges onto framework mediator types (out-of-solution receivers are skipped at the
+        // binder), so only the literal framework names below remain meaningful.
         return title.StartsWith("Microsoft.", StringComparison.Ordinal)
             || title.StartsWith("System.", StringComparison.Ordinal)
             || title == "DbContext"
-            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher"
-            || (title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension");
+            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher";
     }
 
     private static Dictionary<NodeId, List<NodeId>> BuildBridgeIndex(CodeGraph graph)
@@ -197,10 +199,9 @@ public sealed partial class GraphBuilder
         foreach (var node in graph.Nodes)
         {
             if (node.Id.Kind != NodeKind.Member) continue;
-            var dot = node.Id.Key.LastIndexOf('.');
-            if (dot <= 0) continue;
-            var method = node.Id.Key[(dot + 1)..];
-            var typeId = NodeId.ForType(node.Id.Key[..dot]);
+            if (!node.Id.Key.Contains("::", StringComparison.Ordinal)) continue;
+            var method = Graph2.SymbolCanon.MemberNameOf(node.Id.Key);
+            var typeId = NodeId.ForType(Graph2.SymbolCanon.OwnerTypeOf(node.Id.Key));
 
             if (method is "Handle" or "HandleAsync" or "Consume" or "ConsumeAsync"
                 || method.StartsWith("Execute", StringComparison.Ordinal)

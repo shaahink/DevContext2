@@ -93,7 +93,7 @@ public sealed partial class GraphBuilder
     /// TypeDiscovery objects that transitively implement known handler interfaces (M1.1 closure).
     /// Transitive detection catches classes that inherit from a handler base class (not common
     /// but required for the "match handlers transitively" golden).</summary>
-    private static void AddHandlerJoins(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
+    private static void AddHandlerJoins(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
@@ -115,7 +115,7 @@ public sealed partial class GraphBuilder
 
         var knownHandlerTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
-            knownHandlerTypes.Add(names.Resolve(h.HandlerType, h.SourceFile));
+            knownHandlerTypes.Add(names.ResolveName(h.HandlerType, h.SourceFile));
 
         foreach (var type in model.OrderedTypes)
         {
@@ -148,11 +148,11 @@ public sealed partial class GraphBuilder
         }
     }
 
-    private static void EmitHandlerJoin(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+    private static void EmitHandlerJoin(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names,
         string requestType, string handlerShortName, MediatRKind kind, string sourceFile, int lineNumber)
     {
-        var requestId = NodeId.ForType(names.Resolve(requestType, sourceFile));
-        var handlerId = NodeId.ForType(names.Resolve(handlerShortName, sourceFile));
+        var requestId = NodeId.ForType(names.ResolveName(requestType, sourceFile));
+        var handlerId = NodeId.ForType(names.ResolveName(handlerShortName, sourceFile));
 
         g.AddNode(new GraphNode(requestId, requestType, NodeKind.Type)
         {
@@ -165,7 +165,7 @@ public sealed partial class GraphBuilder
             Tags = [RoleTags.Handler],
             Layer = "Application",
             SourceBody = model.OrderedTypes
-                .FirstOrDefault(t => t.Id == names.Resolve(handlerShortName, sourceFile))
+                .FirstOrDefault(t => t.Id == names.ResolveName(handlerShortName, sourceFile))
                 ?.SourceBody,
         });
         g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
@@ -252,7 +252,7 @@ public sealed partial class GraphBuilder
     /// <summary>B3: Detects IPipelineBehavior registrations from DI detections and creates
     /// WrappedBy edges from every Request node to each pipeline behavior. The trace renders
     /// pipeline behaviors as a "pipeline" seam under the first send that reaches a Request.</summary>
-    private static void AddPipelineBehaviors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
+    private static void AddPipelineBehaviors(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
         var behaviors = new HashSet<(string BehaviorType, string? SourceFile, int? LineNumber)>();
 
@@ -311,7 +311,7 @@ public sealed partial class GraphBuilder
 
         foreach (var (behaviorType, file, line) in behaviors)
         {
-            var behaviorFqn = names.Resolve(behaviorType, file);
+            var behaviorFqn = names.ResolveName(behaviorType, file);
             var behaviorNodeId = NodeId.ForType(behaviorFqn);
             g.AddNode(new GraphNode(behaviorNodeId, behaviorType, NodeKind.Type)
             {
@@ -356,14 +356,14 @@ public sealed partial class GraphBuilder
     /// <summary>B1: EfEntityDetection → Entity nodes + aggregate tags PLUS subtypes of detected entity
     /// bases so entities registered via reflection (e.g. DntSite's RegisterAllDerivedEntities) are also
     /// tagged — Iteration 6 deferred / DntSite TOUCHES gap.</summary>
-    private static void AddEntityNodes(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
+    private static void AddEntityNodes(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
         var knownEntityFqns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             if (!scope.Contains(e.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(e.SourceFile)) continue;
-            var entityId = NodeId.ForType(names.Resolve(e.EntityType, e.SourceFile));
+            var entityId = NodeId.ForType(names.ResolveName(e.EntityType, e.SourceFile));
             var tags = e.IsAggregate
                 ? ImmutableArray.Create(RoleTags.Entity, RoleTags.Aggregate)
                 : ImmutableArray.Create(RoleTags.Entity);
@@ -373,7 +373,7 @@ public sealed partial class GraphBuilder
                 Tags = tags,
                 Layer = "Domain",
             });
-            knownEntityFqns.Add(names.Resolve(e.EntityType, e.SourceFile));
+            knownEntityFqns.Add(names.ResolveName(e.EntityType, e.SourceFile));
         }
 
         // Iteration 6 deferred: when a base entity is detected but its subtypes aren't (because they were
@@ -385,7 +385,7 @@ public sealed partial class GraphBuilder
             if (type.BaseTypes.IsDefaultOrEmpty) continue;
             foreach (var bt in type.BaseTypes)
             {
-                if (knownEntityFqns.Contains(names.Resolve(bt, type.FilePath)))
+                if (knownEntityFqns.Contains(names.ResolveName(bt, type.FilePath)))
                 {
                     g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
                     {
@@ -406,7 +406,7 @@ public sealed partial class GraphBuilder
     /// (Order.ICollection&lt;OrderItem&gt;), the parent owns the property → edge is reversed to child→parent.
     /// Honesty note: declared-shape only; fluent-API <c>HasMany</c> mappings are not parsed in v1.</summary>
     private static void AddEntityNavigationEdges(CodeGraphBuilder g, DiscoveryModel model,
-        NameResolver names, SolutionScope scope)
+        SymbolTable names, SolutionScope scope)
     {
         // Build a set of known entity short names from detections + already entity-tagged graph nodes
         var entityShortNames = model.Detections.OfType<EfEntityDetection>()
@@ -434,7 +434,7 @@ public sealed partial class GraphBuilder
                 if (targetName is null || targetName == type.Name) continue;
                 if (!entityShortNames.Contains(targetName)) continue;
 
-                var targetFqn = names.Resolve(targetName, type.FilePath);
+                var targetFqn = names.ResolveName(targetName, type.FilePath);
                 var targetId = NodeId.ForType(targetFqn);
 
                 // BelongsTo direction: edge from child → parent.
@@ -512,7 +512,7 @@ public sealed partial class GraphBuilder
     /// <summary>B1: MediatR notification handlers + message bus consumers → Event nodes + Consumes edges.
     /// Domain events (INotificationHandler) and integration events (MessageConsumer) are unified as
     /// Event nodes; both feed into Handler nodes via Consumes edges.</summary>
-    private static void AddEventConsumers(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
+    private static void AddEventConsumers(CodeGraphBuilder g, DiscoveryModel model, SymbolTable names, SolutionScope scope, NoiseFilter noise)
     {
         // Notification handlers (domain events via MediatR)
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
@@ -520,8 +520,8 @@ public sealed partial class GraphBuilder
             if (h.Kind != MediatRKind.Notification) continue;
             if (!scope.Contains(h.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
-            var eventId = NodeId.ForType(names.Resolve(h.RequestType, h.SourceFile));
-            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
+            var eventId = NodeId.ForType(names.ResolveName(h.RequestType, h.SourceFile));
+            var handlerId = NodeId.ForType(names.ResolveName(h.HandlerType, h.SourceFile));
 
             g.AddNode(new GraphNode(eventId, h.RequestType, NodeKind.Type)
             {
@@ -553,8 +553,8 @@ public sealed partial class GraphBuilder
             var isChannel = mc.MessageType.StartsWith("queue:", StringComparison.Ordinal);
             var eventId = isChannel
                 ? NodeId.ForType(ChannelTitle(mc.MessageType))
-                : NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
-            var consumerType = names.Resolve(mc.ConsumerType, mc.SourceFile);
+                : NodeId.ForType(names.ResolveName(mc.MessageType, mc.SourceFile));
+            var consumerType = names.ResolveName(mc.ConsumerType, mc.SourceFile);
             var handlerId = NodeId.ForType(consumerType);
 
             g.AddNode(new GraphNode(eventId, isChannel ? ChannelTitle(mc.MessageType) : mc.MessageType, NodeKind.Type)
@@ -586,7 +586,7 @@ public sealed partial class GraphBuilder
             if (!noise.IsProductionEntrySource(ef.SourceFile)) continue;
 
             var channelId = NodeId.ForType(ChannelTitle(ef.EventType));
-            var publisherId = NodeId.ForType(names.Resolve(ef.Target, ef.SourceFile));
+            var publisherId = NodeId.ForType(names.ResolveName(ef.Target, ef.SourceFile));
 
             g.AddNode(new GraphNode(channelId, ChannelTitle(ef.EventType), NodeKind.Type)
             {

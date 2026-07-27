@@ -34,7 +34,7 @@ When `--focus <name>` is specified but doesn't match a catalogued HTTP endpoint:
 For endpoint detections, the entry node is linked to its handler class via a `Calls` edge:
 
 1. **Named handler** (controller action, FastEndpoints): resolve `HandlerType` to FQN via `NameResolver`, create `Calls` edge to Type node
-2. **Named handler with specific method** (`HandlerMethod` known, not `<lambda>`): create a `Member` node (`TypeFqn.MethodName`), create `Calls` edge to it — anchors trace at the specific method
+2. **Named handler with specific method** (`HandlerMethod` known, not `<lambda>`): create a `Member` node (`TypeFqn::MethodName` — Batch A structural keys), create `Calls` edge to it — anchors trace at the specific method
 3. **Lambda/inline handler** (minimal API, `HandlerType` contains `=>` or is null/`λ`/`?`): fall back to the type that *contains* the endpoint registration (matched by source file)
 
 ### 1.4 Framework/Ambiguous Type Handling

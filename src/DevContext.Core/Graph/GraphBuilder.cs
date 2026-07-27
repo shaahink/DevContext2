@@ -48,10 +48,13 @@ public sealed partial class GraphBuilder
 
     /// <summary>Builds the code graph and the entry-point inventory for one solution scope (design-doc R1).</summary>
     public (CodeGraph Graph, ImmutableArray<EntryPoint> Entries) Build(DiscoveryModel model, SolutionScope scope,
-        IReadOnlyList<BodyFacts>? bodyFacts = null)
+        IReadOnlyList<BodyFacts>? bodyFacts = null, SymbolTable? symbols = null)
     {
         var g = new CodeGraphBuilder();
-        var names = new NameResolver(model.OrderedTypes, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
+        // ONE symbol table for the whole assembly (Batch A): name-string joins, seam-detector
+        // resolution and the DI joins all read the same project-scoped, arity-aware index — shared
+        // with the CallGraphBinder when the pipeline hands it in.
+        var names = symbols ?? new SymbolTable(model.OrderedTypes, f => scope.ProjectForFile(f), bodyFacts);
         var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
         AddTypeNodes(g, model, scope, archetype);
@@ -84,8 +87,8 @@ public sealed partial class GraphBuilder
         // method-anchored trace shows only its own edges. Zero regex, zero re-parsing.
         AddSeamsFromDetectors(g, model, names, scope, bodyFacts);
         AddLambdaSeams(g, model, names, scope, bodyFacts);             // L2.4: dispatch edges for lambda entry-handlers
-        AddCallEdges(g, model, names, bodyFacts);                      // C1: Calls edges from CallEdges (member→member)
-        var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
+        AddCallEdges(g, model);                                        // C1: Calls edges from CallEdges (member→member)
+        var (isSparse, hubCount) = AddHubScopeEdges(g, model, entries); // L3.4
 
         // ── M1.7-M1.8: Cross-service ServiceLink joins ────────────────────
         AddGrpcServiceLinks(g, model, names, scope, _noise);

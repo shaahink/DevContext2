@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "Spectre.Console",
-    "run":  "2026-07-27 20:55:49",
-    "wallSec":  18.4,
+    "run":  "2026-07-27 23:07:32",
+    "wallSec":  6.6,
     "snapshotCache":  "HIT · 3ba1023",
-    "nodeCount":  671,
-    "edgeCount":  322,
+    "nodeCount":  617,
+    "edgeCount":  285,
     "checks":  {
                    "transport":  {
                                      "verdict":  "PASS",
@@ -33,34 +33,34 @@
                                                     }
                                     },
                    "hub-sanity":  {
-                                      "verdict":  "FAIL",
-                                      "detail":  "test/fixture hubs in top-5: TestConsole(61)",
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: IAnsiConsole(35), IRenderable(11), Table(11), Grid(10), StringBuffer(8)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "TestConsole",
-                                                                       "id":  "Type:Spectre.Console.Testing.TestConsole",
-                                                                       "degree":  61
-                                                                   },
-                                                                   {
                                                                        "title":  "IAnsiConsole",
                                                                        "id":  "Type:Spectre.Console.IAnsiConsole",
-                                                                       "degree":  37
+                                                                       "degree":  35
                                                                    },
                                                                    {
-                                                                       "title":  "TextPrompt",
-                                                                       "id":  "Type:Spectre.Console.TextPrompt\u003cstring\u003e",
-                                                                       "degree":  24
-                                                                   },
-                                                                   {
-                                                                       "title":  "Progress",
-                                                                       "id":  "Type:Spectre.Console.Progress",
-                                                                       "degree":  22
+                                                                       "title":  "IRenderable",
+                                                                       "id":  "Type:Spectre.Console.Rendering.IRenderable",
+                                                                       "degree":  11
                                                                    },
                                                                    {
                                                                        "title":  "Table",
                                                                        "id":  "Type:Spectre.Console.Table",
-                                                                       "degree":  18
+                                                                       "degree":  11
+                                                                   },
+                                                                   {
+                                                                       "title":  "Grid",
+                                                                       "id":  "Type:Spectre.Console.Grid",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "StringBuffer",
+                                                                       "id":  "Type:Spectre.Console.StringBuffer",
+                                                                       "degree":  8
                                                                    }
                                                                ]
                                                   }
@@ -102,7 +102,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  143,
+                                                    "crossProjectEdges":  15,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

@@ -21,8 +21,11 @@ public static class SnapshotSchema
     /// v4 (C5+J1, Prism D2): Resolves edges carry RegistrationSites (a v3 snapshot would trace with
     /// pre-C5 arbitrary DI provenance) and the model carries ExtractionFailures (J1 health rows).
     /// v5 (I1 fix at D2 close): orphans insight coverage-gated + library-exempt — a v4 snapshot can
-    /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).</summary>
-    public const int Version = 5;
+    /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).
+    /// v6 (Batch A, graph-v2): structural identity — type ids carry nested chains + generic arity
+    /// (Ns.Outer.Inner`2), member node keys use the "Type::Member" scheme, and CallEdges carry
+    /// canonical types from the SymbolTable binder. Persisted v5 graphs join on the old keys.</summary>
+    public const int Version = 6;
 
     /// <summary>D5.3 (the J2 engine-version key) — the engine build that produced a snapshot.
     /// Deterministic compilation makes the Core MVID a content hash over sources + references, so

@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -14,6 +16,6 @@ public interface IEntryPointBuilder
         CodeGraphBuilder g,
         DiscoveryModel model,
         SolutionScope scope,
-        NameResolver names,
+        SymbolTable names,
         NoiseFilter noise);
 }

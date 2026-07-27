@@ -27,7 +27,7 @@ public interface ISymbolResolver
 
 /// <summary>
 /// Heuristic resolver (P1/P2). Deliberately conservative — returns null rather than guess, so edges it
-/// can't justify are left out instead of being wrong. The agent ports CallGraphExtractor's existing
+/// can't justify are left out instead of being wrong. The agent ports the old call-graph extractor's
 /// field-map / DI-map heuristics into here in P2; P3 replaces the whole class with the semantic resolver.
 /// </summary>
 public sealed class SyntacticSymbolResolver : ISymbolResolver
@@ -57,7 +57,7 @@ public sealed class SyntacticSymbolResolver : ISymbolResolver
     /// <inheritdoc/>
     public SymbolRef? ResolveReceiverType(SymbolContext context)
     {
-        // TODO(agent, P2): port the field/property/ctor-param map heuristic from CallGraphExtractor.ResolveType,
+        // TODO(agent, P2): port a field/property/ctor-param map heuristic (the old CallGraphExtractor.ResolveType),
         // including the DI/interface→impl follow-through. Keep it conservative: prefer null over a wrong type.
         if (context.FieldTypes.TryGetValue(context.ReceiverExpression, out var t))
             return new SymbolRef(t, null, Resolution.Syntactic);

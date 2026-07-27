@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds gRPC method-level entry points from <see cref="GrpcServiceDetection"/>s.
@@ -7,14 +9,14 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         foreach (var svc in model.Detections.OfType<GrpcServiceDetection>())
         {
             if (!scope.Contains(svc.SourceFile) || !noise.IsProductionEntrySource(svc.SourceFile)) continue;
 
-            var svcTypeFqn = names.Resolve(svc.ImplementationType, svc.SourceFile);
+            var svcTypeFqn = names.ResolveName(svc.ImplementationType, svc.SourceFile);
             var svcTypeNodeId = NodeId.ForType(svcTypeFqn);
             var svcNamespace = names.GetNamespace(svc.ImplementationType);
 

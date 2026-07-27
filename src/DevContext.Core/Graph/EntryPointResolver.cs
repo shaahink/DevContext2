@@ -51,10 +51,11 @@ public static class EntryPointResolver
     {
         var name = focus;
         string? method = null;
-        var colon = name.IndexOf(':');
+        var sep = name.IndexOf("::", StringComparison.Ordinal);   // full member-key form
+        var colon = sep >= 0 ? sep : name.IndexOf(':');
         if (colon > 0)
         {
-            method = name[(colon + 1)..].Trim();
+            method = name[(colon + (sep >= 0 ? 2 : 1))..].Trim();
             name = name[..colon];
         }
 
@@ -62,8 +63,10 @@ public static class EntryPointResolver
         foreach (var node in graph.Nodes)
         {
             if (node.Kind is not (NodeKind.Type or NodeKind.EntryPoint)) continue;
-            if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
-                && !node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase)) continue;
+            var keyMatches = node.Kind == NodeKind.Type
+                ? Graph2.SymbolCanon.TypeIdMatches(node.Id.Key, name, StringComparison.OrdinalIgnoreCase)
+                : node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase);
+            if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase) && !keyMatches) continue;
 
             // "Type:Method" → anchor on the Member node that originates this method's edges, so the trace
             // shows only this method's wiring (sibling methods diverge). Prefer the first candidate Type

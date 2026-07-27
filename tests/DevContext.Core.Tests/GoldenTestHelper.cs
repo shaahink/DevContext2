@@ -133,7 +133,6 @@ public static partial class GoldenTestHelper
             new ControllerActionExtractor(),
             new EfCoreExtractor(),
             new EventBusExtractor(),
-            new CallGraphExtractor(),
             new SourceBodyExtractor(),
             new IndirectWiringDetector(),
             new AspireExtractor(),

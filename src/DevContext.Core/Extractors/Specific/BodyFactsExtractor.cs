@@ -67,6 +67,24 @@ public sealed class BodyFactsExtractor : IDiscoveryExtractor
         foreach (var list in perFile)
             if (!list.IsDefault) all.AddRange(list);
 
+        // C1 (Batch A): Blazor components join the BodyFacts world through their @code VIRTUAL trees,
+        // keyed by the .razor path — the same facts feed seam detection AND the CallGraphBinder, so
+        // components keep their call edges without a second extraction universe. #line directives in
+        // the virtual tree keep op lines on the true razor lines.
+        await foreach (var (razorPath, razorTree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
+        {
+            try
+            {
+                var project = fileToProject(razorPath) ?? "";
+                var root = await razorTree.GetRootAsync(ct).ConfigureAwait(false);
+                all.AddRange(BodyFactExtractor.Extract(root, razorPath, project));
+            }
+            catch (Exception ex)
+            {
+                context.Logger.LogWarning(ex, "Failed to build razor body facts: {Path}", razorPath);
+            }
+        }
+
         context.Analysis.AllBodyFacts = all;
     }
 

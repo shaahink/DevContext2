@@ -297,7 +297,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         foreach (var focus in options.FocusPoints)
         {
             var type = model.Types.Values.FirstOrDefault(t =>
-                t.Name == focus.TypeName || t.Id.EndsWith("." + focus.TypeName, StringComparison.Ordinal));
+                t.Name == focus.TypeName || Graph2.SymbolCanon.TypeIdMatches(t.Id, focus.TypeName));
             if (type is null)
             {
                 // Show unresolved focus point with Levenshtein suggestions
@@ -391,7 +391,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             foreach (var t in model.Types.Values)
             {
-                if (t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
+                if (t.Name == f.TypeName || Graph2.SymbolCanon.TypeIdMatches(t.Id, f.TypeName))
                 {
                     typeSet.Add(t.Id);
                     break;
@@ -409,7 +409,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                     if (typeSet.Count >= 5) break;
                     foreach (var t in model.Types.Values)
                     {
-                        if (t.Id == edge.CalleeType || t.Id.EndsWith("." + edge.CalleeType))
+                        if (t.Id == edge.CalleeType || Graph2.SymbolCanon.TypeIdMatches(t.Id, edge.CalleeType))
                         {
                             typeSet.Add(t.Id);
                             break;

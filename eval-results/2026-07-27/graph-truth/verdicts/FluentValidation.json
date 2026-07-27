@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "FluentValidation",
-    "run":  "2026-07-27 20:55:02",
-    "wallSec":  15.6,
+    "run":  "2026-07-27 23:05:24",
+    "wallSec":  5.7,
     "snapshotCache":  "HIT · 9439790",
-    "nodeCount":  605,
-    "edgeCount":  508,
+    "nodeCount":  323,
+    "edgeCount":  163,
     "checks":  {
                    "transport":  {
                                      "verdict":  "PASS",
@@ -34,33 +34,33 @@
                                     },
                    "hub-sanity":  {
                                       "verdict":  "FAIL",
-                                      "detail":  "test/fixture hubs in top-5: TestValidator(47)",
+                                      "detail":  "test/fixture hubs in top-5: ITestValidationContinuation(9)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "InlineValidator",
-                                                                       "id":  "Type:FluentValidation.InlineValidator",
-                                                                       "degree":  187
-                                                                   },
-                                                                   {
-                                                                       "title":  "TestValidator",
-                                                                       "id":  "Type:FluentValidation.Tests.TestValidator",
-                                                                       "degree":  47
-                                                                   },
-                                                                   {
-                                                                       "title":  "IRuleBuilderInitial",
-                                                                       "id":  "Type:FluentValidation.IRuleBuilderInitial",
-                                                                       "degree":  46
-                                                                   },
-                                                                   {
                                                                        "title":  "IRuleBuilder",
-                                                                       "id":  "Type:FluentValidation.IRuleBuilder",
+                                                                       "id":  "Type:FluentValidation.IRuleBuilder`2",
                                                                        "degree":  28
                                                                    },
                                                                    {
-                                                                       "title":  "IValidationRule",
-                                                                       "id":  "Type:FluentValidation.IValidationRule",
-                                                                       "degree":  18
+                                                                       "title":  "ValidationContext",
+                                                                       "id":  "Type:FluentValidation.ValidationContext`1",
+                                                                       "degree":  19
+                                                                   },
+                                                                   {
+                                                                       "title":  "TrackingCollection",
+                                                                       "id":  "Type:FluentValidation.Internal.TrackingCollection`1",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "IValidator",
+                                                                       "id":  "Type:FluentValidation.IValidator`1",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "ITestValidationContinuation",
+                                                                       "id":  "Type:FluentValidation.TestHelper.ITestValidationContinuation",
+                                                                       "degree":  9
                                                                    }
                                                                ]
                                                   }
@@ -102,7 +102,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  297,
+                                                    "crossProjectEdges":  1,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

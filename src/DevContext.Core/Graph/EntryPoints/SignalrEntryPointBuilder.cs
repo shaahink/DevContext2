@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds SignalR hub entry points from <see cref="SignalRHubDetection"/>s.</summary>
@@ -5,7 +7,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -17,7 +19,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"signalr:{hub.HubType}");
             g.AddNode(new GraphNode(id, hub.HubType, NodeKind.EntryPoint) { FilePath = hub.SourceFile, LineNumber = hub.LineNumber });
 
-            var typeFqn = names.Resolve(hub.HubType, hub.SourceFile);
+            var typeFqn = names.ResolveName(hub.HubType, hub.SourceFile);
             var typeId = NodeId.ForType(typeFqn);
 
             // Anchor the entry on the hub METHOD members — the members carry whatever

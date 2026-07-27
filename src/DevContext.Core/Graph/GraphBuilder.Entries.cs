@@ -149,10 +149,17 @@ public sealed partial class GraphBuilder
             // Prefer a DI-resolved service (the action's real collaborator). T2.3 mutating-verb guard: a
             // mutating entry (POST/PUT/DELETE/PATCH) must not pick a getter (GetAll) when a non-getter service
             // callee exists on the same member — keep the first service callee, but upgrade a getter to a
-            // non-getter when the verb mutates.
+            // non-getter when the verb mutates. Batch A: a TYPE-kind service callee (a PlainCall seam edge)
+            // upgrades to a MEMBER-kind callee of the SAME type — the member names the actual method, and
+            // seam edges land before call edges in insertion order, so without the upgrade the bare type
+            // shadows "Service.Method" as the target.
             if (calleeType.Tags.Contains(RoleTags.Service))
             {
+                var upgradesToMember = serviceCallee is { Kind: NodeKind.Type }
+                    && callee.Kind == NodeKind.Member
+                    && string.Equals(calleeTypeKey, serviceCalleeType!.Id.Key, StringComparison.Ordinal);
                 if (serviceCallee is null
+                    || upgradesToMember
                     || (isMutating && IsGetter(serviceMember) && !IsGetter(calleeMemberName)))
                 {
                     serviceCallee = callee;
@@ -163,11 +170,15 @@ public sealed partial class GraphBuilder
             }
 
             // Non-service meaningful callee — remember the one with the highest out-degree of its own
-            // (a real handler keeps working, a leaf call doesn't).
+            // (a real handler keeps working, a leaf call doesn't). Batch A: a MEMBER-kind callee of the
+            // same type upgrades a TYPE-kind best (the seam edge lands first; the member names the method).
             var outDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
-            if (outDegree > bestOutDegree)
+            var upgradesFallback = bestFallback is { Kind: NodeKind.Type }
+                && callee.Kind == NodeKind.Member
+                && string.Equals(calleeTypeKey, bestFallbackType!.Id.Key, StringComparison.Ordinal);
+            if (outDegree > bestOutDegree || upgradesFallback)
             {
-                bestOutDegree = outDegree;
+                bestOutDegree = Math.Max(bestOutDegree, outDegree);
                 bestFallback = callee;
                 bestFallbackType = calleeType;
             }
@@ -216,12 +227,8 @@ public sealed partial class GraphBuilder
             ? $"{calleeType.Title}.{memberName}"
             : callee.Title;
 
-    /// <summary>"TypeFqn.MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
-    private static string ExtractMemberName(string memberKey)
-    {
-        var dot = memberKey.LastIndexOf('.');
-        return dot >= 0 ? memberKey[(dot + 1)..] : memberKey;
-    }
+    /// <summary>"TypeFqn::MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
+    private static string ExtractMemberName(string memberKey) => SymbolCanon.MemberNameOf(memberKey);
 
     /// <summary>E6: bare EF Core / LINQ verbs — never a meaningful entry target on their own, whichever
     /// type the syntactic resolver happened to attribute the call to.</summary>
@@ -246,12 +253,8 @@ public sealed partial class GraphBuilder
     private static bool IsObjectNoiseMethod(string? methodName)
         => methodName is "ToString" or "GetHashCode" or "Equals" or "GetType" or "Dispose" or "DisposeAsync";
 
-    /// <summary>"TypeFqn.MethodName" → "TypeFqn" (strips the trailing member segment from a Member key).</summary>
-    private static string ExtractTypeKey(string memberKey)
-    {
-        var dot = memberKey.LastIndexOf('.');
-        return dot > 0 ? memberKey[..dot] : memberKey;
-    }
+    /// <summary>"TypeFqn::MethodName" → "TypeFqn" (strips the member segment from a Member key).</summary>
+    private static string ExtractTypeKey(string memberKey) => SymbolCanon.OwnerTypeOf(memberKey);
 
     /// <summary>When a registration type dispatches many commands (minimal APIs), match an entry's
     /// route to the most likely request by extracting the last significant route segment and finding
@@ -312,7 +315,7 @@ public sealed partial class GraphBuilder
     /// namespace (resolved via NameResolver) and strips the project's typical root-namespace prefix
     /// to produce a grouping key like "Controllers/Orders" or "Services/Ordering".</summary>
     private static ImmutableArray<EntryPoint> EnrichEntryGroupPaths(
-        ImmutableArray<EntryPoint> entries, NameResolver names, SolutionScope scope)
+        ImmutableArray<EntryPoint> entries, SymbolTable names, SolutionScope scope)
     {
         if (entries.IsDefaultOrEmpty) return entries;
         var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
@@ -324,7 +327,7 @@ public sealed partial class GraphBuilder
         return b.ToImmutable();
     }
 
-    private static string? DeriveGroupPath(EntryPoint entry, NameResolver names, SolutionScope scope)
+    private static string? DeriveGroupPath(EntryPoint entry, SymbolTable names, SolutionScope scope)
     {
         // 1. Resolve the handler type's FQN (via HandlerNode or by parsing Provenance)
         string? ns = null;

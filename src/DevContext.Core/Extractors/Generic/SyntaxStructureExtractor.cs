@@ -176,7 +176,9 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
         var namespaceDecl = typeDecl.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
         var namespaceName = namespaceDecl?.Name.ToString() ?? "global";
-        var id = $"{namespaceName}.{name}";
+        // Batch A: structural identity — nested-type chain + generic arity live in the Id
+        // (Ns.Outer.Inner`2); Name stays the bare identifier for short-name joins and display.
+        var id = Graph2.SymbolCanon.ForTypeDecl(typeDecl);
 
         var kind = typeDecl.Kind() switch
         {

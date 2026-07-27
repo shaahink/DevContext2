@@ -116,7 +116,11 @@ public readonly record struct NodeId(NodeKind Kind, string Key)
     public override string ToString() => $"{Kind}:{Key}";
 
     public static NodeId ForType(string fqn) => new(NodeKind.Type, fqn);
-    public static NodeId ForMember(string typeFqn, string member) => new(NodeKind.Member, $"{typeFqn}.{member}");
+    /// <summary>Member keys use the structural <c>::</c> separator (Batch A — same scheme as BodyFacts
+    /// SymbolIds, minus the declared-arity suffix). Build/parse ONLY via this and
+    /// <see cref="Graph2.SymbolCanon"/> — never split member keys on '.'.</summary>
+    public static NodeId ForMember(string typeFqn, string member)
+        => new(NodeKind.Member, Graph2.SymbolCanon.MemberKey(typeFqn, member));
     public static NodeId ForEntry(string key) => new(NodeKind.EntryPoint, key);
     public static NodeId ForService(string name) => new(NodeKind.Service, name);
     public static NodeId ForMessage(string fqn) => new(NodeKind.Message, fqn);

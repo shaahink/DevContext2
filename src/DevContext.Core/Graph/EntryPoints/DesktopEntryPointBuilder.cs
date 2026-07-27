@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds desktop UI entry points (Window, Page, UserControl, AppStartup, RelayCommand)
@@ -11,7 +13,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -34,7 +36,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
 
             var isCommand = de.Kind == DesktopEntryKind.RelayCommand && de.TypeName.Contains('.');
             var typeName = isCommand ? de.TypeName[..de.TypeName.LastIndexOf('.')] : de.TypeName;
-            var typeFqn = names.Resolve(typeName, de.SourceFile);
+            var typeFqn = names.ResolveName(typeName, de.SourceFile);
             var typeNodeId = g.HasNode(NodeId.ForType(typeFqn)) ? NodeId.ForType(typeFqn) : (NodeId?)null;
 
             NodeId? handlerNodeId = null;

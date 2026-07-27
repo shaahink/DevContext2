@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds GraphQL resolver entry points from <see cref="GraphQlFieldDetection"/>s.</summary>
@@ -5,7 +7,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         foreach (var field in model.Detections.OfType<GraphQlFieldDetection>())
@@ -20,7 +22,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             // owning type: the seeded call graph (T1.1) puts the resolver's Calls edges on the member, and
             // entry→target resolution drills a Member landing but only reads Sends on a Type landing — so a
             // plain-service resolver would show no target if anchored on the type.
-            var typeFqn = names.Resolve(field.TypeName, field.SourceFile);
+            var typeFqn = names.ResolveName(field.TypeName, field.SourceFile);
             var typeId = NodeId.ForType(typeFqn);
             NodeId handlerNode;
             if (g.HasNode(typeId))

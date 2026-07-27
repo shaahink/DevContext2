@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds Azure Functions entry points from <see cref="FunctionEntryDetection"/>s.</summary>
@@ -5,7 +7,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -24,7 +26,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
             // owning type: the seeded call graph (T1.1) puts the trigger's Calls edges on the member, and
             // entry→target resolution drills a Member landing (ResolvePrimaryCall) but only reads Sends on
             // a Type landing — so a plain-service function would show no target if anchored on the type.
-            var typeFqn = names.Resolve(fn.ClassName, fn.SourceFile);
+            var typeFqn = names.ResolveName(fn.ClassName, fn.SourceFile);
             var typeId = NodeId.ForType(typeFqn);
             NodeId handlerNode;
             if (g.HasNode(typeId))

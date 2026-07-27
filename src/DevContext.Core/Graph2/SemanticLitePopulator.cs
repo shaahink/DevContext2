@@ -31,8 +31,6 @@ public sealed record SemanticLiteResult
     /// <summary>Total number of <see cref="InvocationOp"/> argument types (inline <c>new X()</c>/<c>Adapt&lt;T&gt;()</c>
     /// dispatch arguments) resolved via semantic binding.</summary>
     public int ArgTypesResolved { get; init; }
-    /// <summary>Total number of CallEdges upgraded from Syntactic to Semantic via the merged compilation.</summary>
-    public int CallEdgesUpgraded { get; init; }
     /// <summary>Number of syntax trees fed into the semantic-lite compilation.</summary>
     public int TreeCount { get; init; }
     /// <summary>Number of NuGet metadata references resolved from assets.json.</summary>
@@ -115,6 +113,7 @@ public static class SemanticLitePopulator
         IReadOnlyList<BodyFacts> bodyFacts,
         IAnalysisCache cache,
         string rootPath,
+        IReadOnlyList<SyntaxTree>? extraTrees = null,
         CancellationToken ct = default)
     {
         var result = new SemanticLiteResult();
@@ -178,6 +177,13 @@ public static class SemanticLitePopulator
         foreach (var (_, name) in projectDirs)
             if (!perProject.ContainsKey(name))
                 result = result with { ProjectsSkipped = result.ProjectsSkipped + 1 };
+
+        // Batch A: extra virtual trees (Blazor @code) join THE compilation so component bodies get
+        // real semantic upgrades — there is no second compilation to fold them into anymore.
+        if (extraTrees is not null)
+            foreach (var tree in extraTrees)
+                if (!string.IsNullOrEmpty(tree.FilePath) && seenPaths.Add(tree.FilePath))
+                    allTrees.Add(tree);
         swTrees.Stop();
         result = result with { CollectTreesMs = swTrees.Elapsed.TotalMilliseconds };
 
@@ -420,11 +426,20 @@ public static class SemanticLitePopulator
 
         // The bind is the measured wall of big-repo analysis (DntSite: 79.7s of an 81.8s SemanticLite
         // stage, serial) and is CPU-bound. Parallel BY TREE — each task binds one file's bodies against
-        // its own GetSemanticModel, the same isolation CallGraphExtractor's parallel bind uses; no
+        // its own GetSemanticModel, per-file semantic-model isolation; no
         // SemanticModel is ever shared across threads.
         var parallelOpts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
         Parallel.ForEach(demand.GroupBy(d => d.Tree), parallelOpts, group =>
         {
+            // Razor virtual trees: op lines are #line-MAPPED (true razor lines) but the line-based
+            // node relookup below reads the VIRTUAL tree text — a mismatch that could bind the wrong
+            // node. Skip the upgrade for these bodies (their facts stay honestly syntactic).
+            if (group.Key.FilePath.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var (index, body, _) in group) results[index] = body;
+                return;
+            }
+
             SemanticModel? semanticModel;
             try { semanticModel = compilation.GetSemanticModel(group.Key); }
             catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
@@ -638,93 +653,6 @@ public static class SemanticLitePopulator
         return null;
     }
 
-    /// <summary>L3.3 — Re-resolves the <see cref="CallGraph"/> edges against the full merged compilation
-    /// (with NuGet refs). CallEdges with <see cref="Resolution.Syntactic"/> are re-tested: if the
-    /// receiver type resolves to any non-error INamedTypeSymbol, the edge is upgraded to Semantic.
-    /// This catches internal cross-project calls that the local per-file CallGraphExtractor compilation
-    /// missed because it lacked NuGet references.</summary>
-    public static IReadOnlyList<CallEdge> UpgradeCallEdges(
-        IReadOnlyList<CallEdge> edges,
-        CSharpCompilation compilation,
-        List<SyntaxTree> allTrees,
-        Dictionary<string, string?> fileToProject)
-    {
-        var treeIndex = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
-        foreach (var tree in allTrees)
-            treeIndex[tree.FilePath] = tree;
-
-        var modelCache = new Dictionary<SyntaxTree, SemanticModel?>();
-        var upgraded = new List<CallEdge>(edges.Count);
-        var upgradedCount = 0;
-
-        foreach (var edge in edges)
-        {
-            if (edge.Resolution != Resolution.Syntactic
-                || edge.CallSiteLocation is null
-                || edge.CalleeType is null)
-            {
-                upgraded.Add(edge);
-                continue;
-            }
-
-            var (file, line) = ParseCallSite(edge.CallSiteLocation);
-            if (file is null || !treeIndex.TryGetValue(file, out var tree))
-            {
-                upgraded.Add(edge);
-                continue;
-            }
-
-            if (!modelCache.TryGetValue(tree, out var semanticModel))
-            {
-                try { semanticModel = compilation.GetSemanticModel(tree); }
-                catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
-                modelCache[tree] = semanticModel;
-            }
-
-            if (semanticModel is null)
-            {
-                upgraded.Add(edge);
-                continue;
-            }
-
-            try
-            {
-                var root = tree.GetRoot();
-                var span = tree.GetText().Lines[Math.Max(0, line - 1)].Span;
-                var node = root.FindNode(span);
-                var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
-
-                if (invocation is not null)
-                {
-                    var info = semanticModel.GetSymbolInfo(invocation);
-                    if (info.Symbol is IMethodSymbol
-                        || info.CandidateSymbols.FirstOrDefault() is IMethodSymbol)
-                    {
-                        // The call binds against the full compilation — upgrade to Semantic.
-                        upgraded.Add(edge with { Resolution = Resolution.Semantic });
-                        upgradedCount++;
-                        continue;
-                    }
-                }
-            }
-            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "edge-upgrade", ex); }
-
-            upgraded.Add(edge);
-        }
-
-        return upgraded;
-    }
-
-    /// <summary>Parses a call-site location string in <c>file:line</c> format.</summary>
-    private static (string? File, int Line) ParseCallSite(string? location)
-    {
-        if (location is null) return (null, 0);
-        var colon = location.LastIndexOf(':');
-        if (colon < 0) return (null, 0);
-        var file = location[..colon];
-        if (int.TryParse(location[(colon + 1)..], out var line)) return (file, line);
-        return (null, 0);
-    }
     private static bool HasBindDemand(BodyFacts body)
     {
         foreach (var op in body.Ops)
@@ -867,15 +795,15 @@ public static class SemanticLitePopulator
 
     /// <summary>Projects a resolved <see cref="ITypeSymbol"/> to <c>(shortName, fullyQualified)</c>,
     /// or null for null/error/unnamed types. Interface receivers (e.g. <c>ISender</c>) keep their
-    /// declared short name so detector short-name catalogs still match.</summary>
+    /// declared short name so detector short-name catalogs still match. The FQN is the
+    /// <see cref="SymbolCanon"/> canonical (open-generic, arity-suffixed, nested chain) so a semantic
+    /// bind of <c>IdentifiedCommand&lt;T, R&gt;</c> lands on the same node id its declaration produced.</summary>
     private static (string Short, string Fqn)? NamedType(ITypeSymbol? type)
     {
         if (type is null || type is IErrorTypeSymbol || type is not INamedTypeSymbol named) return null;
-        var fqn = named.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
-            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
         var shortName = named.Name;
-        if (string.IsNullOrEmpty(shortName) || string.IsNullOrEmpty(fqn)) return null;
-        return (shortName, fqn);
+        if (string.IsNullOrEmpty(shortName)) return null;
+        return (shortName, SymbolCanon.ForSymbol(named));
     }
 
     private static ExpressionSyntax? GetReceiverSyntax(InvocationExpressionSyntax invocation)

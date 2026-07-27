@@ -99,9 +99,6 @@ public sealed class LibraryArchetypeSource : IInsightSource
         }
     }
 
-    private static string TypeShortName(string fqn)
-    {
-        var lastDot = fqn.LastIndexOf('.');
-        return lastDot >= 0 ? fqn[(lastDot + 1)..] : fqn;
-    }
+    // Arity-safe (Batch A): canonical ids carry `N for generic types — never show it.
+    private static string TypeShortName(string fqn) => Graph2.SymbolCanon.ShortNameOf(fqn);
 }

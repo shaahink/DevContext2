@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "gRPC",
-    "run":  "2026-07-27 20:56:51",
-    "wallSec":  38.9,
+    "run":  "2026-07-27 23:05:59",
+    "wallSec":  10.1,
     "snapshotCache":  "HIT · be802f5",
-    "nodeCount":  1403,
-    "edgeCount":  1241,
+    "nodeCount":  835,
+    "edgeCount":  495,
     "checks":  {
                    "transport":  {
                                      "verdict":  "FAIL",
@@ -34,33 +34,33 @@
                                     },
                    "hub-sanity":  {
                                       "verdict":  "PASS",
-                                      "detail":  "top-5 clean: List(108), ServiceCollection(67), IAsyncStreamReader(66), IServerStreamWriter(62), IClientStreamWriter.WriteAsync(30)",
+                                      "detail":  "top-5 clean: IServerStreamWriter.WriteAsync(28), AsyncCallState(14), ConsoleService(13), GrpcCall(13), IAsyncStreamReader.ReadAllAsync(12)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "List",
-                                                                       "id":  "Type:Grpc.Dotnet.Cli.Commands.ListCommand::List(0)",
-                                                                       "degree":  108
+                                                                       "title":  "IServerStreamWriter.WriteAsync",
+                                                                       "id":  "Member:Grpc.Core.IServerStreamWriter`1::WriteAsync",
+                                                                       "degree":  28
                                                                    },
                                                                    {
-                                                                       "title":  "ServiceCollection",
-                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.ServiceCollection",
-                                                                       "degree":  67
+                                                                       "title":  "AsyncCallState",
+                                                                       "id":  "Type:Grpc.Core.AsyncCallState",
+                                                                       "degree":  14
                                                                    },
                                                                    {
-                                                                       "title":  "IAsyncStreamReader",
-                                                                       "id":  "Type:Grpc.Core.IAsyncStreamReader",
-                                                                       "degree":  66
+                                                                       "title":  "ConsoleService",
+                                                                       "id":  "Type:Grpc.Dotnet.Cli.Internal.ConsoleService",
+                                                                       "degree":  13
                                                                    },
                                                                    {
-                                                                       "title":  "IServerStreamWriter",
-                                                                       "id":  "Type:Grpc.Core.IServerStreamWriter",
-                                                                       "degree":  62
+                                                                       "title":  "GrpcCall",
+                                                                       "id":  "Type:Grpc.Net.Client.Internal.GrpcCall`2",
+                                                                       "degree":  13
                                                                    },
                                                                    {
-                                                                       "title":  "IClientStreamWriter.WriteAsync",
-                                                                       "id":  "Member:Grpc.Core.IClientStreamWriter.WriteAsync",
-                                                                       "degree":  30
+                                                                       "title":  "IAsyncStreamReader.ReadAllAsync",
+                                                                       "id":  "Member:Grpc.Core.IAsyncStreamReader`1::ReadAllAsync",
+                                                                       "degree":  12
                                                                    }
                                                                ]
                                                   }
@@ -111,7 +111,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  235,
+                                                    "crossProjectEdges":  32,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

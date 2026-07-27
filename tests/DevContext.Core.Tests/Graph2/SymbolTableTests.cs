@@ -314,15 +314,29 @@ public sealed class SymbolTableTests
     }
 
     [Fact]
-    public void Type_and_member_with_same_short_name_are_ambiguous()
+    public void Type_wins_over_member_with_same_short_name()
     {
+        // Batch A law: refs sit in TYPE position (dispatch contracts, receivers), so a declared type
+        // outranks a member sharing its short name — members are a fallback tier, never a rival.
+        // (The old type+member mixing made every explicitly-constructed class "ambiguous" via its
+        // own constructor and blanked entry targets — the S2 regression this pins against.)
         var table = new SymbolTable(
             [T("Basket.API.Models.Post", "Post", "Basket.API.Models", "/src/Basket/Models/Post.cs")],
             ProjectMapper,
             [BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API")]);
         var r = table.Resolve(new SymbolRef { Text = "Post", Site = Ref("/src/Shared/Utils.cs") });
-        Assert.Equal(ResolutionTier.Ambiguous, r.Tier);
-        Assert.Equal(2, r.Candidates.Length);
+        Assert.Equal(SymbolKind.Type, r.Resolved?.Kind);
+        Assert.Equal("Basket.API.Models.Post", r.Resolved?.Canonical);
+    }
+
+    [Fact]
+    public void Own_constructor_does_not_make_a_type_ambiguous()
+    {
+        var table = new SymbolTable(
+            [T("Api.Controllers.ProductsController", "ProductsController", "Api.Controllers", "/src/Api/ProductsController.cs")],
+            ProjectMapper,
+            [BF("Api.Controllers.ProductsController", "ProductsController", 1, "/src/Api/ProductsController.cs", "Api")]);
+        Assert.Equal("Api.Controllers.ProductsController", table.ResolveName("ProductsController"));
     }
 
     [Fact]

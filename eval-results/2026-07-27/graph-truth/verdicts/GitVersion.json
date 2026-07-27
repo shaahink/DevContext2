@@ -1,10 +1,10 @@
 ﻿{
     "repo":  "GitVersion",
-    "run":  "2026-07-27 20:55:14",
-    "wallSec":  28.6,
+    "run":  "2026-07-27 23:05:46",
+    "wallSec":  11.9,
     "snapshotCache":  "HIT · 6476e5c",
-    "nodeCount":  1212,
-    "edgeCount":  965,
+    "nodeCount":  610,
+    "edgeCount":  382,
     "checks":  {
                    "transport":  {
                                      "verdict":  "PASS",
@@ -34,23 +34,13 @@
                                     },
                    "hub-sanity":  {
                                       "verdict":  "PASS",
-                                      "detail":  "top-5 clean: GitFlowConfigurationBuilder(252), GitHubFlowConfigurationBuilder(209), MainlineCommit(26), ILog(24), InputSanitizer(21)",
+                                      "detail":  "top-5 clean: MainlineCommit(27), ILog(24), LambdaEqualityHelper(20), MainlineContext(20), ICommit(16)",
                                       "metrics":  {
                                                       "top5":  [
                                                                    {
-                                                                       "title":  "GitFlowConfigurationBuilder",
-                                                                       "id":  "Type:GitVersion.Configuration.GitFlowConfigurationBuilder",
-                                                                       "degree":  252
-                                                                   },
-                                                                   {
-                                                                       "title":  "GitHubFlowConfigurationBuilder",
-                                                                       "id":  "Type:GitVersion.Configuration.GitHubFlowConfigurationBuilder",
-                                                                       "degree":  209
-                                                                   },
-                                                                   {
                                                                        "title":  "MainlineCommit",
                                                                        "id":  "Type:GitVersion.VersionCalculation.Mainline.MainlineCommit",
-                                                                       "degree":  26
+                                                                       "degree":  27
                                                                    },
                                                                    {
                                                                        "title":  "ILog",
@@ -58,9 +48,19 @@
                                                                        "degree":  24
                                                                    },
                                                                    {
-                                                                       "title":  "InputSanitizer",
-                                                                       "id":  "Type:GitVersion.Formatting.InputSanitizer",
-                                                                       "degree":  21
+                                                                       "title":  "LambdaEqualityHelper",
+                                                                       "id":  "Type:GitVersion.Helpers.LambdaEqualityHelper`1",
+                                                                       "degree":  20
+                                                                   },
+                                                                   {
+                                                                       "title":  "MainlineContext",
+                                                                       "id":  "Type:GitVersion.VersionCalculation.Mainline.MainlineContext",
+                                                                       "degree":  20
+                                                                   },
+                                                                   {
+                                                                       "title":  "ICommit",
+                                                                       "id":  "Type:GitVersion.Git.ICommit",
+                                                                       "degree":  16
                                                                    }
                                                                ]
                                                   }
@@ -104,7 +104,7 @@
                                     "verdict":  "PASS",
                                     "detail":  "0 dup-name types on cross-project edges (max 0)",
                                     "metrics":  {
-                                                    "crossProjectEdges":  642,
+                                                    "crossProjectEdges":  78,
                                                     "dupNameTypesTouched":  0,
                                                     "sample":  [
 

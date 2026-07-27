@@ -26,7 +26,7 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
     {
         // Two-phase, output-preserving parallelism (P5): parse + build per-file detection lists in
         // parallel, then commit to model.Detections single-threaded in source-file order. model.Detections
-        // is a ConcurrentBag (add is thread-safe), but its ORDER feeds CallGraphExtractor's diMap
+        // is a ConcurrentBag (add is thread-safe), but its ORDER fed the old CallGraphExtractor's diMap (retired in Batch A)
         // (last-write-wins by key), so committing serially in source order keeps the output identical.
         var files = context.Analysis.AllSourceFiles;
         var perFile = new List<DiRegistrationDetection>[files.Count];

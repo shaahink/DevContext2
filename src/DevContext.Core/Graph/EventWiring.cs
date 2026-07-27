@@ -214,10 +214,7 @@ public static class EventWiringProjection
         => (!node.Tags.IsDefaultOrEmpty && node.Tags.Contains(RoleTags.IntegrationEvent))
         || node.Title.EndsWith("IntegrationEvent", StringComparison.Ordinal);
 
-    private static string ShortName(NodeId id)
-    {
-        var key = id.Key;
-        var dot = key.LastIndexOf('.');
-        return dot >= 0 && dot < key.Length - 1 ? key[(dot + 1)..] : key;
-    }
+    // Batch A: arity-aware — a generic event type's key carries `N, which must not leak into the
+    // event-board display or break the MarkerTypes filter.
+    private static string ShortName(NodeId id) => Graph2.SymbolCanon.ShortNameOf(id.Key);
 }

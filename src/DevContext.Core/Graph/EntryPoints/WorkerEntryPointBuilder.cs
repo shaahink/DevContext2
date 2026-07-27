@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds background worker entry points (HostedService, ScheduledJob) from
@@ -6,7 +8,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -26,7 +28,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"worker:{shortName}");
             g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile, LineNumber = bw.LineNumber });
 
-            var typeFqn = names.Resolve(shortName, bw.SourceFile);
+            var typeFqn = names.ResolveName(shortName, bw.SourceFile);
             var typeId = NodeId.ForType(typeFqn);
 
             // Anchor on the worker's execute member when the call graph bound it — the member's

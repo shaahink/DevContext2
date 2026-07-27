@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds HTTP entry points from <see cref="EndpointDetection"/>s (minimal APIs,
@@ -16,7 +18,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var dedup = new HashSet<(string Verb, string Route, string File, int Line)>();
@@ -56,7 +58,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             if (!isLambdaHandler)
             {
-                var handlerFqn = names.Resolve(ep.HandlerType, ep.SourceFile);
+                var handlerFqn = names.ResolveName(ep.HandlerType, ep.SourceFile);
                 var methodName = ep.HandlerMethod;
                 var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
                     && methodName is not "<lambda>" and not "<anonymous>" and not "<component>"

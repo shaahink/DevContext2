@@ -1,3 +1,5 @@
+using DevContext.Core.Graph2;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>Builds domain-event handler entry points from <see cref="MediatRHandlerDetection"/>
@@ -6,7 +8,7 @@ public sealed class DomainEventHandlerEntryBuilder : IEntryPointBuilder
 {
     public ImmutableArray<EntryPoint> Build(
         CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope,
-        NameResolver names, NoiseFilter noise)
+        SymbolTable names, NoiseFilter noise)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -19,7 +21,7 @@ public sealed class DomainEventHandlerEntryBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"domain:{h.HandlerType}");
             g.AddNode(new GraphNode(id, h.HandlerType, NodeKind.EntryPoint) { FilePath = h.SourceFile, LineNumber = h.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
+            var typeId = NodeId.ForType(names.ResolveName(h.HandlerType, h.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
