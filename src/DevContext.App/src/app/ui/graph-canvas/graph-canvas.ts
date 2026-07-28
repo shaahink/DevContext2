@@ -6,7 +6,7 @@ import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
 import { ThemeService } from '../../core/theme/theme.service';
 import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutNodeIn } from './graph-layout';
-import { classifyTransport, isTraffic, serviceLabel, storeLabel, type TransportClass } from './semantics';
+import { classifyTransport, declaredStores, isTraffic, serviceLabel, storeLabel, type TransportClass } from './semantics';
 
 /** Minimap only earns its screen space in zen mode, and only once a graph is
  * big enough that the viewport can't already see everything at a glance. */
@@ -140,10 +140,25 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
   return els;
 }
 
+/** The lane the declared resources live in. Deliberately NOT called "infrastructure": the DDD layer
+ * lanes beside it can carry exactly that name, and one of them means C# projects while this one
+ * means things the deployment runs. */
+const STORE_LANE_ID = 'lane::declared';
+const STORE_LANE_LABEL = 'declared resources';
+
 /** All-projects altitude: one node per project, edges from `dependsOn`. D4.2: when the
  * engine layered ≥2 of the projects, each layer becomes a labeled compound LANE and the
- * layout orders lanes by dependency flow (Api → Application → Domain reads left-to-right). */
-function buildTopologyElements(projects: readonly ProjectNode[]): cytoscape.ElementDefinition[] {
+ * layout orders lanes by dependency flow (Api → Application → Domain reads left-to-right).
+ *
+ * R3 D-B's lane tail (S8) gives this altitude the two things it can honestly inherit from the
+ * service level: a project that IS a service wears the same kind glyph, and declared resources get
+ * their own lane. Both joins go through the key the service level already uses
+ * (`ServiceCard.displayName` ≡ `ProjectNode.name`). What is NOT inherited is the transport edge
+ * layer — these edges are csproj references, and a project reference is not a queue. */
+function buildTopologyElements(
+  projects: readonly ProjectNode[],
+  services: readonly ServiceCard[] = [],
+): cytoscape.ElementDefinition[] {
   const els: cytoscape.ElementDefinition[] = [];
   const names = new Set(projects.map((p) => p.name));
   const layers = new Set(projects.map((p) => p.layer).filter((l): l is string => !!l));
@@ -153,10 +168,44 @@ function buildTopologyElements(projects: readonly ProjectNode[]): cytoscape.Elem
       els.push({ data: { id: `lane:${layer}`, nodeId: '', label: layer, fullLabel: layer, seam: '', lane: true }, classes: 'lane' });
     }
   }
+
+  const svcByProject = new Map(services.filter((s) => names.has(s.displayName)).map((s) => [s.displayName, s]));
+  // Only resources whose declaring service is a project on this canvas: a store hanging off nothing
+  // drawable is the floating box B-5 just removed from the other altitude.
+  const stores = declaredStores(services).filter((st) => st.owners.some((o) => names.has(o)));
+  if (stores.length > 0) {
+    els.push({ data: { id: STORE_LANE_ID, nodeId: '', label: STORE_LANE_LABEL, fullLabel: STORE_LANE_LABEL, seam: '', lane: true }, classes: 'lane' });
+  }
+
   for (const p of projects) {
     const parent = lanesActive && p.layer ? `lane:${p.layer}` : undefined;
-    els.push({ data: { id: p.name, nodeId: p.name, label: truncateLabel(p.name), fullLabel: p.name, seam: '', truncated: false, depth: 0, layer: p.layer ?? '', feature: p.feature ?? '', parent } });
+    const svc = svcByProject.get(p.name);
+    // The [db] mark still stands down where the store it would announce is drawn beside it.
+    const drawnStores = svc ? stores.filter((st) => st.owners.includes(p.name)).length : 0;
+    els.push({ data: {
+      id: p.name, nodeId: p.name,
+      label: svc ? serviceLabel(p.name, svc.kind, svc.stack, truncateLabel, drawnStores) : truncateLabel(p.name),
+      fullLabel: p.name, seam: '', truncated: false, depth: 0,
+      layer: p.layer ?? '', feature: p.feature ?? '', parent,
+    } });
   }
+
+  for (const st of stores) {
+    const storeId = `store:${st.name}`;
+    els.push({
+      data: {
+        id: storeId, nodeId: st.name,
+        label: storeLabel(st.name, st.resourceType, truncateLabel), fullLabel: st.name,
+        seam: '', truncated: false, depth: 0, layer: '', feature: '', parent: STORE_LANE_ID,
+      },
+      classes: 'store',
+    });
+    for (const owner of st.owners) {
+      if (!names.has(owner)) continue;
+      els.push({ data: { id: `${owner}->${storeId}`, source: owner, target: storeId, seam: '', tclass: 'deploy' as TransportClass } });
+    }
+  }
+
   for (const p of projects) {
     for (const dep of p.dependsOn) {
       if (!names.has(dep)) continue;
@@ -632,9 +681,16 @@ export class GraphCanvas {
       return;
     }
 
+    // S8 lane tail: the store lane draws at the projects altitude too, and a legend that lists what
+    // was drawn has to list it there as well — whatever else this lens is colouring.
+    const storeDrawn = els.some((el) =>
+      (el.data as { source?: string }).source === undefined && ((el.classes as string | undefined) ?? '').includes('store'));
+    const withStore = (items: { label: string; color: string }[]): { label: string; color: string }[] =>
+      storeDrawn ? [...items, { label: 'store', color: p.inkMuted }] : items;
+
     const lid = this.lensId();
     if (lid === 'feature') {
-      this.legendItems.set([]);
+      this.legendItems.set(withStore([]));
       return;
     }
     if (lid === 'layer') {
@@ -643,10 +699,10 @@ export class GraphCanvas {
         const layer = (el.data as { layer?: string; source?: string }).layer;
         if ((el.data as { source?: string }).source === undefined && layer) present.add(layer);
       }
-      this.legendItems.set(
+      this.legendItems.set(withStore(
         Object.entries(LAYER_COLORS)
           .filter(([key]) => present.has(key))
-          .map(([label, color]) => ({ label, color })));
+          .map(([label, color]) => ({ label, color }))));
       return;
     }
     const seams = new Set<string>();
@@ -654,10 +710,10 @@ export class GraphCanvas {
       const seam = (el.data as { seam?: string }).seam;
       if (seam) seams.add(seam);
     }
-    this.legendItems.set(
+    this.legendItems.set(withStore(
       Object.entries(this.seamColors)
         .filter(([key]) => seams.has(key) && SEAM_LABELS[key])
-        .map(([key, color]) => ({ label: SEAM_LABELS[key], color })));
+        .map(([key, color]) => ({ label: SEAM_LABELS[key], color }))));
   }
 
   private rebuild(): void {
@@ -691,7 +747,7 @@ export class GraphCanvas {
           return built.els;
         }
         this.isolatedServices.set([]);
-        return buildTopologyElements(data.projects);
+        return buildTopologyElements(data.projects, data.services ?? []);
       }
       case 'neighbors':
         this.isolatedServices.set([]);
@@ -844,8 +900,9 @@ export class GraphCanvas {
           },
         },
         {
-          // R3 D-B: declared infrastructure. A barrel reads as a store at a glance and, more to the
-          // point, reads as NOT a service — the one distinction the canvas most needed to draw.
+          // R3 D-B: declared infrastructure. The barrel survives as a quiet second signal only —
+          // S7's 3x capture showed it is nearly indistinguishable from a round-rectangle at these
+          // proportions, so the `[db]` in the LABEL is what actually says "not a service".
           selector: 'node.store',
           style: {
             shape: 'barrel',

@@ -102,6 +102,49 @@ export function storeLabel(name: string, resourceType: string, truncate: (s: str
   return `[db] ${body}`;
 }
 
+/** A service, as far as this module needs to know it — structural, so the vocabulary stays free of
+ * the generated proto types and its tests stay free of message constructors. */
+export interface ServiceStoreOwner {
+  readonly displayName: string;
+  readonly stores: readonly { readonly name: string; readonly resourceType: string }[];
+}
+
+export interface StoreDeclaration {
+  readonly name: string;
+  readonly resourceType: string;
+  /** The services that named this resource, in engine order. */
+  readonly owners: readonly string[];
+}
+
+/**
+ * R3 D-B's lane tail (S8): every resource a deployment DECLARED, once each.
+ *
+ * The lane views could not inherit transport-coloured edges — lanes live at the all-projects
+ * altitude whose edges are csproj references, and colouring those would invent traffic (the scope
+ * correction recorded in DECISIONS.md). A declared store is the other kind of fact: it is not
+ * traffic and not a reference, it is the orchestrator saying "this repo runs a Redis", which is
+ * equally true at either altitude. So it crosses.
+ *
+ * Two services naming one resource share one declaration — duplicating it would invent a second
+ * Redis — and the first non-empty type wins, because a resource has one type and silence is not a
+ * disagreement.
+ */
+export function declaredStores(services: readonly ServiceStoreOwner[]): readonly StoreDeclaration[] {
+  const byName = new Map<string, { name: string; resourceType: string; owners: string[] }>();
+  for (const s of services) {
+    for (const store of s.stores) {
+      const existing = byName.get(store.name);
+      if (!existing) {
+        byName.set(store.name, { name: store.name, resourceType: store.resourceType, owners: [s.displayName] });
+        continue;
+      }
+      if (!existing.resourceType && store.resourceType) existing.resourceType = store.resourceType;
+      if (!existing.owners.includes(s.displayName)) existing.owners.push(s.displayName);
+    }
+  }
+  return [...byName.values()];
+}
+
 function saysItsOwnType(name: string, resourceType: string): boolean {
   const n = name.toLowerCase().replace(/[^a-z]/g, '');
   const t = resourceType.toLowerCase().replace(/[^a-z]/g, '');

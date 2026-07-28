@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyTransport, hasDataStore, isTraffic, serviceKindGlyph, serviceLabel, storeLabel } from './semantics';
+import { classifyTransport, declaredStores, hasDataStore, isTraffic, serviceKindGlyph, serviceLabel, storeLabel } from './semantics';
 
 describe('canvas semantics (D4.2 vocabulary)', () => {
   it('classifies the engine transport tags seen in the wild', () => {
@@ -79,6 +79,33 @@ describe('canvas semantics (D4.2 vocabulary)', () => {
     expect(storeLabel('basketdb', 'redis', id)).toBe('[db] basketdb · redis');
     expect(storeLabel('eventbus', 'rabbitmq', id)).toBe('[db] eventbus · rabbitmq');
     expect(storeLabel('basketdb', '', id)).toBe('[db] basketdb');
+  });
+
+  it('declares each resource once, whoever named it (S8 lane tail)', () => {
+    // eShop: Basket.API and Ordering.API both declare the same eventbus. Two names, one RabbitMQ.
+    const stores = declaredStores([
+      { displayName: 'Basket.API', stores: [{ name: 'basketdb', resourceType: 'redis' }, { name: 'eventbus', resourceType: 'rabbitmq' }] },
+      { displayName: 'Ordering.API', stores: [{ name: 'eventbus', resourceType: 'rabbitmq' }, { name: 'orderingdb', resourceType: 'database' }] },
+    ]);
+    expect(stores.map((s) => s.name)).toEqual(['basketdb', 'eventbus', 'orderingdb']);
+    expect(stores.find((s) => s.name === 'eventbus')?.owners).toEqual(['Basket.API', 'Ordering.API']);
+    expect(stores.find((s) => s.name === 'basketdb')?.owners).toEqual(['Basket.API']);
+  });
+
+  it('lets a named resource type win over silence, and never lets a repeat overwrite it', () => {
+    const stores = declaredStores([
+      { displayName: 'A', stores: [{ name: 'cache', resourceType: '' }] },
+      { displayName: 'B', stores: [{ name: 'cache', resourceType: 'redis' }] },
+      { displayName: 'C', stores: [{ name: 'cache', resourceType: 'valkey' }] },
+    ]);
+    expect(stores).toHaveLength(1);
+    expect(stores[0].resourceType).toBe('redis');
+    expect(stores[0].owners).toEqual(['A', 'B', 'C']);
+  });
+
+  it('is empty for the repos that declare nothing — most of the 47-pole matrix', () => {
+    expect(declaredStores([{ displayName: 'FluentValidation', stores: [] }])).toEqual([]);
+    expect(declaredStores([])).toEqual([]);
   });
 
   it('drops a store type the name already says, in full or abbreviated', () => {
