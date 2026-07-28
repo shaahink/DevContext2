@@ -615,6 +615,12 @@ public sealed partial class GraphBuilder
                                         ? Resolution.Semantic
                                         : Resolution.Syntactic,
                                     Confidence = match.Confidence,
+                                    // Batch E: the called member rides on the edge here TOO. This is the
+                                    // lambda-body twin of the emission in AddSeamsFromDetectors; setting
+                                    // it in only one of them left every minimal-API LAMBDA entry — which
+                                    // is exactly Orleans' 12 Dashboard endpoints — still reading a bare
+                                    // interface while ordinary members got their method names.
+                                    TargetMember = match.TargetMember,
                                 });
                             }
                         }

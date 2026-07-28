@@ -279,8 +279,14 @@ public sealed partial class GraphBuilder
             && !callee.Title.Contains('.', StringComparison.Ordinal))
             return $"{calleeType.Title}.{memberName}";
 
+        // The member is only worth naming if it MEANS something. `context.CatalogTypes.OrderBy(...)
+        // .ToListAsync()` names ToListAsync at the call site, and "CatalogContext.ToListAsync" is a
+        // worse target than "CatalogContext" — which is exactly why the data-access deny-list exists
+        // and why S4's redundancy probe answered KEEP BOTH. Same predicate, same judgement.
         if (callee.Kind == NodeKind.Type
             && edgeMember is { Length: > 0 }
+            && !IsDataAccessNoiseMethod(edgeMember)
+            && !IsObjectNoiseMethod(edgeMember)
             && !callee.Title.Contains('.', StringComparison.Ordinal))
             return $"{callee.Title}.{edgeMember}";
 
