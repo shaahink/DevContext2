@@ -107,6 +107,21 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Pass "Build succeeded"
 
+# Step 1a: contract sweep (S9). Cheap (no build, ~2s), and it guards a defect this program hit
+# FOUR times before it was a check: a field the engine computes, the wire carries, and no client
+# reads. Runs in EVERY scope, before the slow steps: it is not an engine suite, and an app-only
+# change is one of the ways a field loses its last reader.
+Write-Step "Step 1a: Contract sweep (dead proto fields)"
+$sweepResult = & powershell -NoProfile -File (Join-Path $PSScriptRoot "contract-sweep.ps1") 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host $sweepResult
+    Write-Fail "Contract sweep found a field no client reads" -Step 1
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 1a - contract sweep)" -ForegroundColor Red
+    exit 2
+}
+Write-Pass "Contract sweep clean (every response field read or allow-listed with a reason)"
+
 # Step 2: Fast unit tests (exclude Eval, CliSmoke, and McpQa).
 # McpQa is a 3-minute external `node` MCP drive against the dogfood repo (its own Category, meant to
 # be independently selectable). Run inside the parallel unit suite it loses a shared-state race and
@@ -128,20 +143,6 @@ if ($LASTEXITCODE -ne 0) {
     exit 2
 }
 Write-Pass "Fast tests passed"
-
-# Step 2a: contract sweep (S9). Cheap (no build, ~2s), and it guards a defect this program hit
-# FOUR times before it was a check: a field the engine computes, the wire carries, and no client
-# reads. Runs before the slow steps because a dead field is a design bug, not a test failure.
-Write-Step "Step 2a: Contract sweep (dead proto fields)"
-$sweepResult = & powershell -NoProfile -File (Join-Path $PSScriptRoot "contract-sweep.ps1") 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Write-Host $sweepResult
-    Write-Fail "Contract sweep found a field no client reads" -Step 2
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 2a - contract sweep)" -ForegroundColor Red
-    exit 2
-}
-Write-Pass "Contract sweep clean (every response field read or allow-listed with a reason)"
 
 # Step 2b: MCP QA gate (serial — see note above).
 Write-Step "Step 2b: MCP QA gate (serial)"
