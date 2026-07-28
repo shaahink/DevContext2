@@ -351,8 +351,10 @@ Session log (one line each: date · what closed · surprises):
   **Verdicts:** app suite **120 green** (was 104 at S7 close: +3 lane tail, +9 CLI landing rule, +4
   focus token), server suite **27 green** (+2), lint clean, build clean, three end-to-end drivers
   PASS (`r3-verify-scope.mts`, `r3-verify-cli-surface.mts`, `r3-verify-consumer-path.mts`).
-  Full battery: see `eval-results/2026-07-28/gates-s8-close.txt`.
-  Next: S9 = D-E…D-H plus the sub-decisions DECISIONS.md leaves open.
+  Full battery **GATE: PASS unqualified** (`gates-s8-close.txt`, exit 0, all 8 steps; eval re-ran
+  fresh at 12m14s because the Core/Server edits invalidated the stamp, and Step 4's
+  `--format html --strict` exit 2 is the pre-existing one, byte-identical since S2).
+  Next: S9 = the dead-field sweep, D-E…D-H, plus the sub-decisions DECISIONS.md leaves open.
 
 ## 3. Session map
 
