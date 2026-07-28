@@ -1,0 +1,4 @@
+{
+  "repo": "eval-repos/blazor-samples",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/dotnet/blazor-samples - a DOZENS-of-solutions repo (BlazorSample.sln, BlazorSignalRApp.sln, BlazorWebAppAreaOfStaticSsrComponents.sln, ...). This is the extreme sln-scope pole: Batch C's SolutionCatalog must pick one, say so in the scope note, and the dup-name check must not read the same sample component copied across sibling solutions as cross-service wiring (sibling samples repeat component names by design - per-edge verification is required before any dup-name number here is called a defect). Style undeclared: a sample collection's archetype is the same open question the Desktop pole asks."
+}

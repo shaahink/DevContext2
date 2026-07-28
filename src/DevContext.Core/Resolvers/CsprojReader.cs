@@ -31,6 +31,50 @@ public static class CsprojReader
     public static string? ParseSdk(XDocument doc)
         => doc.Root?.Attribute("Sdk")?.Value?.Trim() is { Length: > 0 } v ? v : null;
 
+    /// <summary>Batch D (R2 §2.D) — EVERY SDK this project declares, id only (any <c>/version</c> suffix
+    /// stripped). MSBuild offers three spellings and a project routinely uses two at once: the root
+    /// <c>&lt;Project Sdk="A;B"&gt;</c> attribute, a <c>&lt;Sdk Name="…" /&gt;</c> element (how
+    /// <c>Aspire.AppHost.Sdk</c> is normally added, alongside <c>Microsoft.NET.Sdk</c> on the root), and
+    /// <c>&lt;Import Sdk="…" /&gt;</c>. Reading only the root attribute — which is all
+    /// <see cref="ParseSdk"/> ever did — misses the AppHost.
+    /// <para>This exists so SDK evidence is PARSED ONCE, here, and travels on
+    /// <see cref="ProjectInfo.Sdks"/>. Before it, four call sites (archetype detection, style detection,
+    /// service-boundary inference) each re-read the csproj TEXT off disk and asked
+    /// <c>text.Contains(marker)</c> — which is not the same question: it also matches the marker inside a
+    /// comment, a property value, or a package name.</para></summary>
+    public static ImmutableArray<string> ParseSdks(XDocument doc)
+    {
+        var sdks = new List<string>();
+        void Add(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return;
+            foreach (var part in raw.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                // "Microsoft.Build.NoTargets/3.3.0" — the id is what identifies the SDK, not the version.
+                var id = part.Split('/')[0].Trim();
+                if (id.Length > 0 && !sdks.Contains(id, StringComparer.OrdinalIgnoreCase)) sdks.Add(id);
+            }
+        }
+
+        Add(doc.Root?.Attribute("Sdk")?.Value);
+        foreach (var el in doc.Descendants("Sdk"))
+        {
+            Add(el.Attribute("Name")?.Value);
+            Add(el.Attribute("Sdk")?.Value);
+        }
+        foreach (var el in doc.Descendants("Import"))
+            Add(el.Attribute("Sdk")?.Value);
+        return [.. sdks];
+    }
+
+    /// <summary>Batch D (R2 §2.D) — true when the csproj opts into WPF (<c>&lt;UseWPF&gt;true</c>).
+    /// SDK-provided desktop evidence with no package to probe (C4 / Prism D1.3a). Parsed here so the
+    /// style detector reads a field instead of re-reading the csproj text per project.</summary>
+    public static bool ParseUsesWpf(XDocument doc) => IsTrue(doc, "UseWPF");
+
+    /// <summary>Batch D — true when the csproj opts into WinForms (<c>&lt;UseWindowsForms&gt;true</c>).</summary>
+    public static bool ParseUsesWinForms(XDocument doc) => IsTrue(doc, "UseWindowsForms");
+
     /// <summary>D1.1d — true when the project declares dotnet-tool packaging anywhere in the csproj
     /// (<c>&lt;PackAsTool&gt;</c> or <c>&lt;ToolCommandName&gt;</c>, including inside conditional
     /// PropertyGroups — GitVersion.App sets both under a CI-only condition). Element PRESENCE is the

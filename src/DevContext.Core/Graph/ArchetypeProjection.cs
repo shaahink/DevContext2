@@ -141,18 +141,24 @@ public sealed class ArchetypeProjection : IGraphProjection<ArchetypeView>
     private static ImmutableArray<ArchetypeEntryGroup> BuildGroups(
         CodeGraph graph, ImmutableArray<(EntryPointKind Kind, EntryPoint Entry)> entries)
     {
+        // Batch D (R2 §2.D): one pass over the graph instead of a full-node scan per project group
+        // (O(projects x nodes)). First-wins in Nodes order — which is the builder's deterministic
+        // insertion order — so the representative layer is exactly the one FirstOrDefault picked.
+        var layerByProject = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var n in graph.Nodes)
+            if (n.Project is { } proj && n.Layer is { } layer && !layerByProject.ContainsKey(proj))
+                layerByProject[proj] = layer;
+
         return entries
             .GroupBy(e => e.Entry.Project ?? "")
             .OrderByDescending(g => g.Count())
             .Select(g =>
             {
                 var projectName = g.Key;
-                var representativeNode = graph.Nodes.FirstOrDefault(n =>
-                    n.Project == projectName && n.Layer is not null);
                 return new ArchetypeEntryGroup
                 {
                     Project = projectName.Length > 0 ? projectName : "(no project)",
-                    Layer = representativeNode?.Layer,
+                    Layer = layerByProject.GetValueOrDefault(projectName),
                     Entries = g
                         .OrderByDescending(e => e.Entry.Score)
                         .Select(e => new ArchetypeEntryRow

@@ -1,4 +1,4 @@
-namespace DevContext.Core.Contracts;
+﻿namespace DevContext.Core.Contracts;
 
 /// <summary>Observer interface for receiving lifecycle events from the discovery pipeline.</summary>
 public interface IDiscoveryObserver
@@ -14,8 +14,6 @@ public interface IDiscoveryObserver
         int typesAdded = 0, int detectionsAdded = 0);
     /// <summary>Called when architecture signals are sealed (no more writes allowed).</summary>
     void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals);
-    /// <summary>Called when a pruner finishes processing.</summary>
-    void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter);
     /// <summary>Called when a compression strategy is applied.</summary>
     void OnCompressionApplied(CompressionResult result);
     /// <summary>Called when a pipeline stage completes.</summary>

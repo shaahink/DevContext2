@@ -1,4 +1,4 @@
-using DevContext.Core.Graph;
+﻿using DevContext.Core.Graph;
 using DevContext.Core.Insights;
 
 namespace DevContext.Core.Tests;
@@ -43,9 +43,9 @@ public sealed class TopologyNoiseTests
         // NoTargets/Traversal SDK holders, Cake/Nuke build exes, and toys/ aux hosts
         // are never production, so they leave topology, per-service rows, and archetype evidence.
         var holderHub = new ProjectInfo(".github", @"C:/repo/.github/.github.csproj",
-            "C#", ["net6.0"], [], [], Sdk: "Microsoft.Build.NoTargets/3.3.0");
+            "C#", ["net6.0"], [], [], Sdks: ["Microsoft.Build.NoTargets"]);
         var traversal = new ProjectInfo("Build", @"C:/repo/Build.csproj",
-            "C#", [], [], [], OutputType: "Exe", Sdk: "Microsoft.Build.Traversal/3.0.2");
+            "C#", [], [], [], OutputType: "Exe", Sdks: ["Microsoft.Build.Traversal"]);
         var cakeBuild = new ProjectInfo("docker", @"C:/repo/build/docker/docker.csproj",
             "C#", ["net10.0"], [], [Pkg("Cake.Http"), Pkg("Cake.Json")], OutputType: "Exe");
         var nukeBuild = new ProjectInfo("build", @"C:/repo/build/build.csproj",
@@ -99,7 +99,7 @@ public sealed class TopologyNoiseTests
                 new ProjectInfo("StackExchange.Redis", @"C:/repo/src/StackExchange.Redis/StackExchange.Redis.csproj",
                     "C#", ["net10.0"], [], [], IsPackable: true),
                 new ProjectInfo("Build", @"C:/repo/Build.csproj",
-                    "C#", [], [], [], OutputType: "Exe", Sdk: "Microsoft.Build.Traversal/3.0.2"),
+                    "C#", [], [], [], OutputType: "Exe", Sdks: ["Microsoft.Build.Traversal"]),
                 new ProjectInfo("TestConsole", @"C:/repo/toys/TestConsole/TestConsole.csproj",
                     "C#", ["net10.0"], [], [], OutputType: "Exe"),
             ],

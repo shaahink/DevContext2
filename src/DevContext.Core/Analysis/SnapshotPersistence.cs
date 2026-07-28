@@ -140,21 +140,6 @@ public static class SnapshotPersistence
         Insights = p.Insights,
     };
 
-    /// <summary>Registers <see cref="Detection"/>'s runtime polymorphism on the serializer: every
-    /// concrete detection record in this assembly round-trips under a type-name discriminator, so a
-    /// new detection type needs no attribute here. An unknown discriminator on load throws — the
-    /// cache treats that as a miss and re-analyzes.</summary>
-    public static void AddDetectionPolymorphism(JsonTypeInfo typeInfo)
-    {
-        if (typeInfo.Type != typeof(Detection)) return;
-        var options = new JsonPolymorphismOptions { TypeDiscriminatorPropertyName = "$dtype" };
-        foreach (var t in typeof(Detection).Assembly.GetTypes()
-                     .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Detection)))
-                     .OrderBy(t => t.Name, StringComparer.Ordinal))
-            options.DerivedTypes.Add(new JsonDerivedType(t, t.Name));
-        typeInfo.PolymorphismOptions = options;
-    }
-
     private static PersistedModel FromModel(DiscoveryModel m) => new()
     {
         Solution = m.Solution,

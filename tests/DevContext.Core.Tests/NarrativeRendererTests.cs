@@ -1,4 +1,4 @@
-using DevContext.Core.Graph;
+﻿using DevContext.Core.Graph;
 
 namespace DevContext.Core.Tests;
 
@@ -9,7 +9,7 @@ public sealed class NarrativeRendererTests
 {
     private static RunReport DefaultReport => new()
     {
-        Stages = [], Extractors = [], Scorers = [], Compressions = [],
+        Stages = [], Extractors = [], Compressions = [],
         Cache = new(0, 0, 0, 0), Corpus = new(0, 0, 0),
         Funnel = new(0, 0, 0, 0, 0, 0),
         Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),

@@ -17,7 +17,6 @@ public sealed class MapRendererTests
         {
             Stages = [],
             Extractors = [],
-            Scorers = [],
             Compressions = [],
             Cache = new CacheStats(0, 0, 0, 0),
             Corpus = new CorpusStats(0, 0, 0),

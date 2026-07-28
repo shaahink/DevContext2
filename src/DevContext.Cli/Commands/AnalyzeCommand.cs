@@ -520,28 +520,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             AnsiConsole.Write(failTable);
         }
 
-        // Scorer funnel
-        if (report.Scorers.Length > 0)
-        {
-            AnsiConsole.WriteLine();
-            var scorerTable = new Table()
-                .Border(TableBorder.Rounded)
-                .Title("Scorer Funnel")
-                .AddColumn("Scorer")
-                .AddColumn(new TableColumn("Before").RightAligned())
-                .AddColumn(new TableColumn("After").RightAligned())
-                .AddColumn(new TableColumn("Delta").RightAligned());
-
-            foreach (var sc in report.Scorers)
-            {
-                var delta = sc.TypesBefore > 0
-                    ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
-                    : 0;
-                scorerTable.AddRow(sc.Name, sc.TypesBefore.ToString(),
-                    sc.TypesAfter.ToString(), $"{delta}%");
-            }
-            AnsiConsole.Write(scorerTable);
-        }
 
         // Graph seam coverage — how much wiring was bridged and how confidently (the Map/Trace
         // equivalent of the legacy scorer funnel). "approx" = resolved syntactically only.

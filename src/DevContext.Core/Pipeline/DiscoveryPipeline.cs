@@ -20,7 +20,6 @@ namespace DevContext.Core.Pipeline;
 public sealed class DiscoveryPipeline
 {
     private readonly IReadOnlyList<IDiscoveryExtractor> _extractors;
-    private readonly IReadOnlyList<IPruner> _pruners;
     private readonly IReadOnlyList<ICompressionStrategy> _compressionStrategies;
     private readonly IReadOnlyDictionary<string, IContextRenderer> _renderers;
     private readonly ILogger<DiscoveryPipeline> _logger;
@@ -29,16 +28,17 @@ public sealed class DiscoveryPipeline
     /// <summary>Project count at/above which a whole-solution run emits a "narrow your scope" hint (G1 Phase 4).</summary>
     private const int LargeSolutionProjectThreshold = 25;
 
-    /// <summary>Creates a new discovery pipeline with the given extractors, pruners, compressors, and renderers.</summary>
+    /// <summary>Creates a new discovery pipeline with the given extractors, compressors, and renderers.
+    /// <para>Batch D (R2 §2.D): the <c>IPruner</c> parameter is gone. Nothing implemented the interface,
+    /// so the list was always empty and the field was never read after assignment — the pruning stage
+    /// the comment in <c>AnalyzeAsync</c> still references died with the legacy catalog RenderPlan.</para></summary>
     public DiscoveryPipeline(
         IReadOnlyList<IDiscoveryExtractor> extractors,
-        IReadOnlyList<IPruner> pruners,
         IReadOnlyList<ICompressionStrategy> compressionStrategies,
         IReadOnlyDictionary<string, IContextRenderer> renderers,
         ILogger<DiscoveryPipeline> logger)
     {
         _extractors = extractors;
-        _pruners = pruners;
         _compressionStrategies = compressionStrategies;
         _renderers = renderers;
         _logger = logger;
@@ -223,6 +223,13 @@ public sealed class DiscoveryPipeline
                 "which the debug extraction profile enables.");
         }
 
+        // M1.8: gateway routes must be populated BEFORE GraphBuilder.Build so AddHttpServiceLinks can
+        // read model.GatewayRoutes during graph construction. Batch D (R2 §2.D): it runs BEFORE the
+        // GraphAssembly stage clock, not inside it — this is a config-file scan (ocelot*.json /
+        // appsettings*.json across the repo), and charging a filesystem walk to "graph assembly" made
+        // the one stage that is supposed to measure JOIN cost lie on exactly the repos it walks.
+        PopulateGatewayRoutes(model, context);
+
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
         // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
         // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
@@ -247,10 +254,6 @@ public sealed class DiscoveryPipeline
                 $"Whole-solution analysis over {scope.Projects.Length} projects — this can be slow and noisy. "
                 + "Point at a specific project (e.g. its folder or .csproj) to analyse just its reference closure.");
         }
-
-        // M1.8: gateway routes must be populated BEFORE GraphBuilder.Build so
-        // AddHttpServiceLinks can read model.GatewayRoutes during graph construction.
-        PopulateGatewayRoutes(model, context);
 
         var graphResolver = new SyntacticSymbolResolver();
         if (projectClassifier is null)
@@ -354,7 +357,6 @@ public sealed class DiscoveryPipeline
             {
                 Stages = [],
                 Extractors = [],
-                Scorers = [],
                 Compressions = [],
                 Cache = new(0, 0, 0, 0),
                 Corpus = new(0, 0, 0),
@@ -482,7 +484,6 @@ public sealed class DiscoveryPipeline
             {
                 Stages = [],
                 Extractors = [],
-                Scorers = [],
                 Compressions = [],
                 Cache = new(0, 0, 0, 0),
                 Corpus = new(0, 0, 0),
@@ -863,6 +864,48 @@ public sealed class DiscoveryPipeline
             .ToList();
     }
 
+    /// <summary>Batch D (R2 §2.D) — config-file walk that SKIPS the noise directories instead of
+    /// enumerating them and filtering afterwards.
+    /// <para>The filter it replaces was <c>file.Contains("\\bin\\")</c>: a Windows-separator literal, so
+    /// off Windows it matched NOTHING and every build output under <c>bin/</c> and <c>obj/</c> — plus the
+    /// whole <c>.git</c> object store — was read and JSON-parsed as a gateway config. A cross-OS bug that
+    /// is invisible on the machine it was written on, which is why it survived (audit DC10).</para>
+    /// <para>Pruning at the directory level also means the noise is never enumerated: on a framework-scale
+    /// repo an <c>AllDirectories</c> walk visits every build-output directory in the tree.</para></summary>
+    private static IEnumerable<string> EnumerateConfigFiles(string root, string pattern)
+    {
+        var pending = new Stack<string>();
+        pending.Push(root);
+        while (pending.Count > 0)
+        {
+            var dir = pending.Pop();
+            string[] files;
+            try { files = Directory.GetFiles(dir, pattern); }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-scan", ex); continue; }
+            // Sorted, not filesystem-enumeration order: GatewayRoutes ends up in the Map, and a route
+            // list whose order depends on the volume is a determinism leak (D5.3 seals).
+            Array.Sort(files, StringComparer.Ordinal);
+            foreach (var f in files) yield return f;
+
+            string[] subs;
+            try { subs = Directory.GetDirectories(dir); }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-scan", ex); continue; }
+            Array.Sort(subs, StringComparer.Ordinal);
+            // Pushed in reverse so the stack pops them ascending — depth-first in name order, which is
+            // what the AllDirectories walk this replaces did on Windows.
+            for (var i = subs.Length - 1; i >= 0; i--)
+            {
+                var name = Path.GetFileName(subs[i]);
+                if (name.Equals(".git", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("bin", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("obj", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("node_modules", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                pending.Push(subs[i]);
+            }
+        }
+    }
+
     private static void PopulateGatewayRoutes(DiscoveryModel model, DiscoveryContext context)
     {
         if (!model.Architecture.Has(ArchitectureSignals.Keys.Gateway)) return;
@@ -870,12 +913,8 @@ public sealed class DiscoveryPipeline
         var root = context.RootPath;
         if (!Directory.Exists(root)) return;
 
-        foreach (var file in Directory.EnumerateFiles(root, "ocelot*.json", SearchOption.AllDirectories))
+        foreach (var file in EnumerateConfigFiles(root, "ocelot*.json"))
         {
-            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)
-                || file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
-                || file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase))
-                continue;
             if (ProjectClassifier.IsSamplePath(file) || ProjectClassifier.IsTestPath(file))
                 continue;
 
@@ -900,12 +939,8 @@ public sealed class DiscoveryPipeline
         }
 
         // M1.8: YARP ReverseProxy config from appsettings*.json
-        foreach (var file in Directory.EnumerateFiles(root, "appsettings*.json", SearchOption.AllDirectories))
+        foreach (var file in EnumerateConfigFiles(root, "appsettings*.json"))
         {
-            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)
-                || file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
-                || file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase))
-                continue;
             if (ProjectClassifier.IsSamplePath(file) || ProjectClassifier.IsTestPath(file))
                 continue;
 

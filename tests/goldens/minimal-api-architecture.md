@@ -5,6 +5,9 @@ STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core
 STYLE  CleanArchitecture  (confidence moderate)
        evidence: DDD folder layers: Infrastructure, Api, Core; MediatR with 1 handlers
 
+       per service:
+         Api: CQRS [MediatR]
+
 TOPOLOGY (depends-on)
    Core
    Api ── Core

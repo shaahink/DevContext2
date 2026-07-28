@@ -23,6 +23,35 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var dedup = new HashSet<(string Verb, string Route, string File, int Line)>();
         var usedKeys = new HashSet<string>(StringComparer.Ordinal);
+
+        // Batch D (R2 §2.D) — the owner-type lookup below used to be
+        // `model.OrderedTypes.FirstOrDefault(t => t.FilePath == ep.SourceFile)` INSIDE this loop:
+        // O(endpoints x types), and it fires for every endpoint whose handler didn't link. On a repo with
+        // thousands of endpoints and thousands of types that is the quadratic the audit named (DC10).
+        // First-wins keeps the FirstOrDefault semantics exactly (OrderedTypes is deterministic).
+        var typeByFile = new Dictionary<string, TypeDiscovery>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in model.OrderedTypes)
+            if (t.FilePath is { Length: > 0 } fp && !typeByFile.ContainsKey(fp))
+                typeByFile[fp] = t;
+
+        // Same fix, one level over: the fallback owner-NODE lookup scanned every node in the graph per
+        // endpoint. Built lazily — a repo whose endpoints all link never pays for it. Safe to snapshot:
+        // this builder adds only EntryPoint/Member nodes, and Type nodes are all seeded by AddTypeNodes
+        // before any entry builder runs.
+        Dictionary<string, GraphNode>? typeNodeByFile = null;
+        GraphNode? TypeNodeForFile(string? file)
+        {
+            if (string.IsNullOrEmpty(file)) return null;
+            if (typeNodeByFile is null)
+            {
+                typeNodeByFile = new Dictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
+                foreach (var n in g.Nodes)
+                    if (n.Kind == NodeKind.Type && n.FilePath is { Length: > 0 } nf && !typeNodeByFile.ContainsKey(nf))
+                        typeNodeByFile[nf] = n;
+            }
+            return typeNodeByFile.GetValueOrDefault(file);
+        }
+
         foreach (var ep in model.Detections.OfType<EndpointDetection>())
         {
             if (!scope.Contains(ep.SourceFile) || !noise.IsProductionEntrySource(ep.SourceFile)) continue;
@@ -128,8 +157,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             if (!linked)
             {
-                var ownerType = model.OrderedTypes.FirstOrDefault(t =>
-                    string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
+                var ownerType = typeByFile.GetValueOrDefault(ep.SourceFile);
 
                 if (isLambdaHandler && !string.IsNullOrEmpty(ep.HandlerBody))
                 {
@@ -152,9 +180,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                 }
                 else if (ownerType is not null)
                 {
-                    var ownerNode = g.Nodes.FirstOrDefault(n =>
-                        n.Kind == NodeKind.Type
-                        && string.Equals(n.FilePath, ownerType.FilePath, StringComparison.OrdinalIgnoreCase));
+                    var ownerNode = TypeNodeForFile(ownerType.FilePath);
                     if (ownerNode is not null)
                     {
                         handlerNodeId = ownerNode.Id;

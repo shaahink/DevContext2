@@ -1,4 +1,4 @@
-namespace DevContext.Core.Extractors.Generic;
+﻿namespace DevContext.Core.Extractors.Generic;
 
 /// <summary>
 /// Analyzes project structure using EVIDENCE (reference direction, folder roles, signal/presence data)
@@ -319,8 +319,7 @@ public sealed class ArchitectureStyleDetector
         // (ScreenToGif read Unknown). Fallback only: it never competes with a scored web/system style.
         if (scores.Count == 0)
         {
-            var desktopUiProjects = scopedProjects.Count(p =>
-                p.FilePath is { } fp && IsDesktopUiProject(fp));
+            var desktopUiProjects = scopedProjects.Count(IsDesktopUiProject);
             var viewModelCount = scopedTypes.Count(t =>
                 t.Name.EndsWith("ViewModel", StringComparison.Ordinal));
             if (desktopUiProjects > 0 && viewModelCount >= 3)
@@ -552,7 +551,7 @@ public sealed class ArchitectureStyleDetector
         {
             if (IsInfrastructureProject(proj.Name)) continue;
             var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
-            var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
+            var isWebSdk = proj.HasSdk(SdkIds.Web);
             var hasWebPkg = proj.PackageReferences.Any(pr =>
                 pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
                 || pr.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase));
@@ -565,28 +564,10 @@ public sealed class ArchitectureStyleDetector
         return count;
     }
 
-    private static bool IsWebSdkProject(string csprojPath)
-    {
-        try
-        {
-            var text = File.ReadAllText(csprojPath);
-            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
-        }
-        catch { return false; }
-    }
-
-    /// <summary>C4 (Prism D1.3a): true when the csproj opts into WPF or WinForms — desktop UI evidence
-    /// with no package to probe (both are SDK-provided).</summary>
-    private static bool IsDesktopUiProject(string csprojPath)
-    {
-        try
-        {
-            var text = File.ReadAllText(csprojPath);
-            return text.Contains("<UseWPF>true", StringComparison.OrdinalIgnoreCase)
-                || text.Contains("<UseWindowsForms>true", StringComparison.OrdinalIgnoreCase);
-        }
-        catch { return false; }
-    }
+    /// <summary>C4 (Prism D1.3a): true when the project opts into WPF or WinForms — desktop UI evidence
+    /// with no package to probe (both are SDK-provided). Batch D: read off <see cref="ProjectInfo"/>,
+    /// parsed once at project load, instead of re-reading the csproj text here.</summary>
+    private static bool IsDesktopUiProject(ProjectInfo p) => p.UsesWpf || p.UsesWinForms;
 
     private readonly record struct ProjectRefStats(string Name, int Incoming, int Outgoing)
     {
@@ -645,12 +626,12 @@ public sealed class ArchitectureStyleDetector
                 || Graph.MauiEvidence.HasMauiTfm(proj);
             var hasCliParser = pkgs.Any(p => p.Name.Contains("Spectre.Console.Cli", StringComparison.OrdinalIgnoreCase)
                 || p.Name.Contains("System.CommandLine", StringComparison.OrdinalIgnoreCase));
-            var isWorkerSdk = proj.FilePath is { } wp && IsWorkerSdkProject(wp);
+            var isWorkerSdk = proj.HasSdk(SdkIds.Worker);
             var isWebByName = proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase);
             var isGrpcByName = proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase)
                 || proj.Name.EndsWith(".GrpcService", StringComparison.OrdinalIgnoreCase);
             var isConsoleExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
-                && !(proj.FilePath is { } cpx && IsWebSdkProject(cpx));
+                && !proj.HasSdk(SdkIds.Web);
 
             // T1.4 — per-service evidence from this project's OWN detections (SourceFile under its dir):
             // Blazor page routes, HTTP endpoints, and message/worker entries distinguish a Blazor storefront
@@ -699,7 +680,7 @@ public sealed class ArchitectureStyleDetector
 
             // C4 (Prism D1.3a): a WPF/WinForms host is a desktop app whatever else it references —
             // decisive identity like MAUI. ViewModels upgrade it to MVVM (ScreenToGif).
-            if (proj.FilePath is { } dp && IsDesktopUiProject(dp))
+            if (IsDesktopUiProject(proj))
             {
                 var ownsViewModels = model.Types.Values.Any(t =>
                     t.Name.EndsWith("ViewModel", StringComparison.Ordinal) && Owns(t.FilePath));
@@ -860,15 +841,4 @@ public sealed class ArchitectureStyleDetector
     private static bool IsRunnableService(ProjectInfo proj)
         => Graph2.ServiceBoundaryInference.IsRunnableService(proj);
 
-    /// <summary>True when the csproj uses the Worker SDK (<c>Microsoft.NET.Sdk.Worker</c>). Cached like
-    /// the web-SDK probe; a background-processing host is a Worker Service, not "Unknown".</summary>
-    private static bool IsWorkerSdkProject(string csprojPath)
-    {
-        try
-        {
-            var text = File.ReadAllText(csprojPath);
-            return text.Contains("Microsoft.NET.Sdk.Worker", StringComparison.OrdinalIgnoreCase);
-        }
-        catch { return false; }
-    }
 }

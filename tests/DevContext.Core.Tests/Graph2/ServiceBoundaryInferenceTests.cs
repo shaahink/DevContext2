@@ -1,3 +1,4 @@
+using DevContext.Core.Constants;
 using DevContext.Core.Contracts;
 using DevContext.Core.Graph;
 using DevContext.Core.Graph2;
@@ -37,21 +38,35 @@ public sealed class ServiceBoundaryInferenceTests
     }
 
     [Fact]
-    public void WebSdk_csproj_makes_project_runnable()
+    public void WebSdk_project_is_runnable()
     {
-        var dir = Path.Combine(Path.GetTempPath(), $"dc-test-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(dir);
-        try
-        {
-            var csproj = Path.Combine(dir, "Web.csproj");
-            File.WriteAllText(csproj, "<Project Sdk=\"Microsoft.NET.Sdk.Web\"></Project>");
-            var p = new ProjectInfo("Web", csproj, "C#", ["net10.0"], [], []);
-            Assert.True(ServiceBoundaryInference.IsRunnableService(p));
-        }
-        finally
-        {
-            Directory.Delete(dir, recursive: true);
-        }
+        // Batch D (R2 §2.D): the SDK is EVIDENCE ON THE PROJECT, parsed once at load — this test used to
+        // write a real csproj to a temp directory because the rule re-read the file off disk. It now
+        // needs no filesystem at all, which is the point: the rule is pure and testable in memory.
+        var p = new ProjectInfo("Web", @"C:\repo\Web\Web.csproj", "C#", ["net10.0"], [], [],
+            Sdks: [SdkIds.Web]);
+        Assert.True(ServiceBoundaryInference.IsRunnableService(p));
+    }
+
+    [Fact]
+    public void AspireAppHost_sdk_declared_as_child_element_is_runnable()
+    {
+        // The AppHost SDK is normally added as <Sdk Name="Aspire.AppHost.Sdk" /> ALONGSIDE the root
+        // Microsoft.NET.Sdk — the root-attribute-only read could never see it (Batch D).
+        var p = new ProjectInfo("AppHost", @"C:\repo\AppHost\AppHost.csproj", "C#", ["net10.0"], [], [],
+            Sdks: ["Microsoft.NET.Sdk", SdkIds.AspireAppHost]);
+        Assert.True(ServiceBoundaryInference.IsRunnableService(p));
+    }
+
+    [Fact]
+    public void Base_sdk_alone_does_not_answer_the_web_sdk_question()
+    {
+        // HasSdk is EQUALITY, not substring: the old text probe would say yes to any csproj that merely
+        // mentioned the string anywhere in the file.
+        var p = new ProjectInfo("Lib", @"C:\repo\Lib\Lib.csproj", "C#", ["net10.0"], [], [],
+            Sdks: ["Microsoft.NET.Sdk"]);
+        Assert.False(p.HasSdk(SdkIds.Web));
+        Assert.False(ServiceBoundaryInference.IsRunnableService(p));
     }
 
     [Fact]

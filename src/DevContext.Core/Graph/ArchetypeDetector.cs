@@ -75,7 +75,7 @@ public static class ArchetypeDetector
                     && p.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true)
                 .Where(p => !cliClassifier.IsInTestProject(p.FilePath)
                     && cliClassifier.IsProduction(p, model.SamplesAreTheProduct)
-                    && !(p.FilePath is { } fp && IsWebSdkProject(fp)))
+                    && !p.HasSdk(SdkIds.Web))
                 .ToList();
             var hasWebOrDesktopSurface =
                 model.Architecture.Has(ArchitectureSignals.Keys.Controllers)
@@ -218,18 +218,7 @@ public static class ArchetypeDetector
     private static bool IsRunnableHost(ProjectInfo p)
     {
         var isExe = p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
-        var hasWebSdk = p.FilePath is { } cp && IsWebSdkProject(cp);
-        return isExe || hasWebSdk;
-    }
-
-    private static bool IsWebSdkProject(string csprojPath)
-    {
-        try
-        {
-            var text = File.ReadAllText(csprojPath);
-            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
-        }
-        catch { return false; }
+        return isExe || p.HasSdk(SdkIds.Web);
     }
 
     // Framework-library signals that, when self-sourced (ProjectName/ProjectReference), mean

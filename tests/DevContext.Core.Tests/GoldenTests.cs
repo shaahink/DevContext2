@@ -1,4 +1,4 @@
-namespace DevContext.Core.Tests;
+﻿namespace DevContext.Core.Tests;
 
 [Collection("Golden tests")]
 public sealed class GoldenTests
@@ -42,7 +42,7 @@ public sealed class GoldenTests
         };
 
         var pipeline = new DiscoveryPipeline(
-            extractors, [], [], new Dictionary<string, IContextRenderer>
+            extractors, [], new Dictionary<string, IContextRenderer>
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -83,7 +83,7 @@ public sealed class GoldenTests
                 new FileTreeExtractor(),
                 new SolutionDiscoveryExtractor()
             },
-            [], [], new Dictionary<string, IContextRenderer>
+            [], new Dictionary<string, IContextRenderer>
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()

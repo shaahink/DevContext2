@@ -11,6 +11,10 @@ public sealed class JsonContextRenderer : IContextRenderer
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        // Batch D: detections are polymorphic, and the ONE declaration of that lives in
+        // DetectionPolymorphism. This render used to rely on an attribute list on Detection that the
+        // snapshot cache overrode with a different discriminator — same hierarchy, two wire formats.
+        TypeInfoResolver = Models.DetectionPolymorphism.Resolver(),
     };
 
     /// <summary>Gets the format identifier ("json").</summary>

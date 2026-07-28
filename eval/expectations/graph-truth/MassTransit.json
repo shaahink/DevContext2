@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/MassTransit",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/MassTransit/MassTransit - the framework itself, distinct from the MassTransit-Sample pole already in the matrix (a consumer app). Framework-vs-consumer pair on one messaging vocabulary: the sample must show bus links, the framework must not invent them.",
+  "style": { "archetype": "Library", "styles": ["NotApplicable"] }
+}

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace DevContext.Core.Observers;
 
@@ -25,9 +25,6 @@ public sealed class RecordingDiscoveryObserver : IDiscoveryObserver
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
         => Events.Add($"SignalsSealed:{signals.Count} signals");
-
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
-        => Events.Add($"PrunerCompleted:{name}:{itemsBefore}->{itemsAfter}");
 
     public void OnCompressionApplied(CompressionResult result)
         => Events.Add($"CompressionApplied:{result.StrategyName}:{result.TokensBefore}->{result.TokensAfter}");

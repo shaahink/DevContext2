@@ -1,0 +1,4 @@
+{
+  "repo": "eval-repos/Desktop",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/AvaloniaUI/Avalonia.Samples - NOT a WPF app despite the directory name (the S4 lesson that eval names come from directories, applied at declaration time). A SAMPLE COLLECTION of Avalonia desktop samples on a UI framework the engine has no detector for; Avalonia.Samples.slnx sits at the root with per-sample projects beneath it. Style is left UNDECLARED: whether the honest archetype for a samples-only desktop repo is Desktop or a sample collection is exactly the open question, and inventing an answer here would be the 'right for the wrong reason' failure S4 recorded. Universal checks (hub-sanity, entry-target, sln-scope, dup-name) still score."
+}

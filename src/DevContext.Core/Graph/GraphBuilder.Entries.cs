@@ -517,21 +517,22 @@ public sealed partial class GraphBuilder
 
             foreach (var edge in graph.OutEdges(current))
             {
+                // Batch D (R2 §2.D): ONE node lookup per edge. This loop used to call graph.Node(edge.To)
+                // twice for the same edge — once for the entity check, once for the project check —
+                // which is a frozen-dictionary probe per entry per edge, per BFS.
+                var target = graph.Node(edge.To);
+
                 // Track seam richness
                 if (edge.Kind is EdgeKind.Sends or EdgeKind.Raises or EdgeKind.Consumes)
                     seam++;
-                if (edge.Kind == EdgeKind.ReadsWrites)
-                {
-                    var target = graph.Node(edge.To);
-                    if (target is not null && (target.Tags.Contains(RoleTags.Entity)
-                        || target.Tags.Contains(RoleTags.Aggregate)))
-                        entity++;
-                }
+                if (edge.Kind == EdgeKind.ReadsWrites
+                    && target is not null
+                    && (target.Tags.Contains(RoleTags.Entity) || target.Tags.Contains(RoleTags.Aggregate)))
+                    entity++;
                 // Track cross-project: resolve the owning project from the target node's file path.
-                var targetNode = graph.Node(edge.To);
-                if (targetNode?.FilePath is { } fp)
+                if (target?.FilePath is { } fp)
                 {
-                    var proj = scope.ProjectForFile(fp) ?? targetNode.Project ?? Path.GetFileNameWithoutExtension(fp);
+                    var proj = scope.ProjectForFile(fp) ?? target.Project ?? Path.GetFileNameWithoutExtension(fp);
                     if (proj is not null) projects.Add(proj);
                 }
 

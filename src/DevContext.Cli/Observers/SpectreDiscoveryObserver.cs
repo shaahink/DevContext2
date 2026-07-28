@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace DevContext.Cli.Observers;
 
@@ -61,12 +61,6 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
             ? $"{count} detected: {string.Join(", ", detected)}"
             : "none detected";
         WriteLine($"[bold]Signals sealed[/] — {detail}");
-    }
-
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
-    {
-        var pct = itemsBefore > 0 ? (itemsBefore - itemsAfter) * 100 / itemsBefore : 0;
-        WriteLine($"{name}: {itemsBefore} -> {itemsAfter} types ({pct}%");
     }
 
     public void OnCompressionApplied(CompressionResult result)

@@ -41,8 +41,13 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
                     tfms, refs, packages,
                     CsprojReader.ResolveOutputType(doc, csprojPath),
                     CsprojReader.ResolveIsPackable(doc, csprojPath),
-                    CsprojReader.ParseSdk(doc),
-                    CsprojReader.ParseIsToolPackaged(doc)));
+                    CsprojReader.ParseIsToolPackaged(doc),
+                    // Batch D: SDK evidence is parsed here, ONCE, off the already-cached XDocument, so
+                    // archetype/style/service-boundary detection can be pure (no filesystem, unit-testable
+                    // against an in-memory model) instead of re-reading every csproj as text.
+                    CsprojReader.ParseSdks(doc),
+                    CsprojReader.ParseUsesWpf(doc),
+                    CsprojReader.ParseUsesWinForms(doc)));
             }
             catch (Exception ex)
             {

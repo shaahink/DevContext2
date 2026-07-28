@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using DevContext.Core.Contracts;
 using DevContext.Core.Graph;
 
@@ -6,8 +5,6 @@ namespace DevContext.Core.Graph2;
 
 public static class ServiceBoundaryInference
 {
-    private static readonly ConcurrentDictionary<string, bool> _webSdkCache = new(StringComparer.OrdinalIgnoreCase);
-
     public static bool IsRunnableService(ProjectInfo p)
     {
         // Design §2.4 runnable signals: OutputType=Exe, Web SDK (Microsoft.NET.Sdk.Web), or the
@@ -19,35 +16,14 @@ public static class ServiceBoundaryInference
         // (a hosted-service background host, shamshir's TradingEngine.Host) and the Aspire AppHost SDK
         // (the orchestrator, shamshir's TradingEngine.AppHost) both produce executables. Without this the
         // per-service list showed only the Web + Exe-console projects and missed the worker and the AppHost.
+        // Batch D (R2 §2.D): SDK evidence now travels on ProjectInfo (parsed once from the cached
+        // XDocument). This used to be three cached File.ReadAllText probes asking whether the marker
+        // appeared ANYWHERE in the csproj text.
         var isExe = p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
         var hasAspNetFramework = p.PackageReferences.Any(
             pr => pr.Name.StartsWith("Microsoft.AspNetCore.App", StringComparison.OrdinalIgnoreCase));
-        var hasWebServer = p.FilePath is { } cp && CsprojSdkContains(cp, "Microsoft.NET.Sdk.Web");
-        var isWorkerHost = p.FilePath is { } wp && CsprojSdkContains(wp, "Microsoft.NET.Sdk.Worker");
-        var isAspireHost = p.FilePath is { } ap && CsprojSdkContains(ap, "Aspire.AppHost.Sdk");
-        return isExe || hasAspNetFramework || hasWebServer || isWorkerHost || isAspireHost;
-    }
-
-    /// <summary>True when the csproj's <c>Sdk</c> attribute contains the given marker (cached read). Used
-    /// for Web / Worker / Aspire-AppHost SDK detection where the SDK implies an executable output.</summary>
-    internal static bool CsprojSdkContains(string csprojPath, string marker)
-    {
-        var key = csprojPath + "|" + marker;
-        if (_webSdkCache.TryGetValue(key, out var cached))
-            return cached;
-
-        try
-        {
-            var text = File.ReadAllText(csprojPath);
-            var result = text.Contains(marker, StringComparison.OrdinalIgnoreCase);
-            _webSdkCache[key] = result;
-            return result;
-        }
-        catch
-        {
-            _webSdkCache[key] = false;
-            return false;
-        }
+        return isExe || hasAspNetFramework
+            || p.HasSdk(SdkIds.Web) || p.HasSdk(SdkIds.Worker) || p.HasSdk(SdkIds.AspireAppHost);
     }
 
     public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope, bool samplesAreTheProduct = false)

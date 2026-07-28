@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/Dapper",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/DapperLib/Dapper - micro-ORM library. Data-access-heavy by nature, so it is also the sharpest test of the _dataAccessNoiseMethods deny-list KEEP decision from S4 (a repo where Query/Execute ARE the product).",
+  "style": { "archetype": "Library", "styles": ["NotApplicable"] }
+}

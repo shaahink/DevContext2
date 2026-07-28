@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/DntSite",
+  "note": "S5 widen pole, added 2026-07-28. The macro-benchmark repo (PERF baselines are measured on it) finally enters the truth matrix, so perf and correctness are judged on the same repo instead of two disjoint sets. A real production Blazor/EF web application (src/ + tests/, DntSite.slnx). Archetype App declared; style left undeclared because 'Blazor server app organized by feature' has no single right answer in the current vocabulary and this pole is not the place to invent one.",
+  "style": { "archetype": "App" }
+}

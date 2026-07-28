@@ -12,9 +12,10 @@ public sealed record SymbolContext(
 
 /// <summary>
 /// Abstracts callee/implementation resolution so the graph layer is independent of HOW symbols are
-/// resolved. P1/P2 ship <see cref="SyntacticSymbolResolver"/>; P3 adds a Roslyn SemanticModel
-/// implementation (in DevContext.Roslyn) WITHOUT touching GraphBuilder. This single seam is what makes
-/// the "go semantic later" decision a strategy swap rather than a rewrite. See TRACE-ENGINE-DESIGN.md §3.
+/// resolved. P1/P2 ship <see cref="SyntacticSymbolResolver"/>; semantic resolution arrived instead as
+/// Batch A's SymbolTable + SemanticLite compilation, which the CallGraphBinder reads directly — the
+/// planned separate DevContext.Roslyn assembly was never built and its empty directory is gone (Batch D).
+/// This seam survives because it still keeps the graph layer free of Roslyn. See TRACE-ENGINE-DESIGN.md §3.
 /// </summary>
 public interface ISymbolResolver
 {

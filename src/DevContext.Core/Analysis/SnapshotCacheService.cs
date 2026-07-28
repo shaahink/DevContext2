@@ -24,8 +24,13 @@ public static class SnapshotSchema
     /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).
     /// v6 (Batch A, graph-v2): structural identity — type ids carry nested chains + generic arity
     /// (Ns.Outer.Inner`2), member node keys use the "Type::Member" scheme, and CallEdges carry
-    /// canonical types from the SymbolTable binder. Persisted v5 graphs join on the old keys.</summary>
-    public const int Version = 6;
+    /// canonical types from the SymbolTable binder. Persisted v5 graphs join on the old keys.
+    /// v7 (Batch D, graph-v2): two deliberate structural breaks in the persisted payload — ProjectInfo
+    /// carries parsed SDK evidence (Sdks/UsesWpf/UsesWinForms), which archetype/style/service-boundary
+    /// detection now READ instead of re-reading each csproj off disk, so a v6 snapshot would answer
+    /// "declares no SDK" for every project; and the detection type discriminator is unified on "type"
+    /// (it was "$dtype" here and "type" in the JSON render — one hierarchy, two wire formats).</summary>
+    public const int Version = 7;
 
     /// <summary>D5.3 (the J2 engine-version key) — the engine build that produced a snapshot.
     /// Deterministic compilation makes the Core MVID a content hash over sources + references, so
@@ -76,10 +81,7 @@ public sealed class SnapshotCacheService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new JsonStringEnumConverter() },
         IncludeFields = true,
-        TypeInfoResolver = new DefaultJsonTypeInfoResolver
-        {
-            Modifiers = { SnapshotPersistence.AddDetectionPolymorphism },
-        },
+        TypeInfoResolver = DetectionPolymorphism.Resolver(),
     };
 
     public SnapshotCacheService(string? cacheRoot = null)

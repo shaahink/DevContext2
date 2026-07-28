@@ -1,34 +1,10 @@
-using System.Text.Json.Serialization;
-
-using DevContext.Core.Extractors.Specific;
+﻿using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Models;
 
-/// <summary>Base record for all detection types extracted from the codebase.</summary>
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(EndpointDetection), "EndpointDetection")]
-[JsonDerivedType(typeof(MediatRHandlerDetection), "MediatRHandlerDetection")]
-[JsonDerivedType(typeof(EfEntityDetection), "EfEntityDetection")]
-[JsonDerivedType(typeof(BackgroundWorkerDetection), "BackgroundWorkerDetection")]
-[JsonDerivedType(typeof(MiddlewareDetection), "MiddlewareDetection")]
-[JsonDerivedType(typeof(IndirectWiringDetection), "IndirectWiringDetection")]
-[JsonDerivedType(typeof(MessageConsumerDetection), "MessageConsumerDetection")]
-[JsonDerivedType(typeof(DiRegistrationDetection), "DiRegistrationDetection")]
-[JsonDerivedType(typeof(AspireResourceDetection), "AspireResourceDetection")]
-[JsonDerivedType(typeof(AspireRelationshipDetection), "AspireRelationshipDetection")]
-[JsonDerivedType(typeof(AntiPatternDetection), "AntiPatternDetection")]
-[JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
-[JsonDerivedType(typeof(DesktopEntryDetection), "DesktopEntryDetection")]
-[JsonDerivedType(typeof(GrpcServiceDetection), "GrpcServiceDetection")]
-    [JsonDerivedType(typeof(GrpcClientDetection), "GrpcClientDetection")]
-[JsonDerivedType(typeof(TransportClientDetection), "TransportClientDetection")]
-    [JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
-[JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
-[JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
-[JsonDerivedType(typeof(GraphQlFieldDetection), "GraphQlFieldDetection")]
-    [JsonDerivedType(typeof(CliCommandDetection), "CliCommandDetection")]
-    [JsonDerivedType(typeof(RefitRouteDetection), "RefitRouteDetection")]
-    [JsonDerivedType(typeof(GlobalAuthPolicyDetection), "GlobalAuthPolicyDetection")]
+/// <summary>Base record for all detection types extracted from the codebase. Its JSON polymorphism is
+/// declared once, reflectively, in <see cref="DetectionPolymorphism"/> — adding a detection record needs
+/// no attribute here (Batch D; there used to be a hand-maintained list that a second scheme overrode).</summary>
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>

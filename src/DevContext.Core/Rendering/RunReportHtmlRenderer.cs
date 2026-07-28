@@ -98,22 +98,8 @@ public static class RunReportHtmlRenderer
     private static void RenderScorerCard(StringBuilder sb, RunReport report, TokenFunnel funnel)
     {
         sb.AppendLine("<div class='dc-stats-card'>");
-        sb.AppendLine("<div class='dc-stats-card-header'>Scorer &amp; Token Funnel</div>");
+        sb.AppendLine("<div class='dc-stats-card-header'>Token Funnel</div>");
         sb.AppendLine("<div class='dc-stats-card-body'>");
-
-        // Scorer mini-table
-        if (report.Scorers.Length > 0)
-        {
-            sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Scorer</th><th>Before</th><th>After</th><th>&Delta;</th></tr></thead><tbody>");
-            foreach (var sc in report.Scorers)
-            {
-                var delta = sc.TypesBefore > 0
-                    ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
-                    : 0;
-                sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(sc.Name)}</td><td>{sc.TypesBefore}</td><td>{sc.TypesAfter}</td><td>&minus;{delta}%</td></tr>");
-            }
-            sb.AppendLine("</tbody></table>");
-        }
 
         // Token funnel bar
         if (funnel.TypesDiscovered > 0)

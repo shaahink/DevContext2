@@ -1,4 +1,4 @@
-namespace DevContext.Core.Tests;
+﻿namespace DevContext.Core.Tests;
 
 public static partial class GoldenTestHelper
 {
@@ -79,7 +79,7 @@ public static partial class GoldenTestHelper
         };
 
         var pipeline = new DiscoveryPipeline(
-            extractors, [], [], new Dictionary<string, IContextRenderer>
+            extractors, [], new Dictionary<string, IContextRenderer>
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -140,7 +140,6 @@ public static partial class GoldenTestHelper
             new DiRegistrationExtractor(),
         };
 
-        var pruners = new List<IPruner>();
 
         var compressors = new List<ICompressionStrategy>
         {
@@ -153,7 +152,7 @@ public static partial class GoldenTestHelper
         };
 
         var pipeline = new DiscoveryPipeline(
-            extractors, pruners, compressors,
+            extractors, compressors,
             new Dictionary<string, IContextRenderer>
             {
                 ["markdown"] = new MarkdownRenderer(),

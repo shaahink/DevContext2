@@ -1,4 +1,4 @@
-namespace DevContext.Core.Observers;
+﻿namespace DevContext.Core.Observers;
 
 public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
 {
@@ -25,8 +25,6 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
     { foreach (var o in _inner) o.OnSignalsSealed(signals); }
 
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
-    { foreach (var o in _inner) o.OnPrunerCompleted(name, itemsBefore, itemsAfter); }
 
     public void OnCompressionApplied(CompressionResult result)
     { foreach (var o in _inner) o.OnCompressionApplied(result); }

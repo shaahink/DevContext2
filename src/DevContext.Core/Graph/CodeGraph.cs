@@ -193,17 +193,32 @@ public sealed record GraphEdge(
 /// <summary>Immutable, queryable graph. Construct via <see cref="CodeGraphBuilder"/>.</summary>
 public sealed class CodeGraph
 {
-    private readonly FrozenDictionary<NodeId, GraphNode> _nodes;
-    private readonly FrozenDictionary<NodeId, ImmutableArray<GraphEdge>> _outEdges;
-    private readonly FrozenDictionary<NodeId, ImmutableArray<GraphEdge>> _inEdges;
+    private readonly IReadOnlyDictionary<NodeId, GraphNode> _nodes;
+    private readonly IReadOnlyDictionary<NodeId, ImmutableArray<GraphEdge>> _outEdges;
+    private readonly Lazy<FrozenDictionary<NodeId, ImmutableArray<GraphEdge>>> _inEdges;
 
     /// <summary>Creates a graph from a node map and an outgoing-edge adjacency map.</summary>
     public CodeGraph(
         IReadOnlyDictionary<NodeId, GraphNode> nodes,
         IReadOnlyDictionary<NodeId, ImmutableArray<GraphEdge>> outEdges)
+        : this(nodes, outEdges, freeze: true) { }
+
+    /// <summary>Batch D (R2 §2.D) — <paramref name="freeze"/> false builds a DRAFT graph.
+    /// <para>Assembly needs an intermediate queryable view twice before the final freeze (the event
+    /// projection reads the seam graph; entry enrichment + flows read the pre-graph), so the graph was
+    /// built THREE times per analysis. A <see cref="FrozenDictionary{TKey,TValue}"/> pays a perfect-hash
+    /// construction cost that only earns its keep under the heavy read traffic of render time — paying it
+    /// for two throwaway views is waste that scales with the repo.</para>
+    /// <para>Drafts keep plain dictionaries; the final graph freezes. Lookup SEMANTICS are identical, and
+    /// the D5.3 determinism rule is unaffected because order-exposing surfaces read the captured
+    /// Nodes/AllEdges arrays, never the dictionaries.</para></summary>
+    internal CodeGraph(
+        IReadOnlyDictionary<NodeId, GraphNode> nodes,
+        IReadOnlyDictionary<NodeId, ImmutableArray<GraphEdge>> outEdges,
+        bool freeze)
     {
-        _nodes = nodes.ToFrozenDictionary();
-        _outEdges = outEdges.ToFrozenDictionary();
+        _nodes = freeze ? nodes.ToFrozenDictionary() : nodes;
+        _outEdges = freeze ? outEdges.ToFrozenDictionary() : outEdges;
 
         // D5.3 determinism — FrozenDictionary enumeration order is hash-layout-dependent (randomized
         // per process), so every order-exposing surface captures the CALLER's enumeration order here:
@@ -214,17 +229,24 @@ public sealed class CodeGraph
         AllEdges = [.. outEdges.Values.SelectMany(e => e)];
 
         // Inverse adjacency (Phase 5 req 3): derived from out-edges so neighbors(id, in) and
-        // find_usages(id) are O(degree), not a full-graph scan. Kept DERIVED — rebuilt here on
-        // construct, never serialized — so the graph stays serialization-clean (Phase 9 disk index
-        // remains additive).
+        // find_usages(id) are O(degree), not a full-graph scan. Kept DERIVED — never serialized — so the
+        // graph stays serialization-clean (Phase 9 disk index remains additive). Batch D: built on FIRST
+        // USE, not on construct. Nothing during assembly asks for in-edges, so the intermediate graphs
+        // were each paying for an inverse index that was thrown away unread.
+        _inEdges = new Lazy<FrozenDictionary<NodeId, ImmutableArray<GraphEdge>>>(BuildInverseAdjacency);
+    }
+
+    private FrozenDictionary<NodeId, ImmutableArray<GraphEdge>> BuildInverseAdjacency()
+    {
         var inverse = new Dictionary<NodeId, List<GraphEdge>>();
         foreach (var e in AllEdges)
         {
             if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
             list.Add(e);
         }
-        _inEdges = inverse.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+        return inverse.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
     }
+
 
     /// <summary>All nodes, in builder insertion order (deterministic — never frozen-dictionary order).</summary>
     public ImmutableArray<GraphNode> Nodes { get; }
@@ -270,7 +292,7 @@ public sealed class CodeGraph
     /// <c>neighbors(id, in)</c> and <c>find_usages(id)</c> without a full-graph scan (Phase 5 req 3).</summary>
     public ImmutableArray<GraphEdge> InEdges(NodeId id, EdgeKind? kind = null)
     {
-        if (!_inEdges.TryGetValue(id, out var edges)) return [];
+        if (!_inEdges.Value.TryGetValue(id, out var edges)) return [];
         return kind is null ? edges : [.. edges.Where(e => e.Kind == kind)];
     }
 }
@@ -379,8 +401,29 @@ public sealed class CodeGraphBuilder
 
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
     public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
+        => Materialize(freeze: true, isSparse, hubScopeNodeCount, layerViolations);
+
+    /// <summary>Batch D (R2 §2.D) — an intermediate, throwaway view of the graph as it stands, for the
+    /// assembly passes that must QUERY what has been joined so far (the event-wiring projection, entry
+    /// enrichment, flows). Same nodes/edges as <see cref="Build"/>; skips the frozen-dictionary
+    /// construction that only pays off under render-time read traffic.</summary>
+    public CodeGraph BuildDraft(bool isSparse = false, int hubScopeNodeCount = 0)
+        => Materialize(freeze: false, isSparse, hubScopeNodeCount, default);
+
+    private CodeGraph Materialize(bool freeze, bool isSparse, int hubScopeNodeCount, ImmutableArray<LayerViolation> layerViolations)
     {
-        var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows], Entries = _entries, EventWiring = _eventWiring };
+        // Snapshot both maps: the builder keeps mutating after a draft is taken, so a draft must not
+        // alias the live node map or adjacency lists. (The freeze path copies anyway.)
+        var outSnapshot = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
+        var nodeSnapshot = freeze ? _nodes : new Dictionary<NodeId, GraphNode>(_nodes);
+        return new CodeGraph(nodeSnapshot, outSnapshot, freeze)
+        {
+            IsSparseGraph = isSparse,
+            HubScopeNodeCount = hubScopeNodeCount,
+            LayerViolations = layerViolations,
+            Flows = [.. _flows],
+            Entries = _entries,
+            EventWiring = _eventWiring,
+        };
     }
 }

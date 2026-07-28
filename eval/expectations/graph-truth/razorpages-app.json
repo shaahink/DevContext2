@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/razorpages-app",
+  "note": "S5 widen pole, added 2026-07-28. Verified on disk: a single scaffolded RazorPagesApp.csproj with a Pages/ folder and NO solution file - it is not a clone (its git remote resolves to DevContext2 itself, because the directory sits inside this repo's working tree). Declared because it is the smallest possible App: one project, no sln, a single entry surface. It pins that the scope note stays honest when there is nothing to scope. Style VALUE deliberately undeclared: the vocabulary has no RazorPages member, and a one-project scaffold has no architecture to name - guessing a value here would be declaring truth from a menu instead of from evidence.",
+  "style": { "archetype": "App" }
+}

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using DevContext.Core.Analysis;
 using DevContext.Core.Contracts;
 
@@ -89,7 +89,6 @@ internal sealed class StreamingProgressObserver(IProgress<AnalysisProgress>? pro
         => ReportThrottled("Done", 100, "Analysis complete", force: true);
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals) { }
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter) { }
     public void OnCompressionApplied(CompressionResult result) { }
     public void OnRenderCompleted(RenderedContext result) { }
     public void OnDiagnostic(DiagnosticEntry entry) { }

@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/HotChocolate",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/ChilliCream/graphql-platform - the GraphQL framework itself. Multi-solution on disk (All.slnx, Build.Pack.slnx, CookieCrumble.slnx, GreenDonut.slnx, ...), so it is also a Batch C sln-scope re-test at a scale no other pole reaches: the scope NOTE must name which solution was read.",
+  "style": { "archetype": "Library", "styles": ["NotApplicable"] }
+}

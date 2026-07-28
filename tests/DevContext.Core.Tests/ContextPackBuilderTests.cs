@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 using DevContext.Core.Graph;
 using DevContext.Core.Pipeline;
@@ -12,7 +12,7 @@ public sealed class ContextPackBuilderTests
 {
     private static RunReport DefaultReport => new()
     {
-        Stages = [], Extractors = [], Scorers = [], Compressions = [],
+        Stages = [], Extractors = [], Compressions = [],
         Cache = new(0, 0, 0, 0), Corpus = new(0, 0, 0),
         Funnel = new(0, 0, 0, 0, 0, 0),
         Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),

@@ -39,11 +39,10 @@ public static class ServiceRegistration
         services.AddSingleton<DiscoveryPipeline>(sp =>
         {
             var allExtractors = sp.GetServices<IDiscoveryExtractor>().ToArray();
-            var prunersList = sp.GetServices<IPruner>().ToArray();
             var compressorsList = sp.GetServices<ICompressionStrategy>().ToArray();
             var renderers = sp.GetServices<IContextRenderer>().ToDictionary(r => r.Format, r => r);
             var logger = sp.GetRequiredService<ILogger<DiscoveryPipeline>>();
-            return new DiscoveryPipeline(allExtractors, prunersList, compressorsList, renderers, logger);
+            return new DiscoveryPipeline(allExtractors, compressorsList, renderers, logger);
         });
 
         return services;

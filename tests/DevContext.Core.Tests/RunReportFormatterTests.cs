@@ -1,4 +1,4 @@
-using DevContext.Core.Models;
+﻿using DevContext.Core.Models;
 
 namespace DevContext.Core.Tests;
 
@@ -6,7 +6,7 @@ public sealed class RunReportFormatterTests
 {
     private static RunReport Report(int totalFiles = 10, double seconds = 1.5) => new()
     {
-        Stages = [], Extractors = [], Scorers = [], Compressions = [],
+        Stages = [], Extractors = [], Compressions = [],
         Cache = new(0, 0, 0, 0),
         Corpus = new(totalFiles, totalFiles, 2),
         Funnel = new(100, 0, 40, 0, 500, 8000),

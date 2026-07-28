@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using DevContext.Core.Contracts;
@@ -11,7 +11,6 @@ public sealed class RunReportCollector : IDiscoveryObserver
     private readonly Stopwatch _totalSw = Stopwatch.StartNew();
     private readonly ConcurrentBag<ExtractorStat> _extractorRows = [];
     private readonly ConcurrentBag<StageStat> _stageRows = [];
-    private readonly ConcurrentBag<ScorerStat> _scorerRows = [];
     private readonly ConcurrentBag<CompressionStat> _compressionRows = [];
     private string _currentStage = "";
     private string _currentTier = "";
@@ -46,11 +45,6 @@ public sealed class RunReportCollector : IDiscoveryObserver
     }
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals) { }
-
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
-    {
-        _scorerRows.Add(new ScorerStat(name, itemsBefore, itemsAfter));
-    }
 
     public void OnCompressionApplied(CompressionResult result)
     {
@@ -111,7 +105,6 @@ public sealed class RunReportCollector : IDiscoveryObserver
         {
             Stages = _stageRows.OrderBy(s => s.Ordinal).Select(s => new StageStat(s.Stage, s.Elapsed, s.Ordinal)).ToImmutableArray(),
             Extractors = rows.OrderByDescending(e => e.Elapsed).ThenBy(e => e.Name).ToImmutableArray(),
-            Scorers = _scorerRows.ToImmutableArray(),
             Compressions = _compressionRows.ToImmutableArray(),
             Cache = _cacheStats,
             Corpus = _corpusStats,

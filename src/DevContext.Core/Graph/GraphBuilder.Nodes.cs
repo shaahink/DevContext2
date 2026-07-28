@@ -15,10 +15,15 @@ public sealed partial class GraphBuilder
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, ArchitectureArchetype archetype)
     {
+        // Batch D (R2 §2.D): the project directory each type belongs to is derived ONCE per model here
+        // instead of per type inside DeriveFeature, where it ran
+        // `model.Projects.FirstOrDefault(p => fp.StartsWith(Path.GetDirectoryName(p.FilePath)))` — an
+        // O(types x projects) scan that also re-computed GetDirectoryName on every comparison.
+        var projectDirs = FeatureProjectIndex.Build(model);
         foreach (var type in model.OrderedTypes)
         {
             if (!_noise.IsProductionCode(type) || !scope.Contains(type.FilePath)) continue;
-            var feature = DeriveFeature(type, model);
+            var feature = DeriveFeature(type, projectDirs);
             var project = scope.ProjectForFile(type.FilePath);
             g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
             {
@@ -47,21 +52,16 @@ public sealed partial class GraphBuilder
 
     /// <summary>D9 — derives the feature label from namespace, stripping project and known layer prefixes.
     /// Returns the first meaningful segment after removing project-root namespace segments and layer-ish segments.</summary>
-    private static string? DeriveFeature(TypeDiscovery type, DiscoveryModel model)
+    private static string? DeriveFeature(TypeDiscovery type, FeatureProjectIndex projects)
     {
         var ns = type.Namespace;
         if (string.IsNullOrWhiteSpace(ns)) return null;
 
         if (type.FilePath is not { } fp) return CarveFeature(ns);
 
-        var matchedProject = model.Projects.FirstOrDefault(p =>
-            p.FilePath is { } pp && fp.StartsWith(Path.GetDirectoryName(pp) ?? "", StringComparison.OrdinalIgnoreCase));
-        if (matchedProject is not null)
-        {
-            var prefix = matchedProject.Name.Replace("-", "").Replace("_", "");
-            if (ns.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                ns = ns[prefix.Length..].TrimStart('.');
-        }
+        if (projects.NamespacePrefixFor(fp) is { } prefix
+            && ns.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            ns = ns[prefix.Length..].TrimStart('.');
         if (ns.StartsWith("Services.", StringComparison.OrdinalIgnoreCase))
             ns = ns["Services.".Length..];
 
@@ -152,7 +152,11 @@ public sealed partial class GraphBuilder
         string requestType, string handlerShortName, MediatRKind kind, string sourceFile, int lineNumber)
     {
         var requestId = NodeId.ForType(names.ResolveName(requestType, sourceFile));
-        var handlerId = NodeId.ForType(names.ResolveName(handlerShortName, sourceFile));
+        // Batch D: resolved ONCE. This used to be a `model.OrderedTypes.FirstOrDefault(t => t.Id ==
+        // names.ResolveName(handlerShortName, sourceFile))` — the resolve ran again for every type in
+        // the model, per handler, to find a type the model already indexes by id.
+        var handlerCanonical = names.ResolveName(handlerShortName, sourceFile);
+        var handlerId = NodeId.ForType(handlerCanonical);
 
         g.AddNode(new GraphNode(requestId, requestType, NodeKind.Type)
         {
@@ -164,9 +168,9 @@ public sealed partial class GraphBuilder
             FilePath = sourceFile,
             Tags = [RoleTags.Handler],
             Layer = "Application",
-            SourceBody = model.OrderedTypes
-                .FirstOrDefault(t => t.Id == names.ResolveName(handlerShortName, sourceFile))
-                ?.SourceBody,
+            SourceBody = model.Types.TryGetValue(handlerCanonical, out var handlerType)
+                ? handlerType.SourceBody
+                : null,
         });
         g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
         {
@@ -318,8 +322,10 @@ public sealed partial class GraphBuilder
                 FilePath = file,
                 Tags = [RoleTags.Service, RoleTags.Pipeline],
                 Layer = "Infrastructure",
-                SourceBody = model.OrderedTypes
-                    .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
+                // Batch D: id lookup, not a full-model scan (the model indexes types by id).
+                SourceBody = model.Types.TryGetValue(behaviorFqn, out var behaviorDecl)
+                    ? behaviorDecl.SourceBody
+                    : null,
             });
 
             // WrappedBy edge from every request node (a Type tagged command/query/notification) to

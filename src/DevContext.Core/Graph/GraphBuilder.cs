@@ -97,9 +97,11 @@ public sealed partial class GraphBuilder
         // ── T2.6: the one event join ──────────────────────────────────────
         // Build the single publisher→event→consumer projection from the Raises/Consumes seams already in
         // the graph, store it, and emit the cross-service bus ServiceLink edges from it — superseding the
-        // old project-name join (the former AddBusServiceLinks). A short intermediate freeze gives the
+        // old project-name join (the former AddBusServiceLinks). An intermediate DRAFT gives the
         // projection a queryable view; the emitted links land before preGraph so flows see them.
-        var seamGraph = g.Build(isSparse, hubCount);
+        // Batch D: draft, not freeze — assembly builds the graph three times by design (seam view,
+        // pre-flow view, final), and only the last one is read enough to earn a frozen index.
+        var seamGraph = g.BuildDraft(isSparse, hubCount);
         var eventWiring = EventWiringProjection.Build(
             seamGraph, scope.ProjectForFile, _noise.IsProductionEntrySource);
         g.SetEventWiring(eventWiring);
@@ -113,7 +115,7 @@ public sealed partial class GraphBuilder
         AddTransportClientLinks(g, model, scope, _noise, addresses);
         AddAspireTopology(g, model, scope, _noise, addresses);
 
-        var preGraph = g.Build(isSparse, hubCount);
+        var preGraph = g.BuildDraft(isSparse, hubCount);
         // Enrich (target/group-path/score) BEFORE computing flows: preGraph and the final graph share
         // identical nodes/edges (violations are metadata only), so this is safe here, and it means
         // graph.Flows carries the resolved Target — top_flows no longer reports it as null.

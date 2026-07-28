@@ -10,7 +10,6 @@ public sealed class NullDiscoveryObserver : IDiscoveryObserver
                                       int typesAdded = 0, int detectionsAdded = 0)
     { }
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals) { }
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter) { }
     public void OnCompressionApplied(CompressionResult result) { }
     public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed) { }
     public void OnRenderCompleted(RenderedContext result) { }

@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -189,9 +191,7 @@ public sealed class ProjectClassifier
     /// or <c>Microsoft.Build.Traversal</c>, its root Build.csproj). These exist for solution-explorer
     /// convenience and must never render as topology nodes, services, or archetype evidence.</summary>
     public static bool IsHolderProject(ProjectInfo p)
-        => p.Sdk is { } sdk
-            && (sdk.Contains("Microsoft.Build.NoTargets", StringComparison.OrdinalIgnoreCase)
-                || sdk.Contains("Microsoft.Build.Traversal", StringComparison.OrdinalIgnoreCase));
+        => p.HasSdk(SdkIds.NoTargets) || p.HasSdk(SdkIds.Traversal);
 
     // A3 (Prism D1.1b): build-orchestration frameworks. A project referencing one is the repo's build
     // SCRIPT (GitVersion's Cake-Frosting build/** tree, wolverine's Nuke build/build.csproj), not a
@@ -253,6 +253,13 @@ public sealed class NoiseFilter
     private readonly ProjectClassifier _projects;
     private readonly string? _root; // normalized analysis-root prefix; path-convention checks are relative to it
 
+    // Batch D (R2 §2.D) — the answer is a pure function of the file path, and the question is asked
+    // once per detection at ~30 call sites (every entry builder, every node join, every seam, every
+    // call edge). Uncached it re-walks the test-project prefix list and re-scans the path for a dozen
+    // conventions per ask; a solution has orders of magnitude fewer FILES than detections, so the
+    // cache is bounded by the file count. Concurrent because the style/service passes run in parallel.
+    private readonly ConcurrentDictionary<string, bool> _entrySourceCache = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Creates a filter over the given project classification. <paramref name="analysisRoot"/> is the
     /// resolved root of the system being analysed: the test/non-runtime <i>path-convention</i> checks
     /// (<c>/test/</c>, <c>/testassets/</c>, …) are applied to the portion of a file path <b>below</b> that
@@ -303,6 +310,9 @@ public sealed class NoiseFilter
     /// test-server infrastructure, and project-template scaffolding). Measured: aspnetcore HTTP entries
     /// 518 → production-only after this gate (assessment W1).</summary>
     public bool IsProductionEntrySource(string filePath)
+        => _entrySourceCache.GetOrAdd(filePath, ComputeIsProductionEntrySource);
+
+    private bool ComputeIsProductionEntrySource(string filePath)
     {
         if (_projects.IsInTestProject(filePath)) return false;
         if (IsGeneratedPath(filePath)) return false;

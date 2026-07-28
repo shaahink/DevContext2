@@ -1,0 +1,5 @@
+{
+  "repo": "eval-repos/CLI",
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/dotnet/command-line-api (System.CommandLine) - a LIBRARY that happens to be about CLIs, not a CLI tool. Declared to catch the CliTool/Library confusion Batch C's style work could plausibly get backwards: the repo ships a parser package, its executables are samples/tests. Style NotApplicable per Batch C item 4.",
+  "style": { "archetype": "Library", "styles": ["NotApplicable"] }
+}

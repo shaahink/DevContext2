@@ -67,8 +67,6 @@ public sealed class WaterfallDiscoveryObserver : IDiscoveryObserver
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
         => _model.SignalsSealed(signals.Values.Count(s => s.Detected));
 
-    public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter) { }
-
     public void OnCompressionApplied(CompressionResult result)
         => _model.CompressionApplied(result.TokensBefore, result.TokensAfter);
 

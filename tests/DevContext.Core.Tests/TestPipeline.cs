@@ -1,6 +1,6 @@
-namespace DevContext.Core.Tests;
+﻿namespace DevContext.Core.Tests;
 
-/// <summary>Shared composition of the full discovery pipeline for eval-style tests (extractors, pruners,
+/// <summary>Shared composition of the full discovery pipeline for eval-style tests (extractors,
 /// compressors, renderers) — one definition so trace/budget/quality tests agree on the wiring.</summary>
 internal static class TestPipeline
 {
@@ -39,7 +39,6 @@ internal static class TestPipeline
             new CliCommandExtractor(),
         };
 
-        var pruners = new List<IPruner>();
 
         var compressors = new List<ICompressionStrategy>
         {
@@ -58,7 +57,7 @@ internal static class TestPipeline
         };
 
         return new DiscoveryPipeline(
-            extractors, pruners, compressors, renderers,
+            extractors, compressors, renderers,
             loggerFactory.CreateLogger<DiscoveryPipeline>());
     }
 }
