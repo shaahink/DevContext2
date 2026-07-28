@@ -46,8 +46,12 @@
       (`gitversion-new-cli` retired for a repo-root `--sln` read + a new `gitversion-default` pole) ·
       every declared cell flipped · deny-list redundancy probe answered (KEEP BOTH) · battery + bench
       verdicts in the session log below
-- [ ] S5 — Batch D landed · Batch E landed · battery green ×2 · matrix = full 47 · loop-until-dry
-      confirmed (no new DC class in last 10 repos)
+- [x] S5 — CLOSED 2026-07-28: Batch D landed (hygiene + perf riders; acceptance was "nothing moves" and
+      **0 cells moved** across 44 pole comparisons) · Batch E landed (one `TracePolicy`, one trace build
+      per request, RESULT/NEXT retired, three number pairs reconciled, all four inherited cells
+      root-caused with per-edge evidence) · matrix = **full 47** · **R1 loop-until-dry NOT confirmed —
+      a new class appeared in the widen set** (see the session log: `HotChocolate` cannot be analysed
+      inside a usable budget). Verdicts in the session log below.
 - [ ] S6 — R3 decision session held · DECISIONS.md written · implementation per decisions + render kernel
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
@@ -161,6 +165,60 @@ Session log (one line each: date · what closed · surprises):
   `eval-results/2026-07-28/graph-truth-s4/MATRIX.md`. Next: S5 Batch D + Batch E (R2 §2.D/§2.E) —
   declare acceptance at open, widen matrix to the full 47.
 
+- 2026-07-28 · S5 CLOSED (Batch D + Batch E), matrix at the full **47**. **Batch D** (hygiene/perf) was
+  the one batch whose acceptance was "nothing moves", and it was checked mechanically rather than by eye
+  (`eval-results/2026-07-28/compare-verdicts.py`): **0 moved cells** over 32 carried poles and 12
+  pre-D-baselined widen poles. Landed: SDK evidence parsed once onto `ProjectInfo` (`Sdks` +
+  `UsesWpf/UsesWinForms`; the scalar `Sdk` DELETED so two SDK fields can never disagree) which removed
+  four `File.ReadAllText(csproj).Contains(marker)` probes and made `ArchetypeDetector` pure; ONE
+  `Detection` polymorphism scheme (the hand-maintained `[JsonDerivedType]` list is gone, wire
+  discriminator unified on `type` so JSON output is byte-identical); the dead `IPruner` strand +
+  `OnPrunerCompleted` + `ScorerStat` + `src/DevContext.Roslyn/`; and the perf riders — draft graphs for
+  the two intermediate assembly views (only the final graph freezes), lazy in-edge adjacency, indexes
+  for four O(items x model) scans, a cached `IsProductionEntrySource`, and the gateway config scan moved
+  out of the GraphAssembly clock with its cross-OS separator bug fixed (`file.Contains("\\bin\\")`
+  matched NOTHING off Windows, so bin/obj/.git were read and JSON-parsed). Snapshot schema v7.
+  **Batch E**: `TracePolicy` is now the single seam order + framework stop + dial set + budget rule,
+  read by the flow spine, the trace tree, and every caller — the two tables it replaced disagreed about
+  `ServiceLink` (third on the spine, catch-all in the tree), so the map's flow could cross a service
+  boundary the trace silently dropped; gRPC `GetTrace` built the trace twice under two different budgets
+  and now builds once; RESULT/NEXT (invented HTTP statuses, eShop lifecycle vocabulary) retired and the
+  tokens spent on NAMING omitted branches; three number pairs reconciled to one counting function each,
+  tested (the `OverallConfidence` 0.7/0.3 blend is deleted, proto field reserved). All four inherited
+  cells were root-caused from the raw dumps BEFORE any code moved — Orleans' bare-interface target
+  (the called member was known at the call site and dropped; now on the edge), eShop's primary-call
+  ordering (first-wins was edge insertion order, not evidence), CleanArchitecture's 5 unhandled (the
+  handler interface lives in a NuGet package, so the transitive walk stops at the boundary; a
+  shape-based fallback needs TWO structural facts, no name list), and wolverine's `Envelope`
+  (ACCEPTED LIMITATION with all six origins named — in the repo that implements a bus, `SendAsync(env)`
+  is the wire, not dispatch). **Surprises:** (1) the SDK probes read the REAL filesystem while fixtures
+  live in a `FakeFileSystem`, so every fixture test was blind to SDK evidence — six goldens encoded "no
+  runnable web service" for a fixture whose csproj says `Sdk="Microsoft.NET.Sdk.Web"`; (2) the dup-name
+  check's premise died in Batch A — its flagged pairs are provably distinct ids (bitwarden's 99 are its
+  Dapper/EntityFramework repository pairs, one SignalR pair is a NESTED type), so it measured how many
+  homonyms a repo HAS; re-pointed at cross-SERVICE links, which is what DC2n actually complained about;
+  (3) a harness change fired ONCE without a smoke test and cost ~35 minutes — `Start-Process -PassThru`
+  needs `$proc.Handle` touched or `.ExitCode` throws, and under `ErrorActionPreference=Stop` that killed
+  the whole matrix silently after one pole; (4) `HotChocolate` (graphql-platform) produced no dump in 28
+  minutes and TIMED OUT at the 600s budget — **a defect class DC1-DC10 does not name, so R1 does NOT
+  exit at S5**; (5) two widen poles surfaced one shared archetype defect — `CLI`
+  (dotnet/command-line-api) reads CliTool and `MahApps.Metro` reads Desktop, because an auxiliary
+  executable outranks the packable library it demos. CLOSE VERDICTS: see
+  `eval-results/2026-07-28/graph-truth-s5/MATRIX.md` (Batch D close + root causes) and
+  `graph-truth-s5-close/MATRIX.md` (post-Batch-E grid), with the battery/bench logs beside them.
+  CLOSE VERDICTS: battery **Steps 0–4b PASS** (fresh, non-cached eval suite) with Step 5 failing on a
+  1-millisecond timestamp flake in an app spec — fixed, app suite re-run green (15 files / 92 tests);
+  bench **PERF-2026-07-28-1238** DntSite Map 26.6s · OrchardCore Map 13.6s (**−23% / −56%** vs the
+  PERF-2026-07-18-1346 baseline, +2.3% / +0.7% vs Batch C — inside noise on the stricter bar), DntSite
+  Trace 27.9→22.1s; post-Batch-E matrix moved **9 cells, all accounted for** (CleanArchitecture +
+  OrchardCore handler-join from the Batch E fix, 6 dup-name + 1 hub-sanity from the two declared
+  instrument changes), and `Orleans` entry-target flipped **12 bare interfaces → 0 of 37** on the
+  re-measure after two follow-up defects were found and fixed. Grids:
+  `eval-results/2026-07-28/graph-truth-s5/MATRIX.md` (post-D + root causes) and
+  `graph-truth-s5-close/MATRIX.md` (post-E + close verdict).
+  Next: S6 = R3 decision session (owner-interactive) — and the two R1 items S5 leaves open: the scale
+  wall, and the archetype-vs-auxiliary-executable defect (both pinned RED, neither re-declared).
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -238,6 +296,20 @@ Session log (one line each: date · what closed · surprises):
   CommunityToolkit.Mvvm/Desktop, StackExchange.Redis, Dapper, xUnit, CLI, blazor-samples,
   razorpages-app, company-functions, bitwarden-server, DntSite, HotChocolate, MassTransit, MediatR…).
   R1 exit: no new DC class in the last 10 repos; every DC has fix-or-accepted-limitation noted.
+
+### Open R1 items S5 leaves on the table (read before declaring R1 done)
+
+- **Scale wall (new class, not in DC1–DC10).** `HotChocolate` (ChilliCream/graphql-platform) produced
+  no dump in 28 minutes and TIMED OUT at the harness's new 600s per-pole budget. Every other pole
+  finishes — including PowerToys (83s) and bitwarden-server (214s) — so this is one repo an order of
+  magnitude past the rest, not a general regression. R1's exit criterion ("no new DC class in the last
+  10 repos") is therefore NOT met; it needs a profile of that repo, not a bigger timeout.
+- **Archetype loses to an auxiliary executable.** `CLI` (dotnet/command-line-api) reads CliTool and
+  `MahApps.Metro` reads Desktop. Both are LIBRARIES whose exe is a demo/sample that isn't under a
+  `samples/` path, so it decides the archetype. One root cause, two poles, both pinned RED with the
+  truth declared — do not re-declare the expectations to match the engine.
+- **`wolverine` `Envelope`** — accepted limitation, evidence in the S5 MATRIX. Still pinned at 1.
+- **`gRPC` transport** — unchanged since S3: its examples are outside the analysed solution.
 
 ### S6 — R3 decision session (owner-interactive; after S3 at earliest)
 - Run per R3 §1: mock-ups per decision area (D-A first), owner decides, record DECISIONS.md,
