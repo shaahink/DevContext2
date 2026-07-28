@@ -446,8 +446,12 @@ public sealed class DevContextTools
                 action = i.Action,
                 actionTarget = i.ActionTarget,
             }).ToArray(),
+            // S10: this compared against "WARNING" while the wire carried "Warning", so `warnings`
+            // was an empty array on every repo ever analysed — an agent reading it concluded there
+            // was nothing to worry about while `insights` above it listed the warnings in full.
+            // The wire spelling is now lowercase and pinned server-side.
             warnings = resp.Insights
-                .Where(i => i.Severity == "WARNING")
+                .Where(i => i.Severity == "warning")
                 .Select(i => i.Title)
                 .ToArray(),
             // J1/J3 — per-component swallowed-failure counters (empty = clean run)

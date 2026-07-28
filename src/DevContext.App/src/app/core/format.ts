@@ -45,6 +45,32 @@ export function projectDisplayName(name: string, allNames: readonly string[]): s
   return name;
 }
 
+/** Middle-ellipsis for a route/title in a narrow column: the head names the resource and the
+ * tail carries the distinguishing segment, so cutting the middle keeps both ends
+ * (`/api/catalog/items/{id:int}` stays distinguishable from `/api/catalog/items`). The full
+ * text belongs on [title].
+ *
+ * R3 D-A (A-4), S7: the budget MUST sit under what the column can actually show, or CSS
+ * `truncate` cuts first and this never fires — which is how the audit kept seeing six rows
+ * reading `/api/catalog/i…`. S10: lifted out of `entry-deck` because the Context Studio's
+ * scope picker had re-grown the identical defect (eleven `/api/catalog/i…` rows), having
+ * never received the fix. One rule, one place, so a third list cannot re-invent it.
+ * `budget` is the column's character capacity; CSS truncation stays as the backstop. */
+export function middleEllipsis(text: string, budget = 34, bias: 'tail' | 'head' = 'tail'): string {
+  if (text.length <= budget) return text;
+  // S10: WHERE a label distinguishes itself depends on what kind of label it is, and a single
+  // split gets one of the two kinds wrong. A route differs at its TAIL
+  // (/api/catalog/items vs /api/catalog/items/{id:int}), so the tail must survive. A type or
+  // member name differs at its HEAD — eShop's bus consumers are
+  // OrderStatusChangedTo{AwaitingValidation,Paid,Shipped,...}IntegrationEventHandler, identical
+  // for the last 21 characters, so a tail-biased cut renders several rows as one
+  // "OrderStatu...ionEventHandler". Measured in the Studio picker, where two such rows collided.
+  const head = bias === 'head'
+    ? Math.max(4, budget - 6)
+    : Math.min(14, Math.max(4, budget - 16));
+  return text.slice(0, head) + '…' + text.slice(-(budget - head - 1));
+}
+
 function commonDottedPrefix(names: readonly string[]): string {
   const distinct = [...new Set(names)].filter(Boolean);
   if (distinct.length < 2) return '';

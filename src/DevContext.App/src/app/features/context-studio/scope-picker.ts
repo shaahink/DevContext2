@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 
+import { middleEllipsis } from '../../core/format';
 import type { EntryGroupVm, EntryVm } from '../../models/view-models';
 import { KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
@@ -168,16 +169,24 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
           </summary>
           <div class="pl-6">
             @for (entry of svc.entries; track entry.focus) {
+              <!-- S10: selected state was bg-hover — the SAME class the hover rule sets, so a
+                   picked row was indistinguishable from the one under the cursor. It now carries
+                   the accent bar + tint the rest of the app uses for selection. -->
               <button
                 type="button"
-                class="flex w-full items-center gap-1.5 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
-                [class.bg-hover]="selectedEntries().has(entry.focus)"
+                class="flex w-full items-center gap-1.5 border-l-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
+                [class.border-transparent]="!selectedEntries().has(entry.focus)"
+                [class.border-accent]="selectedEntries().has(entry.focus)"
+                [class.bg-accent/10]="selectedEntries().has(entry.focus)"
+                [attr.aria-pressed]="selectedEntries().has(entry.focus)"
                 (click)="toggleEntry(entry)"
               >
                 @if (entry.httpMethod) {
                   <span class="w-8 shrink-0 text-2xs font-semibold" [class]="methodClass(entry.httpMethod)">{{ entry.httpMethod }}</span>
                 }
-                <span class="min-w-0 flex-1 truncate font-mono">{{ entry.route || entry.title }}</span>
+                <!-- S10: middle-ellipsis, same rule as the entry deck (A-4). Plain CSS truncate
+                     rendered eleven identical /api/catalog/i... rows in this 230px column. -->
+                <span class="min-w-0 flex-1 truncate font-mono" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ shortLabel(entry) }}</span>
                 <!-- T5.5 (finding 50) — the kind glyph says WHAT it is on hover; color alone
                      read as an error badge. -->
                 <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
@@ -315,6 +324,16 @@ export class ScopePicker {
     this.showPresetPicker.set(false);
     // D4.5 (L4) — the visible scope delta: name what the preset just added.
     this.toast.show(`Preset added ${seeds.length} cards: ${this.presetEffect(entry)}`, 'success');
+  }
+
+  /** The picker column is narrower than the entry deck's, so the budget is smaller (A-4's rule:
+   * the budget must sit under what the column can show or CSS truncate cuts first). A routed
+   * entry keeps its tail, a named one (bus consumer, handler) keeps its head — see
+   * `middleEllipsis`. */
+  protected shortLabel(entry: EntryVm): string {
+    return entry.route
+      ? middleEllipsis(entry.route, 26, 'tail')
+      : middleEllipsis(entry.title, 26, 'head');
   }
 
   protected kindIcon(kind: string): string {

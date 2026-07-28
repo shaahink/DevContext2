@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, input, model, output, viewChild } from '@angular/core';
 
+import { middleEllipsis } from '../../core/format';
 import { type EntryGroupVm, type EntryVm, KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
 
@@ -86,7 +87,7 @@ interface KindStat {
             </span>
           }
           <div class="min-w-0 flex-1 truncate">
-            <span class="font-mono text-xs text-ink" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ middleEllipsis(entry.route || entry.title) }}</span>
+            <span class="font-mono text-xs text-ink" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ entryLabel(entry) }}</span>
             @if (entry.target) {
               <span class="ml-1 text-2xs text-ink-subtle">{{ entry.target }}</span>
             }
@@ -260,8 +261,16 @@ export class EntryDeck {
    * for the middle-ellipsis to be the one doing the cutting. CSS truncation stays as the backstop
    * for a narrowed pane. */
   protected middleEllipsis(text: string): string {
-    if (text.length <= ENTRY_LABEL_BUDGET) return text;
-    return text.slice(0, 14) + '…' + text.slice(-(ENTRY_LABEL_BUDGET - 15));
+    return middleEllipsis(text, ENTRY_LABEL_BUDGET);
+  }
+
+  /** S10: a routed entry distinguishes itself at the tail, a named one (bus consumer, domain-event
+   * handler) at the head — eShop's `OrderStatusChangedTo*IntegrationEventHandler` share their last
+   * 21 characters, so one rule for both collapsed several rows into one label. */
+  protected entryLabel(entry: EntryVm): string {
+    return entry.route
+      ? middleEllipsis(entry.route, ENTRY_LABEL_BUDGET, 'tail')
+      : middleEllipsis(entry.title, ENTRY_LABEL_BUDGET, 'head');
   }
 
   /** M7.3: Per-kind color from the M7.0 registry — CSS variable reference. */

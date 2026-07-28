@@ -229,7 +229,13 @@ export class IdentityStrip {
    * refit was audit finding F1's bogus chip). Undefined collapses chip + tier + tooltip. */
   protected readonly style = computed(() => {
     const m = this.map();
-    return m?.isLibrary ? undefined : m?.style;
+    if (m?.isLibrary) return undefined;
+    // S10: Batch C made the engine answer "NotApplicable" for a CliTool instead of guessing a
+    // style, and the CLI honours that by printing no STYLE line. The app printed the sentinel:
+    // GitVersion's headline read "CliTool  NotApplicable". A non-answer is not a value to render
+    // — Unknown is the same shape, so both collapse the chip.
+    const s = m?.style;
+    return s === 'NotApplicable' || s === 'Unknown' ? undefined : s;
   });
   protected readonly isLibrary = computed(() => this.map()?.isLibrary ?? false);
   protected readonly surfaceTypes = computed(() => publicTypeCount(this.map()?.surface));

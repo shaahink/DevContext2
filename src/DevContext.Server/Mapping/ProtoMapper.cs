@@ -274,7 +274,13 @@ internal static class ProtoMapper
             {
                 Id = i.Id,
                 Category = i.Category.ToString(),
-                Severity = i.Severity.ToString(),
+                // S10: `Severity.ToString()` shipped "Warning"; the app keyed every lookup on
+                // "warning" and the MCP filtered on "WARNING". A stringly-typed enum with no
+                // canonical spelling let three surfaces each guess, and both guesses failed
+                // SILENTLY — the app filed every warning under "Know this" and never rendered
+                // its "Act on this" group, and mcp stats.warnings was [] on every repo. The wire
+                // spelling is lowercase and pinned by ProtoMapperSeverityTests.
+                Severity = i.Severity.ToString().ToLowerInvariant(),
                 Title = i.Title,
                 Detail = "",
                 Confidence = i.Confidence,
