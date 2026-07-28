@@ -1,6 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 
-import type { TraceNodeVm } from '../../models/view-models';
+import { groupServiceHops, isServiceHopGroup, type TraceNodeVm } from '../../models/view-models';
 import { Badge } from '../../ui/badge/badge';
 import { NodeLink } from '../../ui/node-link/node-link';
 import { SeamChip } from '../../ui/seam-chip/seam-chip';
@@ -23,8 +23,46 @@ import { SeamChip } from '../../ui/seam-chip/seam-chip';
           </div>
         </div>
       </div>
-      @for (child of node().children; track child.id) {
-        <app-trace-node [node]="child" [depth]="depth() + 1" (nodeSelected)="onChildSelected($event)" />
+
+      @for (child of displayedChildren(); track child.id) {
+        @if (asGroup(child); as group) {
+          <!-- R3 D-A A-2: a run of cross-service hops collapses to one disclosure row.
+               Closed, it still names the services — that IS the answer to "where does this
+               go" — and states the hop/omitted counts it is hiding. Open, it renders the
+               original subtree verbatim. -->
+          <div class="border-l-2 border-line pl-3 py-1">
+            <button
+              type="button"
+              class="flex w-full items-start gap-2 rounded -ml-0.5 px-0.5 text-left transition-colors hover:bg-surface-2"
+              [attr.aria-expanded]="isOpen(group.id)"
+              (click)="toggle(group.id)"
+            >
+              <app-seam-chip seam="CrossService" class="shrink-0" />
+              <div class="min-w-0">
+                <span class="text-xs text-ink-muted">
+                  <span class="mr-1 inline-block w-2 text-accent">{{ isOpen(group.id) ? '▾' : '▸' }}</span>
+                  crosses {{ group.services.length }} {{ group.services.length === 1 ? 'service' : 'services' }}
+                  <span class="text-ink-subtle">· {{ group.hops }} hops</span>
+                  @if (group.omitted > 0) {
+                    <!-- &nbsp; because Angular strips the whitespace across an @if boundary -->
+                    <span class="text-ink-subtle">&nbsp;· {{ group.omitted }} omitted</span>
+                  }
+                </span>
+                <p class="mt-0.5 font-mono text-3xs text-ink-subtle line-clamp-2">
+                  {{ group.services.join(' · ') }}
+                </p>
+              </div>
+            </button>
+
+            @if (isOpen(group.id)) {
+              @for (member of group.members; track member.id) {
+                <app-trace-node [node]="member" [depth]="depth() + 1" (nodeSelected)="onChildSelected($event)" />
+              }
+            }
+          </div>
+        } @else {
+          <app-trace-node [node]="asNode(child)" [depth]="depth() + 1" (nodeSelected)="onChildSelected($event)" />
+        }
       }
     </div>
   `,
@@ -33,6 +71,32 @@ export class TraceNodeComponent {
   readonly node = input.required<TraceNodeVm>();
   readonly depth = input(0);
   readonly nodeSelected = output<string>();
+
+  /** Groups the caller has expanded. Local, deliberately: the collapse is a reading aid,
+   * not navigation state worth surviving a re-trace. */
+  private readonly expanded = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly displayedChildren = computed(() => groupServiceHops(this.node().children));
+
+  protected isOpen(id: string): boolean {
+    return this.expanded().has(id);
+  }
+
+  protected toggle(id: string): void {
+    this.expanded.update((open) => {
+      const next = new Set(open);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
+
+  protected asGroup(child: ReturnType<typeof groupServiceHops>[number]) {
+    return isServiceHopGroup(child) ? child : null;
+  }
+
+  protected asNode(child: ReturnType<typeof groupServiceHops>[number]): TraceNodeVm {
+    return child as TraceNodeVm;
+  }
 
   protected onChildSelected(nodeId: string): void {
     this.nodeSelected.emit(nodeId);

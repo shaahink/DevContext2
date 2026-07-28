@@ -200,6 +200,102 @@ export function filterApproxTree(node: TraceNodeVm): TraceNodeVm | null {
   return { ...node, children };
 }
 
+/** The seam a cross-service hop carries. Grouped by `groupServiceHops` below. */
+const CROSS_SERVICE_SEAM = 'CrossService';
+
+/** Runs shorter than this stay expanded — a single hop out of a service is signal, not noise. */
+const MIN_COLLAPSIBLE_RUN = 2;
+
+/**
+ * One collapsed run of sibling cross-service hops (R3 D-A sub-decision A-2).
+ * Rendered as a single disclosure row; `members` is the untouched original subtree.
+ */
+export interface ServiceHopGroupVm {
+  readonly groupKind: 'service-hops';
+  /** Stable key for `@for` tracking — derived from the members, not an index. */
+  readonly id: string;
+  /** Distinct service names in first-seen order; the answer to "where does this go". */
+  readonly services: readonly string[];
+  /** Every cross-service node in the run, nested ones included. */
+  readonly hops: number;
+  /** Sum of `omitted` across the whole run — what the engine already cut. */
+  readonly omitted: number;
+  readonly members: readonly TraceNodeVm[];
+}
+
+export type TraceChildVm = TraceNodeVm | ServiceHopGroupVm;
+
+export function isServiceHopGroup(child: TraceChildVm): child is ServiceHopGroupVm {
+  return (child as ServiceHopGroupVm).groupKind === 'service-hops';
+}
+
+/**
+ * Collapse runs of consecutive sibling cross-service hops into one disclosure row.
+ *
+ * Why: Batch E put `ServiceLink` into the one seam order, so the tree renders every service hop.
+ * On eShop, `POST /api/orders/` grows 33 `CrossService` rows below the handler — Ordering.API four
+ * times, Webhooks.API three — and the trace stops describing *that order flow* and starts
+ * describing the mesh. The edges are real, so this is a render policy, not a data fix.
+ * Decision + rejected alternatives: docs/dev/research/DECISIONS.md §D-A A-2.
+ *
+ * Only consecutive siblings group, so a cross-service hop sandwiched between calls keeps its
+ * position in the flow. Nothing is dropped: `members` holds the original nodes verbatim.
+ */
+export function groupServiceHops(children: readonly TraceNodeVm[]): readonly TraceChildVm[] {
+  const out: TraceChildVm[] = [];
+  let run: TraceNodeVm[] = [];
+
+  const flush = (): void => {
+    if (run.length === 0) return;
+    out.push(run.length >= MIN_COLLAPSIBLE_RUN ? toGroup(run) : run[0]);
+    run = [];
+  };
+
+  for (const child of children) {
+    if (child.seam === CROSS_SERVICE_SEAM) run.push(child);
+    else {
+      flush();
+      out.push(child);
+    }
+  }
+  flush();
+  return out;
+}
+
+function toGroup(members: readonly TraceNodeVm[]): ServiceHopGroupVm {
+  const services: string[] = [];
+  let hops = 0;
+  let omitted = 0;
+
+  // Walk the whole run, nested hops included — the counts must describe everything the
+  // disclosure hides, not just its top row.
+  const stack: TraceNodeVm[] = [...members];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    omitted += node.omitted;
+    if (node.seam === CROSS_SERVICE_SEAM) {
+      hops++;
+      if (!services.includes(node.title)) services.push(node.title);
+    }
+    for (const child of node.children) stack.push(child);
+  }
+
+  // Depth-first pop order reverses siblings; re-sort so names read in trace order.
+  const ordered = members
+    .map((m) => m.title)
+    .filter((title, i, all) => all.indexOf(title) === i);
+  for (const title of services) if (!ordered.includes(title)) ordered.push(title);
+
+  return {
+    groupKind: 'service-hops',
+    id: `hops:${members[0].id}:${members.length}`,
+    services: ordered,
+    hops,
+    omitted,
+    members,
+  };
+}
+
 export function toTraceVm(node: TraceNode): TraceNodeVm {
   return {
     id: node.nodeId,

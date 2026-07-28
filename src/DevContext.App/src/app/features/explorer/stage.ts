@@ -137,6 +137,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           @if (topology().length > 0) {
               <app-graph-canvas
                 class="block h-full"
+                [fill]="true"
                 [data]="topologyData()"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
@@ -145,7 +146,11 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               />
           } @else {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
-              Analyze a repo to see its project topology.
+              @if (session.ready()) {
+                This repo is a single project — there is no topology to draw.
+              } @else {
+                Analyze a repo to see its project topology.
+              }
             </div>
           }
         }
@@ -164,6 +169,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
             } @else {
               <app-graph-canvas
                 class="block h-full"
+                [fill]="true"
                 [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
@@ -177,11 +183,18 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               Trace not found for this focus.
             </div>
           } @else {
-            <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
+            <div class="flex h-full flex-col items-center justify-center gap-2 text-xs text-ink-subtle">
               @if (session.ready()) {
-                Select an entry on the left — <span class="kbd mx-1">j</span>/<span class="kbd">k</span> to scrub.
+                <p>Select an entry on the left — <span class="kbd mx-1">j</span>/<span class="kbd">k</span> to scrub.</p>
+                @if (topology().length > 0) {
+                  <!-- R3 D-A: this state is now only reachable by asking for the flow view
+                       explicitly with nothing focused; offer the way back to the repo. -->
+                  <button type="button" class="text-accent hover:underline" (click)="altitude.set('system')">
+                    or see the whole repo →
+                  </button>
+                }
               } @else {
-                Analyze a repo first.
+                <p>Analyze a repo first.</p>
               }
             </div>
           }
@@ -191,6 +204,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
             @if (nodeViewMode() === 'graph') {
               <app-graph-canvas
                 class="block h-full"
+                [fill]="true"
                 [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
@@ -343,14 +357,27 @@ export class Stage {
     window.addEventListener('keydown', onKey);
     inject(DestroyRef).onDestroy(() => window.removeEventListener('keydown', onKey));
 
-    // M7.2: Lens → altitude derivation. Service/layer/feature → system, flow → flow.
+    // M7.2 + R3 D-A: lens → altitude derivation, with the Flow lens' altitude FOLLOWING FOCUS.
+    // Service/layer/feature → system; flow → the trace once there is one, the repo's topology
+    // until then.
+    //
+    // The Flow lens has nothing to draw before an entry is picked, and rendering "Select an
+    // entry on the left" across ~60% of the viewport was the workspace's single biggest product
+    // defect (FINDINGS W1) — the page never showed the repo until you guessed at a row. Batches
+    // B+C made the topology canvas worth landing on (eShop: 23 transport links, queue/http/grpc
+    // drawn distinctly), so an unfocused Flow lens now opens on that instead of on emptiness.
+    // Decision: docs/dev/research/DECISIONS.md §D-A (A1+A2 hybrid).
+    //
+    // The topology guard matters: a single-project repo has no topology, so falling back there
+    // would trade one empty canvas for another. Those keep the flow altitude and its empty state.
     effect(() => {
       const lens = this.lensModel();
-      if (lens === 'flow') {
-        this.altitude.set('flow');
-      } else {
+      if (lens !== 'flow') {
         this.altitude.set('system');
+        return;
       }
+      const focused = this.trace.focus();
+      this.altitude.set(!focused && this.topology().length > 0 ? 'system' : 'flow');
     });
   }
 

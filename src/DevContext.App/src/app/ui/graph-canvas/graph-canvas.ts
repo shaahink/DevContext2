@@ -343,7 +343,11 @@ function borderWidthForDegree(degree: number): number {
   `,
   host: {
     class: 'block w-full relative border border-line bg-surface overflow-hidden',
-    '[style.height.px]': 'compact() ? 280 : 500',
+    // `fill` wins over the fixed heights: embedded on a scrolling page (Home hero, Atlas)
+    // the canvas must claim a definite height, but as the Stage's landing surface (R3 D-A)
+    // a fixed 500px leaves dead space below the graph on a tall viewport.
+    '[style.height]': 'fill() ? "100%" : null',
+    '[style.height.px]': 'fill() ? null : compact() ? 280 : 500',
     '[class.rounded-lg]': 'compact()',
   },
 })
@@ -354,6 +358,10 @@ export class GraphCanvas {
   /** T6.7 — hero embedding: shorter, no legend/zoom controls/minimap, no user pan/zoom
    * (the page scrolls past it), taps still emitted. */
   readonly compact = input(false);
+  /** R3 D-A: fill the host's pane instead of the fixed embed height. Set by Stage, whose
+   * canvas IS the pane — everywhere else the canvas sits in a scrolling page and needs a
+   * definite height of its own. */
+  readonly fill = input(false);
   /** Node ID to highlight (accent ring + pulse). Cleared on null/empty. */
   readonly highlightedNodeId = input<string | null>(null);
   /** M7.2/M9: Lens ID for layer/feature-based coloring on topology nodes. */

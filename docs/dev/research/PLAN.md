@@ -52,7 +52,13 @@
       root-caused with per-edge evidence) · matrix = **full 47** · **R1 loop-until-dry NOT confirmed —
       a new class appeared in the widen set** (see the session log: `HotChocolate` cannot be analysed
       inside a usable budget). Verdicts in the session log below.
-- [ ] S6 — R3 decision session held · DECISIONS.md written · implementation per decisions + render kernel
+- [~] S6 — R3 decision session OPENED 2026-07-28. **D-A DECIDED + LANDED** (owner picked the A1+A2
+      hybrid: centre-pane altitude follows focus); `docs/dev/research/DECISIONS.md` written and is now
+      the record for this strand. **D-B … D-H remain OPEN** — the next R3 session continues there,
+      starting with D-B (canvas semantic language), which D-A promoted in importance by making the
+      canvas the landing surface. Verdicts in the session log below.
+- [ ] S7 — R3 continued: D-B (canvas language) → D-C/D-D (library + CliTool archetypes) → D-E…D-H ·
+      render kernel built AFTER the decisions it must serve · re-point `screenshot-gate.mts` as pages land
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
 Session log (one line each: date · what closed · surprises):
@@ -219,6 +225,42 @@ Session log (one line each: date · what closed · surprises):
   Next: S6 = R3 decision session (owner-interactive) — and the two R1 items S5 leaves open: the scale
   wall, and the archetype-vs-auxiliary-executable defect (both pinned RED, neither re-declared).
 
+- 2026-07-28 · S6 OPENED (R3 decision session): **D-A decided and landed; D-B…D-H still open.**
+  First move was prep the owner never had to wait on — a re-drive of the app on the post-Batch-E
+  engine (`src/DevContext.App/scripts/r3-current-state.mts` → `eval-results/2026-07-28/r3-current-state/`),
+  because every screenshot in the 07-27 audit predates every R2 fix and would have made the session
+  decide against stale evidence. That re-drive is the session's most reusable output: eShop's Atlas
+  now reads **23 transport links** (was 5, bus-only — E1) with queue/HTTP/gRPC drawn distinctly, and
+  `POST /api/orders/` reaches `IdentifiedCommandHandler` **verified** (was In:1/Out:0 — E2). The
+  engine chain that blocked R3 is closed; what was left on the workspace really is IA.
+  **Owner decision: A1+A2 hybrid** — the centre pane's altitude FOLLOWS FOCUS (no focus → the
+  topology canvas, focus → the trace tree, canvas still a toggle of the focused state). Implemented
+  in `stage.ts`'s lens→altitude effect; it was a ~10-line change because `system` altitude already
+  WAS the topology canvas — the W1 void existed only because the default `flow` lens was sent to the
+  `flow` altitude unconditionally, with nothing to draw.
+  **Owner delegated sub-decision A-2** (the CrossService wall) with criteria rather than an option —
+  "enjoyable, informative, quick" — so it was decided on those and recorded as delegated:
+  collapse each run of sibling cross-service hops to ONE expandable row naming the services
+  (`groupServiceHops`, 7 new unit tests). eShop's order trace went from **33 CrossService rows to 1**
+  ("crosses 8 services · 15 hops · 37 omitted"; the 37 reconciles exactly against the old per-row
+  counts), and — the real win — the trace now CONTINUES into the handler's actual idempotency logic
+  (`IRequestManager` → `RequestManager` → `ExistAsync` → `OrderingContext.FindAsync`), which the mesh
+  had been burying.
+  Surprises: (1) **a decision had to be corrected mid-implementation on honesty grounds** — the first
+  draft of A-2 promised the collapsed row would name transport kinds and crossing events, but
+  `TraceNode` (proto:323) carries no transport kind (it lives on the ServiceLink EDGE), so rendering
+  it would have meant inventing it; DECISIONS.md now records the scope correction plus the engine
+  follow-up it implies. Check the proto before promising a label. (2) `GraphCanvas` hard-codes its
+  host height (500px / 280 compact) — invisible while it was embedded in scrolling pages, glaring the
+  moment D-A made it the landing surface; added an explicit `fill` input rather than changing the
+  default under the other three call sites. (3) Running `ng build` against the workspace while
+  `start-dev-bg` is up leaves a stale `vite-error-overlay` that silently eats Playwright clicks —
+  cost two failed captures; restart the dev stack before any capture that follows a build.
+  (4) A verification script that navigates straight to `/explore` gets an unanalysed app — bootstrap
+  the session through Home first, the way the capture driver does.
+  Verdicts: app suite **15 files / 99 tests green** (was 92 — +7), `ng lint` clean, `ng build` clean,
+  disclosure toggle verified in the real app (27→35→27 nodes, `r3-verify-hopgroup.mts`).
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -315,6 +357,30 @@ Session log (one line each: date · what closed · surprises):
 - Run per R3 §1: mock-ups per decision area (D-A first), owner decides, record DECISIONS.md,
   implement only complete pages. Render kernel built AFTER decisions, serving app/CLI/MCP as
   projections. Re-point `screenshot-gate.mts` as pages land.
+- ~~D-A: workspace default + IA~~ **DECIDED + LANDED 2026-07-28** — A1+A2 hybrid (altitude follows
+  focus) + sub-decision A-2 (cross-service collapse, owner-delegated on criteria). See DECISIONS.md.
+- **Before ANY further R3 work, re-drive the app first.** The 07-27 `ui-feature-audit/` PNGs predate
+  every R2 batch and are now wrong about the product; `scripts/r3-current-state.mts <repo> <name>
+  [focus]` regenerates honest current-state frames into `eval-results/<date>/r3-current-state/`.
+  Restart `start-dev-bg.ps1` before capturing if anything ran `ng build` since it started.
+
+### S7 — R3 continued (owner-interactive)
+- **D-B first** (canvas semantic language) — D-A promoted it: the canvas is now what Explore opens on,
+  so its grammar is the product's first impression. Open items already visible in
+  `eval-results/2026-07-28/r3-current-state/eshop-after2/10-explore-default.png`: `eShop.AppHost` /
+  `HybridApp` / `ClientApp` render as floating peers (AppHost should be an orchestrator FRAME per
+  R3 §2 D-B), no kind glyphs, no store cylinders drawn, and `apphost` repeats as an edge label ~9
+  times where a grouping frame would say it once.
+- Then D-C/D-D (library + CliTool archetypes — both changed materially in Batch C), then D-E…D-H.
+  **Their current-state evidence was NOT gathered in S6** — the FluentValidation capture was launched
+  from a drifted working directory and died on module resolution, and re-running it against a live
+  eval battery risked the CPU-contention flake S2 already paid for. Capture FluentValidation (library)
+  and GitVersion (CliTool) at the top of S7.
+- D-A sub-decisions NOT yet implemented (decided, still owed): A-1 dock the node card / kill the
+  modal · A-3 budget-elastic + labelled depth (still depth-1 + an unexplained 7% meter) · A-4
+  middle-ellipsis entry truncation · A-5 promote the Trail to a real section.
+- Engine follow-up A-2 implies: project the crossing edge's transport kind (and event name where
+  known) onto `TraceNode` so the collapsed row can name seams instead of only counting them.
 
 ### Parallel lane — R4 (separate session/worktree, any time)
 - Fixes 1–7 + 11–12 per R4 §1; primitives 8–10 wait for/coordinate with Batch E.
