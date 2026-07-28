@@ -9,7 +9,6 @@ import {
   entryKindCounts,
   namespaceCount,
   namespacesBySize,
-  publicTypeCount,
 } from '../library/library-surface.vm';
 
 @Component({
@@ -214,7 +213,6 @@ export class HomeTiles implements OnDestroy {
 
   /** D4.4 (F1) — library repos swap entry-metrics for surface-metrics. */
   protected readonly isLibrary = computed(() => this.session.mapResponse()?.isLibrary ?? false);
-  protected readonly surfaceTypes = computed(() => publicTypeCount(this.session.mapResponse()?.surface));
   protected readonly surfaceNamespaces = computed(() => namespaceCount(this.session.mapResponse()?.surface));
   protected readonly topNamespaces = computed(() => {
     const rows = namespacesBySize(this.session.mapResponse()?.surface, 6);
@@ -228,12 +226,8 @@ export class HomeTiles implements OnDestroy {
     return middleEllipsis(ns, 22, 'tail');
   }
 
-  protected readonly totalEntries = computed(() => this.session.entryGroups().reduce((n, g) => n + g.entries.length, 0));
-  protected readonly serviceCount = computed(() => this.topology().length);
-  /** Same archetype-aware noun as the identity strip (T6.1) — a monolith has projects. */
-  protected readonly projectNoun = computed(() =>
-    /microservice/i.test(this.session.mapResponse()?.archetype ?? '') ? 'services' : 'projects');
-  protected readonly wiredCount = computed(() => this.summary()?.entriesWithTarget ?? 0);
+  // S10 (D-E E1): `totalEntries`, `serviceCount`, `projectNoun`, `surfaceTypes` and `wiredCount`
+  // died with the tile footers that restated the identity strip's counts. The strip owns them now.
   protected readonly unwiredCount = computed(() => (this.summary()?.entries ?? 0) - (this.summary()?.entriesWithTarget ?? 0));
   protected readonly wired = computed(() => {
     const s = this.summary();

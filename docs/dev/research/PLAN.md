@@ -80,8 +80,17 @@
       `--stats`. Fixing the second uncovered a suppression: the whole Confidence Ledger was hidden
       on any entry-less repo, i.e. every library. **D-E…D-H and the C-1/C-2/C-3 + D-2/D-3/D-4
       sub-decisions remain OPEN** — they are the next session's work.
-- [ ] S10 — R3 continued: D-E…D-H · the C-1/C-2/C-3 + D-2/D-3/D-4 sub-decisions · render kernel
-      built AFTER the decisions it must serve · re-point `screenshot-gate.mts` as pages land
+- [~] S10 — R3 continued 2026-07-28. **D-E DECIDED + LANDED (E3 — the front page asks the
+      archetype's question), absorbing C-1 and D-2.** A library draws no canvas and leads with its
+      front doors; a CliTool leads with the command surface; a service keeps the canvas it earns.
+      E1's rule rides inside it (every fact stated once — eShop printed three of five headline
+      numbers twice), **E-1** moved `% verified` into the Confidence Ledger, and **E-2** put Home,
+      Atlas and START HERE on ONE ranking rule (`core/flow-ranking.ts`). Brief:
+      <https://claude.ai/code/artifact/973a85a7-5ac5-43e4-8446-05762d0bbe82>.
+      **Four defects fixed first, none needing a decision** — see the session log. **D-F/D-G/D-H
+      remain open**, with their evidence captured (owner: implement Home first).
+- [ ] S11 — R3 continued: D-F · D-G · D-H · C-2/C-3 + D-3/D-4 · render kernel built AFTER the
+      decisions it serves · re-point `screenshot-gate.mts` as pages land
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
 Session log (one line each: date · what closed · surprises):
@@ -418,6 +427,62 @@ Session log (one line each: date · what closed · surprises):
   `--format html --strict` exit 2 is the pre-existing one, unchanged since S2).
   Next: D-E…D-H and the open sub-decisions (C-1/C-2/C-3, D-2/D-3/D-4).
 
+- 2026-07-28 · S10 CLOSED (R3 D-E): **owner picked E3 — the front page asks the archetype's
+  question** — after a capture of all three archetype poles on the post-S9 engine. Brief:
+  <https://claude.ai/code/artifact/973a85a7-5ac5-43e4-8446-05762d0bbe82>. Landed: a library draws
+  no canvas and leads with front doors + namespaces; a CliTool leads with the command surface and
+  loses the Services toggle; a service keeps the canvas it earns. **E1's rule rides inside it** —
+  eShop printed three of five headline numbers twice forty pixels apart, the wiring fact three times
+  in two notations, types+projects a third time in the freshness tile; each fact now has one owner.
+  **E-1** moved `% verified` into the Confidence Ledger (the chip stays as the opener — S9's lesson
+  that no chip means no panel). **E-2** put Home, Atlas and START HERE on one rule
+  (`core/flow-ranking.ts`). Absorbs **C-1** whole and **D-2** (no canvas below three connected
+  boxes).
+  **Four defects were fixed BEFORE the brief, none needing a decision** (e0a4cac), and one of them
+  is the biggest single find of the strand: **`Insight.Severity` reached the wire as `"Warning"`
+  while the app keyed on `"warning"` and the MCP filtered on `"WARNING"`.** One field, three
+  spellings, two broken clients, silent in both — the Insights page had NEVER rendered its "Act on
+  this" group on any repo, security warnings drew the info-blue border, Home's triage list showed
+  only the row the app synthesises itself (hiding 18/18 unvalidated write endpoints and 36/43
+  anonymous endpoints behind a link), and `mcp stats.warnings` returned `[]` for every repo ever
+  analysed. **This is the variant S9's contract sweep cannot catch**: the field IS read, with the
+  wrong key. Wire spelling is now lowercase, pinned by `ProtoMapperSeverityTests` (one test runs the
+  MCP's own predicate). Also fixed: the `NotApplicable` sentinel printing as GitVersion's style
+  chip; A-4's middle-ellipsis never having reached the Studio picker (ELEVEN rows read
+  `/api/catalog/i…`), now a shared helper that takes a bias because a route distinguishes itself at
+  the TAIL and a type name at the HEAD; and a selected picker row carrying `bg-hover`, the same
+  class hover sets.
+  **The regression E-2 uncovered:** START HERE offered `Trace [RelayCommand]
+  CheckoutViewModel.CheckoutAsync` on eShop — a MAUI mobile command as the way into a twelve-service
+  backend. Its own comment records why the checkout special case was safe when written (every
+  checkout-titled entry was then a 1-hop client command that could not clear the ≥4-node gate) and
+  states the intent (`"Trace POST /api/orders/draft" is the story a first visit should open on`).
+  **Batches A–E made the comment false** and the special case began beating the preference it
+  existed to protect. Now reads `Trace POST /api/orders/`. **Look for other thresholds calibrated on
+  pre-Batch-A data.**
+  **Two stale premises died in the capture** before costing anything: rail badges have not replaced
+  their icons since M7.4 (D-H), and a picker row click has always called `toggleEntry` (D-G).
+  **Traps:** (1) **the backtick-in-an-HTML-comment trap fired a THIRD time**, and this time it was
+  invisible — `pnpm ng build` piped through `grep -E` for error markers looked clean because esbuild
+  emits ANSI colour codes before the `✘`, so a dead dev server was the only symptom. **Check `$?`.**
+  (2) the drifted-working-directory trap (S7's) fired twice; every `node scripts/…` needs an
+  absolute `cd` in the same command. (3) my own driver was wrong twice and the app right both times
+  — "no warnings" is not "no Act-on-this group" (notable belongs there too), and comparing a picker
+  row's label span alone reported GET/PUT/DELETE on one route as a collision because the method is a
+  sibling span. Measure the thing the reader sees.
+  **Verdicts:** app 120 · server 30 (3 new) · `s10-verify-home.mts` PASS on all three archetypes ·
+  `s10-verify-triage.mts` PASS on both poles · `s9-verify-honesty.mts` still PASS after its chip
+  rename (it opened the ledger by clicking a chip that read "verified"). Full battery
+  **GATE: PASS** — `gates-s10-close.txt`, exit 0, every step green including **Step 1a contract
+  sweep** and **Step 2b MCP QA**; Step 4's `--format html --strict` exit 2 is the pre-existing one,
+  unchanged since S2. **Cited with a second log on purpose:** five computeds died with the tile
+  footers that used to restate the strip's counts, and that deletion landed AFTER the full run's
+  Step 2 — so `gates-s10-close-app.txt` (`-Scope app`, exit 0) covers the final tree's app state,
+  and the engine was untouched by it. S9's rule, applied to my own change: a verdict that does not
+  cover the change it is cited for is not a verdict.
+  Next: S11 — D-F (insight dedup, engine-side so CLI+MCP benefit) · D-G (Studio default state + the
+  picker-label design call) · D-H/D-4 (three "service" vocabularies on the Atlas page) · C-2/C-3/D-3.
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -556,6 +621,26 @@ Session log (one line each: date · what closed · surprises):
 - **Worth a sweep before D-E**: three fields in this strand were dead by construction (the kind
   glyph, `scope_note`, `ArchetypeView`) — the engine computes, the CLI renders, the app never reads.
   Check what else `MapResponse` carries that no component consumes.
+
+### S10 — R3 continued (owner-interactive) — ~~D-E~~ **DECIDED + LANDED 2026-07-28**
+- ~~D-E (Home)~~ **DECIDED: E3** — the body is chosen by archetype. Absorbs **C-1** (a library is no
+  longer asked what runs) and **D-2** (below three connected boxes, no canvas at all — a clamp only
+  frames emptiness better). Sub-decisions **E-1** (`% verified` → the ledger) and **E-2** (one
+  ranking rule) decided with it; **E-3** answered by E3 itself. See DECISIONS.md.
+- **Left for S11**: D-F (insight dedup — three overlapping auth findings on eShop, and the fix
+  belongs at the engine so CLI+MCP get it too), D-G (the Studio's default state, and picker rows
+  that are still not unique — a design call, see below), D-H (largely stale; the live find is D-4),
+  plus C-2 (Atlas's empty sections on a library), C-3, D-3 (**engine work**).
+- **The D-G finding S10 could not fix without a decision**: after the truncation fix, eShop's picker
+  still shows five `OrderStatusChangedTo*EventHandler`s that agree on their last 18 characters, and
+  three `GET /Account` actions the engine DOES disambiguate (`[Logout]`, `[AccessDenied]`) in data
+  the row drops. No truncation setting separates them — the answers are showing the target member,
+  widening the column, or two-line rows. `s10-verify-triage.mts` prints them as `D-G evidence` on
+  every run and hard-fails only on ROUTE collisions, which are zero.
+- **Standing trap, now 3-for-3**: a backtick inside an HTML comment terminates the Angular template
+  literal. It fired again in `home-tiles.ts`. Worse, it was invisible: `pnpm ng build` piped through
+  a `grep -E` for error markers looked CLEAN, because esbuild prints ANSI colour codes before the
+  `✘`. **Check `$?`, never the filtered output.**
 
 ### Parallel lane — R4 (separate session/worktree, any time)
 - Fixes 1–7 + 11–12 per R4 §1; primitives 8–10 wait for/coordinate with Batch E.
