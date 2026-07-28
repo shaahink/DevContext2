@@ -440,7 +440,14 @@ describe('ContextStudio', () => {
     studio.selectedFormat.set('json');
     const json = studio.previewText();
     expect(json).toContain('"markdown"');
-    expect(json).toBe(studio.buildContext('json'));
+    // S5: this asserted byte equality against a SECOND buildContext('json') call, which re-stamps
+    // `generatedAt: new Date()`. It therefore passed only when both calls landed in the same
+    // millisecond — a flake the S5 close battery caught on a 1ms boundary. The property under test is
+    // that the preview IS the export string, so compare everything except the stamp, and check the
+    // stamp separately. (Copy and Save both read previewText(), so the product is byte-exact.)
+    const withoutStamp = (s: string | null) => s?.replace(/"generatedAt": "[^"]+"/, '"generatedAt": "*"');
+    expect(withoutStamp(json)).toBe(withoutStamp(studio.buildContext('json')));
+    expect(json).toMatch(/"generatedAt": "\d{4}-\d{2}-\d{2}T/);
     // Format is presentation, not scope — switching must not re-pack.
     expect(getContextPack).toHaveBeenCalledTimes(1);
   });

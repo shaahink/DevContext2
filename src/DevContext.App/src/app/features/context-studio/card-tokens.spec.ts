@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { allCardsPriced, cardTokens, totalCardTokens } from './card-tokens';
 import type { ContextCard } from './composition-view';
 
