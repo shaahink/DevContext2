@@ -1,0 +1,6 @@
+﻿{
+  "repo": "eval-repos/TodoApi",
+  "note": "S3 widen pole (Batch B). Small modern API+web pair (TodoApp.sln, 40 cs files). Batch B acceptance pole #2, independent of eShop: Todo.Web/Server registers AddHttpClient<AuthClient> with BaseAddress http://todoapi, and the AppHost declares AddProject<Projects.Todo_Api>(todoapi) plus todo-web-server.WithReference(todoapi) - so ONE pair is named by both a client registration and a deployment reference. Declared truth: http = 1 and aspire = 0, because the specific transport link is emitted first and an edge keeps its first claimant tag. An aspire count of 1 in this row would mean that precedence broke.",
+  "transports": { "http": { "min": 1, "max": 2 } },
+  "style": { "archetype": "App", "styles": ["MinimalApi"] }
+}

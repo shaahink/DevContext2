@@ -1,6 +1,7 @@
-{
+﻿{
   "repo": "eval-repos/GitVersion",
-  "note": "CliTool pole (octet-pinned archetype since Prism D1.1d). DC7 verified defect: EmptyRepositoryFixture(602) dominates the wiring graph - hub-sanity default deny pattern must catch it (RED until Batch C ProjectClassifier fixtures). DC8 probe repo: F10 insight sees 1 command on a many-command tool.",
+  "note": "CliTool pole (octet-pinned archetype since Prism D1.1d). DC7 verified defect: EmptyRepositoryFixture(602) dominates the wiring graph - hub-sanity default deny pattern must catch it (RED until Batch C ProjectClassifier fixtures). DC8 probe repo: F10 insight saw 1 command on a many-command tool. S1 probe answer: the legacy CLI is a hand-rolled ArgumentParser with no command classes (the 1 entry IS the B4 Main fallback), while new-cli declares 5 commands - calculate, config, normalize, output, test - via its OWN [Command(name, description)] attribute plus a source generator, which E7 rightly refuses to match on interface name. Batch B item 3 detects the ATTRIBUTE pattern, so entries must reach those 5 verbs on top of the legacy Main fallback.",
   "transports": {},
+  "entryTargets": { "minEntries": 5 },
   "style": { "archetype": "CliTool" }
 }

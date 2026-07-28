@@ -20,7 +20,10 @@ export function classifyTransport(tag: string): TransportEdgeVisual {
   if (t.includes('grpc')) return { label: 'gRPC', cls: 'gRPC' };
   if (/queue|bus|rabbit|kafka|masstransit|nservicebus|servicebus|sqs/.test(t)) return { label: 'queue', cls: 'queue' };
   if (/event/.test(t)) return { label: 'event', cls: 'event' };
-  if (/http|rest|typed-client/.test(t)) return { label: 'HTTP', cls: 'HTTP' };
+  if (/http|rest|typed-client|refit/.test(t)) return { label: 'HTTP', cls: 'HTTP' };
+  // An Aspire AppHost reference is a deployment fact, not a protocol: A is handed B's address at
+  // startup. Labelled for what it is rather than guessed into a transport class.
+  if (t.includes('aspire')) return { label: 'apphost', cls: 'other' };
   return { label: tag.length > 12 ? tag.slice(0, 11) + '…' : tag, cls: 'other' };
 }
 

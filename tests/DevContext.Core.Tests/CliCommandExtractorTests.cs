@@ -99,6 +99,50 @@ public sealed class CliCommandExtractorTests
         Assert.Empty(result.Detections.OfType<CliCommandDetection>());
     }
 
+    [Fact]
+    public async Task CommandAttribute_WithVerb_DetectsCommandAndSettings()
+    {
+        // Batch B (DC8 probe answer): GitVersion's new CLI declares every command with its OWN
+        // [Command("output", ...)] attribute against its OWN ICommand<TSettings>, wired by a source
+        // generator. E7 refuses the interface name — correctly — so the verb string is the evidence.
+        var result = await RunExtractorOnSourceAsync(
+            "OutputCommand.cs",
+            """
+            namespace GitVersion.Commands;
+
+            [Command("output", "Outputs the version object.")]
+            public class OutputCommand(ILogger<OutputCommand> logger) : ICommand<OutputSettings>
+            {
+                public Task<int> InvokeAsync(OutputSettings settings, CancellationToken ct = default)
+                    => Task.FromResult(0);
+            }
+            """);
+
+        var detection = Assert.Single(result.Detections.OfType<CliCommandDetection>());
+        Assert.Equal("OutputCommand", detection.CommandType);
+        Assert.Equal("output", detection.CommandName);
+        Assert.Equal("OutputSettings", detection.SettingsType);
+        Assert.Equal("InvokeAsync", detection.ExecuteMethod);
+    }
+
+    [Fact]
+    public async Task CommandAttribute_WithoutVerbString_IsNotDetected()
+    {
+        // The verb string is what makes the attribute unambiguous. A bare [Command] on an
+        // ICommand-ish type is exactly the name-only evidence E7 exists to reject.
+        var result = await RunExtractorOnSourceAsync(
+            "ToolbarAction.cs",
+            """
+            [Command]
+            public sealed class ToolbarAction : ICommand
+            {
+                public void Execute(object parameter) { }
+            }
+            """);
+
+        Assert.Empty(result.Detections.OfType<CliCommandDetection>());
+    }
+
     private static async Task<DiscoveryModel> RunExtractorOnSourceAsync(string fileName, string source)
     {
         var fs = new FakeFileSystem();

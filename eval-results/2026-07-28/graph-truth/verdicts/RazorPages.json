@@ -1,0 +1,124 @@
+﻿{
+    "repo":  "RazorPages",
+    "run":  "2026-07-28 01:29:03",
+    "wallSec":  63.5,
+    "snapshotCache":  "HIT · d46a8f3",
+    "nodeCount":  33,
+    "edgeCount":  27,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: StudentsController.Edit(7), SchoolContext(6), StudentsController.DeleteConfirmed(5), StudentsController.Create(4), SchoolContext.SingleOrDefaultAsync(4)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "StudentsController.Edit",
+                                                                       "id":  "Member:ContosoUniversity.Controllers.StudentsController::Edit",
+                                                                       "degree":  7
+                                                                   },
+                                                                   {
+                                                                       "title":  "SchoolContext",
+                                                                       "id":  "Type:ContosoUniversity.SchoolContext",
+                                                                       "degree":  6
+                                                                   },
+                                                                   {
+                                                                       "title":  "StudentsController.DeleteConfirmed",
+                                                                       "id":  "Member:ContosoUniversity.Controllers.StudentsController::DeleteConfirmed",
+                                                                       "degree":  5
+                                                                   },
+                                                                   {
+                                                                       "title":  "StudentsController.Create",
+                                                                       "id":  "Member:ContosoUniversity.Controllers.StudentsController::Create",
+                                                                       "degree":  4
+                                                                   },
+                                                                   {
+                                                                       "title":  "SchoolContext.SingleOrDefaultAsync",
+                                                                       "id":  "Member:ContosoUniversity.SchoolContext::SingleOrDefaultAsync",
+                                                                       "degree":  4
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/3 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  3,
+                                                        "withTarget":  3,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.62
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "12 slns on disk silently scoped to one analysis (622 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  12,
+                                                     "slnNames":  [
+                                                                      "aspnetcore\\data\\entity-framework-6\\3.xsample\\MVCCore.sln",
+                                                                      "aspnetcore\\data\\entity-framework-6\\sample\\EF6MVCCore.sln",
+                                                                      "aspnetcore\\fundamentals\\openapi\\samples\\10.x\\aspnet-openapi-xml\\aspnet-openapi-xml.sln",
+                                                                      "aspnetcore\\fundamentals\\owin\\sample\\OwinSample.sln",
+                                                                      "aspnetcore\\mvc\\views\\dependency-injection\\sample\\ViewInjectSample.sln",
+                                                                      "aspnetcore\\razor-pages\\ui-class\\samples\\cli\\RazorUIClassLib\\RazorUIClassLib.sln",
+                                                                      "aspnetcore\\security\\authentication\\social\\additional-claims\\samples\\6.x\\ClaimsSample\\WebGoogOauth.slnx",
+                                                                      "aspnetcore\\security\\ip-safelist\\samples\\2.x\\AspNetCore2.x.sln",
+                                                                      "aspnetcore\\security\\ip-safelist\\samples\\3.x\\AspNetCore3.x.sln",
+                                                                      "aspnetcore\\signalr\\background-service\\samples\\6.0\\SignalRBackgroundServiceSample6.sln"
+                                                                  ],
+                                                     "analyzedProjects":  622
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

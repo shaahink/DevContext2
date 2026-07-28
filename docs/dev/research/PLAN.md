@@ -36,7 +36,10 @@
       SymbolTable · one compilation · NameResolver collapsed · seam production gate) · matrix cells
       flipped as declared + 4 hypothesis corrections (MATRIX.md §Batch A CLOSE) · battery+bench
       verdicts recorded in session log below
-- [ ] S3 — Batch B landed · battery green · matrix widened to 22 repos
+- [x] S3 — CLOSED 2026-07-28: Batch B landed (transport client registrations · Aspire topology ·
+      [Command] verb detection · external-target policy) · matrix widened to **23** poles (2 PLAN-listed
+      repos were duplicates on disk — swapped, see MATRIX §Widen-set deviations; +1 `gitversion-new-cli`
+      pole) · battery + bench verdicts in the session log below
 - [ ] S4 — Batch C landed · battery green · matrix widened to 32 repos
 - [ ] S5 — Batch D landed · Batch E landed · battery green ×2 · matrix = full 47 · loop-until-dry
       confirmed (no new DC class in last 10 repos)
@@ -82,6 +85,40 @@ Session log (one line each: date · what closed · surprises):
   vitest-contention noise, superseded by 2348). Next: S3 Batch B (R2 §2.B) transports+joins,
   informed by the S1 DC3/DC8 probe answers; declare Batch B acceptance at open + widen matrix to 22.
 
+- 2026-07-28 · S3 CLOSED (Batch B): three of R2 §2.B's four items built, the fourth deliberately not.
+  **Transport client links** — `AddGrpcClient<T>` / typed `AddHttpClient<T>` / `AddRefitClient<T>` now
+  mint a `TransportClientDetection` carrying the type argument AND the configured address (the DC3
+  root cause: the generic `Add*` branch read args[0], the config lambda, and threw the type argument
+  away). New `ServiceAddressBook` resolves an address host to a project: AppHost resource table first
+  (`http://basket-api` → `Projects.Basket_API` → Basket.API), then normalized project-name match
+  (`todoapi` ≡ `Todo.Api`), ambiguity → nothing (Batch A's rule). Injection site fixed too: file-local
+  `using` aliases expanded, which is what hid eShop's `GrpcBasketClient`. **Aspire topology** —
+  resources were detected and thrown away, and `WithReference`'s direction was read BACKWARDS (args[0]
+  as source), so every relationship pointed at "?"; now project→project ServiceLinks + Store nodes
+  with DependsOn edges. **CLI** — `[Command("verb")]` attribute detection (E7 stands: the verb string
+  is the evidence, never the interface name), verb-first entry titles. **Channel<T> NOT built** —
+  R2 conditions it on "if cheap"; naming a channel's producer/consumer is BodyFacts trace-seam work.
+  Results: eShop transport FAIL→PASS (grpc 1, http 3, aspire 10, **bus held at exactly 9**), TodoApi
+  SKIP→PASS (http 1, aspire 0 — the tag-precedence proof), canary + all must-not-worsen numbers exact,
+  both single-project false-positive guards clean. **GitVersion's declared entries≥5 cell did NOT
+  flip** — the detection is right (the new `new-cli` pole reads all 5 verbs) but the whole-repo
+  analysis drops every new-cli type: DC6, so it becomes a Batch C acceptance cell. Surprises: (1) a
+  self-inflicted perf regression caught by the matrix's big poles — the alias lookup walked every
+  node of every file in any gRPC-package repo (RazorPages 62→119s); made lazy, restored to 63.5s, and
+  the same pre-existing waste in `CliCommandExtractor` fixed with it; (2) eShop's AppHost declares a
+  deliberate Identity↔apps reference CYCLE (its own comment says so) — 10 aspire links is truth, not
+  a direction bug; (3) two PLAN-listed widen repos were duplicates already in the matrix
+  (VerticalSlice ≡ CleanArchitecture, Functions ≡ AzureFunctions) — swapped for wolverine +
+  company-functions so 23 rows mean 23 repos. CLOSE VERDICTS: full battery **GATE: PASS unqualified**
+  (gates-s3-close3.txt, exit 0, all 8 steps — needed a detached run because the agent harness kills
+  background commands at 10 min and the battery runs longer; no step ever failed, and the
+  `--format html --strict` exit 2 inside Step 4 is pre-existing, byte-identical in the S2 log) ·
+  bench PERF-2026-07-28-0141 DntSite Map
+  26.3s / OrchardCore 15.0s — 24% and 51% under the PERF-2026-07-18-1346 baseline, within noise of
+  Batch A's numbers (GraphAssembly 266ms). Full grid + acceptance diff + scope decisions:
+  `eval-results/2026-07-28/graph-truth/MATRIX.md`. Next: S4 Batch C (R2 §2.C) — declare acceptance at
+  open, widen matrix to ~32.
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -122,8 +159,21 @@ Session log (one line each: date · what closed · surprises):
 ### S4 — Batch C: entry quality + classification + scope (R2 §2.C)
 - Items 1–4 as written (primary-call pick, multi-sln explicit scope + `--sln` flag, ProjectClassifier
   fixtures, style verdicts suppressed at detector).
-- Close: battery + matrix widened to 32 (add: wolverine, Hangfire, Quartz.NET, Orleans, MediatR,
-  Serilog, AutoMapper, Newtonsoft.Json, refit, RestSharp). Declare acceptance at open.
+- **Inherited acceptance cells from S3 (already declared, do not re-litigate):**
+  - `GitVersion` entry-target must reach ≥5 entries **with no engine change** — item 2's explicit sln
+    scope is the whole fix; the `[Command]` detection already works (see the `gitversion-new-cli` pole).
+  - `CleanArchitecture` handler-join residue (5 unhandled: the template's own Create/Delete/Update/
+    Get/List Contributor set) — root-cause once the 4-sln swallow stops contaminating handler detection.
+  - `wolverine` handler-join (`Envelope` read as a dispatched request — non-MediatR dispatcher) and the
+    SignalR/YARP/wolverine dup-name residues need per-edge verification before any expectation relaxes.
+  - `_dataAccessNoiseMethods` + `IsObjectNoiseMethod` deny-lists: Batch A kept them pending item 1's
+    primary-call work — re-test redundancy here.
+- Instrument note carried from S3: hub-sanity has no signal on small graphs (a degree-1 node lands in
+  the "top 5" of a 67-node graph) — a minimum-degree floor is the fix.
+- Close: battery + matrix widened to ~32 (wolverine is already in; add: Hangfire, Quartz.NET, Orleans,
+  MediatR, Serilog, AutoMapper, Newtonsoft.Json, refit, RestSharp + one replacement for wolverine).
+  Verify candidate repos are not duplicates of existing poles before declaring them. Declare
+  acceptance at open.
 
 ### S5 — Batch D then Batch E (R2 §2.D + §2.E)
 - Batch D (mechanical hygiene/perf): land, launch full battery DETACHED, immediately start Batch E

@@ -1,0 +1,124 @@
+﻿{
+    "repo":  "gRPC",
+    "run":  "2026-07-28 01:26:18",
+    "wallSec":  16.9,
+    "snapshotCache":  "HIT · be802f5",
+    "nodeCount":  835,
+    "edgeCount":  495,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "grpc=0 below min 1",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: IServerStreamWriter.WriteAsync(28), AsyncCallState(14), ConsoleService(13), GrpcCall(13), IAsyncStreamReader.ReadAllAsync(12)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IServerStreamWriter.WriteAsync",
+                                                                       "id":  "Member:Grpc.Core.IServerStreamWriter`1::WriteAsync",
+                                                                       "degree":  28
+                                                                   },
+                                                                   {
+                                                                       "title":  "AsyncCallState",
+                                                                       "id":  "Type:Grpc.Core.AsyncCallState",
+                                                                       "degree":  14
+                                                                   },
+                                                                   {
+                                                                       "title":  "ConsoleService",
+                                                                       "id":  "Type:Grpc.Dotnet.Cli.Internal.ConsoleService",
+                                                                       "degree":  13
+                                                                   },
+                                                                   {
+                                                                       "title":  "GrpcCall",
+                                                                       "id":  "Type:Grpc.Net.Client.Internal.GrpcCall`2",
+                                                                       "degree":  13
+                                                                   },
+                                                                   {
+                                                                       "title":  "IAsyncStreamReader.ReadAllAsync",
+                                                                       "id":  "Member:Grpc.Core.IAsyncStreamReader`1::ReadAllAsync",
+                                                                       "degree":  12
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/6 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  7,
+                                                        "withTarget":  6,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.73
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "30 slns on disk silently scoped to one analysis (106 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  30,
+                                                     "slnNames":  [
+                                                                      "examples\\Aggregator\\Aggregator.slnx",
+                                                                      "examples\\Blazor\\Blazor.slnx",
+                                                                      "examples\\Browser\\Browser.slnx",
+                                                                      "examples\\Certifier\\Certifier.slnx",
+                                                                      "examples\\Channeler\\Channeler.slnx",
+                                                                      "examples\\Coder\\Coder.slnx",
+                                                                      "examples\\Compressor\\Compressor.slnx",
+                                                                      "examples\\Container\\Container.slnx",
+                                                                      "examples\\Counter\\Counter.slnx",
+                                                                      "examples\\Definer\\Definer.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  106
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  32,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

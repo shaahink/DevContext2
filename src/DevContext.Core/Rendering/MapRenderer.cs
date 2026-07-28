@@ -343,6 +343,8 @@ public static class MapRenderer
                 ServiceLinkTags.Grpc => "gRPC",
                 ServiceLinkTags.HttpViaGateway => "http/via gateway",
                 ServiceLinkTags.RefitDirect => "refit/direct",
+                ServiceLinkTags.HttpDirect => "http/direct",
+                ServiceLinkTags.AspireReference => "apphost reference",
                 _ => group.Key,
             };
             sb.AppendLine($"  {label} ({group.Count()})");
@@ -357,6 +359,8 @@ public static class MapRenderer
                 ServiceLinkTags.Grpc => "gRPC",
                 ServiceLinkTags.HttpViaGateway => "http",
                 ServiceLinkTags.RefitDirect => "refit",
+                ServiceLinkTags.HttpDirect => "http",
+                ServiceLinkTags.AspireReference => "apphost",
                 _ => "?",
             };
             var fromNode = graph.Node(sl.From);

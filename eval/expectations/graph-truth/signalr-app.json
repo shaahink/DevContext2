@@ -1,0 +1,6 @@
+﻿{
+  "repo": "eval-repos/signalr-app",
+  "note": "S3 widen pole (Batch B). Minimal SignalR app (1 cs file + Hubs/, single project, no sln). Being single-project, no cross-service transport of any kind is possible - a non-zero count in ANY transport column here is a false link, which makes this row the false-positive guard for Batch B new emitters. Baseline 2026-07-28: 5 nodes, 1 entry (ChatHub, whose 2 hub methods are nodes but not entries - an open entry-surface question, not a Batch B cell).",
+  "transports": {},
+  "style": { "archetype": "App" }
+}

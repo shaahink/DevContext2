@@ -17,9 +17,12 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             if (!seen.Add(cmd.CommandType)) continue;
 
             // B4 (D1.1d): plain-Main fallback entries carry no settings type — title is the exe itself.
-            var title = cmd.SettingsType.Length > 0
-                ? $"{cmd.CommandType} —settings {cmd.SettingsType}"
-                : $"{cmd.CommandType} (Main)";
+            // Batch B: a declared verb leads, because that is what the user types.
+            var title = cmd.CommandName is { Length: > 0 } verb
+                ? $"{verb} ({cmd.CommandType})"
+                : cmd.SettingsType.Length > 0
+                    ? $"{cmd.CommandType} —settings {cmd.SettingsType}"
+                    : $"{cmd.CommandType} (Main)";
             var id = NodeId.ForEntry($"cli:{cmd.CommandType}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = cmd.SourceFile, LineNumber = cmd.LineNumber });
 

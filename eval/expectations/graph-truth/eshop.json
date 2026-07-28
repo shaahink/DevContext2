@@ -1,7 +1,12 @@
-{
+﻿{
   "repo": "eval-repos/eShop",
-  "note": "Microservices+Aspire pole. Ground truth 2026-07-27 (R1 audits): integration events cross services (13 MessageConsumers); WebApp registers a Basket gRPC client (AddGrpcClient<Basket.BasketClient>); WebApp->Catalog/Ordering HTTP typed clients exist. Expected RED at baseline: grpc+http (DC3 sync-transport hole), handler-join (DC1 IdentifiedCommand<T,R> arity erasure), entry-target (DC4 ClientApp RelayCommand->IAppEnvironmentService). Batch A correction (2026-07-27, evidence in MATRIX.md): dup-name residue 1 = the IProductImageUrlProvider [WebAppComponents] -> ProductImageUrlProvider [WebApp] DI Resolves edge - REAL cross-project wiring (shared-components interface, per-app impl), not resolver noise; maxCrossTypes 1 encodes it.",
-  "transports": { "bus": { "min": 1 }, "grpc": { "min": 1 }, "http": { "min": 1 } },
+  "note": "Microservices+Aspire pole. Ground truth 2026-07-27 (R1 audits): integration events cross services (13 MessageConsumers); WebApp registers a Basket gRPC client (AddGrpcClient<Basket.BasketClient>); WebApp->Catalog/Ordering HTTP typed clients exist. Batch A correction (evidence in 07-27 MATRIX.md): dup-name residue 1 = the IProductImageUrlProvider [WebAppComponents] -> ProductImageUrlProvider [WebApp] DI Resolves edge - REAL cross-project wiring, not resolver noise. Batch B (S3): bus is PINNED at exactly 9 - it is a declared must-not-move, and since an edge keeps the tag of whoever claims a (from,to,kind) triple first, pinning it is what proves the new sync-transport emitters never stole a pair from the verified publish->consume join. grpc/http mins are the DC3 flip (AddGrpcClient<Basket.BasketClient> -> Basket.API; AddHttpClient<CatalogService|OrderingService> -> Catalog.API/Ordering.API), all resolved through the AppHost resource table: http://basket-api names Projects.Basket_API in the repo own words. aspire counts project-to-project WithReference/WithEnvironment links.",
+  "transports": {
+    "bus": { "min": 9, "max": 9 },
+    "grpc": { "min": 1, "max": 2 },
+    "http": { "min": 2, "max": 6 },
+    "aspire": { "min": 3, "max": 30 }
+  },
   "entryTargets": { "maxDiInterfacePct": 10 },
   "dupNames": { "maxCrossTypes": 1 },
   "style": { "archetype": "App", "styles": ["Microservices"] }

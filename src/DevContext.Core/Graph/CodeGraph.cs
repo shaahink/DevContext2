@@ -50,6 +50,11 @@ public static class RoleTags
     /// pure plumbing — entry targets name the implementation, never the bare interface. Domain
     /// ports (AddScoped bindings) keep their interface-as-contract display.</summary>
     public const string HttpClientBinding = "http-client-binding";
+    /// <summary>Batch B (DC3): marks a Service node that is NOT in the solution — the target of a
+    /// transport client whose address resolves to no analyzed project (a third-party API, or a
+    /// service that lives in another repo). Renderers draw these dashed: the seam is real, the
+    /// implementation is out of scope.</summary>
+    public const string External = "external";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport
@@ -60,6 +65,15 @@ public static class ServiceLinkTags
     public const string Grpc = "grpc";
     public const string HttpViaGateway = "http-via-gateway";
     public const string RefitDirect = "refit-direct";
+    /// <summary>Batch B (DC3): a typed HttpClient registered straight at a service address, with no
+    /// gateway in between (eShop's <c>AddHttpClient&lt;CatalogService&gt;(o =&gt; o.BaseAddress = ...)</c>).
+    /// Counted as HTTP alongside <see cref="HttpViaGateway"/>; kept distinct because "via gateway"
+    /// is a claim about topology this seam cannot make.</summary>
+    public const string HttpDirect = "http-direct";
+    /// <summary>Batch B — a deployment-level reference declared in an Aspire AppHost
+    /// (<c>WithReference</c>): service A is handed B's address at startup. Weaker evidence than a
+    /// client registration, so transport-specific links are emitted FIRST and win the pair.</summary>
+    public const string AspireReference = "aspire-reference";
 }
 
 /// <summary>The kind of a directed edge. Each maps to a trace "seam". Direction is always caller→callee

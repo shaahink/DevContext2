@@ -1,0 +1,5 @@
+﻿{
+  "repo": "eval-repos/Blazor",
+  "note": "S3 widen pole (Batch B). Blazor docs sample tree (939 cs files, 70 slns on disk, 142 projects analyzed). Baseline 2026-07-28 headline (DC8 breadth, not a Batch B cell): the entire analysis renders as 12 nodes / 4 edges / 2 entries - Blazor components produce almost no graph. Recorded so the entry-surface work has a pinned before-number.",
+  "style": { "archetype": "App", "styles": ["SampleCollection"] }
+}

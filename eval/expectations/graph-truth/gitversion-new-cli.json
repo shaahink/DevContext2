@@ -1,0 +1,8 @@
+﻿{
+  "repo": "eval-repos/GitVersion/new-cli",
+  "note": "S3 pole added 2026-07-28 (Batch B item 3). GitVersion new-cli analyzed on its own, because the full-repo GitVersion row CANNOT show the command tree: that analysis scopes to the src/ sln tree and drops every new-cli type (verified - ArgumentParser and GitVersionOptions are in the graph, CalculateCommand/OutputCommand/OutputSettings are not), which is DC6 and Batch C's to fix. This pole measures the [Command(verb)] attribute detection directly: the 5 declared verbs are calculate, config, normalize, output, test. GitVersion.json keeps its own minEntries 5 cell RED on purpose - it is the honest signal that a real tool surface is still invisible in the whole-repo read. hubs.allow: this tool has a command literally named test, so the entry node 'test (TestCommand)' trips the fixture deny pattern by NAME while being ordinary production code. Instrument limitation recorded with it: on a 20-node graph a degree-1 node lands in the top 5, so hub-sanity carries no signal at this scale - a minimum-degree floor is the real fix (S4 instrument note).",
+  "transports": {},
+  "entryTargets": { "minEntries": 5 },
+  "hubs": { "allow": ["test (TestCommand)"] },
+  "style": { "archetype": "CliTool" }
+}

@@ -21,6 +21,7 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(DesktopEntryDetection), "DesktopEntryDetection")]
 [JsonDerivedType(typeof(GrpcServiceDetection), "GrpcServiceDetection")]
     [JsonDerivedType(typeof(GrpcClientDetection), "GrpcClientDetection")]
+[JsonDerivedType(typeof(TransportClientDetection), "TransportClientDetection")]
     [JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
 [JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
 [JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
@@ -173,6 +174,26 @@ public sealed record GrpcServiceDetection(
     ImmutableArray<string> Methods
 ) : Detection, IEntrySurfaceDetection;
 
+/// <summary>Batch B (DC3) — detection for a transport CLIENT REGISTRATION:
+/// <c>AddGrpcClient&lt;T&gt;</c>, typed <c>AddHttpClient&lt;T&gt;</c> or <c>AddRefitClient&lt;T&gt;</c>,
+/// carrying the address the client was configured with. The registration site is the only place the
+/// TARGET service is named — the injection site sees just a client type, often behind a using-alias
+/// (eShop's <c>GrpcBasketClient</c>). <see cref="Address"/> is the raw configured value
+/// (e.g. <c>http://basket-api</c>, <c>https+http://catalog-api</c>) or null when none was literal.</summary>
+public sealed record TransportClientDetection(
+    string Transport,
+    string ClientType,
+    string? Address
+) : Detection;
+
+/// <summary>Transport kinds carried by <see cref="TransportClientDetection.Transport"/>.</summary>
+public static class TransportKinds
+{
+    public const string Grpc = "grpc";
+    public const string Http = "http";
+    public const string Refit = "refit";
+}
+
 /// <summary>Detection for a gRPC generated client type usage (injected XxxClient type).</summary>
 public sealed record GrpcClientDetection(
     string ClientType,
@@ -209,10 +230,14 @@ public sealed record GraphQlFieldDetection(
 ) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a CLI command handler (Spectre.Console.Cli / System.CommandLine).</summary>
+/// <param name="CommandName">Batch B — the verb this command is invoked as, when the tool declares
+/// one via a <c>[Command("output")]</c>-shaped attribute. Null for base-class-detected commands
+/// (the framework assembles the verb) and for the plain-Main fallback.</param>
 public sealed record CliCommandDetection(
     string CommandType,
     string SettingsType,
-    string ExecuteMethod
+    string ExecuteMethod,
+    string? CommandName = null
 ) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a Refit HTTP client interface (attributed with [Get]/[Post]/etc.).</summary>

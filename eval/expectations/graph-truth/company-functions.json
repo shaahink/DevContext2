@@ -1,0 +1,6 @@
+﻿{
+  "repo": "eval-repos/company-functions",
+  "note": "S3 widen pole (Batch B). Single-file isolated-worker Functions app. Second false-positive guard: no cross-service transport is possible here either. Baseline 2026-07-28 finding (DC8, NOT a Batch B cell): the app reads as App/MinimalApi with one GET / entry - the Functions trigger is invisible, the same class as functions-app 3-node graph. Style list deliberately left undeclared until the Functions entry surface is honest.",
+  "transports": {},
+  "style": { "archetype": "App" }
+}

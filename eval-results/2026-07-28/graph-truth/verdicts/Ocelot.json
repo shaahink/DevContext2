@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "Ocelot",
+    "run":  "2026-07-28 01:26:43",
+    "wallSec":  14.9,
+    "snapshotCache":  "HIT · 9fb9d9b",
+    "nodeCount":  758,
+    "edgeCount":  606,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: SetUpDownstreamRoute(37), IOcelotLogger(25), SetUpDynamicRoute(24), Create(21), IOcelotLoggerFactory(14)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "SetUpDownstreamRoute",
+                                                                       "id":  "Member:Ocelot.Configuration.Creator.StaticRoutesCreator::SetUpDownstreamRoute",
+                                                                       "degree":  37
+                                                                   },
+                                                                   {
+                                                                       "title":  "IOcelotLogger",
+                                                                       "id":  "Type:Ocelot.Logging.IOcelotLogger",
+                                                                       "degree":  25
+                                                                   },
+                                                                   {
+                                                                       "title":  "SetUpDynamicRoute",
+                                                                       "id":  "Member:Ocelot.Configuration.Creator.DynamicRoutesCreator::SetUpDynamicRoute",
+                                                                       "degree":  24
+                                                                   },
+                                                                   {
+                                                                       "title":  "Create",
+                                                                       "id":  "Member:Ocelot.Configuration.Creator.ConfigurationCreator::Create",
+                                                                       "degree":  21
+                                                                   },
+                                                                   {
+                                                                       "title":  "IOcelotLoggerFactory",
+                                                                       "id":  "Type:Ocelot.Logging.IOcelotLoggerFactory",
+                                                                       "degree":  14
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/4 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  4,
+                                                        "withTarget":  4,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Gateway/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "Gateway",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.79
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "7 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  7,
+                                                     "slnNames":  [
+                                                                      "samples\\Eureka\\OcelotEureka.sln",
+                                                                      "samples\\GraphQL\\OcelotGraphQL.sln",
+                                                                      "samples\\Kubernetes\\OcelotKube.sln",
+                                                                      "samples\\ServiceDiscovery\\Ocelot.Samples.ServiceDiscovery.sln",
+                                                                      "samples\\ServiceFabric\\Ocelot.Samples.ServiceFabric.sln",
+                                                                      "Ocelot.Samples.slnx",
+                                                                      "Ocelot.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  21
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

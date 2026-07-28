@@ -175,7 +175,7 @@ foreach ($Sel in $Selected) {
     $SendsEdges = New-Object "System.Collections.Generic.List[object]"
     $CrossEdges = New-Object "System.Collections.Generic.List[object]"
     $Degree = @{}
-    $Transports = [ordered]@{ bus = 0; grpc = 0; http = 0; refit = 0; other = 0 }
+    $Transports = [ordered]@{ bus = 0; grpc = 0; http = 0; refit = 0; aspire = 0; other = 0 }
     $HandlesCount = 0; $ConsumesCount = 0
     foreach ($e in $Graph["edges"]) {
         $from = [string]$e["from"]; $to = [string]$e["to"]; $kind = [string]$e["kind"]
@@ -190,8 +190,11 @@ foreach ($Sel in $Selected) {
                 if ($e.ContainsKey("tags") -and $e["tags"]) { $tag = [string]$e["tags"][0] }
                 if ($tag -like "bus-publish*") { $Transports.bus++ }
                 elseif ($tag -eq "grpc") { $Transports.grpc++ }
-                elseif ($tag -eq "http-via-gateway") { $Transports.http++ }
+                # S3/Batch B: a typed client registered straight at a service address is HTTP too --
+                # "via gateway" was never the only way to speak it, just the only way we could see.
+                elseif ($tag -eq "http-via-gateway" -or $tag -eq "http-direct") { $Transports.http++ }
                 elseif ($tag -eq "refit-direct") { $Transports.refit++ }
+                elseif ($tag -eq "aspire-reference") { $Transports.aspire++ }
                 else { $Transports.other++ }
             }
         }
@@ -203,7 +206,7 @@ foreach ($Sel in $Selected) {
     $c = $Checks["transport"]
     $c.metrics = [ordered]@{
         bus = $Transports.bus; grpc = $Transports.grpc; http = $Transports.http
-        refit = $Transports.refit; untagged = $Transports.other
+        refit = $Transports.refit; aspire = $Transports.aspire; untagged = $Transports.other
         eventWiringIntegration = [int](Get-Prop (Get-Prop $Kernel "eventWiring" $null) "integration" 0)
         eventWiringCrossService = [int](Get-Prop (Get-Prop $Kernel "eventWiring" $null) "crossService" 0)
     }
@@ -216,7 +219,8 @@ foreach ($Sel in $Selected) {
         Test-Range $Transports.grpc (Get-Prop $ExpTransports "grpc" $null) "grpc" $fails
         Test-Range $Transports.http (Get-Prop $ExpTransports "http" $null) "http" $fails
         Test-Range $Transports.refit (Get-Prop $ExpTransports "refit" $null) "refit" $fails
-        if ($fails.Count -eq 0) { $c.verdict = "PASS"; $c.detail = "bus=$($Transports.bus) grpc=$($Transports.grpc) http=$($Transports.http) refit=$($Transports.refit)" }
+        Test-Range $Transports.aspire (Get-Prop $ExpTransports "aspire" $null) "aspire" $fails
+        if ($fails.Count -eq 0) { $c.verdict = "PASS"; $c.detail = "bus=$($Transports.bus) grpc=$($Transports.grpc) http=$($Transports.http) refit=$($Transports.refit) aspire=$($Transports.aspire)" }
         else { $c.verdict = "FAIL"; $c.detail = $fails -join "; " }
     }
 
@@ -281,11 +285,16 @@ foreach ($Sel in $Selected) {
     }
     $DiPct = if ($WithTarget -gt 0) { [Math]::Round(100.0 * $DiTargets / $WithTarget, 1) } else { 0 }
     $MaxDiPct = [double](Get-Prop (Get-Prop $Expect "entryTargets" $null) "maxDiInterfacePct" 25)
+    # S3: an entry SURFACE that should exist but does not is a DC8 defect the quality ratio cannot
+    # see -- a tool with one entry scores a perfect 0% DI-interface targets. Declared per repo.
+    $MinEntries = [int](Get-Prop (Get-Prop $Expect "entryTargets" $null) "minEntries" 0)
     $c.metrics = [ordered]@{
         entries = $EntryList.Count; withTarget = $WithTarget; diInterfaceTargets = $DiTargets
-        diInterfacePct = $DiPct; sample = @($DiSamples)
+        diInterfacePct = $DiPct; minEntries = $MinEntries; sample = @($DiSamples)
     }
-    if ($EntryList.Count -eq 0) {
+    if ($EntryList.Count -lt $MinEntries) {
+        $c.verdict = "FAIL"; $c.detail = "$($EntryList.Count) entries detected, expected at least $MinEntries (entry surface missing -- DC8)"
+    } elseif ($EntryList.Count -eq 0) {
         $c.verdict = "SKIP"; $c.detail = "no entries detected (see style/DC8)"
     } elseif ($DiPct -le $MaxDiPct) {
         $c.verdict = "PASS"; $c.detail = "$DiTargets/$WithTarget targets are bare DI interfaces ($DiPct% <= $MaxDiPct%)"

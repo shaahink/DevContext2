@@ -1,0 +1,5 @@
+﻿{
+  "repo": "eval-repos/AzureFunctions",
+  "note": "S3 widen pole (Batch B). azure-functions-dotnet-worker framework repo (66 projects analyzed). NOTE: eval-repos/Functions is the same upstream repo duplicated on disk; only this copy is in the matrix (the PLAN listed both). Baseline 2026-07-28: 761 nodes / 497 edges but only 2 entries - Functions triggers stay invisible at framework scale too (DC8). Style list undeclared on purpose: a framework repo should not be assigned an app architecture style at all (Batch C item 4 suppresses those at the detector).",
+  "style": { "archetype": "Library" }
+}

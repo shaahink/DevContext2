@@ -13,6 +13,15 @@ describe('canvas semantics (D4.2 vocabulary)', () => {
     expect(classifyTransport('integration-event')).toEqual({ label: 'event', cls: 'event' });
   });
 
+  it('classifies the Batch B transport tags (sync clients + AppHost references)', () => {
+    // A typed client pointed straight at a service address is HTTP; refit is HTTP too.
+    expect(classifyTransport('http-direct')).toEqual({ label: 'HTTP', cls: 'HTTP' });
+    expect(classifyTransport('http-via-gateway')).toEqual({ label: 'HTTP', cls: 'HTTP' });
+    expect(classifyTransport('refit-direct')).toEqual({ label: 'HTTP', cls: 'HTTP' });
+    // An AppHost reference is a deployment fact, not a protocol — labelled, not guessed.
+    expect(classifyTransport('aspire-reference')).toEqual({ label: 'apphost', cls: 'other' });
+  });
+
   it('unknown tags stay verbatim (honesty over taxonomy), truncated when long', () => {
     expect(classifyTransport('carrier-pigeon')).toEqual({ label: 'carrier-pig…', cls: 'other' });
     expect(classifyTransport('ipc')).toEqual({ label: 'ipc', cls: 'other' });

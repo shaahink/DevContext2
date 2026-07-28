@@ -1,0 +1,5 @@
+﻿{
+  "repo": "eval-repos/YARP",
+  "note": "S3 widen pole (Batch B). YARP reverse-proxy repo (36 projects) - gateway pole. Archetype truth is declared as either Gateway or Library: the repo is a reverse-proxy toolkit whose samples are proxies, and both readings are defensible. Baseline 2026-07-28: 788 nodes / 434 edges / 10 entries; dup-name FAIL at 1 type (ForwarderMetricsConsumer [ReverseProxy.Code]) recorded but not accepted.",
+  "style": { "archetypes": ["Gateway", "Library"] }
+}

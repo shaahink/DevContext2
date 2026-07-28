@@ -1,0 +1,117 @@
+﻿{
+    "repo":  "GitVersion",
+    "run":  "2026-07-28 01:42:24",
+    "wallSec":  9.3,
+    "snapshotCache":  "HIT · 6476e5c",
+    "nodeCount":  610,
+    "edgeCount":  382,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: MainlineCommit(27), ILog(24), LambdaEqualityHelper(20), MainlineContext(20), ICommit(16)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "MainlineCommit",
+                                                                       "id":  "Type:GitVersion.VersionCalculation.Mainline.MainlineCommit",
+                                                                       "degree":  27
+                                                                   },
+                                                                   {
+                                                                       "title":  "ILog",
+                                                                       "id":  "Type:GitVersion.Logging.ILog",
+                                                                       "degree":  24
+                                                                   },
+                                                                   {
+                                                                       "title":  "LambdaEqualityHelper",
+                                                                       "id":  "Type:GitVersion.Helpers.LambdaEqualityHelper`1",
+                                                                       "degree":  20
+                                                                   },
+                                                                   {
+                                                                       "title":  "MainlineContext",
+                                                                       "id":  "Type:GitVersion.VersionCalculation.Mainline.MainlineContext",
+                                                                       "degree":  20
+                                                                   },
+                                                                   {
+                                                                       "title":  "ICommit",
+                                                                       "id":  "Type:GitVersion.Git.ICommit",
+                                                                       "degree":  16
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "1 entries detected, expected at least 5 (entry surface missing -- DC8)",
+                                        "metrics":  {
+                                                        "entries":  1,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  5,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "CliTool/Unknown",
+                                 "metrics":  {
+                                                 "archetype":  "CliTool",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "3 slns on disk silently scoped to one analysis (36 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  3,
+                                                     "slnNames":  [
+                                                                      "build\\CI.slnx",
+                                                                      "new-cli\\GitVersion.slnx",
+                                                                      "src\\GitVersion.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  36
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  78,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

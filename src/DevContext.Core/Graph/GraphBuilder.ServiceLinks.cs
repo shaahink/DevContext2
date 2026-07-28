@@ -1,3 +1,4 @@
+using DevContext.Core.Extractors.Specific;
 using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
 using DevContext.Core.Graph2.Seams;
@@ -217,6 +218,128 @@ public sealed partial class GraphBuilder
             }
         }
     }
+
+    /// <summary>Batch B (DC3) — ServiceLinks from transport client REGISTRATIONS. The registration is
+    /// where the target is named: <c>AddGrpcClient&lt;Basket.BasketClient&gt;(o =&gt; o.Address =
+    /// new("http://basket-api"))</c> says both what protocol is spoken and who is spoken to, while the
+    /// injection site sees only a client type (in eShop, behind a using-alias). Targets that resolve to
+    /// no analyzed project become EXTERNAL service nodes rather than being dropped: the old
+    /// both-ends-in-solution rule silently discarded every call leaving the repo.</summary>
+    private static void AddTransportClientLinks(CodeGraphBuilder g, DiscoveryModel model,
+        SolutionScope scope, NoiseFilter noise, ServiceAddressBook addresses)
+    {
+        foreach (var client in model.Detections.OfType<TransportClientDetection>()
+            .OrderBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber))
+        {
+            if (!scope.Contains(client.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(client.SourceFile)) continue;
+            if (scope.ProjectForFile(client.SourceFile) is not { Length: > 0 } clientProject) continue;
+
+            var fromId = NodeId.ForService(clientProject);
+            if (!g.HasNode(fromId)) continue;   // registered inside a library, not a deployable service
+
+            var host = ServiceAddressBook.ExtractHost(client.Address);
+            NodeId toId;
+            Resolution resolution;
+            float confidence;
+
+            if (host is null)
+            {
+                // No literal address — a generated gRPC client type still names its service.
+                if (client.Transport != TransportKinds.Grpc) continue;
+                if (addresses.ResolveGrpcClientType(client.ClientType) is not { } grpcProject) continue;
+                if (string.Equals(grpcProject, clientProject, StringComparison.OrdinalIgnoreCase)) continue;
+                toId = NodeId.ForService(grpcProject);
+                if (!g.HasNode(toId)) continue;
+                (resolution, confidence) = (Resolution.Join, 0.8f);
+            }
+            else if (addresses.ResolveHost(host) is { } targetProject)
+            {
+                if (string.Equals(targetProject, clientProject, StringComparison.OrdinalIgnoreCase)) continue;
+                toId = NodeId.ForService(targetProject);
+                if (!g.HasNode(toId)) continue;   // the address names a library — not a service seam
+                (resolution, confidence) = (Resolution.Join, 0.9f);
+            }
+            else if (ServiceAddressBook.IsExternalHost(host))
+            {
+                toId = NodeId.ForService(host);
+                g.AddNode(new GraphNode(toId, host, NodeKind.Service) { Tags = [RoleTags.External] });
+                (resolution, confidence) = (Resolution.Syntactic, 0.7f);
+            }
+            else
+            {
+                continue;   // localhost / a config placeholder: a real registration, no nameable target
+            }
+
+            g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
+            {
+                Provenance = $"{client.SourceFile}:{client.LineNumber}",
+                Resolution = resolution,
+                Confidence = confidence,
+                Tags = [TransportLinkTag(client.Transport)],
+            });
+        }
+    }
+
+    /// <summary>Batch B — the Aspire AppHost's resource graph, which until now was detected and then
+    /// thrown away. Project-to-project <c>WithReference</c> becomes a ServiceLink (A is handed B's
+    /// address at startup); infrastructure resources become <see cref="NodeKind.Store"/> nodes hanging
+    /// off the services that reference them, which is what <see cref="RoleTags.DataStore"/> and the
+    /// Store kind were declared for. Runs AFTER the transport and bus joins so that a pair with real
+    /// protocol evidence keeps its specific tag.</summary>
+    private static void AddAspireTopology(CodeGraphBuilder g, DiscoveryModel model,
+        SolutionScope scope, NoiseFilter noise, ServiceAddressBook addresses)
+    {
+        foreach (var relationship in model.Detections.OfType<AspireRelationshipDetection>()
+            .OrderBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber))
+        {
+            if (!scope.Contains(relationship.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(relationship.SourceFile)) continue;
+            if (!addresses.ProjectResources.TryGetValue(relationship.SourceResource, out var fromProject)) continue;
+
+            var fromId = NodeId.ForService(fromProject);
+            if (!g.HasNode(fromId)) continue;
+            var provenance = $"{relationship.SourceFile}:{relationship.LineNumber}";
+
+            if (addresses.ProjectResources.TryGetValue(relationship.TargetResource, out var toProject))
+            {
+                if (string.Equals(toProject, fromProject, StringComparison.OrdinalIgnoreCase)) continue;
+                var toId = NodeId.ForService(toProject);
+                if (!g.HasNode(toId)) continue;
+                g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
+                {
+                    Provenance = provenance,
+                    Resolution = Resolution.Join,
+                    Confidence = 0.7f,
+                    Tags = [ServiceLinkTags.AspireReference],
+                });
+            }
+            else if (addresses.StoreResources.TryGetValue(relationship.TargetResource, out var store))
+            {
+                var toId = NodeId.ForStore(store.Name);
+                g.AddNode(new GraphNode(toId, store.Name, NodeKind.Store)
+                {
+                    Tags = [RoleTags.DataStore],
+                    FilePath = relationship.SourceFile,
+                    LineNumber = relationship.LineNumber,
+                });
+                g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.DependsOn)
+                {
+                    Provenance = provenance,
+                    Resolution = Resolution.Join,
+                    Confidence = 0.8f,
+                    Tags = [store.ResourceType.ToLowerInvariant()],
+                });
+            }
+        }
+    }
+
+    private static string TransportLinkTag(string transport) => transport switch
+    {
+        TransportKinds.Grpc => ServiceLinkTags.Grpc,
+        TransportKinds.Refit => ServiceLinkTags.RefitDirect,
+        _ => ServiceLinkTags.HttpDirect,
+    };
 
     /// <summary>Strips template variables ({param}, {**catch-all}, {param:type}) from a
     /// URL path pattern, returning the static prefix up to (but not including) the first

@@ -1,0 +1,115 @@
+﻿{
+    "repo":  "new-cli",
+    "run":  "2026-07-28 01:42:30",
+    "wallSec":  2.5,
+    "snapshotCache":  "HIT · 6476e5c",
+    "nodeCount":  67,
+    "edgeCount":  15,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: calculate (CalculateCommand)(1), config (ConfigCommand)(1), normalize (NormalizeCommand)(1), output (OutputCommand)(1), test (TestCommand)(1)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "calculate (CalculateCommand)",
+                                                                       "id":  "EntryPoint:cli:CalculateCommand",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "config (ConfigCommand)",
+                                                                       "id":  "EntryPoint:cli:ConfigCommand",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "normalize (NormalizeCommand)",
+                                                                       "id":  "EntryPoint:cli:NormalizeCommand",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "output (OutputCommand)",
+                                                                       "id":  "EntryPoint:cli:OutputCommand",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "test (TestCommand)",
+                                                                       "id":  "EntryPoint:cli:TestCommand",
+                                                                       "degree":  1
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/5 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  5,
+                                                        "withTarget":  5,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  5,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "CliTool/Unknown",
+                                 "metrics":  {
+                                                 "archetype":  "CliTool",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 12 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "GitVersion.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  12
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  2,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

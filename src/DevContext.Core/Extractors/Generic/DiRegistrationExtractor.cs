@@ -29,7 +29,7 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         // is a ConcurrentBag (add is thread-safe), but its ORDER fed the old CallGraphExtractor's diMap (retired in Batch A)
         // (last-write-wins by key), so committing serially in source order keeps the output identical.
         var files = context.Analysis.AllSourceFiles;
-        var perFile = new List<DiRegistrationDetection>[files.Count];
+        var perFile = new List<Detection>[files.Count];
 
         var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
         await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
@@ -68,9 +68,9 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
     }
 
-    private List<DiRegistrationDetection> BuildDetections(string filePath, FileSyntaxNodes nodes)
+    private List<Detection> BuildDetections(string filePath, FileSyntaxNodes nodes)
     {
-        var detections = new List<DiRegistrationDetection>();
+        var detections = new List<Detection>();
 
         foreach (var invocation in nodes.Invocations)
         {
@@ -81,6 +81,30 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
             if (!IsServicesChain(memberAccess)) continue;
 
             var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            // Batch B (DC3) — the transport client REGISTRATION names its target. This runs beside
+            // (not instead of) the branches below: AddHttpClient<TI,TImpl> is still a DI binding (C6),
+            // and the generic Add* branch still records the registration itself. What was missing was
+            // the type argument + address, which the generic branch throws away (it prefers args[0],
+            // i.e. the configuration lambda).
+            if (TransportForMethod(methodName) is { } transport
+                && memberAccess.Name is GenericNameSyntax clientGeneric
+                && clientGeneric.TypeArgumentList.Arguments.Count >= 1)
+            {
+                // AddHttpClient<TInterface, TImpl>: the CLIENT is the implementation (the interface is
+                // the port). Single type arg: that type is the client.
+                var typeArgs = clientGeneric.TypeArgumentList.Arguments;
+                detections.Add(new TransportClientDetection(
+                    Transport: transport,
+                    ClientType: typeArgs[^1].ToString(),
+                    Address: ExtractConfiguredAddress(invocation))
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                    Confidence = 0.9f,
+                });
+            }
 
             if (LifetimeMethods.Contains(methodName))
             {
@@ -206,6 +230,40 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
 
         return detections;
+    }
+
+    /// <summary>Batch B — maps a client-registration method to the transport it configures, or null
+    /// when the method registers no transport.</summary>
+    private static string? TransportForMethod(string methodName) => methodName switch
+    {
+        "AddGrpcClient" => TransportKinds.Grpc,
+        "AddHttpClient" => TransportKinds.Http,
+        "AddRefitClient" => TransportKinds.Refit,
+        _ => null,
+    };
+
+    /// <summary>Batch B — finds the address a client registration was configured with. The literal can
+    /// sit in the registration's own configuration lambda
+    /// (<c>o =&gt; o.Address = new("http://basket-api")</c>) or on a chained builder call
+    /// (<c>.ConfigureHttpClient(c =&gt; c.BaseAddress = ...)</c>), so the whole fluent chain is scanned.
+    /// Only scheme-bearing literals count — that skips the version/policy strings those same chains
+    /// carry. Returns null when the address comes from configuration rather than a literal.</summary>
+    private static string? ExtractConfiguredAddress(InvocationExpressionSyntax invocation)
+    {
+        SyntaxNode outermost = invocation;
+        while (outermost.Parent is MemberAccessExpressionSyntax chainAccess
+            && ReferenceEquals(chainAccess.Expression, outermost)
+            && chainAccess.Parent is InvocationExpressionSyntax chained)
+        {
+            outermost = chained;
+        }
+
+        foreach (var literal in outermost.DescendantNodes().OfType<LiteralExpressionSyntax>())
+        {
+            if (literal.Token.Value is string text && text.Contains("://", StringComparison.Ordinal))
+                return text;
+        }
+        return null;
     }
 
     private static bool IsServicesChain(MemberAccessExpressionSyntax memberAccess)

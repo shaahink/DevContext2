@@ -36,6 +36,15 @@ public sealed class GrpcClientExtractor : IDiscoveryExtractor
 
             var root = await syntaxTree.GetRootAsync(ct);
 
+            // Batch B (DC3, injection site) — eShop injects its Basket client as `GrpcBasketClient`,
+            // a file-local alias for eShop.Basket.API.Grpc.Basket.BasketClient. The unqualified alias
+            // has no dot, so the X.XClient shape test below rejected it and the client stayed
+            // invisible. Expand aliases before testing the shape.
+            // Built only when a parameter actually looks like it could be an alias (see below): this
+            // extractor visits every file in any repo carrying a gRPC package — 10.5k of them in
+            // aspnetcore — and a whole-tree walk per file is a cost that never shows up on fixtures.
+            Dictionary<string, string>? aliases = null;
+
             foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
             {
                 ct.ThrowIfCancellationRequested();
@@ -53,6 +62,17 @@ public sealed class GrpcClientExtractor : IDiscoveryExtractor
                 {
                     var paramType = param.Type?.ToString();
                     if (paramType is null) continue;
+
+                    // Batch B (DC3, injection site): eShop injects its Basket client as
+                    // `GrpcBasketClient`, a file-local alias for Basket.BasketClient. An alias is
+                    // exactly a name with no dot — which is what the X.XClient shape test below
+                    // rejects — so resolve one only for that shape.
+                    if (paramType.EndsWith("Client", StringComparison.Ordinal)
+                        && !paramType.Contains('.', StringComparison.Ordinal))
+                    {
+                        aliases ??= BuildAliasMap(root);
+                        if (aliases.TryGetValue(paramType, out var aliasedType)) paramType = aliasedType;
+                    }
 
                     // gRPC generated client: X.XClient (e.g. DiscountProtoService.DiscountProtoServiceClient)
                     if (!IsGrpcClientType(paramType)) continue;
@@ -72,6 +92,22 @@ public sealed class GrpcClientExtractor : IDiscoveryExtractor
                 }
             }
         }
+    }
+
+    /// <summary>File-local <c>using X = Some.Qualified.Name;</c> aliases, including any declared inside
+    /// a namespace body.</summary>
+    private static Dictionary<string, string> BuildAliasMap(SyntaxNode root)
+    {
+        var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var directive in root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Alias?.Name.Identifier.ValueText is { Length: > 0 } alias
+                && directive.Name?.ToString() is { Length: > 0 } target)
+            {
+                aliases[alias] = target;
+            }
+        }
+        return aliases;
     }
 
     private static bool IsGrpcClientType(string typeName)

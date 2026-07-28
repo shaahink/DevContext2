@@ -105,6 +105,14 @@ public sealed partial class GraphBuilder
         g.SetEventWiring(eventWiring);
         EventWiringProjection.EmitServiceLinks(g, eventWiring);
 
+        // ── Batch B: sync transports + AppHost topology ───────────────────────
+        // Deliberately last, and in this order: an edge keeps the tag of whoever claims a
+        // (from, to, kind) triple first, so the verified publish→consume join outranks a client
+        // registration, which outranks a deployment-level WithReference.
+        var addresses = ServiceAddressBook.Build(model, scope);
+        AddTransportClientLinks(g, model, scope, _noise, addresses);
+        AddAspireTopology(g, model, scope, _noise, addresses);
+
         var preGraph = g.Build(isSparse, hubCount);
         // Enrich (target/group-path/score) BEFORE computing flows: preGraph and the final graph share
         // identical nodes/edges (violations are metadata only), so this is safe here, and it means

@@ -1,0 +1,115 @@
+﻿{
+    "repo":  "MassTransit-Sample",
+    "run":  "2026-07-28 01:26:23",
+    "wallSec":  2.6,
+    "snapshotCache":  "HIT · 9eb8503",
+    "nodeCount":  16,
+    "edgeCount":  10,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  2,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  4,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: \u003cregistration\u003e(3), AddMassTransit(2), Message(2), MessageConsumer(2), Worker(2)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "\u003cregistration\u003e",
+                                                                       "id":  "Type:\u003cregistration\u003e",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "AddMassTransit",
+                                                                       "id":  "Type:AddMassTransit",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "Message",
+                                                                       "id":  "Type:GettingStarted.Message",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "MessageConsumer",
+                                                                       "id":  "Type:GettingStarted.MessageConsumer",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "Worker",
+                                                                       "id":  "Type:GettingStarted.Worker",
+                                                                       "degree":  2
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/2 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  2,
+                                                        "withTarget":  2,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Worker/Unknown",
+                                 "metrics":  {
+                                                 "archetype":  "Worker",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 1 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "GettingStarted.sln"
+                                                                  ],
+                                                     "analyzedProjects":  1
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

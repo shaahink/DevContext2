@@ -1,0 +1,5 @@
+﻿{
+  "repo": "eval-repos/wolverine",
+  "note": "S3 widen pole (Batch B). Wolverine messaging/mediator framework (4k cs files, 215 projects) - handler-join truth against a NON-MediatR dispatcher. Substituted for the PLAN-listed VerticalSlice, which is byte-for-byte the CleanArchitecture pole already in the matrix. Baseline 2026-07-28: handler-join FAIL with sends=6 handles=0 and one unhandled target, Envelope - Wolverine own internal message wrapper is being read as a dispatched request. Same family as DC1 but a different dispatcher: kept RED (maxUnhandled stays 0) as a documented Batch C root-cause item. dup-name FAIL at 4 types (MapEventTypeMessages in two modules et al.) likewise recorded, not accepted.",
+  "style": { "archetype": "Library" }
+}

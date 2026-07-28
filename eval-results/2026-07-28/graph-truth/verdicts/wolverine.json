@@ -1,0 +1,123 @@
+﻿{
+    "repo":  "wolverine",
+    "run":  "2026-07-28 01:34:47",
+    "wallSec":  60.4,
+    "snapshotCache":  "HIT · 7019b7d",
+    "nodeCount":  6528,
+    "edgeCount":  4519,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  25,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "1 of 6 send targets have no Handles edge: Envelope",
+                                        "metrics":  {
+                                                        "sendsTotal":  6,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  24,
+                                                        "unhandledTargets":  1,
+                                                        "sample":  [
+                                                                       "Envelope"
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: IWolverineRuntime(300), WolverineOptions(215), Envelope(134), ILogger(105), IChain(105)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IWolverineRuntime",
+                                                                       "id":  "Type:Wolverine.Runtime.IWolverineRuntime",
+                                                                       "degree":  300
+                                                                   },
+                                                                   {
+                                                                       "title":  "WolverineOptions",
+                                                                       "id":  "Type:Wolverine.WolverineOptions",
+                                                                       "degree":  215
+                                                                   },
+                                                                   {
+                                                                       "title":  "Envelope",
+                                                                       "id":  "Type:Wolverine.Envelope",
+                                                                       "degree":  134
+                                                                   },
+                                                                   {
+                                                                       "title":  "ILogger",
+                                                                       "id":  "Type:Microsoft.Extensions.Logging.ILogger",
+                                                                       "degree":  105
+                                                                   },
+                                                                   {
+                                                                       "title":  "IChain",
+                                                                       "id":  "Type:Wolverine.Configuration.IChain",
+                                                                       "degree":  105
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "4/49 targets are bare DI interfaces (8.2% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  51,
+                                                        "withTarget":  49,
+                                                        "diInterfaceTargets":  4,
+                                                        "diInterfacePct":  8.2,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+                                                                       "POST /replay -\u003e IWolverineRuntime",
+                                                                       "DELETE / -\u003e IWolverineRuntime",
+                                                                       "GET /api/nodes -\u003e IWolverineRuntime",
+                                                                       "InlineAzureServiceBusListener -\u003e InlineAzureServiceBusListener"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/CleanArchitecture",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "CleanArchitecture",
+                                                 "confidence":  0.7
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "3 slns on disk silently scoped to one analysis (215 projects) with no indicator/picker",
+                                     "metrics":  {
+                                                     "slnOnDisk":  3,
+                                                     "slnNames":  [
+                                                                      "wolverine.slnx",
+                                                                      "wolverine_fsharp.slnx",
+                                                                      "wolverine_slim.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  215
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "4 dup-name types touched by cross-project edges: MapEventTypeMessages [Wolverine.Marten], MapEventTypeMessages [Wolverine.Polecat], OutboxedSessionFactory [Wolverine.Marten], WolverineProjectionCoordinator [Wolverine.Marten]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  959,
+                                                    "dupNameTypesTouched":  4,
+                                                    "sample":  [
+                                                                   "MapEventTypeMessages [Wolverine.Marten]",
+                                                                   "MapEventTypeMessages [Wolverine.Polecat]",
+                                                                   "OutboxedSessionFactory [Wolverine.Marten]",
+                                                                   "WolverineProjectionCoordinator [Wolverine.Marten]"
+                                                               ]
+                                                }
+                                }
+               }
+}

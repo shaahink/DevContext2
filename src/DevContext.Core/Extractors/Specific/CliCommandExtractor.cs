@@ -44,7 +44,11 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
             // frameworks' own types of the same name (e.g. the Command Palette extension SDK's own
             // `Command` base for UI action items) — require the file to actually import System.CommandLine
             // before trusting a bare-name match.
-            var hasSystemCommandLineUsing = root.DescendantNodes()
+            // Evaluated only when a class actually carries a bare Command/RootCommand base, which is
+            // rare: this extractor visits every file in any repo with CLI-tool evidence, and walking
+            // a whole syntax tree per file to find using directives is pure cost everywhere else.
+            bool? systemCommandLineImport = null;
+            bool HasSystemCommandLineUsing() => systemCommandLineImport ??= root.DescendantNodes()
                 .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax>()
                 .Any(u => u.Name?.ToString() is { } n
                     && (n == "System.CommandLine" || n.StartsWith("System.CommandLine.", StringComparison.Ordinal)));
@@ -53,15 +57,28 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                 .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax>())
             {
                 ct.ThrowIfCancellationRequested();
-                var baseList = classDecl.BaseList;
-                if (baseList is null) continue;
 
                 string? settingsType = null;
                 var isCommand = false;
 
-                foreach (var bt in baseList.Types)
+                // Batch B (DC8) — an attribute carrying a verb name, [Command("output", ...)], is
+                // strong framework-agnostic evidence: the same shape as endpoint attributes, and a
+                // string nobody writes by accident. GitVersion's new CLI declares every command this
+                // way against its OWN ICommand<T> + a source generator, so E7's refusal to trust
+                // ICommand-ish bases (which stands — see below) left the whole tool invisible.
+                var commandVerb = FindCommandAttributeVerb(classDecl);
+                if (commandVerb is not null) isCommand = true;
+
+                foreach (var bt in classDecl.BaseList?.Types ?? default)
                 {
                     var name = bt.Type.ToString();
+                    // A generic ICommand<TSettings> never MAKES a class a command — but once the
+                    // attribute above says it is one, its type argument names the settings type.
+                    if (isCommand && settingsType is null && name.StartsWith("ICommand<", StringComparison.Ordinal))
+                    {
+                        settingsType = name["ICommand<".Length..^1];
+                        continue;
+                    }
                     if (name.StartsWith("Command<", StringComparison.Ordinal))
                     {
                         isCommand = true;
@@ -77,7 +94,7 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                     // E7: bare "Command"/"RootCommand" only means System.CommandLine when the file
                     // actually imports it — otherwise it's as likely the Command Palette extension SDK's
                     // own unrelated Command base (Microsoft.CommandPalette.Extensions.Toolkit.Command).
-                    if ((name == "RootCommand" || name == "Command") && hasSystemCommandLineUsing)
+                    if ((name == "RootCommand" || name == "Command") && HasSystemCommandLineUsing())
                     {
                         isCommand = true;
                         break;
@@ -104,7 +121,7 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                 }
 
                 model.Detections.Add(new CliCommandDetection(
-                    className, settingsType ?? "object", executeMethod)
+                    className, settingsType ?? "object", executeMethod, commandVerb)
                 {
                     ExtractorName = Name,
                     SourceFile = filePath,
@@ -115,6 +132,31 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
         }
 
         await AddMainEntryFallbackAsync(context, model, ct);
+    }
+
+    /// <summary>Batch B — the verb from a <c>[Command("output", ...)]</c>-shaped attribute, or null.
+    /// The string argument is required: a bare <c>[Command]</c> is exactly the ambiguous, name-only
+    /// evidence E7 refuses.</summary>
+    private static string? FindCommandAttributeVerb(
+        Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax classDecl)
+    {
+        foreach (var attributeList in classDecl.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                var name = attribute.Name.ToString();
+                var leaf = name[(name.LastIndexOf('.') + 1)..];
+                if (leaf is not ("Command" or "CommandAttribute")) continue;
+                var firstArgument = attribute.ArgumentList?.Arguments.FirstOrDefault();
+                if (firstArgument?.Expression is
+                        Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax literal
+                    && literal.Token.Value is string verb && verb.Length > 0)
+                {
+                    return verb;
+                }
+            }
+        }
+        return null;
     }
 
     /// <summary>B4 (Prism D1.1d) — plain <c>Main()</c> becomes an entry. For every production console

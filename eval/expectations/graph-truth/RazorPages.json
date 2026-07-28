@@ -1,0 +1,5 @@
+﻿{
+  "repo": "eval-repos/RazorPages",
+  "note": "S3 widen pole (Batch B). AspNetCore.Docs samples tree (5.6k cs files, 12 slns, 622 projects analyzed, no top-level sln). Baseline 2026-07-28: 33 nodes / 27 edges / 3 entries in 61.7s - the same detect-but-do-not-render gap as the Blazor pole at a different scale.",
+  "style": { "archetype": "App", "styles": ["SampleCollection"] }
+}
