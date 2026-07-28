@@ -72,7 +72,15 @@
       (`MapResponse.scope_note`, `ArchetypeView`) and one silent refusal fixed (the session manager
       answered a different-solution request from cache). **D-E…D-H remain open**, plus the
       sub-decisions listed in DECISIONS.md. Verdicts in the session log below.
-- [ ] S9 — R3 continued: D-E…D-H · the C-1/C-2/C-3 + D-2/D-3/D-4 sub-decisions · render kernel
+- [~] S9 — R3 continued 2026-07-28. **The dead-field sweep is DONE and is now a gate**
+      (`eval/contract-sweep.ps1` + `eval/expectations/contract-sweep-allow.txt`): four more dead
+      fields found, all four removed from the contract (`entry_table`, `layer_band`,
+      `args_digest`, `total_files`), and two real losses revived — swallowed extraction failures
+      in the app's run report, and L3.4's sparse-graph caveat in BOTH the ledger and the CLI's
+      `--stats`. Fixing the second uncovered a suppression: the whole Confidence Ledger was hidden
+      on any entry-less repo, i.e. every library. **D-E…D-H and the C-1/C-2/C-3 + D-2/D-3/D-4
+      sub-decisions remain OPEN** — they are the next session's work.
+- [ ] S10 — R3 continued: D-E…D-H · the C-1/C-2/C-3 + D-2/D-3/D-4 sub-decisions · render kernel
       built AFTER the decisions it must serve · re-point `screenshot-gate.mts` as pages land
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
@@ -355,6 +363,60 @@ Session log (one line each: date · what closed · surprises):
   fresh at 12m14s because the Core/Server edits invalidated the stamp, and Step 4's
   `--format html --strict` exit 2 is the pre-existing one, byte-identical since S2).
   Next: S9 = the dead-field sweep, D-E…D-H, plus the sub-decisions DECISIONS.md leaves open.
+
+- 2026-07-28 · S9 (R3 continued): **the dead-field sweep ran, and it is now an instrument.**
+  `eval/contract-sweep.ps1` parses the proto, reads every consumer (app TS/HTML, MCP, CLI) and fails
+  on any response field no client reads unless `eval/expectations/contract-sweep-allow.txt` states
+  why that is correct. It found **four more dead fields on top of the three this program had already
+  found by accident** — and the accident rate is the point: the same defect had shown up in S7, S8
+  and S8 again, one session apart each time.
+  **Out of the contract** (all four were computed and shipped to nobody): `GraphFacetsResponse`'s
+  `entry_table` and `layer_band` — two projections built on EVERY GetGraphFacets call, one of which
+  walks every node in the graph, read by neither client (the app takes entries from GetEntryPoints;
+  MCP only ever touched ServiceMap and FlowList); `ToolCallEvent.args_digest`, never assigned and
+  never read; and `CorpusStat.total_files`, whose only producer passes a literal `0`
+  (`SetCorpusFileCounts(0, csharpFiles, …)`), so every response ever sent said the corpus held zero
+  files. Field numbers reserved, messages deleted, Core projections left in place as tested
+  capability with nothing calling them.
+  **Revived, because these were real losses:** (1) **swallowed extraction failures** — J1/J3's
+  counters ride the stats payload the app already renders section by section, the CLI prints a table
+  of them, and the app dropped exactly that one section, so a desktop reader was the only reader who
+  could not tell a clean run from a lossy one (14 of the 47 matrix poles have failures; eShop 2,
+  SignalR 14). (2) **the sparse-graph verdict** — L3.4 BROADENS call-edge binding when a repo is
+  entry-poor, and nothing said so on either surface, so the confidence panel quoted an edge
+  percentage without saying those edges were found under a looser rule. Now in the ledger AND in the
+  CLI's `--stats` output.
+  **The suppression the sparse fix uncovered:** the Confidence Ledger was gated on
+  `!entries.IsDefaultOrEmpty`, so it vanished entirely on any repo with no entry points — every
+  library. FluentValidation has 169 edges whose verified/approximate split is computed and was
+  unreachable, because no ledger meant no "verified" chip and the chip is what opens the panel. The
+  gate is now `graph is not null`; the two entry-dependent ROWS withhold themselves instead, which
+  is C-3's rule. This is a scope correction made while implementing — recorded, per the A-2/B-3
+  precedent, not quietly restated.
+  **Surprises:** (1) **the backtick trap fired again, immediately** — a backtick inside an HTML
+  comment terminated the Angular template literal, exactly as S8 recorded it. It is now two for two;
+  write field names in comments without backticks. (2) **My driver's ground truth was wrong and the
+  app was right**: L3.4's doc comment says sparse means "entries < 5 or ratio < 0.1", so I asserted
+  FluentValidation (0 entries) must be sparse. It is not — the rule ALSO needs enough central types
+  to broaden over, and most entry-poor libraries fail that second test. Measured the verdict across
+  poles (`query stats`) and rewrote the expectations from measurement: eShop dense + 2 failures, CLI
+  sparse over 9 hubs + clean, each the other's negative control. Checking what a field CONTAINS is
+  now three-for-three as the most valuable habit in this program. (3) **`analyze` takes a POSITIONAL
+  path; `query` takes `--path`** — `analyze --path <repo>` silently analyzed the working directory
+  instead, and three different repos returning identical node counts was the only tell. (4) The
+  ledger's own two rows still overlap: `verified` counts `Semantic` while `approx` counts
+  `Syntactic OR confidence < 1`, so the CLI pole reads "27% of 173" and "99% of 173" — a reader is
+  invited to add them. Left alone: what "approximate" means is a definition call, and Batch E's
+  number-pair reconciliation is the precedent for making it deliberately.
+  **Verdicts:** app suite 120 green, server suite 27 green, contract sweep GATE: PASS (12 fields
+  allow-listed with reasons, 0 unexplained), both honesty poles PASS end-to-end
+  (`s9-verify-honesty.mts eshop|cli`). Full battery **GATE: PASS unqualified** — run TWICE, and the
+  second run is the citable one: the first (`gates-s9-close.txt`) was launched before the sweep was
+  wired in, so its log has no Step 1a and a verdict that does not cover the change it is cited for
+  is not a verdict. `gates-s9-close2.txt` runs **Step 1a: Contract sweep — PASS** after the build,
+  then all remaining steps green (eval 27 passed / 1 skipped in 9m53s, stamp written; Step 4's
+  `--format html --strict` exit 2 is the pre-existing one, unchanged since S2).
+  Next: D-E…D-H and the open sub-decisions (C-1/C-2/C-3, D-2/D-3/D-4).
 
 ## 3. Session map
 

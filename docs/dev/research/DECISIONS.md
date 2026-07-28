@@ -246,7 +246,23 @@ building, per the standing rule that cost S7 three stale premises.
 |---|---|---|
 | C-1 | What replaces "What runs" on Home for a library | **Open.** The Explore spine landed first; Home still asks the wrong question of a library. |
 | C-2 | Atlas's five empty sections | **Open.** |
-| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. |
+| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. **S9 applied C-3's rule to one panel already**, see below. |
+
+### S9 scope correction — the Confidence Ledger was suppressed on every library
+
+Found while wiring the sparse-graph caveat (S9's contract sweep), and recorded rather than quietly
+restated, per the A-2 / B-3 precedent:
+
+`ToStatsResponse` gated the whole ledger on `graph is not null && !entries.IsDefaultOrEmpty`. A
+library has no entry points, so **the entire Confidence Ledger disappeared on every library** —
+FluentValidation's 169 edges have a computed verified/approximate split that no reader could reach,
+because no ledger means no `verified` chip and that chip is what opens the panel. Only two of the
+ledger's rows depend on entries at all, and `ConfidenceLedger.Compute` has always been zero-safe.
+
+The gate is now `graph is not null`, and the two entry-dependent rows (auth coverage, entry targets)
+withhold themselves when their denominator is zero — which is exactly C-3's rule, applied to the one
+panel where the suppression was hiding real numbers. C-3 itself stays open: it is about what Home
+and Atlas say to a library, and that is still the owner's call.
 
 ---
 
