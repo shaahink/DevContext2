@@ -112,9 +112,12 @@ async function main() {
     fail.push('the sparse caveat renders while the ledger is collapsed (it belongs inside it)');
   }
 
-  // The ledger opens from the "verified" chip ONLY. Every other button[title] in this strip is a
+  // The ledger opens from the confidence chip ONLY. Every other button[title] in this strip is a
   // switch-solution button, and clicking one re-analyzes the repo under a different scope.
-  const chip = strip.locator('button', { hasText: /verified/ }).first();
+  // S10 (D-E E-1): that chip used to read "8% verified" and now reads "edge confidence" — the
+  // percentage moved inside the panel it opens, because three coverage-shaped numbers shared the
+  // strip and only two of them meant the same thing.
+  const chip = strip.locator('button', { hasText: /confidence/ }).first();
   if (!(await chip.count())) {
     fail.push(`no verified chip to open the ledger with; strip read: ${(await strip.innerText()).replace(/\s+/g, ' ').slice(0, 200)}`);
   } else {

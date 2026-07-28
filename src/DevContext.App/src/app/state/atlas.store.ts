@@ -1,6 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import { DevContextApi } from '../data-access/devcontext-api';
+import { rankFlows } from '../core/flow-ranking';
 import { type EntryVm } from '../models/view-models';
 import { WorkspaceStore } from './workspace.store';
 
@@ -111,11 +112,11 @@ export class AtlasStore {
   readonly flows = computed(() => Object.values(this.active().flows));
 
   /** §3.2 — importance-ranked flows for the Home digest. */
+  /** R3 D-E (E-2): the same ranking Home's Top flows and the START HERE tile use. Sorting on the
+   * flow score alone put five internal `*DomainEventHandler`s at the top of eShop's Atlas while
+   * Home's list of the same name showed HTTP endpoints — two sections, one name, two answers. */
   readonly topFlows = computed(() =>
-    this.flows()
-      .filter((f) => f.found)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10),
+    rankFlows(this.flows().filter((f) => f.found)).slice(0, 10),
   );
 
   /** §3.5 — repo-wide confidence over indexed flows (node-weighted). */

@@ -1,9 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
 import { projectDisplayName } from '../../core/format';
-import { KIND_LABELS } from '../../models/view-models';
+import { rankFlows } from '../../core/flow-ranking';
+import { KIND_LABELS, type EntryVm } from '../../models/view-models';
+import { CommandSurface } from '../explorer/command-surface';
 import { StartHero } from '../home/start-hero';
 import { IdentityStrip } from '../home/identity-strip';
 import { RunConsole } from '../home/run-console';
@@ -24,7 +26,7 @@ interface InsightRowVm {
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, StartHero, IdentityStrip, RunConsole, KindIcon, ServiceMapHero, HomeTiles, OnboardingRow],
+  imports: [RouterLink, StartHero, IdentityStrip, RunConsole, KindIcon, ServiceMapHero, HomeTiles, OnboardingRow, CommandSurface],
   template: `
     <div class="mx-auto max-w-4xl px-5 pb-10 pt-6">
       @if (!session.busy() && !session.ready()) {
@@ -35,17 +37,39 @@ interface InsightRowVm {
         <div class="space-y-8">
           <app-identity-strip />
 
-          <!-- M6.1: Service map hero — deterministic layout -->
-          <div>
-            <h2 class="section-h mb-3">{{ heroHeading() }}</h2>
-            <app-service-map-hero
-              [topology]="topology()"
-              [serviceStyles]="serviceStyles()"
-            />
-          </div>
-
-          <!-- M6.1: Three tiles -->
-          <app-home-tiles [topology]="topology()" />
+          <!-- R3 D-E (E3): the body is chosen by ARCHETYPE, because the honest question differs.
+               A service is asked what runs and how it connects; a library is asked how you use it;
+               a CLI tool is asked what it does. Every repo used to be asked the first question, and
+               only one archetype could answer it — FluentValidation's Home headed a 350px box
+               "What runs" over a single csproj arrow, and GitVersion drew two unconnected boxes
+               under a Services toggle for a tool that has none. The surfaces that DO answer the
+               other two questions already existed; they were below the fold or on another page. -->
+          @switch (archetypeBody()) {
+            @case ('library') {
+              <!-- No canvas: a library does not run, so there is no runtime shape to draw. Its
+                   surface tiles come up to where the empty drawing was. -->
+              <app-home-tiles [topology]="topology()" />
+            }
+            @case ('clitool') {
+              <div>
+                <h2 class="section-h mb-3">What it does</h2>
+                <div class="rounded-lg border border-line bg-surface">
+                  <app-command-surface [entries]="allEntries()" (commandSelected)="openCommand($event)" />
+                </div>
+              </div>
+              <app-home-tiles [topology]="topology()" />
+            }
+            @default {
+              <div>
+                <h2 class="section-h mb-3">{{ heroHeading() }}</h2>
+                <app-service-map-hero
+                  [topology]="topology()"
+                  [serviceStyles]="serviceStyles()"
+                />
+              </div>
+              <app-home-tiles [topology]="topology()" />
+            }
+          }
 
           <!-- Top Flows -->
           @if (topFlows().length) {
@@ -121,10 +145,25 @@ interface InsightRowVm {
 })
 export class HomePage {
   protected readonly session = inject(SessionStore);
+  private readonly router = inject(Router);
   protected readonly KIND_LABELS = KIND_LABELS;
 
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
   protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
+  protected readonly allEntries = computed(() => this.session.entryGroups().flatMap((g) => g.entries));
+
+  /** R3 D-E (E3) — which question this repo's front page asks. A CliTool falls back to the service
+   * body if the engine published no command surface, rather than showing an empty section. */
+  protected readonly archetypeBody = computed<'service' | 'library' | 'clitool'>(() => {
+    const m = this.session.mapResponse();
+    if (m?.isLibrary) return 'library';
+    if (/clitool/i.test(m?.archetype ?? '') && (m?.archetypeView?.groups.length ?? 0) > 0) return 'clitool';
+    return 'service';
+  });
+
+  protected openCommand(entry: EntryVm): void {
+    void this.router.navigate(['/explore'], { queryParams: { focus: entry.focus } });
+  }
 
   /** "How services connect" is microservice copy — on a monolith the hero shows the
    * runnable surfaces (Web + workers + CLI), so say that (T6.1). */
@@ -143,14 +182,11 @@ export class HomePage {
     return projectDisplayName(name, this.topology().map((p) => p.name));
   }
 
-  protected readonly topFlows = computed(() => {
-    const flatEntries = this.session.entryGroups().flatMap((g) => g.entries);
-    const ranked = flatEntries
-      .filter((e) => e.score !== undefined)
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-    if (ranked.length > 0) return ranked.slice(0, MAX_TOP_FLOWS);
-    return flatEntries.slice(0, MAX_TOP_FLOWS);
-  });
+  /** R3 D-E (E-2): one ranking rule, shared with Atlas's Top flows and the START HERE tile. This
+   * list used to sort on the composite score alone while Atlas sorted on flow depth, so the two
+   * sections named "Top flows" disagreed about the same repo. */
+  protected readonly topFlows = computed(() =>
+    rankFlows(this.allEntries()).slice(0, MAX_TOP_FLOWS));
 
   private readonly allInsights = computed<readonly InsightRowVm[]>(() => {
     const real: InsightRowVm[] = this.session.insights().map((i) => ({

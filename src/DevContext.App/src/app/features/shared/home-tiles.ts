@@ -2,6 +2,7 @@ import { Component, computed, inject, input, signal, type OnDestroy } from '@ang
 import { RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
+import { middleEllipsis } from '../../core/format';
 import { type EntryGroupVm } from '../../models/view-models';
 import type { ProjectNode } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import {
@@ -25,7 +26,11 @@ import {
             <div class="space-y-1.5">
               @for (ns of topNamespaces(); track ns.namespace) {
                 <div class="flex items-center gap-2 text-xs">
-                  <span class="min-w-0 flex-1 truncate text-ink-muted" [title]="ns.namespace">{{ ns.namespace }}</span>
+                  <!-- S10: CSS truncate rendered FluentValidation.Resources and
+                       FluentValidation.Results as two identical "FluentValidation.R..." rows. A
+                       namespace distinguishes itself at its LAST segment, so the cut takes the
+                       middle — same rule as the entry deck and the Studio picker. -->
+                  <span class="min-w-0 flex-1 truncate text-ink-muted" [title]="ns.namespace">{{ shortNamespace(ns.namespace) }}</span>
                   <div class="w-20 shrink-0 bg-surface h-2 rounded-full overflow-hidden">
                     <div class="h-full bg-accent" [style.width.%]="ns.pct"></div>
                   </div>
@@ -33,9 +38,14 @@ import {
                 </div>
               }
             </div>
-            <p class="mt-1.5 text-2xs text-ink-subtle">
-              {{ surfaceTypes() }} public types across {{ surfaceNamespaces() }} namespaces
-            </p>
+            <!-- R3 D-E (E1): the totals live on the identity strip. This tile ranks namespaces, so
+                 the only thing left for it to say is what the ranking left out — and nothing at all
+                 when it left nothing out. -->
+            @if (surfaceNamespaces() > topNamespaces().length) {
+              <p class="mt-1.5 text-2xs text-ink-subtle">
+                top {{ topNamespaces().length }} of {{ surfaceNamespaces() }}
+              </p>
+            }
           } @else {
             <p class="text-xs text-ink-muted">No public surface detected.</p>
           }
@@ -81,8 +91,11 @@ import {
               </div>
             }
           </div>
+          <!-- R3 D-E (E1): this footer restated the two numbers the identity strip already carries
+               ("109 entries across 19 projects"). The tile's own subject is the BREAKDOWN, so it
+               says how many kinds that breakdown has and leaves the totals to their owner. -->
           <p class="mt-1.5 text-2xs text-ink-subtle">
-            {{ totalEntries() }} entries across {{ serviceCount() }} {{ projectNoun() }}
+            {{ entryGroups().length }} {{ entryGroups().length === 1 ? 'kind' : 'kinds' }} of entry point
           </p>
         </div>
 
@@ -98,13 +111,15 @@ import {
               >{{ wired() }}%</span>
               <span class="text-xs text-ink-muted">entries targeted</span>
             </div>
-            <p class="mt-1 text-2xs text-ink-subtle">
-              {{ wiredCount() }}/{{ totalEntries() }} entries
-              @if (unwiredCount() > 0) {
-                have resolved targets —
+            <!-- R3 D-E (E1): this line used to restate "64/109 entries have resolved targets",
+                 which the identity strip says two rows above as "64/109 wired". The tile keeps the
+                 part the strip cannot carry — the proportion, the bar, and the way to act on what
+                 is missing. -->
+            @if (unwiredCount() > 0) {
+              <p class="mt-1 text-2xs text-ink-subtle">
                 <a routerLink="/insights" class="text-accent hover:underline">{{ unwiredCount() }} unwired</a>
-              }
-            </p>
+              </p>
+            }
             <!-- mini bar -->
             <div class="mt-2 h-1.5 rounded-full bg-surface overflow-hidden">
               <div class="h-full rounded-full transition-all"
@@ -128,8 +143,10 @@ import {
           <p class="text-xs text-ink">
             Analyzed {{ age() }}@if (s.elapsedMs > 0) {<span class="text-ink-muted"> in <span class="font-mono tabular-nums">{{ formatElapsed() }}</span></span>}
           </p>
+          <!-- R3 D-E (E1): types and projects live on the identity strip; this tile is about the
+               RUN, so it keeps what only the run knows — edge count and the commit it read. -->
           <p class="text-2xs text-ink-muted">
-            {{ s.nodes }} types · {{ s.edges }} edges · {{ s.projects }} projects
+            {{ s.edges }} edges
             @if (headSha(); as sha) {
               · HEAD <span class="font-mono">{{ sha }}</span>
             }
@@ -205,6 +222,11 @@ export class HomeTiles implements OnDestroy {
     return rows.map((r) => ({ ...r, pct: Math.max(4, Math.round((r.count / max) * 100)) }));
   });
   protected readonly frontDoors = computed(() => entryKindCounts(this.session.mapResponse()?.surface));
+
+  /** Namespace column is ~22 characters; the distinguishing segment is the tail. */
+  protected shortNamespace(ns: string): string {
+    return middleEllipsis(ns, 22, 'tail');
+  }
 
   protected readonly totalEntries = computed(() => this.session.entryGroups().reduce((n, g) => n + g.entries.length, 0));
   protected readonly serviceCount = computed(() => this.topology().length);

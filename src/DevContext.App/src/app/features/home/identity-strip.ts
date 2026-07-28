@@ -53,7 +53,7 @@ import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
       <!-- Stat strip — human labels -->
       <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
         @for (label of statLabels(); track label[0]) {
-          @if (label[0] === 'verified') {
+          @if (label[0] === 'confidence') {
             <button type="button" class="tabular-nums cursor-pointer hover:text-accent transition-colors" [title]="label[2]" (click)="showLedger.update(v => !v)">
               <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
             </button>
@@ -90,7 +90,9 @@ import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
           <p class="font-semibold text-ink">Confidence Ledger</p>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-muted">
             <!-- Batch E: the invented "Overall" blend is retired; every row here is a count or a
-                 ratio of counts shown beside it, and the chip above reads the SAME number. -->
+                 ratio of counts shown beside it. S10 (D-E E-1): this row is now the ONLY place the
+                 verified percentage is stated — the strip's chip names this panel rather than
+                 printing a third coverage-shaped number beside the wiring one. -->
             <span>Verified edges</span><span class="tabular-nums font-mono text-ink">{{ (l.verifiedEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
             <span>Approximate edges</span><span class="tabular-nums font-mono text-ink">{{ (l.approxEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
             <!-- S9: these two rows are the only entry-dependent ones. A library reaches this panel
@@ -173,16 +175,12 @@ export class IdentityStrip {
     const parts: string[] = [];
     if (s.label) parts.push(s.label);
     if (m?.archetype) parts.push(m.archetype.toLowerCase());
-    // D4.4 (F1) — a library's headline metric is its public surface, not entry counts
-    // (the CLI overview reads "LIBRARY Refit (88 public types)").
-    if (this.isLibrary() && this.surfaceTypes() > 0) parts.push(`${this.surfaceTypes()} public types`);
-    else if (s.entries > 0) parts.push(`${s.entries} entries`);
-    if (s.projects > 1) parts.push(`${s.projects} ${this.projectNoun()}`);
-    if (s.nodes > 0) parts.push(`${formatCompact(s.nodes)} types`);
-    if (s.elapsedMs > 0) {
-      const sec = (Number(s.elapsedMs) / 1000).toFixed(1);
-      parts.push(`analyzed in ${sec}s`);
-    }
+    // R3 D-E (E1) — the sentence is IDENTITY. It used to repeat the whole stat row one line above
+    // it: on eShop the headline and the strip both printed entries, projects and types, forty
+    // pixels apart, and the freshness tile printed types and projects a third time while the
+    // wiring tile printed the wiring fact a third way. Each fact now has exactly one owner —
+    // counts on the strip, wiring in its tile, run timing in freshness, edge confidence in the
+    // ledger. Nothing here but who this repo is.
     return parts.join(' · ') + '.';
   });
 
@@ -194,26 +192,36 @@ export class IdentityStrip {
     const wired = s.entriesWithTarget ?? 0;
     const total = s.entries ?? 0;
     // D4.4 (F1) — library home cards carry surface metrics, not entry metrics.
+    // S10: the strip is now the only place these counts are stated, so "1 entries" — which
+    // GitVersion showed, twice — is the whole label rather than a typo the eye skates over.
+    const SINGULAR: Record<string, string> = {
+      entries: 'entry', projects: 'project', services: 'service',
+      types: 'type', namespaces: 'namespace',
+    };
+    const plural = (n: number, noun: string) => (n === 1 ? SINGULAR[noun] ?? noun : noun);
     const labels: [string, string, string][] = this.isLibrary()
       ? [
-          ['public types', String(this.surfaceTypes()), 'Public types on the library surface'],
-          ['namespaces', String(this.surfaceNamespaces()), 'Namespaces on the public surface'],
+          ['public ' + plural(this.surfaceTypes(), 'types'), String(this.surfaceTypes()), 'Public types on the library surface'],
+          [plural(this.surfaceNamespaces(), 'namespaces'), String(this.surfaceNamespaces()), 'Namespaces on the public surface'],
         ]
-      : [['entries', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)']];
+      : [[plural(s.entries, 'entries'), String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)']];
     if (s.projects > 0) {
-      labels.push([this.projectNoun(), String(s.projects), 'Projects in the solution']);
+      labels.push([plural(s.projects, this.projectNoun()), String(s.projects), 'Projects in the solution']);
     }
     if (s.nodes > 0) {
-      labels.push(['types', formatCompact(s.nodes), 'Types discovered in the graph']);
+      labels.push([plural(s.nodes, 'types'), formatCompact(s.nodes), 'Types discovered in the graph']);
     }
     if (total > 0 && !this.isLibrary()) {
       labels.push(['wired', `${wired}/${total}`, `${wired} of ${total} entries have resolved targets`]);
     }
     if (l) {
-      // Batch E (R2 §2.E item 2): the chip and its tooltip now state the SAME number. The chip used
-      // to print the retired `overall` blend under the word "verified" while the tooltip explained
-      // verifiedEdgePct — two numbers, one label.
-      labels.push(['verified', `${Math.round(l.verifiedEdgePct * 100)}%`, `${l.totalEdges} edges: ${Math.round(l.verifiedEdgePct * 100)}% verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
+      // R3 D-E (E-1): the percentage moved INTO the ledger. Three coverage-shaped numbers sat on
+      // this one line — `64/109 wired`, `59% entries targeted` (the tile) and `8% verified` — and
+      // only the first two meant the same thing; the third measured edge quality, which nothing on
+      // the page defined. The chip stays because it is the ONLY way to open the ledger (S9 learned
+      // that the hard way: no chip, no panel, on every library), but it names the panel instead of
+      // competing with the wiring number beside it. The figure itself is the ledger's first row.
+      labels.push(['confidence', 'edge', `${l.totalEdges} edges · ${Math.round(l.verifiedEdgePct * 100)}% verified — open the Confidence Ledger`]);
     }
     return labels;
   });

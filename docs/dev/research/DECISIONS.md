@@ -313,8 +313,72 @@ analyzed solution — the rule the snapshot cache learned in Batch C and the ses
 
 ---
 
-## D-E … D-H — NOT YET DECIDED
+## D-E. Home — what a repo's front page says
 
-Open. Known open item carried for `D-E`: Top-flows is still ranked by internal
-`DomainEventHandler`s over user-facing endpoints (audit A2, unchanged) — it belongs to Home, not to
-the canvas language.
+**DECIDED 2026-07-28 (owner): E3 — the front page asks the archetype's question.**
+
+> Decision brief the owner reviewed (three positions, wireframed on evidence measured the same day):
+> <https://claude.ai/code/artifact/973a85a7-5ac5-43e4-8446-05762d0bbe82>
+> Current-state frames: `eval-results/2026-07-28/r3-current-state/{eshop,fluentvalidation,gitversion}-s10/`.
+
+There is no universal Home, because the honest question differs by archetype. A **service** is asked
+what runs and how it connects — today's page, deduplicated. A **library** is asked how you use it:
+the namespace and front-door tiles come up to where an empty canvas used to be, and no canvas is
+drawn. A **CLI tool** is asked what it does: the command surface `ArchetypeView` has published since
+L7.2 and S8 gave a component, with no services toggle and no two-node frame.
+
+**Rationale (owner-facing, one line):** the page was asking every repo the same question and only one
+archetype could answer it — FluentValidation's Home headed a 350px box "What runs" and drew a single
+csproj arrow, GitVersion drew two unconnected boxes under a *Services* toggle for a tool that has
+none — while the surfaces that DO answer a library's and a CLI's real question already existed and
+sat below the fold or on another page.
+
+**E3 carries E1's rule inside it:** every fact is stated once, at the altitude that owns it. Measured
+on eShop, three of the five headline numbers were printed twice forty pixels apart, and the wiring
+fact appeared three times in two notations (headline · stat row · wiring tile — and types/projects a
+third time in the freshness tile).
+
+### D-E sub-decisions
+
+| # | Question | Decision | Rationale |
+|---|---|---|---|
+| E-1 | Three coverage-shaped numbers on one line, two meaning the same thing | **Keep `64/109 wired` on the strip; `% verified` moves into the Confidence Ledger** | Wired has an obvious meaning; verified is an edge-quality concept whose definition lives in the panel the chip already opens. |
+| E-2 | Home and Atlas both rank "Top flows", differently; START HERE is a third rule | **One rule everywhere — request-shaped first, then depth/score** | The product should have an opinion about what matters in a repo. Two rules just document the disagreement. |
+| E-3 | Does the mini-canvas stay on Home? | **Yes on a service, nowhere else** | It is the best answer the product has to "what is this repo" — and only where something connects. This IS E3. |
+| D-2 | Fit clamp on a tiny graph (carried from D-D) | **Below the drawable minimum, draw no canvas at all** | A clamp still frames emptiness. GitVersion's two boxes needed a sentence, not a better zoom. |
+
+### The regression E-2 uncovered
+
+`START HERE` offered **`Trace [RelayCommand] CheckoutViewModel.CheckoutAsync`** on eShop — a MAUI
+mobile view-model command, as the way into a twelve-service backend. `onboarding-row.ts` prefers any
+flow whose title matches `/checkout/i` and reaches ≥4 nodes, and its own comment records why that
+was safe: *"on eShop EVERY checkout-titled entry is a 1-hop client command (CheckoutViewModel
+.CheckoutAsync = 2 nodes), so a title match alone can't deliver the ≥3-hop gate"* — with the stated
+intent that *"Trace POST /api/orders/draft is the story a first visit should open on"*.
+
+**Batches A–E made that comment false.** The resolver got honest, the client command now clears the
+depth gate, and the special case beats the request-shaped preference it was written to protect.
+A heuristic tuned against a starved graph inverted when the graph stopped being starved — worth
+remembering wherever else this program left a threshold calibrated on pre-Batch-A data.
+
+---
+
+## D-F … D-H — NOT YET DECIDED
+
+Open. Evidence for all three was captured in S10 and is summarised at the end of the D-E brief
+above; the areas themselves were deliberately not briefed (owner: implement Home first).
+
+- **D-F (Insights).** eShop ships **three overlapping auth findings** — "36/43 endpoints anonymous",
+  "Auth surface: 7 protected, 36 unannotated of 43", and a missing-validation warning over the same
+  endpoints. One fact, three cards, three severities. Separately "Entry targets resolved 64/109" is
+  an insight *and* the coverage bar directly beneath it. Dedup belongs at the source (engine), so
+  the CLI and MCP get it too.
+- **D-G (Studio).** Opens on two stacked empty panes. After S10's truncation fix its picker rows are
+  still not unique: eShop has five `OrderStatusChangedTo*EventHandler`s agreeing on their last 18
+  characters, and three `GET /Account` actions the engine *does* disambiguate (`[Logout]`,
+  `[AccessDenied]`) in data the row drops. No truncation setting fixes either — it is a design call.
+- **D-H (chrome).** Largely stale: the rail has not replaced icons with badges since M7.4. The one
+  live find is on Atlas — **three vocabularies for "service" on one page**: the canvas excludes
+  ClientApp/HybridApp, the per-service breakdown lists them as services, and Hub radar mixes services
+  with types, one rendering as `` Logging.ILogger`1 `` (raw metadata arity reaching the UI). That is
+  D-4, still open.

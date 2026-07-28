@@ -16,7 +16,7 @@ import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-c
   selector: 'app-service-map-hero',
   imports: [GraphCanvas],
   template: `
-    @if (topology().length > 0) {
+    @if (drawable()) {
       <app-graph-canvas
         [data]="canvasData()"
         [compact]="true"
@@ -27,6 +27,15 @@ import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-c
           <span class="chip text-2xs text-warn" title="Message transport detected from package/config signals">{{ bus }}</span>
         </div>
       }
+    } @else if (topology().length > 0) {
+      <!-- R3 D-2: below the drawable minimum there is no picture, and a fit clamp only frames the
+           emptiness better. GitVersion drew two unconnected boxes in a 350px box; naming them
+           costs one line and says strictly more. -->
+      <p class="py-3 text-xs text-ink-muted">
+        {{ topology().length === 1 ? 'One project' : topology().length + ' projects' }},
+        nothing connecting them —
+        <span class="font-mono text-ink">{{ projectNames() }}</span>
+      </p>
     } @else {
       <p class="py-8 text-center text-xs text-ink-subtle">No project topology resolved.</p>
     }
@@ -48,6 +57,23 @@ export class ServiceMapHero {
     services: this.session.graphFacets()?.serviceMap?.services ?? [],
     transports: this.session.graphFacets()?.serviceMap?.transports ?? [],
   }));
+
+  /**
+   * R3 D-2 — a canvas earns its space when there is a shape to see: at least three boxes AND at
+   * least one relationship between them. Two boxes and no edge is a list with extra steps, and no
+   * zoom clamp changes that. Transports count as relationships even where csproj references do not,
+   * because a service graph can be fully connected by queues alone.
+   */
+  protected readonly drawable = computed(() => {
+    const projects = this.topology();
+    if (projects.length < 3) return false;
+    const hasTransport = (this.session.graphFacets()?.serviceMap?.transports ?? []).length > 0;
+    const hasDependency = projects.some((p) => p.dependsOn.length > 0);
+    return hasTransport || hasDependency;
+  });
+
+  protected readonly projectNames = computed(() =>
+    this.topology().map((p) => p.name).join(' · '));
 
   protected openProject(name: string): void {
     if (!name) return;

@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { AtlasStore } from '../../state/atlas.store';
 import { SessionStore } from '../../state/session.store';
+import { rankFlows } from '../../core/flow-ranking';
 
 @Component({
   selector: 'app-onboarding-row',
@@ -66,18 +67,18 @@ export class OnboardingRow {
   protected readonly heroFlow = computed<{ focus: string; label: string } | null>(() => {
     const flows = this.atlas.flows().filter((f) => f.found && f.nodeCount > 1);
     if (flows.length > 0) {
-      const byBest = (a: { score: number; nodeCount: number }, b: typeof a) =>
-        (b.score - a.score) || (b.nodeCount - a.nodeCount);
-      const checkout = flows
-        .filter((f) => f.nodeCount >= 4 && /checkout/i.test(f.title))
-        .sort((a, b) => b.nodeCount - a.nodeCount)[0];
-      // Prefer a request-shaped flow (HTTP/gRPC) as the demo — a deep DomainEventHandler
-      // flow can out-score them, but "Trace POST /api/orders/draft" is the story a first
-      // visit should open on.
-      const request = flows
-        .filter((f) => f.nodeCount >= 4 && (f.kind === 'HttpEndpoint' || f.kind === 'GrpcService'))
-        .sort(byBest)[0];
-      const best = checkout ?? request ?? [...flows].sort(byBest)[0];
+      // R3 D-E (E-2): one ranking rule, the same one Home's and Atlas's Top flows use.
+      //
+      // This used to prefer ANY flow whose title matched /checkout/i and reached 4 nodes, ahead of
+      // the request-shaped preference below it — safe when it was written, because the comment
+      // above recorded that every checkout-titled entry on eShop was a 1-hop client command that
+      // could not clear the gate. Batches A–E made that false: the resolver got honest, the MAUI
+      // `CheckoutViewModel.CheckoutAsync` now reaches four nodes, and the special case started
+      // beating the very preference it was written to protect — the tile offered a mobile
+      // view-model command as the way into a twelve-service backend. A threshold calibrated on a
+      // starved graph inverts when the graph stops being starved; the fix is to rank by what a
+      // flow IS, not by what its title says.
+      const best = rankFlows(flows.filter((f) => f.nodeCount >= 4))[0] ?? rankFlows(flows)[0];
       return { focus: best.focus, label: best.title };
     }
 
