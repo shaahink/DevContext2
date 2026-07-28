@@ -530,12 +530,18 @@ public sealed class DiscoveryPipeline
                 // CLAIMED (`Tokens ~24774 (budget 8000)` on bitwarden's CipherService was a silent 3×
                 // breach). ShapeToBudget cuts breadth-first with per-subtree "(N omitted)" honesty;
                 // the unshaped walk remains reachable by raising --max-tokens.
-                var unshaped = query.Trace(request.Entry, request.Depth ?? 6, 12);
-                // The shaper only estimates the tree itself; the rendered document adds TOUCHES/EMITS,
-                // hints, and the diagnostics tail (~1.2k tokens measured on the bitwarden exemplar) —
-                // reserve for them or the total still overshoots the budget it just enforced.
-                var traceBudget = Math.Max(1000, request.MaxTokens - 1200);
-                var trace = unshaped is not null && request.MaxTokens > 0
+                // Batch E: the dials come from TracePolicy — the same ones GraphQuery.Trace and the gRPC
+                // surface use. The reserve for TOUCHES/EMITS, hints and the diagnostics tail (~1.2k
+                // tokens, measured on the bitwarden exemplar) is TracePolicy.RenderReserveTokens; it used
+                // to be a literal here and nowhere else, so only this path honoured it.
+                var unshaped = request.PrebuiltTrace
+                    ?? query.Trace(request.Entry, request.Depth ?? Graph.TracePolicy.DefaultDepth,
+                        Graph.TracePolicy.DefaultFanOut);
+                // A PREBUILT trace has already had the caller's budget applied — re-shaping it here to a
+                // different budget is how the tree a caller receives and the document it receives came to
+                // omit different things. Shape only what this path built.
+                var traceBudget = request.PrebuiltTrace is null ? Graph.TracePolicy.TreeBudget(request.MaxTokens) : 0;
+                var trace = unshaped is not null && traceBudget > 0
                     ? Graph.TraceBuilder.ShapeToBudget(unshaped, traceBudget)
                     : unshaped;
                 if (trace is not null && unshaped is not null)

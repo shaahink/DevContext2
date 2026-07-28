@@ -24,6 +24,11 @@ public sealed record TraceStep(
     /// <summary>Number of followable branches omitted at this node (fan-out cap or depth limit) — rendered
     /// explicitly so a cut is honest, not silent (Iteration 3 Step 4).</summary>
     public int Omitted { get; init; }
+    /// <summary>Batch E (R2 §2.E item 3) — WHO was omitted, up to <see cref="TraceBuilder.MaxOmittedNames"/>
+    /// of them. "(6 branches omitted)" tells a reader that something was cut but not whether it mattered;
+    /// "(6 omitted: PaymentService, ShippingService, …)" tells them where to look next. These are the
+    /// tokens the retired RESULT/NEXT tables used to spend on invented HTTP status codes.</summary>
+    public ImmutableArray<string> OmittedNames { get; init; } = [];
     /// <summary>Pipeline behaviors that wrap the request reached by a <c>Sends</c> edge — rendered once as
     /// an annotation under the send (Iteration 3 Step 3).</summary>
     public ImmutableArray<string> Pipeline { get; init; } = [];
@@ -53,10 +58,10 @@ public sealed record Trace(EntryPoint Entry, TraceStep Root)
 /// <summary>The render-time dials for a trace.</summary>
 public sealed record TraceOptions
 {
-    /// <summary>Maximum hops from the entry.</summary>
-    public int MaxDepth { get; init; } = 6;
-    /// <summary>Maximum children expanded per node.</summary>
-    public int MaxFanOut { get; init; } = 12;
+    /// <summary>Maximum hops from the entry. Default from <see cref="TracePolicy.DefaultDepth"/>.</summary>
+    public int MaxDepth { get; init; } = TracePolicy.DefaultDepth;
+    /// <summary>Maximum children expanded per node. Default from <see cref="TracePolicy.DefaultFanOut"/>.</summary>
+    public int MaxFanOut { get; init; } = TracePolicy.DefaultFanOut;
     /// <summary>Edge kinds to follow. Default follows every "down the wiring" seam.</summary>
     public ImmutableArray<EdgeKind> Follow { get; init; } =
     [
@@ -326,14 +331,15 @@ public sealed class TraceBuilder
     {
         if (!visited.Add(node.Id) || depth >= opts.MaxDepth)
         {
-            var omitted = OutEdgesWithTwin(node.Id).Where(e => follow.Contains(e.Kind))
-                .Select(e => (e.To, e.Kind)).Distinct().Count();
+            var omittedTargets = OutEdgesWithTwin(node.Id).Where(e => follow.Contains(e.Kind))
+                .Select(e => (e.To, e.Kind)).Distinct().ToList();
             return new TraceStep(node, seam, depth)
             {
                 Provenance = provenance,
                 Resolution = resolution,
-                Truncated = omitted > 0,
-                Omitted = omitted,
+                Truncated = omittedTargets.Count > 0,
+                Omitted = omittedTargets.Count,
+                OmittedNames = NameTargets(omittedTargets.Select(t => t.To)),
             };
         }
 
@@ -425,33 +431,37 @@ public sealed class TraceBuilder
             Children = children.ToImmutable(),
             Truncated = ranked.Count > taken.Count,
             Omitted = ranked.Count - taken.Count,
+            OmittedNames = NameTargets(ranked.Skip(taken.Count).Select(e => e.To)),
             MultiImplCount = multiImplCount,
             Salient = ExtractCalleeSalient(node),
         };
     }
 
-    private static int EdgePriority(EdgeKind kind) => kind switch
-    {
-        EdgeKind.Sends => 0,     // highest: dispatch is the core story
-        EdgeKind.Handles => 1,   // handler is the response
-        EdgeKind.Raises => 2,    // events are important
-        EdgeKind.Consumes => 3,  // event consumption
-        EdgeKind.ReadsWrites => 4, // data access
-        EdgeKind.Resolves => 5,  // DI wiring
-        EdgeKind.WrappedBy => 6, // pipeline wrappers
-        _ => 7,                  // Calls — lowest priority, most likely to be framework noise
-    };
+    /// <summary>Batch E — how many omitted branches get NAMED. Four is the point where the list still
+    /// reads as a hint rather than as the branch it replaced.</summary>
+    public const int MaxOmittedNames = 4;
 
-    private static bool IsFrameworkLeaf(GraphNode node)
+    /// <summary>Titles for omitted edge targets, deduped, in the order they were ranked (so the names
+    /// shown are the HIGHEST-priority things that were cut, not an arbitrary sample).</summary>
+    private ImmutableArray<string> NameTargets(IEnumerable<NodeId> targets)
     {
-        var title = node.Title;
-        // Batch A: the "*Mediator*" Contains-overfit is gone — the honest binder never produces
-        // edges onto out-of-solution mediator types, so only literal framework names remain.
-        return title.StartsWith("Microsoft.", StringComparison.Ordinal)
-            || title.StartsWith("System.", StringComparison.Ordinal)
-            || title == "DbContext"
-            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher";
+        var names = new List<string>(MaxOmittedNames);
+        foreach (var id in targets)
+        {
+            var title = _graph.Node(id)?.Title ?? id.Key;
+            if (names.Contains(title, StringComparer.Ordinal)) continue;
+            names.Add(title);
+            if (names.Count == MaxOmittedNames) break;
+        }
+        return [.. names];
     }
+
+    // Batch E (R2 §2.E item 1): the pick order and the framework stop live in TracePolicy, so the
+    // precomputed flow spine and this tree cannot rank the same seams differently. The tree's own table
+    // used to leave ServiceLink in the catch-all bucket with Calls while the spine ranked it third.
+    private static int EdgePriority(EdgeKind kind) => TracePolicy.SeamPriority(kind);
+
+    private static bool IsFrameworkLeaf(GraphNode node) => TracePolicy.IsFrameworkLeaf(node);
 
     /// <summary>Out-edges of a node, with the controlled member bridge (Phase 1). A <b>Member</b> node
     /// yields ONLY its own edges — the per-method set is now correct, so inheriting the parent Type's edges
@@ -669,7 +679,21 @@ public sealed class TraceBuilder
             else cut += 1 + CountDescendants(child);
         }
         if (cut == 0) return step with { Children = kept.ToImmutable() };
-        return step with { Children = kept.ToImmutable(), Truncated = true, Omitted = step.Omitted + cut };
+        // Batch E: a budget cut names what it dropped, same as a fan-out or depth cut. The names come
+        // from the CHILDREN that were removed — the reader's "what am I not seeing" question.
+        var cutNames = step.Children
+            .Where(c => !keep.Contains(c))
+            .Select(c => c.Node.Title)
+            .Distinct(StringComparer.Ordinal)
+            .Take(MaxOmittedNames)
+            .ToImmutableArray();
+        return step with
+        {
+            Children = kept.ToImmutable(),
+            Truncated = true,
+            Omitted = step.Omitted + cut,
+            OmittedNames = step.OmittedNames.IsDefaultOrEmpty ? cutNames : step.OmittedNames,
+        };
     }
 
     private static int CountDescendants(TraceStep step)
@@ -677,6 +701,18 @@ public sealed class TraceBuilder
         var n = 0;
         foreach (var child in step.Children) n += 1 + CountDescendants(child);
         return n;
+    }
+
+    /// <summary>Batch E — the whole tree's estimate, in the SAME units <see cref="ShapeToBudget"/>
+    /// spends. Budget-elastic depth asks "did this walk use its budget?" and must ask in the currency
+    /// the shaper will charge in, or the two disagree about what fits.</summary>
+    public static int EstimateTraceTokens(Trace trace) => EstimateSubtreeTokens(trace.Root);
+
+    private static int EstimateSubtreeTokens(TraceStep step)
+    {
+        var total = EstimateStepTokens(step);
+        foreach (var child in step.Children) total += EstimateSubtreeTokens(child);
+        return total;
     }
 
     // Rough token estimate for one rendered step line: title + provenance + salient, /4.

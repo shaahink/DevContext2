@@ -64,7 +64,13 @@ public sealed class PlainCallDetector : ISeamDetector
 
             yield return new SeamMatch(
                 body.Member, EdgeKind.Calls, target,
-                0.5f, $"{body.File}:{inv.Line}", Id);
+                0.5f, $"{body.File}:{inv.Line}", Id)
+            {
+                // Batch E: the method name was already in hand here and was dropped on the floor. It is
+                // the difference between "this endpoint calls IDashboardClient" and "this endpoint calls
+                // IDashboardClient.GetGrains".
+                TargetMember = inv.MethodName,
+            };
         }
     }
 

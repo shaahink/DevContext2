@@ -64,9 +64,10 @@ import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
         <div class="rounded-lg border border-line bg-surface-2 p-3 space-y-2 text-xs">
           <p class="font-semibold text-ink">Confidence Ledger</p>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-muted">
-            <span>Overall</span><span class="tabular-nums font-mono text-ink">{{ (l.overall * 100).toFixed(0) }}%</span>
-            <span>Verified edges</span><span class="tabular-nums font-mono text-ink">{{ (l.verifiedEdgePct * 100).toFixed(0) }}%</span>
-            <span>Approximate edges</span><span class="tabular-nums font-mono text-ink">{{ (l.approxEdgePct * 100).toFixed(0) }}%</span>
+            <!-- Batch E: the invented "Overall" blend is retired; every row here is a count or a
+                 ratio of counts shown beside it, and the chip above reads the SAME number. -->
+            <span>Verified edges</span><span class="tabular-nums font-mono text-ink">{{ (l.verifiedEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
+            <span>Approximate edges</span><span class="tabular-nums font-mono text-ink">{{ (l.approxEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
             <span>Auth coverage</span><span class="tabular-nums font-mono text-ink">{{ l.endpointsWithAuth }}/{{ l.totalEndpoints }}</span>
             <span>Entry targets</span><span class="tabular-nums font-mono text-ink">{{ l.entriesWithTarget }}/{{ l.totalEntries }}</span>
           </div>
@@ -147,7 +148,10 @@ export class IdentityStrip {
       labels.push(['wired', `${wired}/${total}`, `${wired} of ${total} entries have resolved targets`]);
     }
     if (l) {
-      labels.push(['verified', `${Math.round(l.overall * 100)}%`, `${Math.round(l.verifiedEdgePct * 100)}% edges verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
+      // Batch E (R2 §2.E item 2): the chip and its tooltip now state the SAME number. The chip used
+      // to print the retired `overall` blend under the word "verified" while the tooltip explained
+      // verifiedEdgePct — two numbers, one label.
+      labels.push(['verified', `${Math.round(l.verifiedEdgePct * 100)}%`, `${l.totalEdges} edges: ${Math.round(l.verifiedEdgePct * 100)}% verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
     }
     return labels;
   });

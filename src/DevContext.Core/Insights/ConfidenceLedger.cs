@@ -5,9 +5,14 @@ using DevContext.Core.Graph;
 namespace DevContext.Core.Insights;
 
 /// <summary>L4.3 — Decomposes "X% confidence" into honest per-aspect breakdowns
-/// so a human or agent can judge trustworthiness without reading engine internals.</summary>
+/// so a human or agent can judge trustworthiness without reading engine internals.
+/// <para>Batch E (R2 §2.E item 2): the <c>OverallConfidence</c> member is GONE. It was
+/// <c>verified/total * 0.7 + (total-approx)/total * 0.3</c> — a blend of two of the other fields with
+/// invented weights, i.e. not a countable fact about the repo. The home chip printed it under the
+/// label "verified" while the chip's own tooltip printed <see cref="VerifiedEdgePct"/> for the same
+/// word, so the number and its explanation disagreed on every repo that isn't 100% semantic. Every
+/// member below is now a COUNT or a ratio of two counts that appear beside it.</para></summary>
 public sealed record ConfidenceLedger(
-    double OverallConfidence,
     double VerifiedEdgePct,
     double ApproxEdgePct,
     int TotalEdges,
@@ -28,7 +33,7 @@ public sealed record ConfidenceLedger(
 
         var totalEdges = edgeList.Count;
         if (totalEdges == 0)
-            return new ConfidenceLedger(0, 0, 0, 0, [], 0, 0, 0, 0, 0, 0);
+            return new ConfidenceLedger(0, 0, 0, [], 0, 0, 0, 0, 0, 0);
 
         var verified = edgeList.Count(e => e.Resolution == Resolution.Semantic);
         var approx = edgeList.Count(e => e.Resolution == Resolution.Syntactic || e.Confidence < 1.0f);
@@ -51,12 +56,7 @@ public sealed record ConfidenceLedger(
         var entriesWithTarget = entries.Count(e => e.Target is not null);
         var totalEntries = entries.Length;
 
-        var overall = totalEdges > 0
-            ? (double)verified / totalEdges * 0.7 + (double)(totalEdges - approx) / totalEdges * 0.3
-            : 0;
-
         return new ConfidenceLedger(
-            Math.Round(overall, 2),
             Math.Round(totalEdges > 0 ? (double)verified / totalEdges : 0, 2),
             Math.Round(totalEdges > 0 ? (double)approx / totalEdges : 0, 2),
             totalEdges,

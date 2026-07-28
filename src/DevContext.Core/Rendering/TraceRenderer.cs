@@ -53,41 +53,16 @@ public static class TraceRenderer
             sections.Add(new NarrativeSection("Emits", sb.ToString()));
         }
 
-        // RESULT — the entry's expected outcome
-        var resultText = ResultForEntry(trace.Entry);
-        if (resultText is not null)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine($"RESULT   {resultText}");
-            sections.Add(new NarrativeSection("Result", sb.ToString()));
-        }
-
-        // NEXT — lifecycle hints from emitted events suggest what follows
-        if (trace.EmittedEvents.Length > 0)
-        {
-            var lifecycleHints = new List<string>();
-            foreach (var evt in trace.EmittedEvents)
-            {
-                if (evt.Contains("Started", StringComparison.OrdinalIgnoreCase))
-                    lifecycleHints.Add("initial state");
-                if (evt.Contains("Confirmed", StringComparison.OrdinalIgnoreCase))
-                    lifecycleHints.Add("status transition");
-                if (evt.Contains("Paid", StringComparison.OrdinalIgnoreCase))
-                    lifecycleHints.Add("payment processing");
-                if (evt.Contains("Shipped", StringComparison.OrdinalIgnoreCase))
-                    lifecycleHints.Add("fulfillment");
-                if (evt.Contains("Cancelled", StringComparison.OrdinalIgnoreCase))
-                    lifecycleHints.Add("cancellation");
-            }
-            var hints = lifecycleHints.Distinct().ToList();
-            if (hints.Count > 0)
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine($"NEXT     {string.Join(" → ", hints)}");
-                sections.Add(new NarrativeSection("Next", sb.ToString()));
-            }
-        }
-
+        // Batch E (R2 §2.E item 3): the RESULT and NEXT blocks are RETIRED.
+        //   RESULT printed "200 OK · failure → 404 Not Found" from a verb→status lookup table. The engine
+        //   never read the handler's return type, its ProducesResponseType attributes, or a single throw
+        //   site — it printed what a GET usually does. On an endpoint that returns 204, or 202, or throws
+        //   409 on conflict, the line was simply wrong, and it was wrong in the authoritative voice the
+        //   rest of the trace earns by citing file:line for everything it says.
+        //   NEXT mapped event-NAME substrings ("Started" → "initial state", "Paid" → "payment
+        //   processing") — an eShop vocabulary that says nothing about the repo in front of the reader.
+        // The tokens they cost now go to naming the omitted branches (see TraceStep.OmittedNames), which
+        // is evidence the engine actually holds.
         return sections;
     }
 
@@ -146,9 +121,17 @@ public static class TraceRenderer
         {
             var n = step.Omitted;
             var branches = n == 1 ? "branch" : "branches";
+            // Batch E (R2 \u00a72.E item 3): NAME the omitted branches. A count says something was cut; the
+            // names say whether it mattered and where to point the next --focus.
+            var who = "";
+            if (!step.OmittedNames.IsDefaultOrEmpty)
+            {
+                var shown = string.Join(", ", step.OmittedNames);
+                who = step.OmittedNames.Length < n ? $": {shown}, \u2026" : $": {shown}";
+            }
             var marker = step.Children.Length == 0
-                ? $"(stopped at depth {step.Depth}; {n} {branches} omitted)"
-                : $"({n} more {branches} omitted beyond fan-out)";
+                ? $"(stopped at depth {step.Depth}; {n} {branches} omitted{who})"
+                : $"({n} more {branches} omitted beyond fan-out{who})";
             sb.AppendLine(indent + (isLast ? "   " : "\u2502  ") + marker);
         }
 
@@ -177,17 +160,4 @@ public static class TraceRenderer
         _ => "?",
     };
 
-    private static string? ResultForEntry(EntryPoint entry) => entry.Kind switch
-    {
-        EntryPointKind.HttpEndpoint => entry.HttpMethod switch
-        {
-            "GET" => "200 OK · failure → 404 Not Found",
-            "POST" => "200 OK / 201 Created · failure → 400 Bad Request",
-            "PUT" => "200 OK / 204 No Content · failure → 400 Bad Request",
-            "DELETE" => "200 OK / 204 No Content · failure → 404 Not Found",
-            "PATCH" => "200 OK · failure → 400 Bad Request",
-            _ => null,
-        },
-        _ => null,
-    };
 }

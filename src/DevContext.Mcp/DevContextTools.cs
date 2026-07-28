@@ -705,6 +705,9 @@ public sealed class DevContextTools
 
     /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = call spine from ONE entry (deep); use flow() for a compact summary. format: default|compact. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
+    // depth 6 mirrors TracePolicy.DefaultDepth. It is a literal because this project is a gRPC CLIENT
+    // and deliberately does not reference DevContext.Core — the server, which does, is where the
+    // contract lives; sending the same number keeps MCP on it.
     public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default", string? query = null, int budgetTokens = 4000)
     {
         focus ??= query; // T3.1 — accept `query` as a synonym for `focus`

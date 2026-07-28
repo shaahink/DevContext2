@@ -13,9 +13,10 @@ public sealed class LibraryArchetypeSource : IInsightSource
 
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var publicTypes = model.Types.Values
-            .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
-            .ToList();
+        // Batch E (R2 §2.E item 2): ONE public-type count. This used to count every public type in the
+        // model — including the library's own tests, samples and vendored code — while the library page
+        // beside it counted the real surface. Same words, two numbers.
+        var publicTypes = Graph.LibrarySurfaceBuilder.PublicSurfaceTypes(model);
         if (publicTypes.Count == 0) yield break;
 
         // ── Public surface size ──

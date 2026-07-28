@@ -123,8 +123,7 @@ public sealed partial class GraphBuilder
             foreach (var edge in graph.OutEdges(id))
             {
                 if (visited.Contains(edge.To)) continue;
-                if (edge.Kind is EdgeKind.WrappedBy or EdgeKind.EntityRelation or EdgeKind.DependsOn or EdgeKind.Exposes)
-                    continue;
+                if (!TracePolicy.IsOnSpine(edge.Kind)) continue;
 
                 var p = SpineEdgePriority(edge.Kind);
                 if (p < bestPriority || (p == bestPriority && edge.Confidence > bestConfidence))
@@ -168,30 +167,11 @@ public sealed partial class GraphBuilder
         return best;
     }
 
-    private static int SpineEdgePriority(EdgeKind kind) => kind switch
-    {
-        EdgeKind.Sends => 0,
-        EdgeKind.Handles => 1,
-        EdgeKind.ServiceLink => 2,
-        EdgeKind.Raises => 3,
-        EdgeKind.Consumes => 4,
-        EdgeKind.ReadsWrites => 5,
-        EdgeKind.Resolves => 6,
-        _ => 7,
-    };
+    // Batch E (R2 §2.E item 1): one table, in TracePolicy, shared with TraceBuilder. This copy and the
+    // tree's copy were the two independent answers to "which seam comes next".
+    private static int SpineEdgePriority(EdgeKind kind) => TracePolicy.SeamPriority(kind);
 
-    private static bool IsFrameworkLeaf(GraphNode? node)
-    {
-        if (node is null) return true;
-        var title = node.Title;
-        // Batch A: the "*Mediator*" Contains-overfit is gone — honest call-edge resolution no longer
-        // produces edges onto framework mediator types (out-of-solution receivers are skipped at the
-        // binder), so only the literal framework names below remain meaningful.
-        return title.StartsWith("Microsoft.", StringComparison.Ordinal)
-            || title.StartsWith("System.", StringComparison.Ordinal)
-            || title == "DbContext"
-            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher";
-    }
+    private static bool IsFrameworkLeaf(GraphNode? node) => TracePolicy.IsFrameworkLeaf(node);
 
     private static Dictionary<NodeId, List<NodeId>> BuildBridgeIndex(CodeGraph graph)
     {

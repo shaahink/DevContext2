@@ -424,7 +424,13 @@ message SwallowedFailureStat {
 }
 
 message ConfidenceLedger {
-  double overall = 1;
+  // Batch E (R2 §2.E item 2): `overall` is RETIRED. It carried
+  // verified/total*0.7 + (total-approx)/total*0.3 — a weighted blend of two fields below, with
+  // weights nothing could justify. The home chip showed it labelled "verified" while the chip's
+  // tooltip showed verified_edge_pct, so a reader saw two different numbers for one word. Every
+  // field here is now a count, or a ratio of two counts that travel beside it.
+  reserved 1;
+  reserved "overall";
   double verified_edge_pct = 2;
   double approx_edge_pct = 3;
   int32 total_edges = 4;

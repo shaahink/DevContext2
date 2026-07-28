@@ -1,5 +1,6 @@
 {
   "repo": "eval-repos/xUnit",
-  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/xunit/xunit - test framework library. The hardest case for Batch C's test-support classification: here the test-shaped names ARE the production product, so hub-sanity and entry-target must not be answered by classifying the product as test support. Prism D1.2b already fixed the conditioned-OutputType read that flipped this repo Library -> App; the cell locks it.",
-  "style": { "archetype": "Library", "styles": ["NotApplicable"] }
+  "note": "S5 widen pole, added 2026-07-28. Remote verified: github.com/xunit/xunit - test framework library. The hardest case for Batch C's test-support classification: here the test-shaped names ARE the production product, so hub-sanity and entry-target must not be answered by classifying the product as test support. Prism D1.2b already fixed the conditioned-OutputType read that flipped this repo Library -> App; the cell locks it. MEASURED 2026-07-28: hub-sanity FAILed on ITestFrameworkExecutionOptions(61) and ITestFrameworkDiscoveryOptions(41) - both are xunit.v3.common PRODUCTION types, and the instrument's fixture-WORD rule cannot know that 'Test' is this repo's domain vocabulary. That is an instrument limit, not an engine defect, so the two names are allowed here with the reason attached rather than the rule being weakened for all 47 poles.",
+  "style": { "archetype": "Library", "styles": ["NotApplicable"] },
+  "hubs": { "allow": ["ITestFrameworkExecutionOptions", "ITestFrameworkDiscoveryOptions"] }
 }

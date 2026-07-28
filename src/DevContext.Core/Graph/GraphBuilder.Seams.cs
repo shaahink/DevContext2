@@ -457,6 +457,9 @@ public sealed partial class GraphBuilder
                             Provenance = match.Provenance,
                             Resolution = isSemantic ? Resolution.Semantic : Resolution.Syntactic,
                             Confidence = match.Confidence,
+                            // Batch E: the called member rides on the edge. No node is invented for it —
+                            // an interface method has no body, so there is no declaration site to claim.
+                            TargetMember = match.TargetMember,
                         });
                     }
                 }

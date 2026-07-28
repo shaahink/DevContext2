@@ -322,7 +322,6 @@ internal static class ProtoMapper
             var ledger = ConfidenceLedger.Compute(graph, entries);
             var pl = resp.ConfidenceLedger = new Proto.ConfidenceLedger
             {
-                Overall = ledger.OverallConfidence,
                 VerifiedEdgePct = ledger.VerifiedEdgePct,
                 ApproxEdgePct = ledger.ApproxEdgePct,
                 TotalEdges = ledger.TotalEdges,

@@ -188,6 +188,15 @@ public sealed record GraphEdge(
     /// <summary>Owning project name per <see cref="RegistrationSites"/> entry (parallel array, "" when
     /// unresolvable) — how the trace matches a site to its focus host exactly instead of by path guess.</summary>
     public ImmutableArray<string> RegistrationProjects { get; init; } = [];
+    /// <summary>Batch E (R2 §2.E) — for a <see cref="EdgeKind.Calls"/> edge that lands on a TYPE, the
+    /// member the call site actually named (<c>dashboard.GetGrains()</c> → "GetGrains").
+    /// <para>A call through a DI interface resolves to the interface TYPE, because the interface's
+    /// methods have no bodies and therefore no member nodes to land on. The method name was known at the
+    /// call site and thrown away, so every such entry reported a bare <c>IDashboardClient</c> as its
+    /// target — true, but the least useful true thing available (Orleans' 12 Dashboard endpoints, the
+    /// inherited S4 cell). Carrying the name on the EDGE names the method without inventing a node for a
+    /// declaration we never saw.</para></summary>
+    public string? TargetMember { get; init; }
 }
 
 /// <summary>Immutable, queryable graph. Construct via <see cref="CodeGraphBuilder"/>.</summary>

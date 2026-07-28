@@ -8,6 +8,7 @@ import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
 import { BudgetPanel } from './budget-panel';
+import { totalCardTokens } from './card-tokens';
 import { type ContextCard, CompositionView } from './composition-view';
 import { packPreviewHtml } from './pack-preview';
 import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
@@ -137,9 +138,9 @@ export class ContextStudio {
     );
   }
 
-  protected readonly totalTokens = computed(() =>
-    this.cards().reduce((n, c) => n + (c.serverTokens ?? Math.round(c.estimatedLines * 2.5)), 0),
-  );
+  // Batch E (R2 §2.E item 2): the same function the budget panel uses. This was a second copy of the
+  // reduce — identical today, which is exactly how two numbers for one stat start.
+  protected readonly totalTokens = computed(() => totalCardTokens(this.cards()));
 
   /** T5.6 — THE pack. Exports serve exactly this or nothing; there is no client-side rebuild. */
   protected readonly serverPack = signal<string | null>(null);

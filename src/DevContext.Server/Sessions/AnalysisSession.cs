@@ -39,10 +39,14 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
         return rendered.Content;
     }
 
-    public async Task<string> RenderTraceMarkdownAsync(string focus, int depth, TraceDetail detail, CancellationToken ct)
+    /// <summary>Batch E — renders the markdown for a trace the caller ALREADY built. Passing the built
+    /// trace in is what makes GetTrace one walk instead of two, and it is what makes the tree it returns
+    /// and the document it returns the same trace rather than two independently-shaped ones.</summary>
+    public async Task<string> RenderTraceMarkdownAsync(string focus, int depth, TraceDetail detail,
+        Core.Graph.Trace? prebuilt, CancellationToken ct)
     {
         var rendered = await Engine.Pipeline
-            .RenderAsync(Snapshot, BuildRequest(focus, depth, detail), ct)
+            .RenderAsync(Snapshot, BuildRequest(focus, depth, detail) with { PrebuiltTrace = prebuilt }, ct)
             .ConfigureAwait(false);
         return rendered.Content;
     }

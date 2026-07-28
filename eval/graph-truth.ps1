@@ -6,7 +6,8 @@
 #   entry-target   DC4    share of entries whose target is a bare DI interface name (proxy metric)
 #   style          DC7    archetype (+ optional style list) vs ground truth
 #   sln-scope      DC6    >1 sln on disk silently scoped to one analysis => FAIL
-#   dup-name       DC2n   same-short-name types spanning >1 project touched by cross-project edges
+#   dup-name       DC2n   same-short-name types spanning >1 project joined by a cross-SERVICE link
+#                         (S5 re-point: "any cross-project edge" was the pre-Batch-A proxy -- see MATRIX)
 # Ground truth lives in eval/expectations/graph-truth/<repo>.json (one file per matrix repo; the
 # matrix set = the files that exist). Sections absent from an expectation file fall back to the
 # universal defaults below; transport/style need hand-written truth and SKIP when absent.
@@ -162,10 +163,16 @@ foreach ($Sel in $Selected) {
     $AnalyzeArgs = @("analyze", $RepoPath) + $SlnOpt + @("-o", $KernelPath, "--format", "json")
     $Proc = Start-Process -FilePath $CliExe -ArgumentList $AnalyzeArgs -PassThru -NoNewWindow `
         -RedirectStandardOutput $StdOutPath -RedirectStandardError (Join-Path $Raw "analyze-stderr.txt")
+    # PS 5.1 trap: touching .Handle CACHES the process handle. Without it, reading .ExitCode later
+    # throws "Process was not started by this object" -- which, under ErrorActionPreference=Stop, killed
+    # the whole matrix run silently after the first pole. Do not remove this line.
+    $null = $Proc.Handle
     $TimedOut = $false
     if (-not $Proc.WaitForExit($TimeoutSec * 1000)) {
         $TimedOut = $true
-        try { $Proc.Kill($true) } catch { }
+        # .NET Framework (PS 5.1) has no Kill(bool) overload -- kill the TREE with taskkill instead,
+        # or a stuck analyze leaves child processes holding the CLI binary for the next pole.
+        try { & taskkill /PID $Proc.Id /T /F 2>$null | Out-Null } catch { }
         try { $Proc.WaitForExit(30000) | Out-Null } catch { }
     }
     $AnalyzeExit = if ($TimedOut) { -1 } else { $Proc.ExitCode }
@@ -425,9 +432,18 @@ foreach ($Sel in $Selected) {
     }
 
     # -- C7 dup-name (DC2 noise) --
+    # S5 RE-POINT (declared in the S5 MATRIX with the per-node evidence): this counted homonym TYPES
+    # touched by ANY cross-project edge. That was a fair proxy for identity confusion while node ids
+    # were short-name-based; Batch A made ids namespace+nested+arity qualified, so homonyms in different
+    # namespaces are genuinely distinct and nothing is confused. What the old form measured was how many
+    # homonyms a repo HAS -- bitwarden's 99 are its Dapper and EntityFramework repository pairs, SignalR's
+    # 12 are framework-wide names in separate assemblies, wolverine's are per-sample-app copies. None is
+    # a defect. The check now asks the question DC2n actually raised: is a CROSS-SERVICE link resting on
+    # nothing but a shared short name? Calls/Resolves between correctly-distinct homonyms are not.
     $c = $Checks["dup-name"]
     $DupTouched = New-Object "System.Collections.Generic.HashSet[string]"
     foreach ($e in $CrossEdges) {
+        if ([string]$e["kind"] -ne "ServiceLink") { continue }
         foreach ($endId in @([string]$e["from"], [string]$e["to"])) {
             if ($NodeKind[$endId] -ne "Type") { continue }
             $t = $NodeTitle[$endId]
@@ -442,9 +458,9 @@ foreach ($Sel in $Selected) {
         crossProjectEdges = $CrossEdges.Count; dupNameTypesTouched = $DupTouched.Count; sample = $DupSample
     }
     if ($DupTouched.Count -le $MaxDup) {
-        $c.verdict = "PASS"; $c.detail = "$($DupTouched.Count) dup-name types on cross-project edges (max $MaxDup)"
+        $c.verdict = "PASS"; $c.detail = "$($DupTouched.Count) dup-name types on cross-service links (max $MaxDup)"
     } else {
-        $c.verdict = "FAIL"; $c.detail = "$($DupTouched.Count) dup-name types touched by cross-project edges: $($DupSample -join ', ')"
+        $c.verdict = "FAIL"; $c.detail = "$($DupTouched.Count) dup-name types joined by a cross-service link: $($DupSample -join ', ')"
     }
 
     # -- verdict file + console line --

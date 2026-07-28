@@ -2,6 +2,7 @@ import { Component, inject, input, model, output, signal } from '@angular/core';
 
 import { ToastService } from '../../ui/toast/toast';
 import { Icon } from '../../ui/icon/icon';
+import { allCardsPriced, cardTokens as cardTokensOf, totalCardTokens } from './card-tokens';
 import type { ContextCard } from './composition-view';
 import type { ContextIntent, OutputFormat } from './scope-picker';
 
@@ -192,11 +193,10 @@ export class BudgetPanel {
   readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
   readonly formats: readonly OutputFormat[] = ['markdown', 'plain', 'json'];
 
-  readonly totalTokens = (): number =>
-    this.cards().reduce((n, c) => n + this.cardTokens(c), 0);
+  // Batch E (R2 §2.E item 2): both totals on this screen come from ONE function (card-tokens.ts).
+  readonly totalTokens = (): number => totalCardTokens(this.cards());
 
-  readonly allServer = (): boolean =>
-    this.cards().length > 0 && this.cards().every((c) => c.serverTokens !== null);
+  readonly allServer = (): boolean => allCardsPriced(this.cards());
 
   readonly budgetPerCard = (): number => {
     const n = this.cards().length || 1;
@@ -204,8 +204,7 @@ export class BudgetPanel {
   };
 
   cardTokens(card: ContextCard): number {
-    if (card.serverTokens !== null) return card.serverTokens;
-    return Math.round(card.estimatedLines * 2.5);
+    return cardTokensOf(card);
   }
 
   barPct(card: ContextCard): number {

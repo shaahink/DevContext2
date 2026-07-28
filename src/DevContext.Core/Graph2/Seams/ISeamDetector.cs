@@ -12,7 +12,12 @@ public sealed record SeamMatch(
     SymbolRef Target,
     float Confidence,
     string Provenance,
-    string DetectorId);
+    string DetectorId)
+{
+    /// <summary>Batch E — the member the call site named, when the seam lands on a TYPE. Rides onto
+    /// <see cref="GraphEdge.TargetMember"/>; see that member for why the type is where such a call lands.</summary>
+    public string? TargetMember { get; init; }
+}
 
 /// <summary>Read-only context a detector may consult: the resolver plus classification sets derived from
 /// declared types (which short names are entities/stores, integration events, domain events). Keeps

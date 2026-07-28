@@ -126,12 +126,25 @@ public sealed partial class GraphBuilder
 
             // Check if any BaseType transitively reaches a known handler type
             var reached = FindHandlerBaseType(type, handlerByShortName, knownHandlerTypes, []);
-            if (reached is null) continue;
 
             // Find the most-specific handler interface in the chain
-            var handlerIfaces = reached.ImplementedInterfaces
+            var handlerIfaces = reached?.ImplementedInterfaces
                 .Where(i => IsHandlerInterface(i, handlerByShortName, []))
-                .ToArray();
+                .ToArray() ?? [];
+
+            // Batch E (DC1, the CleanArchitecture canary's declared residue): a handler interface the
+            // repo does NOT declare — ardalis/CleanArchitecture's five Contributor handlers implement
+            // Ardalis.SharedKernel's ICommandHandler<,>, which derives from MediatR's IRequestHandler<,>
+            // inside a NuGet package. The transitive interface walk above can only follow declarations
+            // that exist in the model, so it stops at the package boundary and five dispatched requests
+            // report no handler.
+            // The fallback asks for TWO independent structural facts instead of a name: the class
+            // declares itself a handler OF a type (a generic "...Handler<T, …>" interface), AND it has a
+            // Handle/HandleAsync method whose FIRST PARAMETER is that same type. A class that says it
+            // handles T and takes a T is a handler for T, whoever declared the interface.
+            if (handlerIfaces.Length == 0)
+                handlerIfaces = HandlerInterfacesByShape(type);
+
             if (handlerIfaces.Length == 0) continue;
 
             var handlerInterface = handlerIfaces[0];
@@ -199,6 +212,45 @@ public sealed partial class GraphBuilder
             }
         }
         return null;
+    }
+
+    /// <summary>Batch E — handler interfaces recognised by SHAPE, for the case where the interface is
+    /// declared in a package the analysis never sees (see the call site). Requires the class to both
+    /// declare <c>…Handler&lt;T, …&gt;</c> and to have a <c>Handle</c>/<c>HandleAsync</c> method whose
+    /// first parameter is <c>T</c>. Neither fact alone is enough: the name could be a coincidence, and a
+    /// Handle method alone names no request.</summary>
+    private static string[] HandlerInterfacesByShape(TypeDiscovery type)
+    {
+        if (type.ImplementedInterfaces.IsDefaultOrEmpty || type.Methods.IsDefaultOrEmpty) return [];
+
+        var handled = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var m in type.Methods)
+        {
+            if (m.Name is not ("Handle" or "HandleAsync")) continue;
+            if (m.ParameterTypes.IsDefaultOrEmpty) continue;
+            handled.Add(ShortTypeName(StripGenerics(m.ParameterTypes[0])));
+        }
+        if (handled.Count == 0) return [];
+
+        var found = new List<string>();
+        foreach (var iface in type.ImplementedInterfaces)
+        {
+            var stripped = StripGenerics(iface);
+            if (!stripped.EndsWith("Handler", StringComparison.Ordinal)) continue;
+            var args = ExtractGenericArgs(iface);
+            if (args.Length < 1) continue;
+            if (!handled.Contains(ShortTypeName(StripGenerics(args[0])))) continue;
+            found.Add(iface);
+        }
+        return [.. found];
+    }
+
+    /// <summary>"Ns.Sub.Type" → "Type"; leaves an already-short name alone. Namespace-qualified
+    /// parameter types and short interface arguments must compare equal.</summary>
+    private static string ShortTypeName(string name)
+    {
+        var lastDot = name.LastIndexOf('.');
+        return lastDot >= 0 && lastDot < name.Length - 1 ? name[(lastDot + 1)..] : name;
     }
 
     private static bool IsHandlerInterface(string ifaceName,

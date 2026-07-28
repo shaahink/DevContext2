@@ -168,7 +168,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
                 "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus, snapshot.Report),
-                "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
+                // Batch E: the default comes from TracePolicy, not from a literal repeated per surface.
+                "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? DevContext.Core.Graph.TracePolicy.DefaultDepth),
                 "graphdump" => GraphDumpOp(snapshot.Graph),
                 _ => null
             };

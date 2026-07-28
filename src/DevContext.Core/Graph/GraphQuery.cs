@@ -117,15 +117,50 @@ public sealed class GraphQuery
         => GraphStats.Compute(_graph, _entries);
 
     /// <summary>trace(entry, depth, ...) — resolve a focus to an entry and walk it. Null when the focus
-    /// matches no entry/node. Same resolution + traversal the CLI/Desktop use.</summary>
-    public Trace? Trace(string focus, int depth = 6, int maxFanOut = 12, int budgetTokens = 0)
+    /// matches no entry/node. Same resolution + traversal the CLI/Desktop use.
+    /// <para>Batch E: this is THE build. Depth/fan-out defaults, the seam order, the framework stop and
+    /// the budget rule all come from <see cref="TracePolicy"/>, so a focus traced through the CLI, the
+    /// gRPC surface or MCP produces the same steps.</para></summary>
+    public Trace? Trace(string focus, int depth = TracePolicy.DefaultDepth,
+        int maxFanOut = TracePolicy.DefaultFanOut, int budgetTokens = 0)
     {
         var entry = EntryPointResolver.Resolve(_entries, _graph, focus);
-        if (entry is null) return null;
-        var trace = new TraceBuilder(_graph).Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
-        // T3.3 — an optional token budget shapes the tree post-build (query layer, not graph assembly —
-        // the kernel invariant is preserved). 0 = unlimited, so the default trace is unchanged.
+        return entry is null ? null : Trace(entry, depth, maxFanOut, budgetTokens);
+    }
+
+    /// <summary>Batch E — the build, for callers that already resolved the entry (the render path, which
+    /// would otherwise resolve and walk a second time). <paramref name="explicitDepth"/> false lets the
+    /// budget deepen the walk; an explicit dial is honoured exactly.</summary>
+    public Trace Trace(EntryPoint entry, int depth = TracePolicy.DefaultDepth,
+        int maxFanOut = TracePolicy.DefaultFanOut, int budgetTokens = 0, bool explicitDepth = true)
+    {
+        var builder = new TraceBuilder(_graph);
+        var trace = builder.Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
+
+        // Budget-elastic depth (R2 §2.E item 1): a fixed default truncates a small entry that had room
+        // to spare. Only when the caller left the depth to us, the walk actually hit the limit, and the
+        // result uses little of the budget do we walk again deeper — at most once.
+        if (!explicitDepth && budgetTokens > 0)
+        {
+            var deeper = TracePolicy.ElasticDepth(depth, TraceBuilder.EstimateTraceTokens(trace),
+                budgetTokens, HitDepthLimit(trace.Root, depth));
+            if (deeper > depth)
+                trace = builder.Build(entry, new TraceOptions { MaxDepth = deeper, MaxFanOut = maxFanOut });
+        }
+
+        // T3.3 — the token budget shapes the tree post-build (query layer, not graph assembly — the
+        // kernel invariant is preserved). 0 = unlimited, so the default trace is unchanged.
         return budgetTokens > 0 ? TraceBuilder.ShapeToBudget(trace, budgetTokens) : trace;
+    }
+
+    /// <summary>True when some branch stopped because it ran out of DEPTH (not fan-out) — the signal
+    /// that walking deeper would actually show more.</summary>
+    private static bool HitDepthLimit(TraceStep step, int maxDepth)
+    {
+        if (step.Truncated && step.Depth >= maxDepth) return true;
+        foreach (var child in step.Children)
+            if (HitDepthLimit(child, maxDepth)) return true;
+        return false;
     }
 
     /// <summary>node(id) — the detail card for a node, or null when it doesn't exist.</summary>

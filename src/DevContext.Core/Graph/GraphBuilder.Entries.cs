@@ -139,6 +139,12 @@ public sealed partial class GraphBuilder
         GraphNode? bestFallbackType = null;
         var bestOutDegree = -1;
         string? skippedDataStore = null;
+        // Batch E: when a call lands on a TYPE (a DI interface has no member nodes to land on), the
+        // member the call site named rides on the edge. Kept beside the chosen callee so the target can
+        // say WHICH method — the Orleans Dashboard cell inherited from S4.
+        string? serviceEdgeMember = null;
+        string? fallbackEdgeMember = null;
+        var bestServiceOutDegree = -1;
         foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
             var callee = graph.Node(call.To);
@@ -180,13 +186,29 @@ public sealed partial class GraphBuilder
                 var upgradesToMember = serviceCallee is { Kind: NodeKind.Type }
                     && callee.Kind == NodeKind.Member
                     && string.Equals(calleeTypeKey, serviceCalleeType!.Id.Key, StringComparison.Ordinal);
+                // Batch E — the ORDERING residue inherited from S4: with two service collaborators on one
+                // member, FIRST-WINS decided, and first is edge insertion order, which is not evidence.
+                // eShop's CheckoutViewModel.CheckoutAsync named DialogService.ShowAlertAsync — a real call,
+                // and the weaker of the two. The out-degree rule that already ranks non-service callees
+                // ("a real collaborator keeps working, a leaf call doesn't") now ranks these too, so there
+                // is ONE strength rule instead of a strength rule and an accident.
+                var serviceOutDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
+                var strongerService = serviceCallee is not null
+                    && !upgradesToMember
+                    && serviceOutDegree > bestServiceOutDegree
+                    // T2.3 still binds: on a mutating entry a getter never displaces a non-getter,
+                    // however busy the getter is. Strength breaks ties; it does not overrule the verb.
+                    && !(isMutating && IsGetter(calleeMemberName) && !IsGetter(serviceMember));
                 if (serviceCallee is null
                     || upgradesToMember
+                    || strongerService
                     || (isMutating && IsGetter(serviceMember) && !IsGetter(calleeMemberName)))
                 {
+                    bestServiceOutDegree = Math.Max(bestServiceOutDegree, serviceOutDegree);
                     serviceCallee = callee;
                     serviceCalleeType = calleeType;
                     serviceMember = calleeMemberName;
+                    serviceEdgeMember = call.TargetMember;
                 }
                 continue;
             }
@@ -203,15 +225,18 @@ public sealed partial class GraphBuilder
                 bestOutDegree = Math.Max(bestOutDegree, outDegree);
                 bestFallback = callee;
                 bestFallbackType = calleeType;
+                fallbackEdgeMember = call.TargetMember;
             }
         }
 
         if (serviceCallee is not null)
             return TargetTitle(
-                ResolveTypedClientTarget(graph, serviceCallee), serviceCalleeType!, serviceMember);
+                ResolveTypedClientTarget(graph, serviceCallee), serviceCalleeType!, serviceMember,
+                serviceEdgeMember);
         if (bestFallback is not null)
             return TargetTitle(ResolveTypedClientTarget(graph, bestFallback), bestFallbackType!,
-                bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null);
+                bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null,
+                fallbackEdgeMember);
         // No service/handler call — the endpoint accesses the data store directly; label it as such.
         return skippedDataStore is { } ds ? $"direct data access ({ds})" : null;
     }
@@ -242,12 +267,25 @@ public sealed partial class GraphBuilder
     /// still encodes the owning type, so reconstruct the qualified name from the resolved type node so
     /// "FeedsService.GetNewsAsync" survives (T1.3). A callee whose title is already qualified — or a Type
     /// callee — keeps its own title.</summary>
-    private static string TargetTitle(GraphNode callee, GraphNode calleeType, string? memberName)
-        => callee.Kind == NodeKind.Member
+    /// <param name="edgeMember">Batch E — the member the CALL SITE named, carried on the edge for a call
+    /// that landed on a Type. A DI interface has no member nodes (its methods have no bodies), so
+    /// without this the target is the bare interface: true, and the least useful true thing available.
+    /// Only applied to a Type callee whose title doesn't already carry a member.</param>
+    private static string TargetTitle(GraphNode callee, GraphNode calleeType, string? memberName,
+        string? edgeMember = null)
+    {
+        if (callee.Kind == NodeKind.Member
             && memberName is { Length: > 0 }
-            && !callee.Title.Contains('.', StringComparison.Ordinal)
-            ? $"{calleeType.Title}.{memberName}"
-            : callee.Title;
+            && !callee.Title.Contains('.', StringComparison.Ordinal))
+            return $"{calleeType.Title}.{memberName}";
+
+        if (callee.Kind == NodeKind.Type
+            && edgeMember is { Length: > 0 }
+            && !callee.Title.Contains('.', StringComparison.Ordinal))
+            return $"{callee.Title}.{edgeMember}";
+
+        return callee.Title;
+    }
 
     /// <summary>"TypeFqn::MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
     private static string ExtractMemberName(string memberKey) => SymbolCanon.MemberNameOf(memberKey);

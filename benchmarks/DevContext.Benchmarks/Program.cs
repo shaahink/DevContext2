@@ -74,7 +74,7 @@ public class DevContextBenchmarks
         };
 
         _pipeline = new DiscoveryPipeline(
-            extractors, [], [], new Dictionary<string, IContextRenderer>
+            extractors, [], new Dictionary<string, IContextRenderer>
             {
                 ["markdown"] = new BenchmarkMarkdownRenderer(),
                 ["json"] = new BenchmarkJsonRenderer()

@@ -30,11 +30,17 @@ public static class LibrarySurfaceBuilder
     private static readonly string[] AbstractConsumerSeats =
         ["AbstractValidator", "AbstractAuthorizationHandler"];
 
-    public static LibrarySurface Build(DiscoveryModel model)
+    /// <summary>Batch E (R2 §2.E item 2) — THE definition of "a public type of this library", so every
+    /// surface that prints a public-type count prints the same one.
+    /// <para>The library page counted this set (tests, samples, vendored code and non-library projects
+    /// excluded) while the <c>lib.public-surface</c> INSIGHT counted every public type in the model. On a
+    /// repo with a test project the two numbers appeared on the same screen and disagreed — and the
+    /// insight's was the wrong one, because a library's contract is not what its own tests declare.</para></summary>
+    public static List<TypeDiscovery> PublicSurfaceTypes(DiscoveryModel model)
     {
         var classifier = new ProjectClassifier(model.Projects);
         var nonLibraryDirs = NonLibraryProjectDirs(model.Projects);
-        var publicTypes = model.OrderedTypes
+        return [.. model.OrderedTypes
             .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
             .Where(t => !classifier.IsInTestProject(t.FilePath))
             // T8: samples-only repo — the sample types ARE the surface; never render "0 public types".
@@ -44,8 +50,13 @@ public static class LibrarySurfaceBuilder
             .Where(t => !IsVendoredNamespace(t.Namespace))
             // Stable order: model.Types is a ConcurrentDictionary (nondeterministic enumeration), so order
             // by FQN here — every downstream grouping/dedup then produces a byte-deterministic surface.
-            .OrderBy(t => t.Id, StringComparer.Ordinal)
-            .ToList();
+            .OrderBy(t => t.Id, StringComparer.Ordinal)];
+    }
+
+    public static LibrarySurface Build(DiscoveryModel model)
+    {
+        var classifier = new ProjectClassifier(model.Projects);
+        var publicTypes = PublicSurfaceTypes(model);
 
         // Roslyn tooling (source generators / analyzers / code fixers) gets its own GENERATORS section
         // rather than cluttering the runtime API surface.

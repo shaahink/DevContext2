@@ -139,15 +139,22 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)
         => WrapAsyncT(request.Handle, async session =>
         {
-            var depth = request.HasDepth ? request.Depth : 6;
+            // Batch E (R2 §2.E item 1) — ONE build, ONE shaping, one answer. This used to walk the graph
+            // twice: once here for the tree, then again inside the markdown render. The two walks were
+            // shaped by DIFFERENT budgets (the request's budgetTokens vs the snapshot's MaxTokens), so
+            // the tree the app drew and the document it copied could disagree about what was omitted.
+            var depth = request.HasDepth ? request.Depth : Core.Graph.TracePolicy.DefaultDepth;
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
             var budgetTokens = request.HasBudgetTokens ? request.BudgetTokens : 0; // T3.3 — 0 = unlimited
 
-            var trace = session.Query.Trace(request.Focus, depth, budgetTokens: budgetTokens);
-            if (trace is null)
+            var entry = Core.Graph.EntryPointResolver.Resolve(session.Snapshot.Entries, session.Query.Graph, request.Focus);
+            if (entry is null)
                 return new Proto.TraceResponse { Found = false };
 
-            var markdown = await session.RenderTraceMarkdownAsync(request.Focus, depth, detail, context.CancellationToken)
+            var trace = session.Query.Trace(entry, depth, budgetTokens: budgetTokens,
+                explicitDepth: request.HasDepth);
+
+            var markdown = await session.RenderTraceMarkdownAsync(request.Focus, depth, detail, trace, context.CancellationToken)
                 .ConfigureAwait(false);
             return ProtoMapper.ToTraceResponse(trace, markdown);
         });
