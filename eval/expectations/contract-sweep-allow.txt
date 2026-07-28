@@ -1,0 +1,29 @@
+# Fields no client reads, and why that is CORRECT. Checked by eval/contract-sweep.ps1.
+#
+# A field here is a deliberate contract asymmetry, with the reason stated. A field NOT here that no
+# client reads is the defect this sweep exists to catch: the engine computes it, the wire carries
+# it, and no reader ever sees it. Three of those shipped unnoticed before this file existed (the
+# S7 kind glyph, and MapResponse.scope_note + ArchetypeView in S8); the S9 sweep that wrote this
+# file found four more (GraphFacets.entry_table, .layer_band, ToolCallEvent.args_digest and
+# CorpusStat.total_files, all four now out of the contract).
+#
+# Three reasons are legitimate. Anything else means wire it or delete it:
+#   DUPLICATE   the same fact is on the same message in the form a surface actually renders
+#   ELSEWHERE   the fact reaches the reader through a different surface, in a better form
+#   TEXT-FORM   a rendered sentence kept for a markdown-shaped consumer, while GUIs read the facts
+#
+# Reviewed 2026-07-28 (S9). Entries marked DELETE-CANDIDATE are correct today and should be
+# removed if the surface that would justify them has not appeared by the R3 close.
+
+ConfidenceLedger.auth_coverage_pct = DUPLICATE - the ledger renders endpoints_with_auth/total_endpoints from this same message. Batch E's rule: show a count, or a ratio of counts shown beside it, never a derived blend.
+ConfidenceLedger.entry_target_pct = DUPLICATE - same shape; the ledger renders entries_with_target/total_entries as the count pair.
+EventWireRow.is_integration = ELSEWHERE - the integration/orphan judgments reach the reader as Insights (Core's EventFlowSource ranks and explains them), which the app renders. The Atlas board renders wires, not verdicts about wires.
+EventWireRow.is_orphan = DUPLICATE - it is defined as Consumers.Length == 0 (EventWiring.cs:34), and the Atlas store already branches on exactly that when it builds a consumer-less row.
+EventWiringFacet.integration_count = DUPLICATE - a count of the rows in the same message.
+EventWiringFacet.cross_service_count = DUPLICATE - the Atlas one-pager counts is_cross_service over the rows it is already iterating.
+FlowListFacet.total_flows = ELSEWHERE - the app takes flows from GetFlowIndex, which returns every flow rather than this facet's max_flows page; MCP reads the ranked page and never needs the total behind it.
+LibrarySurface.extension_points = ELSEWHERE - the raw, uncapped Type.Method list that predates D4.4. The library workbench renders entry_api, the RANKED front doors, which is what R3 D-C (C2) made the library's spine. DELETE-CANDIDATE.
+MapResponse.scope_note = TEXT-FORM - the CLI's sentence, which ends by naming a --sln flag no GUI has. S8 D-D decided each surface says the scope in its own words, so the app renders solution_scope's facts instead. DELETE-CANDIDATE if no markdown consumer reads it.
+SessionInfo.token_total = ELSEWHERE - the MCP page's live feed accounts tokens per tool call (est_tokens on ToolCallEvent), which is the number the page is about; a per-session total nothing displays would be a second, unreconciled figure.
+SolutionScope.analyzed_name = DUPLICATE - the identity strip renders analyzed_rel_path, and the field's own comment says why: a name need not identify a solution when a repo declares three.
+ToolCallEvent.timestamp_utc_ms = ELSEWHERE - the feed orders by arrival and shows elapsed_ms per call; no surface shows a wall-clock time.

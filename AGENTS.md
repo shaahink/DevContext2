@@ -46,6 +46,7 @@ dotnet test  DevContext.slnx --filter "Category=Truth"    # truth gates (skips a
 powershell -File scripts/loom-guards.ps1                  # banned-pattern check + truth gate
 powershell -File eval/gates.ps1                           # FULL battery: build → tests → eval → CLI → pnpm check
 powershell -File eval/gates.ps1 -Scope app                # app-only checkpoint (~90s); -Scope engine skips app
+powershell -File eval/contract-sweep.ps1                  # dead proto fields (Step 2a of the battery; ~2s standalone)
 #   full = the only boundary-citable form; eval step is stamp-cached (eval/.eval-stamp.json) +
 #   split over two test hosts. At a boundary launch full DETACHED and keep working — see
 #   .claude/skills/dev-pipeline/SKILL.md
@@ -73,6 +74,10 @@ unrebuilt CLI runs stale engine code.
 - **Detection lands with render + serve + eval in the same checkpoint** (R-T1). The phase's
   recurring defect class was detect≠render — a signal the JSON knows but the map hides. If you
   teach the engine a new fact, prove a surface shows it and a gate pins it.
+  **`eval/contract-sweep.ps1` is the mechanical half of this rule** (battery Step 2a): a response
+  field no client reads fails the gate unless `eval/expectations/contract-sweep-allow.txt` says why
+  that is correct. Seven fields shipped dead before it existed — adding a proto field without a
+  reader is now a gate failure, not a discovery three sessions later.
 - **One battery at a time** (R-T5); full battery at boundaries only, launched DETACHED —
   don't run `dotnet build/test` in a worktree while its battery runs (locked-DLL collisions).
 - **Truth files change only in dedicated commits citing target-repo sources** (R-T7).

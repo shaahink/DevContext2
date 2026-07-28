@@ -129,6 +129,20 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Pass "Fast tests passed"
 
+# Step 2a: contract sweep (S9). Cheap (no build, ~2s), and it guards a defect this program hit
+# FOUR times before it was a check: a field the engine computes, the wire carries, and no client
+# reads. Runs before the slow steps because a dead field is a design bug, not a test failure.
+Write-Step "Step 2a: Contract sweep (dead proto fields)"
+$sweepResult = & powershell -NoProfile -File (Join-Path $PSScriptRoot "contract-sweep.ps1") 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host $sweepResult
+    Write-Fail "Contract sweep found a field no client reads" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2a - contract sweep)" -ForegroundColor Red
+    exit 2
+}
+Write-Pass "Contract sweep clean (every response field read or allow-listed with a reason)"
+
 # Step 2b: MCP QA gate (serial — see note above).
 Write-Step "Step 2b: MCP QA gate (serial)"
 if ($SkipMcpQa) {
