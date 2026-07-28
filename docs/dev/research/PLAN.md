@@ -64,9 +64,16 @@
       the kind glyph is alive after being dead-by-construction on every repo. Three facet fields +
       one membership edge added engine-side. **A-4 landed; A-3/A-5 were already built; A-1 deferred
       with a dependency (Inspector needs a Neighbours section first).** Verdicts in the session log.
-- [ ] S8 — R3 continued: D-B's lane-view tail (narrowed) → D-C/D-D (library + CliTool archetypes,
-      capture their evidence FIRST) → D-E…D-H · render kernel built AFTER the decisions it must
-      serve · re-point `screenshot-gate.mts` as pages land
+- [~] S8 — R3 continued 2026-07-28. **D-B's lane tail LANDED · D-C and D-D DECIDED + LANDED.**
+      Lane views inherit the kind glyph and gain a `declared resources` lane (17ad1d1). Owner picked
+      **C2** (a library's front doors open onto the real call path) and **D2 → D1** (say which
+      solution was analyzed and let the reader switch, then make the verb list the CLI's centre) —
+      d1ddda4 · 81292d8 · 44be0db. Two more dead-by-construction fields revived
+      (`MapResponse.scope_note`, `ArchetypeView`) and one silent refusal fixed (the session manager
+      answered a different-solution request from cache). **D-E…D-H remain open**, plus the
+      sub-decisions listed in DECISIONS.md. Verdicts in the session log below.
+- [ ] S9 — R3 continued: D-E…D-H · the C-1/C-2/C-3 + D-2/D-3/D-4 sub-decisions · render kernel
+      built AFTER the decisions it must serve · re-point `screenshot-gate.mts` as pages land
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
 Session log (one line each: date · what closed · surprises):
@@ -303,6 +310,50 @@ Session log (one line each: date · what closed · surprises):
   fired again, from `pnpm test` this time rather than `ng build`; any command that rebuilds needs the
   dev stack restarted before the next capture.
 
+- 2026-07-28 · S8 (R3 continued): **D-B's lane tail landed; D-C and D-D decided and landed.**
+  Order was deliberate — code first, then ONE capture pass, because every capture needs the dev
+  stack restarted after a build (the S6/S7 trap) and the D-C/D-D briefs had to be made against the
+  product as it actually stands.
+  **Lane tail** (17ad1d1): the all-projects view inherits the two facts that survive the altitude
+  change — a project that IS a service wears its kind glyph, and declared resources get a lane of
+  their own (named "declared resources", not "infrastructure", because the DDD lane beside it can
+  carry that name and one of them means C# projects). eShop reads `[UI] HybridApp` / `[RPC]
+  Basket.API` / `[JOB] PaymentProcessor` across four DDD lanes with its six stores in a footer band.
+  Transport-coloured edges stayed out, per the S7 correction.
+  **D-D = D2 → D1** (d1ddda4, 81292d8). D2: `MapResponse.scope_note` reached the app's generated
+  types and **no component read it**, and the app had no `--sln`, so GitVersion showed one of three
+  solutions as the whole repo in silence. The proto now carries the scope FACTS (not the CLI's
+  sentence, which ends by naming a flag no GUI has) and the identity strip renders a picker.
+  **The bug this uncovered is the session manager**: idempotent by repo+HEAD, it answered the first
+  switch in 2.3ms with the analysis already in hand — the sln reached the wire and the server
+  declined to notice. Idempotence had become a refusal; the session key now carries the solution,
+  which is the rule the snapshot cache learned in Batch C. Verified end to end: 1 entry → 5 entries.
+  D1: `ArchetypeView` has projected a COMMAND SURFACE since L7.2 and nothing read that either, so a
+  CliTool landed on a canvas that can only draw disconnected boxes; it is now the landing state,
+  narrowly (Flow lens, no focus — the topology lenses still draw the topology).
+  **D-C = C2** (44be0db): the Library surface was the best archetype page in the product and a dead
+  end — list items, not buttons, so Inspector/Trail/pin/export were unreachable from it. Front doors
+  now open onto the REAL call path (`derive AbstractValidator` → Include → RuleFor → RuleForEach →
+  RuleSet).
+  **Surprises:** (1) **`consumerPaths` is a template sentence per entry kind**, not a traversal —
+  shipping it as "the consumer path" would have dressed a label as evidence; checked before building
+  (the S7 rule), and the trace is what opens instead. (2) **Three dead-by-construction fields in one
+  strand now** — the kind glyph (S7), `scope_note` and `ArchetypeView` (S8). The pattern is always
+  the same: the engine computes it, a renderer somewhere consumes it, and the app's copy of the
+  contract is never read. Worth a sweep. (3) **My own brief was wrong about D-3** — `0/5 wired` is
+  NOT a meaningless metric for a CLI the way `0 entries` is for a library: a verb should reach its
+  handler, and GitVersion's five reach none (they are `ICommand<TSettings>` classes whose execute
+  member never joined). Corrected in DECISIONS.md rather than quietly implemented; it is real engine
+  work for a later batch. (4) A backtick inside an HTML comment terminated an Angular template
+  literal — `ng lint` passed and the dev server died on it; lint is not a compile. (5) `.list-row`
+  is a flex ROW, so a stacked doc line became a squeezed column the moment the path panel took half
+  the width — invisible at full width, which is why the capture and not the build caught it.
+  **Verdicts:** app suite **120 green** (was 104 at S7 close: +3 lane tail, +9 CLI landing rule, +4
+  focus token), server suite **27 green** (+2), lint clean, build clean, three end-to-end drivers
+  PASS (`r3-verify-scope.mts`, `r3-verify-cli-surface.mts`, `r3-verify-consumer-path.mts`).
+  Full battery: see `eval-results/2026-07-28/gates-s8-close.txt`.
+  Next: S9 = D-E…D-H plus the sub-decisions DECISIONS.md leaves open.
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -427,6 +478,20 @@ Session log (one line each: date · what closed · surprises):
   the only surface the node card's Called-by/Calls lists have.
 - Engine follow-up A-2 implies: project the crossing edge's transport kind (and event name where
   known) onto `TraceNode` so the collapsed row can name seams instead of only counting them.
+
+### S8 — R3 continued (owner-interactive) — ~~D-C~~ ~~D-D~~ **DECIDED + LANDED 2026-07-28**
+- ~~D-B's lane-view tail~~ **LANDED** (kind glyph + `declared resources` lane; no transport edges,
+  per the S7 correction).
+- ~~D-C (library)~~ **DECIDED: C2** — front doors are the spine and each opens its real call path.
+- ~~D-D (CliTool)~~ **DECIDED: D2 → D1** — the scope is said and switchable, then the verb list is
+  the centre. Brief: <https://claude.ai/code/artifact/4b09714f-db18-4823-9d4b-931f058d2b6e>
+- **Left for S9**, all recorded in DECISIONS.md: C-1 (Home's "What runs" on a library still asks the
+  wrong question), C-2 (Atlas's five empty sections), C-3 (`0 entries` suppression), D-2 (the fit
+  clamp on a two-node graph), D-3 (**engine work** — a CLI verb should reach its handler; GitVersion's
+  five reach none), D-4 (two "service" vocabularies on one Atlas page).
+- **Worth a sweep before D-E**: three fields in this strand were dead by construction (the kind
+  glyph, `scope_note`, `ArchetypeView`) — the engine computes, the CLI renders, the app never reads.
+  Check what else `MapResponse` carries that no component consumes.
 
 ### Parallel lane — R4 (separate session/worktree, any time)
 - Fixes 1–7 + 11–12 per R4 §1; primitives 8–10 wait for/coordinate with Batch E.

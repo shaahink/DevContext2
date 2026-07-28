@@ -206,9 +206,99 @@ Reversible: everything except the three facet fields is render policy. Judge it 
 
 ---
 
-## D-C … D-H — NOT YET DECIDED
+## D-C. The library workspace
 
-Open. Current-state evidence for `D-C` (library) and `D-D` (CliTool) was **not** gathered in S6 —
-capture FluentValidation and GitVersion before either is briefed. Known open item carried for `D-E`:
-Top-flows is still ranked by internal `DomainEventHandler`s over user-facing endpoints (audit A2,
-unchanged) — it belongs to Home, not to the canvas language.
+**DECIDED 2026-07-28 (owner): C2 — consumer paths are the spine.**
+
+> Decision brief the owner reviewed (both archetypes, on evidence captured the same day):
+> <https://claude.ai/code/artifact/4b09714f-db18-4823-9d4b-931f058d2b6e>
+> Current-state frames: `eval-results/2026-07-28/r3-current-state/fluentvalidation/` — Home's
+> *What runs* hero drawing two boxes and one csproj arrow for something that does not run, and an
+> Explore page whose Library surface was a read-only list in a pane 60% empty.
+
+A library has no runtime, so the product's spine (entry → flow → seam) had nothing to hold, and the
+Library surface — the best archetype-specific page the product has — was a **dead end**: its rows
+were list items, not buttons, so the Inspector, the Trail, the pin and the export pack were all
+unreachable from a library's main surface.
+
+- **The four front doors are the spine.** `register · derive · implement · extend` (and the
+  abstractions, which are seats you implement) each **open** onto the path they lead down.
+- **The path is a real call path.** Clicking `derive AbstractValidator` traces it: `Include` →
+  `RuleFor` → `RuleForEach` → `RuleSet`, the exact vocabulary a FluentValidation consumer writes,
+  with the `approx` markers the trace tree already speaks.
+- **The Trail collects a door** exactly as it collects an entry elsewhere — the loop a library was
+  locked out of.
+
+**Rationale (owner-facing, one line):** a library's real question is "how do I use this", and the
+product could already answer it — the engine traces a public type into its own pipeline — but the
+one surface that asks the question rendered ten rows and stopped.
+
+### Scope correction, made before implementing (2026-07-28)
+
+The brief said "`Consumer paths 6` is already computed and never shown", which is true and was
+nearly a trap. `LibrarySurface.ConsumerPaths` is **a template sentence per entry kind**
+(`"extend  →  derive AbstractValidator"`), composed from the entry's kind and title, touching no
+edge — a recipe stub, not a traversal. Shipping it as "the consumer path" would have dressed a
+label as evidence. It stays where it is, as a summary; what opens is the trace. Checked before
+building, per the standing rule that cost S7 three stale premises.
+
+| # | Sub-decision | Call |
+|---|---|---|
+| C-1 | What replaces "What runs" on Home for a library | **Open.** The Explore spine landed first; Home still asks the wrong question of a library. |
+| C-2 | Atlas's five empty sections | **Open.** |
+| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. |
+
+---
+
+## D-D. The CLI workspace
+
+**DECIDED 2026-07-28 (owner): D2 → D1 — say the scope first, then make the verbs the centre.**
+
+> Same brief as D-C. Current-state frames: `eval-results/2026-07-28/r3-current-state/gitversion/`
+> — `1 entries · 0/1 wired · 11% verified`, and a canvas holding two unconnected boxes at billboard
+> size.
+
+**D2 — the scope.** GitVersion declares three solutions; the scorer picks `src/GitVersion.slnx`,
+whose CLI is the legacy hand-rolled parser (one `Main`). That is the truth *for that solution* — the
+five verbs the tool ships live in `new-cli/`. Batch C built `SolutionScopeNote` for exactly this and
+its own comment says the note rides "the same Map/proto/**UI** field". **There was no UI**, and the
+app had no `--sln`: a third of a repo was shown as the whole thing, silently, with no way out.
+
+- The app now says which solution it read and offers the others as buttons.
+- The proto carries the **facts** (analyzed path, count, alternatives), not the CLI's sentence —
+  that sentence ends by naming a flag no GUI has, and each surface should say the truth in its own
+  words.
+- Absent entirely on a single-solution repo: a scope row on every repo is noise a reader learns to
+  skip.
+
+**D1 — the verbs.** A CliTool has no transports by construction, so a topology canvas can only draw
+disconnected boxes. `ArchetypeView` has projected a **COMMAND SURFACE** since L7.2 and no desktop
+surface read it; it is now the CliTool's landing state, with each command's handler beside it and
+`no resolved handler` where the engine could not join one.
+
+**Rationale (owner-facing, one line):** the layout was downstream of the scope — redesigning a page
+that was showing the wrong third of the repo would have been decorating a lie — and once the right
+solution is in view, a command-line tool's product surface is its verb list, which the engine had
+been computing and no one had been rendering.
+
+### The bug D2 uncovered
+
+`AnalysisSessionManager` was idempotent by **repo + HEAD**, so the first solution switch was answered
+in 2.3ms with the analysis already in hand: the request reached the wire carrying its `sln` and the
+server declined to notice. Idempotence had quietly become a refusal. The session key now carries the
+analyzed solution — the rule the snapshot cache learned in Batch C and the session layer never did.
+
+| # | Sub-decision | Call |
+|---|---|---|
+| D-1 | Where the scope note lives | **Decided (delegated):** the identity strip, under the headline, with the alternatives as buttons — it is a fact about the analysis, and that is where analysis facts live. |
+| D-2 | Fit clamp on a tiny graph | **Open.** `MAX_FIT_ZOOM_FILL` 2.1 is right for twelve boxes and absurd for two. |
+| D-3 | `0/5 wired` on a CLI | **Open, and the brief's premise was wrong**: wiring is *not* meaningless for a CLI — a verb should reach its handler, and GitVersion's five reach none. It is a real engine gap (the entries are `ICommand<TSettings>` classes whose execute member never joined), now stated on the command surface where a reader is looking instead of only as a percentage on Home. C-3's suppression rule applies to the library, not here. |
+| D-4 | Two "service" vocabularies on the Atlas page | **Open.** |
+
+---
+
+## D-E … D-H — NOT YET DECIDED
+
+Open. Known open item carried for `D-E`: Top-flows is still ranked by internal
+`DomainEventHandler`s over user-facing endpoints (audit A2, unchanged) — it belongs to Home, not to
+the canvas language.
