@@ -1,0 +1,20 @@
+{
+    "repo":  "eval-repos/GitVersion",
+    "id":  "gitversion-default",
+    "note":  "S4 pole (Batch C). The SAME repo read the way a user first meets it: no --sln. GitVersion declares three solutions and the scorer picks src/GitVersion.slnx, whose CLI is the legacy hand-rolled ArgumentParser -- one Main entry, which is the truth for that solution. What Batch C changes is that the choice is no longer silent: the scope note names the analyzed solution and counts the two it did not. minEntries 1 is not a relaxation of the S3 cell -- the GitVersion row still carries minEntries 5, through the flag.",
+    "transports":  {
+
+                   },
+    "entryTargets":  {
+                         "minEntries":  1
+                     },
+    "slnScope":  {
+                     "analyzed":  "src/GitVersion.slnx"
+                 },
+    "style":  {
+                  "archetype":  "CliTool",
+                  "styles":  [
+                                 "NotApplicable"
+                             ]
+              }
+}

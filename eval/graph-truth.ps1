@@ -40,8 +40,29 @@ $Serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
 $Serializer.MaxJsonLength = [int]::MaxValue
 $Serializer.RecursionLimit = 512
 
-$HubDenyPattern = "(?i)(test|fixture|mock|fake|stub)"
+# S4 instrument fix 2: the old deny pattern was a case-insensitive SUBSTRING match, so
+# "CreateStream" (crea-teSt-ream) reported MediatR's production Mediator.CreateStream as a fixture
+# hub. Fixture-ness is a WORD in an identifier, so split on camel humps / separators and compare
+# whole words.
+$FixtureWords = @("test", "tests", "testing", "fixture", "fixtures", "mock", "mocks", "fake", "fakes", "stub", "stubs")
+# S4 instrument fix 1: applied with -cmatch. PowerShell's -match ignores case, so "^I[A-Z]..."
+# matched ItemPage and IdentifiedCommand -- every type starting with I counted as a DI interface,
+# which is most of eShop's 12.1% entry-target FAIL.
 $DiInterfacePattern = "^I[A-Z][A-Za-z0-9_]*$"
+# S4 instrument fix 3: on a small graph a degree-1 node lands in the "top 5". A node that hubs
+# nothing carries no signal about hubs, so hub-sanity ignores anything below this floor.
+$HubMinDegree = 3
+
+function Test-FixtureName([string]$Text) {
+    if (-not $Text) { return $false }
+    # Split identifiers into words: camel humps and any non-alphanumeric separator.
+    $spaced = [regex]::Replace($Text, "([a-z0-9])([A-Z])", '$1 $2')
+    $spaced = [regex]::Replace($spaced, "([A-Z]+)([A-Z][a-z])", '$1 $2')
+    foreach ($w in ([regex]::Split($spaced, "[^A-Za-z0-9]+"))) {
+        if ($w -and $FixtureWords -contains $w.ToLowerInvariant()) { return $true }
+    }
+    return $false
+}
 
 function Get-Prop($Obj, [string]$Name, $Default) {
     if ($null -ne $Obj -and $Obj.PSObject.Properties[$Name]) { return $Obj.$Name }
@@ -67,7 +88,10 @@ if ($ExpectFiles.Count -eq 0) { Write-Host "ERR no expectation files in $ExpectD
 $Selected = @()
 foreach ($f in $ExpectFiles) {
     $exp = Get-Content $f.FullName -Raw | ConvertFrom-Json
-    $leaf = Split-Path ([string]$exp.repo) -Leaf
+    # S4: a pole may declare its own id, so the SAME repo can appear twice under different scopes
+    # (gitversion = read through --sln, gitversion-default = the flag-less read).
+    $leaf = [string](Get-Prop $exp "id" "")
+    if (-not $leaf) { $leaf = Split-Path ([string]$exp.repo) -Leaf }
     $Selected += ,@{ File = $f.FullName; Expect = $exp; Name = $leaf }
 }
 if ($Target -ne "matrix") {
@@ -118,19 +142,25 @@ foreach ($Sel in $Selected) {
     }
 
     # -- drive the CLI: analyze (timed) then cache-riding query ops --
+    # S4: a pole may name the solution to analyze (Batch C's --sln). This is how the flag gets measured
+    # the way a user meets it -- from the repo root -- instead of by pointing the tool at a subdirectory.
+    $SlnArg = [string](Get-Prop $Expect "sln" "")
+    $SlnOpt = @()
+    if ($SlnArg) { $SlnOpt = @("--sln", $SlnArg); Write-Host "  --sln $SlnArg" }
+
     $KernelPath = Join-Path $Raw "kernel.json"
     $Sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $StdOut = & $CliExe analyze $RepoPath -o $KernelPath --format json 2>$null
+    $StdOut = & $CliExe analyze $RepoPath @SlnOpt -o $KernelPath --format json 2>$null
     $AnalyzeExit = $LASTEXITCODE
     $Sw.Stop()
     $WallSec = [Math]::Round($Sw.Elapsed.TotalSeconds, 1)
     $StdOut | Out-File (Join-Path $Raw "analyze-stdout.txt") -Encoding utf8
 
-    $EntriesText = (& $CliExe query entrypoints --path $RepoPath 2>$null) -join "`n"
+    $EntriesText = (& $CliExe query entrypoints --path $RepoPath @SlnOpt 2>$null) -join "`n"
     $EntriesText | Out-File (Join-Path $Raw "entries.json") -Encoding utf8
-    $StatsText = (& $CliExe query stats --path $RepoPath 2>$null) -join "`n"
+    $StatsText = (& $CliExe query stats --path $RepoPath @SlnOpt 2>$null) -join "`n"
     $StatsText | Out-File (Join-Path $Raw "stats.json") -Encoding utf8
-    $GraphText = (& $CliExe query graphdump --path $RepoPath 2>$null) -join "`n"
+    $GraphText = (& $CliExe query graphdump --path $RepoPath @SlnOpt 2>$null) -join "`n"
     [System.IO.File]::WriteAllText((Join-Path $Raw "graph.json"), $GraphText)
 
     $Kernel = $null; $Entries = $null; $Stats = $null; $Graph = $null
@@ -251,20 +281,25 @@ foreach ($Sel in $Selected) {
     # -- C3 hub-sanity (DC7) --
     $c = $Checks["hub-sanity"]
     $Top5 = @($Degree.GetEnumerator() | Sort-Object -Property @{Expression="Value";Descending=$true}, @{Expression="Key";Descending=$false} | Select-Object -First 5)
+    $Hubs = @($Top5 | Where-Object { $_.Value -ge $HubMinDegree })
     $Allow = @(Get-Prop (Get-Prop $Expect "hubs" $null) "allow" @())
     $BadHubs = @()
-    foreach ($h in $Top5) {
+    foreach ($h in $Hubs) {
         $title = $NodeTitle[$h.Key]; if (-not $title) { $title = $h.Key }
         $proj = [string]$NodeProj[$h.Key]
-        if (($title -match $HubDenyPattern -or $proj -match $HubDenyPattern) -and ($Allow -notcontains $title)) {
+        if (((Test-FixtureName $title) -or (Test-FixtureName $proj)) -and ($Allow -notcontains $title)) {
             $BadHubs += "$title($($h.Value))"
         }
     }
     $c.metrics = [ordered]@{
+        minDegree = $HubMinDegree
+        hubsScored = $Hubs.Count
         top5 = @($Top5 | ForEach-Object { [ordered]@{ title = $NodeTitle[$_.Key]; id = $_.Key; degree = $_.Value } })
     }
-    if ($BadHubs.Count -eq 0) {
-        $c.verdict = "PASS"; $c.detail = "top-5 clean: $(@($Top5 | ForEach-Object { ""$($NodeTitle[$_.Key])($($_.Value))"" }) -join ', ')"
+    if ($Hubs.Count -eq 0) {
+        $c.verdict = "SKIP"; $c.detail = "no node reaches degree $HubMinDegree -- graph too small to have hubs"
+    } elseif ($BadHubs.Count -eq 0) {
+        $c.verdict = "PASS"; $c.detail = "top hubs clean: $(@($Hubs | ForEach-Object { ""$($NodeTitle[$_.Key])($($_.Value))"" }) -join ', ')"
     } else {
         $c.verdict = "FAIL"; $c.detail = "test/fixture hubs in top-5: $($BadHubs -join ', ')"
     }
@@ -278,7 +313,7 @@ foreach ($Sel in $Selected) {
         if (-not $target) { continue }
         $WithTarget++
         $leaf = ($target -split "[.:]")[-1]
-        if ($leaf -match $DiInterfacePattern) {
+        if ($leaf -cmatch $DiInterfacePattern) {
             $DiTargets++
             if ($DiSamples.Count -lt 5) { [void]$DiSamples.Add("$(Get-Prop $en 'title' '?') -> $leaf") }
         }
@@ -322,19 +357,46 @@ foreach ($Sel in $Selected) {
     }
 
     # -- C6 sln-scope (DC6) --
+    # S4 instrument fix 4: the check used to be a pure disk count -- >1 sln = FAIL, unconditionally.
+    # That was the right RED for a SILENT pick, but the fix Batch C builds is not "analyze everything":
+    # it is "say which system you analyzed, and let the caller pick another". So the check now reads the
+    # engine's own scope note out of kernel.json and passes when the note exists and its count agrees
+    # with what is on disk. No note, or a disagreeing count, is still FAIL. The disk filter mirrors
+    # SolutionCatalog.IsIgnoredPath (ANY dot-segment, bin, obj, node_modules, artifacts) so both sides
+    # count the same set -- aspire-samples' .github decoy would otherwise break the match.
     $c = $Checks["sln-scope"]
     $Slns = @(Get-ChildItem -Path $RepoPath -Recurse -File -Include *.sln, *.slnx -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -notmatch "\\(\.git|bin|obj|node_modules|artifacts)\\" })
-    $MultiOk = [bool](Get-Prop (Get-Prop $Expect "slnScope" $null) "multiSlnOk" $false)
+        Where-Object {
+            $rel = $_.FullName.Substring($RepoPath.Length)
+            $bad = @($rel.Split([char[]]@([char]92, [char]47)) | Where-Object { $_ -and ($_.StartsWith(".") -or @("bin","obj","node_modules","artifacts") -contains $_) })
+            $bad.Count -eq 0
+        })
+    $Scope = Get-Prop $Kernel "scope" $null
+    $NoteCount = [int](Get-Prop $Scope "solutionsOnDisk" 0)
+    $NoteAnalyzed = [string](Get-Prop $Scope "analyzed" "")
     $c.metrics = [ordered]@{
         slnOnDisk = $Slns.Count
         slnNames = @($Slns | Select-Object -First 10 | ForEach-Object { $_.FullName.Substring($RepoPath.Length + 1) })
         analyzedProjects = [int](Get-Prop $Kernel "projectCount" 0)
+        noteSolutionsOnDisk = $NoteCount
+        noteAnalyzed = $NoteAnalyzed
+        noteRequested = [bool](Get-Prop $Scope "requested" $false)
+        note = [string](Get-Prop $Scope "note" "")
     }
-    if ($Slns.Count -le 1 -or $MultiOk) {
-        $c.verdict = "PASS"; $c.detail = "$($Slns.Count) sln on disk, $([int](Get-Prop $Kernel 'projectCount' 0)) projects analyzed"
+    $ExpAnalyzed = [string](Get-Prop (Get-Prop $Expect "slnScope" $null) "analyzed" "")
+    if ($Slns.Count -eq 0) {
+        # No solution on disk (a bare csproj repo) -- there is no choice to disclose, so no note is owed.
+        $c.verdict = "PASS"; $c.detail = "no solution file on disk (folder-mode analysis)"
+    } elseif ($null -eq $Scope) {
+        $c.verdict = "FAIL"; $c.detail = "$($Slns.Count) sln(s) on disk but the analysis emits no scope note"
+    } elseif ($Slns.Count -gt 1 -and $NoteCount -ne $Slns.Count) {
+        $c.verdict = "FAIL"; $c.detail = "scope note counts $NoteCount solutions, $($Slns.Count) on disk"
+    } elseif ($ExpAnalyzed -and $NoteAnalyzed -ne $ExpAnalyzed) {
+        $c.verdict = "FAIL"; $c.detail = "analyzed '$NoteAnalyzed', expected '$ExpAnalyzed'"
+    } elseif ($Slns.Count -le 1) {
+        $c.verdict = "PASS"; $c.detail = "single solution ($NoteAnalyzed)"
     } else {
-        $c.verdict = "FAIL"; $c.detail = "$($Slns.Count) slns on disk silently scoped to one analysis ($([int](Get-Prop $Kernel 'projectCount' 0)) projects) with no indicator/picker"
+        $c.verdict = "PASS"; $c.detail = "$([string](Get-Prop $Scope 'note' ''))"
     }
 
     # -- C7 dup-name (DC2 noise) --

@@ -151,9 +151,14 @@ devcontext analyze .                              # Map (architecture overview)
 devcontext analyze . --focus OrderService          # Trace from a type
 devcontext analyze . --focus "GET /api/orders"     # Trace from an endpoint
 devcontext analyze . --depth 6 --detail salient    # Full trace with source context
+devcontext analyze . --sln new-cli/GitVersion.slnx # Pick a solution in a multi-solution repo
 devcontext analyze . --stats                       # Timing, funnel, cache
 devcontext analyze . --format json --strict        # JSON with validation
 ```
+
+A repo with several solutions is several systems. DevContext analyses one of them and says which —
+`analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo` — so `--sln` is how you move to another
+(by name, file name, or repo-relative path).
 
 Full flag reference: [docs/product/cli-reference.md](docs/product/cli-reference.md) · configuration: [docs/product/configuration.md](docs/product/configuration.md)
 

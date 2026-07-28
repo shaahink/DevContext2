@@ -40,7 +40,12 @@
       [Command] verb detection · external-target policy) · matrix widened to **23** poles (2 PLAN-listed
       repos were duplicates on disk — swapped, see MATRIX §Widen-set deviations; +1 `gitversion-new-cli`
       pole) · battery + bench verdicts in the session log below
-- [ ] S4 — Batch C landed · battery green · matrix widened to 32 repos
+- [x] S4 — CLOSED 2026-07-28: Batch C landed (all 4 R2 §2.C items — multi-solution scope + `--sln` +
+      scope note · style suppressed at the detector for Library/CliTool + 2 accuracy root-causes ·
+      test-support classification · entry-target quality) · matrix widened to **32** poles
+      (`gitversion-new-cli` retired for a repo-root `--sln` read + a new `gitversion-default` pole) ·
+      every declared cell flipped · deny-list redundancy probe answered (KEEP BOTH) · battery + bench
+      verdicts in the session log below
 - [ ] S5 — Batch D landed · Batch E landed · battery green ×2 · matrix = full 47 · loop-until-dry
       confirmed (no new DC class in last 10 repos)
 - [ ] S6 — R3 decision session held · DECISIONS.md written · implementation per decisions + render kernel
@@ -119,6 +124,43 @@ Session log (one line each: date · what closed · surprises):
   `eval-results/2026-07-28/graph-truth/MATRIX.md`. Next: S4 Batch C (R2 §2.C) — declare acceptance at
   open, widen matrix to ~32.
 
+- 2026-07-28 · S4 CLOSED (Batch C): all four R2 §2.C items, matrix at **32** poles, every declared
+  cell flipped. **Scope (item 2)**: one `SolutionCatalog` now enumerates + scores solutions, so the
+  two pickers that could disagree (`ProjectRootResolver` took the first file in enumeration order —
+  GitVersion's Cake build tree — while `SolutionDiscoveryExtractor` scored) make one pick; a
+  `SolutionScopeNote` rides kernel JSON + Map + proto ("analyzed src/GitVersion.slnx — 1 of 3
+  solutions in this repo"); `--sln` picks another from the repo ROOT (GitVersion's 5 verbs, the
+  inherited S3 cell, with no detection change); the SymbolTable is solution-scoped so a repo's second
+  `GitVersion.Core` stops making its own names ambiguous. 14 sln-scope FAILs → PASS. **Style (item
+  4)**: Library/CliTool ⇒ `NotApplicable`, applied BEFORE the map is built (the map snapshots the
+  style into its header — suppressing after would have left surfaces disagreeing). 9 library poles
+  green. **Classification (item 3)**: `*.Testing`/`*.TestSupport`/`*.Fixtures`/`TestGrains` projects
+  and TestHelper/Testing folders are test support; call edges now obey the same production rule as
+  nodes. **Targets (item 1)**: receiver-CHAIN hop in ONE place used by both producers, DI-conflict
+  lands on the interface instead of dropping the edge, self-targets suppressed. Surprises: (1) the
+  CleanArchitecture style FAIL was THREE stacked defects, and the deepest was DC6 at the style surface
+  — the detector read all 22 projects across the repo's FOUR solutions and found three AppHosts, i.e.
+  three single-app solutions counted as one constellation; scoping the style verdict fixed it. (2)
+  `DesktopEntryDetection` was the ONE entry surface not implementing `IEntrySurfaceDetection`, whose
+  single consumer is the call-graph seed — so desktop/MAUI had no call spine at all, and that (not the
+  hop) is what finally flipped eShop's entry-target cell. (3) OrchardCore's ModularMonolith verdict
+  was riding on five scaffolding NAMES; solution scoping dropped them, and the ~150 real modules carry
+  no "Module" name segment — they live under `src/OrchardCore.Modules/`, so the rule now reads the
+  directory. (4) THREE instrument defects found while declaring acceptance: the DI-interface regex ran
+  case-INSENSITIVE (every type starting with I counted — most of eShop's RED), the fixture deny pattern
+  matched substrings across camel humps ("Crea-teSt-ream" flagged MediatR's production `CreateStream`),
+  and hub-sanity had no minimum-degree floor. (5) Orleans' entry-target went RED with its DI-interface
+  count UNCHANGED at 12 — the denominator shed 25 self-targets and 16 test-grain entries; not relaxed,
+  carried to S5. CLOSE VERDICTS: full battery **GATE: PASS unqualified** (gates-s4-close2.txt, exit 0,
+  all 8 steps; the first run failed Step 3 on three eval expectations that encoded the fixed defects —
+  including `verticalslice`, which is ardalis/CleanArchitecture under a directory-derived name — each
+  corrected with evidence) · bench PERF-2026-07-28-0429: DntSite Map 26.0s, OrchardCore Map 13.5s —
+  25% and 56% under the PERF-2026-07-18-1346 baseline, and OrchardCore 10% FASTER than Batch B ·
+  deny-list probe answered: **KEEP BOTH** (without them 21 entry targets degrade to LINQ/EF verbs;
+  the DI-ratio metric cannot see it). Full grid + acceptance diff + probe:
+  `eval-results/2026-07-28/graph-truth-s4/MATRIX.md`. Next: S5 Batch D + Batch E (R2 §2.D/§2.E) —
+  declare acceptance at open, widen matrix to the full 47.
+
 ## 3. Session map
 
 ### S1 — Instrument + matrix v1 + Batch A prep (R1 doc)
@@ -178,6 +220,20 @@ Session log (one line each: date · what closed · surprises):
 ### S5 — Batch D then Batch E (R2 §2.D + §2.E)
 - Batch D (mechanical hygiene/perf): land, launch full battery DETACHED, immediately start Batch E
   (one trace contract, number reconciliation, retire eShop string tables).
+- **Inherited from S4 (declared, do not re-litigate):**
+  - `Orleans` entry-target is RED and the expectation was NOT relaxed: its 12 Dashboard minimal-API
+    endpoints resolve to the bare `IDashboardClient` interface. The absolute count did not move in
+    Batch C (12 → 12); the ratio crossed the line only because the denominator shed 25 tautological
+    self-targets and 16 test-grain entries. This is the type-level seam limitation — a minimal-API
+    lambda's call lands on the receiver TYPE, not the member — and it belongs to Batch E's one-trace
+    contract, together with the primary-call ORDERING residue (eShop's `CheckoutViewModel.CheckoutAsync`
+    resolves to `DialogService.ShowAlertAsync`, a real call but the weaker of two collaborators).
+  - `wolverine` handler-join (`Envelope` read as a dispatched request) and the `SignalR` (12) /
+    `wolverine` (4) dup-name residues were **not root-caused in S4** — Batch C's four items plus the
+    scope work filled the session. Nothing was relaxed: every one of those numbers is still pinned
+    EXACT in the matrix, and the per-edge verification requirement still stands before any change.
+  - Batch D's perf sweep should re-check what Batch C added per-invocation: the receiver-chain hop
+    (`SymbolTable.HopThroughProperty`) and the call-edge production gate both run in the hot loop.
 - Close: E battery + matrix = full 47 (remainder incl. desktop pole PowerToys/ScreenToGif/MahApps/
   CommunityToolkit.Mvvm/Desktop, StackExchange.Redis, Dapper, xUnit, CLI, blazor-samples,
   razorpages-app, company-functions, bitwarden-server, DntSite, HotChocolate, MassTransit, MediatR…).

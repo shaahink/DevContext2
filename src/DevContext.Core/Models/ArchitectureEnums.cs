@@ -133,4 +133,12 @@ public enum ArchitectureStyle
     /// <summary>C4 (Prism D1.3a) — a WPF/WinForms desktop app organized around ViewModels. Fallback
     /// rung: only fires when no web/system style scored (ScreenToGif read Unknown).</summary>
     DesktopMvvm,
+    /// <summary>Batch C (DC7) — the question does not apply. An APPLICATION has an architecture style;
+    /// a library or a CLI tool has an API and a command surface. Measured on nine library repos, the
+    /// scored answer was wrong every time (MediatR "SampleCollection", refit "ControllerBased",
+    /// AutoMapper "NLayer", Quartz.NET "MinimalApi", Orleans "Microservices") because the evidence a
+    /// style rung reads — layers, endpoints, orchestration — comes from those repos' own tests and
+    /// samples. <see cref="Unknown"/> is not the same verdict: it means "an app whose style we could
+    /// not name". This one means "not an app".</summary>
+    NotApplicable,
 }

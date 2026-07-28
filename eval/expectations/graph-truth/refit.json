@@ -1,0 +1,10 @@
+{
+    "repo":  "eval-repos/refit",
+    "note":  "S4 widen pole (Batch C), added 2026-07-28. Named in R2 sec 2.C item 4 as a style cell that must read n/a for a library; baseline read ControllerBased 0.55. 3 slns on disk -- the only widen pole with the DC6 shape. An architecture style is a property of an APPLICATION; for a library the honest verdict is NotApplicable.",
+    "style":  {
+                  "archetype":  "Library",
+                  "styles":  [
+                                 "NotApplicable"
+                             ]
+              }
+}

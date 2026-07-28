@@ -10,6 +10,10 @@ public sealed class QuerySettings : CommandSettings
     [CommandArgument(0, "<OP>")]
     public string Op { get; set; } = "";
 
+    [Description("Solution to analyze when the repo declares several (name, file name, or relative path)")]
+    [CommandOption("--sln")]
+    public string? Solution { get; set; }
+
     [Description("Focus for trace/node/neighbors/usages ops")]
     [CommandOption("-f|--focus")]
     public string? Focus { get; set; }

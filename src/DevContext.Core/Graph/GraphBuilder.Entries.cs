@@ -41,7 +41,10 @@ public sealed partial class GraphBuilder
         if (handler is null) return null;
 
         if (handler.Kind == NodeKind.Type)
-            return handler.Title;
+            // Batch C (DC4): a target that repeats what the entry title already says is not a target.
+            // eShop's `GET /item/{itemId:int} [ItemPage] → ItemPage` spent a target slot telling the
+            // reader the page is the page. Better an honest blank than a tautology.
+            return IsSelfEvident(entry, handler.Title) ? null : handler.Title;
 
         if (handler.Kind == NodeKind.Member)
         {
@@ -52,10 +55,29 @@ public sealed partial class GraphBuilder
             }
 
             var typeKey = ExtractTypeKey(handler.Id.Key);
-            return graph.Node(NodeId.ForType(typeKey))?.Title;
+            var owner = graph.Node(NodeId.ForType(typeKey))?.Title;
+            return owner is not null && IsSelfEvident(entry, owner) ? null : owner;
         }
 
         return null;
+    }
+
+    /// <summary>True when the proposed target adds nothing the entry's own title didn't already carry —
+    /// the declaring type of a page/component/handler whose title names it. Whole-word containment, so
+    /// "ItemPage" in "GET /item/{itemId:int} [ItemPage]" counts but a genuine collaborator does not.</summary>
+    private static bool IsSelfEvident(EntryPoint entry, string target)
+    {
+        if (string.IsNullOrEmpty(target) || entry.Title is not { Length: > 0 } title) return false;
+        var idx = title.IndexOf(target, StringComparison.Ordinal);
+        while (idx >= 0)
+        {
+            var beforeOk = idx == 0 || !char.IsLetterOrDigit(title[idx - 1]);
+            var end = idx + target.Length;
+            var afterOk = end >= title.Length || !char.IsLetterOrDigit(title[end]);
+            if (beforeOk && afterOk) return true;
+            idx = title.IndexOf(target, idx + 1, StringComparison.Ordinal);
+        }
+        return false;
     }
 
     /// <summary>Resolves an entry's primary target by following the entry's Calls edge to the

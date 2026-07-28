@@ -30,6 +30,8 @@ public sealed class SymbolTable
     private readonly Dictionary<string, string> _namespaceByFqn;
     private readonly Dictionary<string, int> _candidateCounts;
     private readonly Dictionary<string, HashSet<string>> _memberNamesByType;
+    // Batch C (DC4): typeFqn -> (propertyName -> declared type text). Feeds the receiver-chain hop.
+    private readonly Dictionary<string, Dictionary<string, string>> _propertyTypesByType;
     private readonly HashSet<string> _interfaceFqns;
 
     public SymbolTable(
@@ -46,6 +48,7 @@ public sealed class SymbolTable
         _namespaceByFqn = new Dictionary<string, string>(StringComparer.Ordinal);
         _candidateCounts = new Dictionary<string, int>(StringComparer.Ordinal);
         _memberNamesByType = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        _propertyTypesByType = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
         _interfaceFqns = new HashSet<string>(StringComparer.Ordinal);
 
         if (types is not null)
@@ -75,6 +78,16 @@ public sealed class SymbolTable
                     if (!_memberNamesByType.TryGetValue(t.Id, out var members))
                         _memberNamesByType[t.Id] = members = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var m in t.Methods) members.Add(m.Name);
+                }
+
+                if (!t.Properties.IsDefaultOrEmpty)
+                {
+                    if (!_propertyTypesByType.TryGetValue(t.Id, out var props))
+                        _propertyTypesByType[t.Id] = props = new Dictionary<string, string>(StringComparer.Ordinal);
+                    // First declaration wins (partial types / overrides re-declare the same name).
+                    foreach (var pr in t.Properties)
+                        if (!string.IsNullOrEmpty(pr.PropertyType))
+                            props.TryAdd(pr.Name, pr.PropertyType);
                 }
             }
         }
@@ -260,6 +273,42 @@ public sealed class SymbolTable
 
     public string? ProjectForFile(string filePath) =>
         _fileToProject?.Invoke(filePath);
+
+    /// <summary>
+    /// Batch C (DC4) — the declared type of <paramref name="memberName"/> on <paramref name="typeFqn"/>,
+    /// as written (short or qualified), or null when the type declares no such property. This is what a
+    /// receiver CHAIN needs: <c>_appEnvironmentService.OrderService.CreateOrderAsync(order)</c> has a
+    /// receiver type of IAppEnvironmentService, but the call lands on OrderService — and naming the
+    /// aggregator that holds the service instead of the service itself is exactly the "bare DI interface
+    /// target" the entry-quality metric counts. Properties only: a field is not part of the surface a
+    /// caller can chain through in another type, and a method would need argument matching to be honest.
+    /// </summary>
+    public string? PropertyTypeOf(string typeFqn, string memberName)
+        => _propertyTypesByType.TryGetValue(typeFqn, out var props)
+            && props.TryGetValue(memberName, out var declared)
+            ? declared
+            : null;
+
+    /// <summary>
+    /// Batch C (DC4) — the receiver-CHAIN hop, in one place because two producers need it: the call-graph
+    /// binder and the PlainCall seam detector both bound <c>a.B.C()</c> to a's type. Returns the canonical
+    /// id of <paramref name="receiverMember"/>'s declared type on <paramref name="receiverTypeFqn"/>, or
+    /// null when there is no such property or its type does not resolve unambiguously — in which case the
+    /// caller keeps the receiver type, which is still true, just shallower.
+    /// </summary>
+    public string? HopThroughProperty(string receiverTypeFqn, string? receiverMember, RefSite site)
+    {
+        if (string.IsNullOrEmpty(receiverMember)) return null;
+        if (PropertyTypeOf(receiverTypeFqn, receiverMember) is not { Length: > 0 } declared) return null;
+
+        var (text, arity) = SymbolCanon.SplitGenericText(declared.TrimEnd('?'));
+        var hop = Resolve(new SymbolRef { Text = text, Site = site, Arity = arity });
+        return hop.Tier is not (ResolutionTier.Ambiguous or ResolutionTier.Unresolved)
+            && hop.Resolved is { Kind: SymbolKind.Type } sym
+            && !string.Equals(sym.Canonical, receiverTypeFqn, StringComparison.Ordinal)
+            ? sym.Canonical
+            : null;
+    }
 
     /// <summary>Resolves <paramref name="name"/> (short or canonical) to its namespace. Unknown
     /// DOTTED names fall back to the dot-slice (an external FQN still yields a namespace-ish prefix

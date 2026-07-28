@@ -1,0 +1,10 @@
+{
+    "repo":  "eval-repos/RestSharp",
+    "note":  "S4 widen pole (Batch C), added 2026-07-28. Named in R2 sec 2.C item 4 alongside refit; baseline read style Unknown/0.0. An architecture style is a property of an APPLICATION; for a library the honest verdict is NotApplicable.",
+    "style":  {
+                  "archetype":  "Library",
+                  "styles":  [
+                                 "NotApplicable"
+                             ]
+              }
+}

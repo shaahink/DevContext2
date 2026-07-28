@@ -160,12 +160,16 @@ public sealed record AntiPatternDetection(
 /// <summary>Kind of desktop UI entry point.</summary>
 public enum DesktopEntryKind { Window, Page, UserControl, AppStartup, RelayCommand }
 
-/// <summary>Detection for a desktop UI entry point (Window, Page, UserControl, App.OnLaunched, [RelayCommand]).</summary>
+/// <summary>Detection for a desktop UI entry point (Window, Page, UserControl, App.OnLaunched, [RelayCommand]).
+/// Batch C (DC4): this is an <see cref="IEntrySurfaceDetection"/> like every other entry surface — it was
+/// the one that wasn't, so desktop and MAUI entries never seeded the call-graph closure and a whole
+/// archetype had no call spine. eShop's [RelayCommand] entries could only ever resolve to the bare type
+/// seam their view-model touched; there were no member-level call edges to resolve through.</summary>
 public sealed record DesktopEntryDetection(
     string TypeName,
     DesktopEntryKind Kind,
     string? DeclaringFile = null
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a gRPC service implementation (class extending XxxBase).</summary>
 public sealed record GrpcServiceDetection(

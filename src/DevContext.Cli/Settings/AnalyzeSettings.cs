@@ -8,6 +8,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandArgument(0, "[PATH]")]
     public string? Path { get; set; }
 
+    [Description("Solution to analyze when the repo declares several (name, file name, or relative path)")]
+    [CommandOption("--sln")]
+    public string? Solution { get; set; }
+
     [Description("Focus point. Repeatable. Accepts: TypeName | TypeName:MethodName | GET /route")]
     [CommandOption("-f|--focus")]
     public string[]? Focus { get; set; }

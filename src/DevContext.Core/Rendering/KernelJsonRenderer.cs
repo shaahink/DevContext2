@@ -41,6 +41,23 @@ public sealed class KernelJsonRenderer : IContextRenderer
                 .Select(kvp => new KernelSignal(kvp.Key, kvp.Value.Confidence, kvp.Value.Detected))],
         };
 
+        // DC6 — say what was analysed and what was not. Emitted whenever a solution was resolved, so a
+        // consumer can distinguish "one system, nothing hidden" from "no note was computed".
+        if (model.ScopeNote is { } note)
+        {
+            output.Scope = new ScopeDto
+            {
+                Analyzed = note.AnalyzedRelPath,
+                AnalyzedName = note.AnalyzedName,
+                AnalyzedPath = note.AnalyzedPath,
+                SolutionsOnDisk = note.TotalOnDisk,
+                Others = [.. note.OtherPaths],
+                Requested = note.WasRequested,
+                Partial = note.IsPartial,
+                Note = note.Text,
+            };
+        }
+
         if (snapshot is not null)
         {
             output.EntryCount = snapshot.Entries.IsDefaultOrEmpty ? null : snapshot.Entries.Length;
@@ -109,6 +126,20 @@ internal sealed class KernelJsonOutput
     public List<KernelSignal> Signals { get; set; } = [];
     public List<InsightDto> Insights { get; set; } = [];
     public EventWiringDto? EventWiring { get; set; }
+    public ScopeDto? Scope { get; set; }
+}
+
+/// <summary>DC6 — which of the repo's systems this analysis covered.</summary>
+internal sealed class ScopeDto
+{
+    public string Analyzed { get; set; } = "";
+    public string AnalyzedName { get; set; } = "";
+    public string AnalyzedPath { get; set; } = "";
+    public int SolutionsOnDisk { get; set; }
+    public List<string> Others { get; set; } = [];
+    public bool Requested { get; set; }
+    public bool Partial { get; set; }
+    public string Note { get; set; } = "";
 }
 
 internal sealed class EventWiringDto

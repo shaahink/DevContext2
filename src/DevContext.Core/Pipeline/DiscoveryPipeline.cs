@@ -193,7 +193,15 @@ public sealed class DiscoveryPipeline
                 var binderFacts = semanticLiteResult?.UpgradedBodyFacts.IsDefaultOrEmpty == false
                     ? (IReadOnlyList<Graph2.BodyFacts>)semanticLiteResult.UpgradedBodyFacts
                     : context.Analysis.AllBodyFacts;
-                graphSymbols = new SymbolTable(model.OrderedTypes, scopeForGraph.ProjectForFile, binderFacts);
+                // Batch C (DC6): the index holds the ANALYSED solution's symbols only. A multi-solution
+                // repo declares the same short names twice — GitVersion carries two GitVersion.Core trees,
+                // one per solution — and feeding both into one index made those names ambiguous, which the
+                // honest resolver then SKIPS (Law R1). The out-of-scope twin could never be a graph node
+                // anyway (GraphBuilder filters by scope), so it could only ever suppress a real edge.
+                graphSymbols = new SymbolTable(
+                    model.OrderedTypes.Where(t => scopeForGraph.Contains(t.FilePath)),
+                    scopeForGraph.ProjectForFile,
+                    binderFacts.Where(b => string.IsNullOrEmpty(b.File) || scopeForGraph.Contains(b.File)).ToList());
                 CallGraphBinder.Bind(context, model, graphSymbols, binderFacts, noiseFilter, ct);
             }
             catch (OperationCanceledException) { throw; }
@@ -254,6 +262,27 @@ public sealed class DiscoveryPipeline
         var graphBodyFacts = semanticLiteResult?.UpgradedBodyFacts ?? context.Analysis.AllBodyFacts;
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope,
             graphBodyFacts, graphSymbols);
+
+        // Batch C (R2 §2.C item 4) — an architecture style is a property of an APPLICATION. This runs
+        // BEFORE the map is built, because the map snapshots the style into its own header: suppressing
+        // after the build would leave the Map saying "MinimalApi" while the kernel JSON says
+        // NotApplicable, which is the per-surface divergence R2 §2.C item 4 exists to end. The style
+        // detector itself runs between Stage 2 and Stage 3 and cannot see the archetype — the archetype
+        // is assembled from the graph, which is why the reconciliation lives here and only here.
+        var archetype = ArchetypeDetector.Detect(model, entryPoints);
+        if (archetype is Archetype.Library or Archetype.CliTool
+            && model.DetectedStyle != ArchitectureStyle.NotApplicable)
+        {
+            var suppressed = model.DetectedStyle;
+            model.DetectedStyle = ArchitectureStyle.NotApplicable;
+            model.StyleConfidence = 0;
+            model.StyleDetectedVia = $"not applicable to a {archetype.ToString().ToLowerInvariant()}";
+            if (suppressed != ArchitectureStyle.Unknown)
+                model.AddDiagnostic(DiagnosticLevel.Info, "ArchitectureStyle",
+                    $"Suppressed style '{suppressed}' — this is a {archetype}, not an application. "
+                    + "The evidence a style rung reads (layers, endpoints, orchestration) comes from a "
+                    + "library's own tests and samples.");
+        }
 
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();

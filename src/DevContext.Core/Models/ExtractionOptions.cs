@@ -5,6 +5,10 @@ public sealed record ExtractionOptions
 {
     /// <summary>Entry point paths (files or directories) to focus analysis on.</summary>
     public ImmutableArray<string> EntryPaths { get; init; } = [];
+    /// <summary>DC6 — the solution the caller named (<c>--sln</c>) in a repo that declares several.
+    /// Part of the cache FLAVOR: analysing GitVersion's new-cli solution and its src solution are two
+    /// different analyses of the same tree, and one must never be served from the other's slot.</summary>
+    public string? SolutionPath { get; init; }
     /// <summary>The extraction profile determining breadth and depth of analysis.</summary>
     public ExtractionProfile Profile { get; init; } = ExtractionProfile.Focused;
     /// <summary>Maximum output tokens allowed in the rendered context.</summary>

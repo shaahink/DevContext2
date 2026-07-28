@@ -1,0 +1,10 @@
+{
+    "repo":  "eval-repos/MediatR",
+    "note":  "S4 widen pole (Batch C), added 2026-07-28. Baseline pre-Batch-C read SampleCollection 0.75. Its hub-sanity FAIL was an INSTRUMENT defect (CreateStream matched the fixture substring pattern via crea-teSt-ream), fixed in the S4 harness, not in the engine. An architecture style is a property of an APPLICATION; for a library the honest verdict is NotApplicable.",
+    "style":  {
+                  "archetype":  "Library",
+                  "styles":  [
+                                 "NotApplicable"
+                             ]
+              }
+}

@@ -54,7 +54,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         }
 
         var path = settings.Path ?? ".";
-        var rootResult = await ProjectRootResolver.ResolveAsync(path, _fs, ct);
+        var rootResult = await ProjectRootResolver.ResolveAsync(path, _fs, settings.Solution, ct);
 
         // D3.1 — query options mirror the DEFAULT analyze flavor exactly (config excludes, entry
         // paths, full graph), so query and analyze share one snapshot-cache slot per (repo, tree):
@@ -69,6 +69,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             OutputFormat = OutputFormat.Json,
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
                 ?? ExtractionOptions.DefaultExcludePatterns,
+            SolutionPath = settings.Solution,
         };
 
         var scenario = ScenarioRegistry.BuiltIn["overview"];
@@ -85,6 +86,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         {
             RootPath = rootResult.EffectiveRootPath,
             ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            RequestedSolution = settings.Solution,
             Options = options,
             ActiveScenario = scenario,
             Observer = new CompositeDiscoveryObserver([collector]),

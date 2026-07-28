@@ -1,0 +1,10 @@
+{
+    "repo":  "eval-repos/Newtonsoft.Json",
+    "note":  "S4 widen pole (Batch C), added 2026-07-28. Baseline pre-Batch-C read style Unknown/0.0. No root sln. An architecture style is a property of an APPLICATION; for a library the honest verdict is NotApplicable.",
+    "style":  {
+                  "archetype":  "Library",
+                  "styles":  [
+                                 "NotApplicable"
+                             ]
+              }
+}

@@ -53,8 +53,17 @@ public sealed class PlainCallDetector : ISeamDetector
             var resolved = ctx.Symbols.Resolve(inv.ReceiverType);
             if (resolved.Resolved is null) continue;
 
+            // Batch C (DC4) — receiver CHAIN hop. `_appEnvironmentService.OrderService.CreateOrderAsync()`
+            // used to emit Calls → IAppEnvironmentService: the aggregator that HOLDS the collaborator,
+            // never the collaborator. Every eShop [RelayCommand] read as a bare DI interface because of
+            // it. When the receiver's trailing segment is a property of the resolved receiver type, the
+            // call lands on that property's type. Unresolvable → the receiver type stands (still true).
+            var target = SeamDetectorHelpers.Resolve(inv.ReceiverType, ctx);
+            if (ctx.Symbols.HopThroughProperty(resolved.Resolved.Value.Canonical, inv.ReceiverMember, inv.ReceiverType.Site) is { } hopped)
+                target = ctx.Symbols.Resolve(new SymbolRef { Text = hopped, Site = inv.ReceiverType.Site });
+
             yield return new SeamMatch(
-                body.Member, EdgeKind.Calls, SeamDetectorHelpers.Resolve(inv.ReceiverType, ctx),
+                body.Member, EdgeKind.Calls, target,
                 0.5f, $"{body.File}:{inv.Line}", Id);
         }
     }

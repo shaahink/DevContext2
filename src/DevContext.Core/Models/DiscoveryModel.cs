@@ -9,6 +9,9 @@ public sealed class DiscoveryModel
 {
     /// <summary>Information about the solution file, if found.</summary>
     public SolutionInfo? Solution { get; internal set; }
+    /// <summary>DC6 — what this analysis covered when the repo declares several solutions, and what it
+    /// did not. Null when the repo declares one (or none): there is nothing to disclose.</summary>
+    public SolutionScopeNote? ScopeNote { get; internal set; }
     /// <summary>Projects discovered in the solution.</summary>
     public ImmutableArray<ProjectInfo> Projects { get; internal set; } = [];
     /// <summary>Architecture signals detected during extraction.</summary>
@@ -145,6 +148,38 @@ public sealed record SolutionInfo(
     string Name,
     ImmutableArray<string> ProjectPaths
 );
+
+/// <summary>
+/// What the analysis actually covered when the repo declares more than one system (Batch C / DC6).
+/// A repo with several solutions was silently reduced to one of them — GitVersion's entire modern CLI
+/// is invisible in its whole-repo read, and dotnet/aspire-samples showed one of fourteen samples with
+/// no hint that thirteen were missing. The pick itself is legitimate; hiding it is not. Every surface
+/// (kernel JSON, Map, proto) carries this note when <see cref="TotalOnDisk"/> &gt; 1.
+/// </summary>
+/// <param name="AnalyzedPath">Absolute path of the solution this analysis covered.</param>
+/// <param name="AnalyzedName">Its display name.</param>
+/// <param name="AnalyzedRelPath">Its repo-relative path — what the note SAYS, because a name need not
+/// identify it: GitVersion declares two solutions both named "GitVersion".</param>
+/// <param name="TotalOnDisk">How many solutions the repo declares (scaffolding excluded).</param>
+/// <param name="OtherPaths">Repo-relative paths of the ones NOT analysed, deterministically ordered.</param>
+/// <param name="WasRequested">True when the user named this solution explicitly (<c>--sln</c>).</param>
+public sealed record SolutionScopeNote(
+    string AnalyzedPath,
+    string AnalyzedName,
+    string AnalyzedRelPath,
+    int TotalOnDisk,
+    ImmutableArray<string> OtherPaths,
+    bool WasRequested = false)
+{
+    /// <summary>True when a choice was made among several — the only case worth telling the user about.</summary>
+    public bool IsPartial => TotalOnDisk > 1;
+
+    /// <summary>One line, the same words on every surface. Names the pick, the count, and the way out.</summary>
+    public string Text => IsPartial
+        ? $"analyzed {AnalyzedRelPath} — 1 of {TotalOnDisk} solutions in this repo"
+            + (WasRequested ? "" : "; analyze another with --sln <name>")
+        : $"analyzed {AnalyzedName}";
+}
 
 /// <summary>Per-service (runnable project) style assessment. M1.9 / D5 — each runnable web service
 /// gets one entry with its local architecture style and stack tags.</summary>

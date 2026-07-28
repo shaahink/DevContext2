@@ -73,6 +73,14 @@ public static class CallGraphBinder
             {
                 ct.ThrowIfCancellationRequested();
                 var callerType = SymbolCanon.OwnerTypeOf(body.Member.Canonical);
+
+                // Batch C (DC7) — call edges obey the SAME production rule as nodes. Without this, a type
+                // excluded from the graph still emitted its calls, and the callee came back as a bare
+                // ghost node: FluentValidation's ITestValidationContinuation was the graph's top hub with
+                // nine edges, all of them from its own TestHelper extension methods. An edge whose origin
+                // is not modelled cannot be evidence about the system.
+                if (typeByFqn.TryGetValue(callerType, out var callerDecl) && !noise.IsProductionCode(callerDecl))
+                    continue;
                 var callerMethod = SymbolCanon.MemberNameOf(SymbolCanon.MemberKeyFromSymbolId(body.Member.Canonical));
 
                 foreach (var op in body.Ops)
@@ -202,12 +210,28 @@ public static class CallGraphBinder
                 return null;                                   // member-canonical collision — not a type
 
             var calleeType = sym.Canonical;
+
+            // Batch C (DC4) — receiver CHAIN hop. `a.B.C()` was bound to a's type, so an aggregator that
+            // merely HOLDS the collaborator swallowed the call: eShop's
+            // `_appEnvironmentService.OrderService.CreateOrderAsync(order)` bound to IAppEnvironmentService,
+            // and the checkout command's target read as a bare DI interface. When the receiver's trailing
+            // segment names a PROPERTY of the resolved receiver type, the call lands on that property's
+            // type. Same honesty rule as everywhere else: the hop happens only when the property's declared
+            // type resolves unambiguously, otherwise the receiver type stands.
+            if (symbols.HopThroughProperty(calleeType, inv.ReceiverMember, recv.Site) is { } hopped)
+                calleeType = hopped;
             if (symbols.IsInterface(calleeType))
             {
                 if (diImpl.TryGetValue(calleeType, out var impl))
                 {
-                    if (impl is null) return null;             // conflicting DI bindings — ambiguous
-                    calleeType = impl;
+                    // Batch C: conflicting registrations mean we cannot name the IMPLEMENTATION — they
+                    // never meant we cannot name the call. Dropping the edge cost eShop's ClientApp its
+                    // whole member-level call spine (every service is registered twice, real and mock,
+                    // behind a UseMocks switch), which left its [RelayCommand] entries with nothing but
+                    // a bare type seam to point at. Landing on the interface is the honest middle: the
+                    // call really is to IOrderService.CreateOrderAsync, and the graph's Resolves edges
+                    // still carry the candidate implementations.
+                    if (impl is not null) calleeType = impl;
                 }
                 else if (soleImpl.TryGetValue(calleeType, out var sole))
                 {

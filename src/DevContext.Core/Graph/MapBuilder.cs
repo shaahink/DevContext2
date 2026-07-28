@@ -76,9 +76,22 @@ public sealed class MapBuilder
         // Decide partial from the RAW discovered count vs the raw .sln count (consistent bases). Require a
         // clear gap (≤ 75%) so a whole-solution run that discovers a few fewer than the .sln lists (failed
         // loads, etc.) isn't falsely stamped — guards eShop whole-solution staying "Microservices".
-        if (slnCount <= 0 || model.Projects.Length >= slnCount * 3 / 4 || analyzedProjectCount <= 0) return null;
-        var slnName = model.Solution?.Name ?? "solution";
-        return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
+        var closure = slnCount > 0 && model.Projects.Length < slnCount * 3 / 4 && analyzedProjectCount > 0
+            ? $"{analyzedProjectCount}-project closure of {slnCount}-project {model.Solution?.Name ?? "solution"}"
+            : null;
+
+        // Batch C (DC6) — the OTHER partiality: the repo declares several solutions and this analysis
+        // covered one of them. Both notes ride the same Map/proto/UI field, because to a reader they are
+        // the same sentence: what you are looking at is a slice, and here is which one.
+        var multi = model.ScopeNote is { IsPartial: true } n ? n.Text : null;
+
+        return (closure, multi) switch
+        {
+            (null, null) => null,
+            (not null, null) => closure,
+            (null, not null) => multi,
+            _ => $"{multi}; {closure}",
+        };
     }
 
     /// <summary>A5 (Prism D1.1e) — the render backstop's data source. The Library archetype always gets

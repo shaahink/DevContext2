@@ -125,9 +125,10 @@ public sealed class SnapshotCacheService
     private static string? ComputeFlavorSuffix(ExtractionOptions o)
     {
         var defaultFlavor = o is { AllowRoslyn: true, BuildFullGraph: true, Fast: false, ExcludeExtractors.Length: 0 }
+            && string.IsNullOrEmpty(o.SolutionPath)
             && o.ExcludePatterns.SequenceEqual(ExtractionOptions.DefaultExcludePatterns);
         if (defaultFlavor) return null;
-        var canonical = $"roslyn:{o.AllowRoslyn}|graph:{o.BuildFullGraph}|fast:{o.Fast}"
+        var canonical = $"roslyn:{o.AllowRoslyn}|graph:{o.BuildFullGraph}|fast:{o.Fast}|sln:{o.SolutionPath}"
             + $"|excl:{string.Join(",", o.ExcludeExtractors.Sort(StringComparer.Ordinal))}"
             + $"|pat:{string.Join(",", o.ExcludePatterns.Sort(StringComparer.Ordinal))}";
         return HashString(canonical)[..12];

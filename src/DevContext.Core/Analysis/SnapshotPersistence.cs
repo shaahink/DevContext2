@@ -44,6 +44,7 @@ public sealed record PersistedSnapshot
 public sealed record PersistedModel
 {
     public SolutionInfo? Solution { get; init; }
+    public SolutionScopeNote? ScopeNote { get; init; }
     public ImmutableArray<ProjectInfo> Projects { get; init; } = [];
     public FeatureSignal[] Signals { get; init; } = [];
     public ArchitectureStyle DetectedStyle { get; init; }
@@ -157,6 +158,7 @@ public static class SnapshotPersistence
     private static PersistedModel FromModel(DiscoveryModel m) => new()
     {
         Solution = m.Solution,
+        ScopeNote = m.ScopeNote,
         Projects = m.Projects,
         Signals = [.. m.Architecture.All.Values],
         DetectedStyle = m.DetectedStyle,
@@ -184,6 +186,7 @@ public static class SnapshotPersistence
         var m = new DiscoveryModel
         {
             Solution = p.Solution,
+            ScopeNote = p.ScopeNote,
             Projects = p.Projects,
             DetectedStyle = p.DetectedStyle,
             StyleConfidence = p.StyleConfidence,

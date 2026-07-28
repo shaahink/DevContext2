@@ -80,7 +80,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         ProjectRootResult rootResult;
         try
         {
-            rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
+            rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, settings.Solution, ct);
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -134,6 +134,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var options = new ExtractionOptions
         {
             EntryPaths = rootResult.EntryCandidates,
+            SolutionPath = settings.Solution,
             Profile = resolvedIntent.Profile,
             MaxOutputTokens = settings.MaxTokens ?? config?.MaxOutputTokens ?? 8000,
             AllowRoslyn = !settings.NoRoslyn,
@@ -216,6 +217,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         {
             RootPath = rootResult.EffectiveRootPath,
             ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            RequestedSolution = settings.Solution,
             Options = options,
             ActiveScenario = scenario,
             Observer = observer,

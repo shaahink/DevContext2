@@ -23,10 +23,20 @@ public sealed class ArchitectureStyleDetector
         var evidence = new List<string>();
         var scores = new Dictionary<ArchitectureStyle, (float Score, string Evidence)>();
 
+        // Batch C (DC6) — the style verdict is about the solution being ANALYSED, not about every
+        // project on disk. ardalis/CleanArchitecture ships four solutions (the template, a minimal
+        // variant, a sample app, and a core-only sln); reading all 22 projects at once found three
+        // AppHosts and called the repo "Microservices — Aspire orchestration of 3 runnable services",
+        // which is three different single-app solutions counted as one constellation. The graph has
+        // been solution-scoped since design-doc R1; the style verdict now reads the same scope.
+        var solutionScope = Graph.SolutionScope.FromModel(model);
+        var scopedProjects = solutionScope.Projects;
+        var scopedTypes = model.Types.Values.Where(t => solutionScope.Contains(t.FilePath)).ToList();
+
         // Compute reference-direction evidence (core/domain projects have high fan-in, low fan-out)
-        var refCounts = ComputeReferenceCounts(model.Projects);
+        var refCounts = ComputeReferenceCounts(scopedProjects);
         // Detect folder-role conventions from file paths
-        var folderRoles = DetectFolderRoles(model);
+        var folderRoles = DetectFolderRoles(scopedProjects, scopedTypes);
         // Detect aggregate presence from EfEntityDetection
         var aggregateCount = model.Detections
             .OfType<EfEntityDetection>().Count(d => d.IsAggregate);
@@ -34,10 +44,10 @@ public sealed class ArchitectureStyleDetector
         // MediatRHandlerDetection: this detector runs between Stage 2 and Stage 3, and the MediatR
         // extractor that emits those detections is a Stage 3 specific extractor — so model.Detections
         // is still empty here. The interface strings ("IRequestHandler<…>") are already on the types.
-        var mediatRHandlerCount = model.Types.Values.Count(t => t.ImplementedInterfaces.Any(i =>
+        var mediatRHandlerCount = scopedTypes.Count(t => t.ImplementedInterfaces.Any(i =>
             i.StartsWith("IRequestHandler", StringComparison.Ordinal)
             || i.StartsWith("IStreamRequestHandler", StringComparison.Ordinal)));
-        var notificationHandlerCount = model.Types.Values.Count(t => t.ImplementedInterfaces.Any(i =>
+        var notificationHandlerCount = scopedTypes.Count(t => t.ImplementedInterfaces.Any(i =>
             i.StartsWith("INotificationHandler", StringComparison.Ordinal)));
         var totalHandlerCount = mediatRHandlerCount + notificationHandlerCount;
         // The MediatR architecture *signal* keys off the package reference, which is missed when only a
@@ -59,8 +69,12 @@ public sealed class ArchitectureStyleDetector
         // raw model.Projects let a single test project trip the NLayer rule (EfCore + >2 projects),
         // misreading a controller app as NLayer at repo-root (assessment: DntSite audit).
         var projectClassifier = new Graph.ProjectClassifier(model.Projects);
-        var projectCount = model.Projects.Count(p => !projectClassifier.IsInTestProject(p.FilePath));
+        var projectCount = scopedProjects.Count(p => !projectClassifier.IsInTestProject(p.FilePath));
 
+        // Batch C note: the sample-collection rung below deliberately keeps reading the WHOLE repo.
+        // "This repo is a showcase of samples" is a statement about the repo, not about the one
+        // solution picked out of it — scoping it would blind aspire-samples and blazor-samples to
+        // their own nature, which is the verdict those poles pin.
         // L7.3 — Sample-collection guard (E4): when most projects live under sample/demo/docs
         // paths, the repo is a showcase, not a unified architecture. Never report Microservices
         // for a sample repo. Also triggers when there is no unifying solution + >3 projects.
@@ -105,24 +119,33 @@ public sealed class ArchitectureStyleDetector
 
         // Microservices: at least 2 runnable web services + (gateway OR bus) evidence.
         // Detects multi-service constellations even without Aspire orchestration (M1.9 / D5).
-        var runnableWebCount = CountRunnableWebProjects(model);
+        var runnableWebCount = CountRunnableWebProjects(scopedProjects);
         var hasGatewayEvidence = signals.TryGetValue(ArchitectureSignals.Keys.Gateway, out var gwSig) && gwSig.Detected;
+        var busPackage = DetectBusPackage(scopedProjects);
         var hasBusEvidence = signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out _)
-            || signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out _);
+            || signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out _)
+            || busPackage is not null;
 
         if (runnableWebCount >= 2 && (hasGatewayEvidence || hasBusEvidence))
         {
+            var busLabel = busPackage is { } bp ? $"message bus ({bp})" : "message bus";
             evidence.Add($"{runnableWebCount} runnable web services with "
-                + (hasGatewayEvidence ? "gateway" : "") + (hasGatewayEvidence && hasBusEvidence ? " + " : "") + (hasBusEvidence ? "message bus" : ""));
+                + (hasGatewayEvidence ? "gateway" : "") + (hasGatewayEvidence && hasBusEvidence ? " + " : "") + (hasBusEvidence ? busLabel : ""));
             scores[ArchitectureStyle.Microservices] = (Math.Min(0.6f + runnableWebCount * 0.05f, 0.85f),
                 string.Join("; ", evidence));
         }
 
         // Microservices: Aspire + many projects (constellation) — keep existing detection for Aspire repos
         // Only scores when there's an explicit AppHost — not just Aspire infra packages
-        var hasAppHost = model.Projects.Any(p =>
-            p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
-            || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)));
+        // Batch C: `Aspire.Hosting.Testing` is a TEST package — a project referencing it is testing an
+        // AppHost, not being one. It made every Aspire-template repo look orchestrated.
+        var hasAppHost = scopedProjects.Any(p =>
+            !projectClassifier.IsInTestProject(p.FilePath)
+            && (p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+                || p.Name.EndsWith("AppHost", StringComparison.OrdinalIgnoreCase)
+                || p.PackageReferences.Any(pr =>
+                    pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)
+                    && !pr.Name.Contains(".Testing", StringComparison.OrdinalIgnoreCase))));
         if (hasAspire && hasAppHost && projectCount >= 3)
         {
             // The AppHost's ProjectReferences ARE the orchestrated runnables (typed AddProject<T>
@@ -130,17 +153,29 @@ public sealed class ArchitectureStyleDetector
             // Aspire-orchestrated monolith-plus-worker (2 runnables) as Microservices. When the
             // AppHost carries no ProjectReferences (path-based AddProject overload), fall back to
             // the whole-solution service count.
-            var orchestrated = model.Projects
-                .Where(p => p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
-                    || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)))
+            // Batch C (DC7): two ways this over-counted, both visible on ardalis/CleanArchitecture — a
+            // single-app template that read "Microservices". (1) `Aspire.Hosting.Testing` is an Aspire
+            // package, so its FunctionalTests project joined the orchestrator set and donated ITS project
+            // references to the count. (2) `ServiceDefaults` is shared configuration every Aspire app
+            // has, not an orchestrated service. Neither is a runnable service, and a constellation is
+            // counted in services.
+            var orchestrated = scopedProjects
+                .Where(p => !projectClassifier.IsInTestProject(p.FilePath)
+                    && (p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+                        || p.Name.EndsWith("AppHost", StringComparison.OrdinalIgnoreCase)
+                        || p.PackageReferences.Any(pr =>
+                            pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)
+                            && !pr.Name.Contains(".Testing", StringComparison.OrdinalIgnoreCase))))
                 .SelectMany(p => p.ProjectReferences)
                 .Select(Path.GetFileNameWithoutExtension)
-                .Where(n => !string.IsNullOrEmpty(n))
+                .Where(n => !string.IsNullOrEmpty(n)
+                    && !n!.EndsWith("ServiceDefaults", StringComparison.OrdinalIgnoreCase)
+                    && !IsInfrastructureProject(n))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Count();
             var svcCount = orchestrated > 0
                 ? orchestrated
-                : model.Projects.Count(p => !IsInfrastructureProject(p.Name));
+                : scopedProjects.Count(p => !IsInfrastructureProject(p.Name));
             if (svcCount >= 3)
             {
                 evidence.Add(orchestrated > 0
@@ -174,13 +209,31 @@ public sealed class ArchitectureStyleDetector
             }
         }
 
-        // VerticalSlices: FastEndpoints + MediatR + feature-folder conventions
+        // VerticalSlices: FastEndpoints + MediatR + feature-folder conventions.
+        // Batch C (DC7): the rule above is what this comment always said, but the code scored on
+        // FastEndpoints ALONE — so ardalis/CleanArchitecture, the canonical Clean Architecture template
+        // (Core / UseCases / Infrastructure / Web, with DDD layers and aggregates), was labelled
+        // VerticalSlices at 0.85 purely because its API layer happens to use FastEndpoints. An endpoint
+        // library is not a slicing strategy. Feature folders are: the whole claim of vertical slices is
+        // that code is organised BY FEATURE rather than by layer, and that is visible on disk.
         if (hasFastEndpoints)
         {
-            var vEvidence = new List<string> { "FastEndpoints detected" };
-            if (hasMediatR) vEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
-            scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
-                string.Join("; ", vEvidence));
+            var featureFolders = DetectFeatureFolders(scopedTypes);
+            if (featureFolders > 0)
+            {
+                var vEvidence = new List<string>
+                {
+                    "FastEndpoints detected",
+                    $"{featureFolders} feature folder(s)",
+                };
+                if (hasMediatR) vEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
+                scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
+                    string.Join("; ", vEvidence));
+            }
+            else
+            {
+                evidence.Add("FastEndpoints (endpoint library — not slicing evidence on its own)");
+            }
         }
 
         // NLayer: multiple projects, EF Core, no strong DDD/MediatR signals
@@ -205,14 +258,20 @@ public sealed class ArchitectureStyleDetector
         // name ("DevContext.Cli", "DevContext.Core", ...), giving every project in this repo a false
         // "module" credit ("9 module-like sub-projects"). Test/bench projects never count either — a
         // *.Tests or benchmarks project is never itself a bounded-context module.
-        var moduleNames = model.Projects
+        // Batch C: modules are also a DIRECTORY convention, not only a naming one. OrchardCore keeps
+        // ~150 feature modules under `src/OrchardCore.Modules/`, and not one of them carries a "Module"
+        // name segment — the verdict was riding on five scaffolding names instead (`Module.Pages`,
+        // `OrchardCore.Module.Targets`, and three `Examples.Modules.*` samples), which is the right
+        // answer from the wrong evidence. A projects-under-a-Modules-directory rule reads the actual
+        // structure, and survives the solution scoping that dropped those five.
+        var moduleNames = scopedProjects
             .Where(p => !projectClassifier.IsInTestProject(p.FilePath) && !Graph.ProjectClassifier.IsSamplePath(p.FilePath))
-            .Select(p => p.Name)
-            .Where(n => n.Split('.').Any(seg =>
-                seg.Equals("Module", StringComparison.OrdinalIgnoreCase)
-                || seg.Equals("Modules", StringComparison.OrdinalIgnoreCase)
-                || seg.Equals("BoundedContext", StringComparison.OrdinalIgnoreCase)))
-            .Select(n => n.ToLowerInvariant())
+            .Where(p => p.Name.Split('.').Any(seg =>
+                    seg.Equals("Module", StringComparison.OrdinalIgnoreCase)
+                    || seg.Equals("Modules", StringComparison.OrdinalIgnoreCase)
+                    || seg.Equals("BoundedContext", StringComparison.OrdinalIgnoreCase))
+                || IsUnderModulesDirectory(p.FilePath))
+            .Select(p => p.Name.ToLowerInvariant())
             .ToList();
         if (moduleNames.Count >= 2 && !scores.ContainsKey(ArchitectureStyle.Microservices))
         {
@@ -260,9 +319,9 @@ public sealed class ArchitectureStyleDetector
         // (ScreenToGif read Unknown). Fallback only: it never competes with a scored web/system style.
         if (scores.Count == 0)
         {
-            var desktopUiProjects = model.Projects.Count(p =>
+            var desktopUiProjects = scopedProjects.Count(p =>
                 p.FilePath is { } fp && IsDesktopUiProject(fp));
-            var viewModelCount = model.Types.Values.Count(t =>
+            var viewModelCount = scopedTypes.Count(t =>
                 t.Name.EndsWith("ViewModel", StringComparison.Ordinal));
             if (desktopUiProjects > 0 && viewModelCount >= 3)
             {
@@ -278,9 +337,13 @@ public sealed class ArchitectureStyleDetector
         // the Microservices topology signal outranks any intra-service style. Same rule
         // applies without Aspire: ≥2 web services + gateway + bus evidence outranks
         // single-project CleanArchitecture scores (M1.9 / D5).
+        // Batch C: the re-check used to demand gateway AND bus, which is stricter than the rung that
+        // scored Microservices in the first place (gateway OR bus) — so a constellation could score
+        // Microservices and still lose to its own services' internal style. The gate now mirrors the
+        // rung: if the topology evidence was good enough to score, it is good enough to outrank.
         if (scores.TryGetValue(ArchitectureStyle.Microservices, out var msEntry)
             && scores.TryGetValue(ArchitectureStyle.CleanArchitecture, out var caEntry)
-            && (hasAppHost || (runnableWebCount >= 2 && hasGatewayEvidence && hasBusEvidence)))
+            && (hasAppHost || (runnableWebCount >= 2 && (hasGatewayEvidence || hasBusEvidence))))
         {
             // Boost Microservices just above the strongest CleanArchitecture score so
             // it wins the MaxBy.
@@ -359,7 +422,7 @@ public sealed class ArchitectureStyleDetector
         return declaresOwnHandlerInterface ? MediatREvidenceKind.HandRolled : MediatREvidenceKind.Package;
     }
 
-    private static HashSet<string> DetectFolderRoles(DiscoveryModel model)
+    private static HashSet<string> DetectFolderRoles(ImmutableArray<ProjectInfo> projects, IReadOnlyList<TypeDiscovery> types)
     {
         var roles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var conventions = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
@@ -374,7 +437,7 @@ public sealed class ArchitectureStyleDetector
         // Check both file paths and project names for conventions
         foreach (var (role, patterns) in conventions)
         {
-            foreach (var project in model.Projects)
+            foreach (var project in projects)
             {
                 if (project.Name.Contains(role, StringComparison.OrdinalIgnoreCase))
                 {
@@ -384,7 +447,7 @@ public sealed class ArchitectureStyleDetector
             }
             if (roles.Contains(role)) continue;
 
-            foreach (var type in model.Types.Values.Take(200))
+            foreach (var type in types.Take(200))
             {
                 var norm = type.FilePath.Replace('\\', '/');
                 if (patterns.Any(pt => norm.Contains(pt, StringComparison.OrdinalIgnoreCase)))
@@ -396,6 +459,78 @@ public sealed class ArchitectureStyleDetector
         }
 
         return roles;
+    }
+
+    /// <summary>Batch C (DC7) — how many distinct FEATURE folders the code is organised into: sibling
+    /// directories under a <c>Features/</c>, <c>Slices/</c>, <c>UseCases/</c> or <c>Modules/</c> parent.
+    /// This is the evidence vertical slicing actually makes ("organised by feature, not by layer"), and
+    /// the claim needs at least two siblings — one folder named Features with everything in it is a
+    /// folder, not a slicing strategy. Counting distinct CHILDREN, not files, keeps a single fat feature
+    /// from out-voting a genuinely sliced repo.</summary>
+    private static int DetectFeatureFolders(IReadOnlyList<TypeDiscovery> types)
+    {
+        string[] parents = ["/features/", "/slices/", "/usecases/", "/use-cases/", "/modules/"];
+        var children = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var type in types)
+        {
+            var norm = type.FilePath.Replace('\\', '/');
+            foreach (var parent in parents)
+            {
+                var idx = norm.IndexOf(parent, StringComparison.OrdinalIgnoreCase);
+                if (idx < 0) continue;
+                var rest = norm[(idx + parent.Length)..];
+                var slash = rest.IndexOf('/');
+                if (slash > 0) children.Add(rest[..slash]);   // a directory below the parent = one feature
+                break;
+            }
+        }
+        return children.Count >= 2 ? children.Count : 0;
+    }
+
+    /// <summary>Batch C (DC7) — message-transport evidence from PACKAGE references, not from two
+    /// hard-coded signal keys. dotnet-podcasts wires Podcast.API to Podcast.Ingestion.Worker over an
+    /// Azure Storage queue — its own eventWiring output names the queue, the publisher and the consumer
+    /// — yet the Microservices rung asked only "MassTransit or NServiceBus?" and answered no, leaving a
+    /// five-service constellation labelled CleanArchitecture. A queue is a bus whatever ships it.</summary>
+    private static string? DetectBusPackage(ImmutableArray<ProjectInfo> projects)
+    {
+        string[] markers =
+        [
+            "MassTransit", "NServiceBus", "Rebus", "Wolverine",
+            "Azure.Messaging.ServiceBus", "Azure.Storage.Queues", "Microsoft.Azure.ServiceBus",
+            "RabbitMQ.Client", "Confluent.Kafka", "AWSSDK.SQS", "Amazon.SQS", "Google.Cloud.PubSub",
+        ];
+        // Two projects must carry it: a bus package on ONE project is a library dependency; the same
+        // transport on two is a seam between them.
+        var hits = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in projects)
+            foreach (var pkg in p.PackageReferences)
+                foreach (var m in markers)
+                    if (pkg.Name.StartsWith(m, StringComparison.OrdinalIgnoreCase))
+                        hits[m] = hits.TryGetValue(m, out var c) ? c + 1 : 1;
+        return hits.Where(kv => kv.Value >= 2)
+            .OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal)
+            .Select(kv => kv.Key).FirstOrDefault();
+    }
+
+    /// <summary>Batch C — true when a project file sits under a directory that declares modularity
+    /// (<c>…/Modules/…</c>, <c>…/BoundedContexts/…</c>). A whole directory of sibling projects is
+    /// stronger evidence of a modular monolith than a name segment, and it is what repos that really
+    /// are one look like on disk.</summary>
+    private static bool IsUnderModulesDirectory(string? csprojPath)
+    {
+        if (string.IsNullOrEmpty(csprojPath)) return false;
+        foreach (var seg in csprojPath.Replace('\\', '/').Split('/'))
+        {
+            if (seg.Equals("Modules", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("BoundedContexts", StringComparison.OrdinalIgnoreCase))
+                return true;
+            // "OrchardCore.Modules" — a dotted directory whose LAST segment declares the convention.
+            var dot = seg.LastIndexOf('.');
+            if (dot > 0 && seg[(dot + 1)..].Equals("Modules", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
     }
 
     private static bool IsInfrastructureProject(string name)
@@ -410,10 +545,10 @@ public sealed class ArchitectureStyleDetector
 
     /// <summary>M1.9 — counts runnable web service projects (Exe output with web-server packages
     /// or "api"/"web" project naming convention). Used for microservices detection.</summary>
-    private static int CountRunnableWebProjects(DiscoveryModel model)
+    private static int CountRunnableWebProjects(ImmutableArray<ProjectInfo> projects)
     {
         var count = 0;
-        foreach (var proj in model.Projects)
+        foreach (var proj in projects)
         {
             if (IsInfrastructureProject(proj.Name)) continue;
             var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;

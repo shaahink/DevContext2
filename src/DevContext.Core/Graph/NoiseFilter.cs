@@ -145,6 +145,24 @@ public sealed class ProjectClassifier
             || name.EndsWith("FunctionalTests", StringComparison.OrdinalIgnoreCase))
             return true;
 
+        // Batch C (R2 §2.C item 3) — test SUPPORT libraries. These ship fixtures for OTHER projects'
+        // tests, so they carry no test-framework package and are not named *.Tests, and every
+        // convention above misses them: GitVersion.Testing's EmptyRepositoryFixture dominated
+        // GitVersion's wiring graph, Orleans' TestGrains reached cross-project edges as dup-names.
+        // A "…Testing"/"…TestSupport"/"…Fixtures" project is test infrastructure by declaration.
+        foreach (var seg in name.Split('.'))
+        {
+            if (seg.Equals("Testing", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestSupport", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestKit", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestCommon", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestHelpers", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestUtilities", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Fixtures", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("TestGrains", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
         foreach (var pkg in p.PackageReferences)
             foreach (var marker in TestPackageMarkers)
                 if (pkg.Name.Contains(marker, StringComparison.OrdinalIgnoreCase))
@@ -252,8 +270,25 @@ public sealed class NoiseFilter
     {
         if (_projects.IsInTestProject(type.FilePath)) return false;
         if (IsGeneratedPath(type.FilePath)) return false;
+        // Batch C (R2 §2.C item 3) — test support SHIPPED INSIDE a production project, which no
+        // project-level rule can see: FluentValidation's src/FluentValidation/TestHelper/ made
+        // ITestValidationContinuation the graph's top hub. The entry-source filter already treats
+        // /Testing/ as non-runtime; a graph node is the same fact one surface over.
+        if (IsTestSupportPath(RelativeToRoot(type.FilePath))) return false;
         // NOTE: deliberately NO type-name-suffix rule. "OrderSpec" / "...Should" are production code.
         return true;
+    }
+
+    /// <summary>Test-support FOLDER conventions inside an otherwise production project: helper APIs a
+    /// library ships for its consumers' tests. Path-relative to the analysis root (see ctor), so a repo
+    /// that itself lives under such a directory is not erased.</summary>
+    private static bool IsTestSupportPath(string filePath)
+    {
+        var norm = filePath.Replace('\\', '/');
+        return norm.Contains("/TestHelper/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/TestHelpers/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/Testing/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/testassets/", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>True when a detection's source file is a production entry source — not a test project,

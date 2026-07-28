@@ -13,9 +13,9 @@
       "id": "style-cleanarchitecture",
       "type": "json-equals",
       "path": "$.architecture.style",
-      "value": "CleanArchitecture",
+      "value": "Microservices",
       "status": "expected",
-      "note": "Audit 2026-07-17: correct (DDD layers). Ratchet."
+      "note": "CORRECTED Batch C 2026-07-28: the 2026-07-17 audit read the DDD layers inside the services and missed the topology around them. dotnet-podcasts runs Podcast.API, Podcast.Server and ListenTogether.Hub plus two workers, and Podcast.API publishes to Podcast.Ingestion.Worker over an Azure Storage queue -- the engine's own eventWiring names that queue, its publisher and its consumer. Bus evidence is no longer hard-coded to MassTransit/NServiceBus, so the constellation now outranks the intra-service style. The graph-truth pole declares the same truth (MATRIX S4)."
     },
     {
       "id": "hub-entry",

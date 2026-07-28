@@ -11,6 +11,10 @@ public sealed class DiscoveryContext
     /// Empty ⇒ walk <see cref="RootPath"/> (whole-solution / folder mode).
     /// </summary>
     public ImmutableArray<string> ScopedProjectDirs { get; init; } = [];
+    /// <summary>DC6 — the solution the caller named (<c>--sln</c>), as typed: an absolute path, a
+    /// repo-relative path, a file name, or a bare solution name. Null = use the scored pick. A repo with
+    /// several solutions is several systems, and only the caller knows which one they meant.</summary>
+    public string? RequestedSolution { get; init; }
     /// <summary>Options controlling extraction behavior.</summary>
     public required ExtractionOptions Options { get; init; }
     /// <summary>The active scenario defining what to extract, prune, and compress.</summary>

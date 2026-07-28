@@ -30,6 +30,7 @@ There is no scenario/profile to choose — presence of `--focus` selects Map vs 
 | `--depth <N>` | Graph depth from the focus point (1–10). |
 | `--detail <LEVEL>` | Trace body detail: `signature` · `salient` (default) · `full`. |
 | `--include-map` | When tracing, also render the Map/architecture sections alongside the trace. |
+| `--sln <SOLUTION>` | Which solution to analyse when the repo declares several. Accepts a bare name (`GitVersion`), a file name (`GitVersion.slnx`), or a repo-relative path (`new-cli/GitVersion.slnx`). Without it, DevContext picks one and says so: `analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo`. Also available on `devcontext query`. |
 
 ```
 devcontext analyze C:\src\Shop                                   # Map
