@@ -2,12 +2,14 @@ import { Component, computed, DestroyRef, effect, inject, model, output, signal 
 import { NgClass } from '@angular/common';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
-import { filterApproxTree, type TraceNodeVm } from '../../models/view-models';
+import { filterApproxTree, type EntryVm, type TraceNodeVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-canvas';
 import { Meter, type MeterVariant } from '../../ui/meter/meter';
 import { TraceNodeComponent } from '../trace/trace-node';
+import { CommandSurface } from './command-surface';
+import { shouldShowCommandSurface } from './command-surface.vm';
 import { LensSwitcher, type LensId } from './lens-switcher';
 
 export type StageAltitude = 'system' | 'flow' | 'node';
@@ -35,7 +37,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
  */
 @Component({
   selector: 'app-stage',
-  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass, LensSwitcher],
+  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass, LensSwitcher, CommandSurface],
   host: { class: 'panel relative flex h-full min-h-0 flex-col' },
   template: `
     <div
@@ -134,7 +136,15 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
     <div class="min-h-0 flex-1 overflow-auto transition-opacity" [class.opacity-60]="trace.loading()">
       @switch (altitude()) {
         @case ('system') {
-          @if (topology().length > 0) {
+          @if (showCommandSurface()) {
+            <!-- R3 D-D (D1): a CliTool's landing surface is its commands. The topology stays one
+                 lens away — service/layer/feature still draw the canvas — but the Flow lens with
+                 nothing focused now opens on the thing the tool actually is. -->
+            <app-command-surface
+              [entries]="allEntries()"
+              (commandSelected)="commandSelected.emit($event)"
+            />
+          } @else if (topology().length > 0) {
               <app-graph-canvas
                 class="block h-full"
                 [fill]="true"
@@ -262,6 +272,9 @@ export class Stage {
   readonly projectSelected = output<string>();
   /** L6.5: Visible Table lens button clicked. */
   readonly tableRequested = output<void>();
+  /** R3 D-D (D1): a command picked on the CLI landing surface — the parent focuses it exactly as
+   * it focuses a deck selection, so a command has one focus path and not two. */
+  readonly commandSelected = output<EntryVm>();
 
   /** `model()` so the Workbench can lift it into `?view` URL state (proposal §8.3). */
   readonly altitude = model<StageAltitude>('flow');
@@ -271,6 +284,20 @@ export class Stage {
   /** M7.2: Lens model — lifted to WorkbenchPage so each page owns its default.
    *  Service/flow are live; layer/feature are structural slots (engine data pending). */
   readonly lensModel = model<LensId>('flow');
+
+  /** R3 D-D (D1) — the CliTool landing state. Conditioned on the Flow lens with nothing focused,
+   * which is the state D-A sends to the topology: the other lenses exist to draw that topology and
+   * keep doing so. A tool whose commands the engine could not project falls through to the canvas
+   * rather than to an empty promise. */
+  protected readonly showCommandSurface = computed(() => shouldShowCommandSurface({
+    archetype: this.session.mapResponse()?.archetype ?? '',
+    lens: this.lensModel(),
+    hasFocus: !!this.trace.focus(),
+    groups: this.session.mapResponse()?.archetypeView?.groups ?? [],
+  }));
+
+  protected readonly allEntries = computed(() =>
+    this.session.entryGroups().flatMap((g) => g.entries));
 
   protected readonly graphDepth = signal(3);
   protected readonly nodeViewMode = signal<NodeViewMode>('list');

@@ -79,6 +79,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
             (tableRequested)="browserOpen.set(true)"
+            (commandSelected)="onEntry($event)"
           />
         }
         @if (dockLevel() > 0) {
