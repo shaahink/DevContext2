@@ -927,6 +927,19 @@ message ServiceCard {
   optional string layer = 4;
   optional string feature = 5;
   repeated string stack = 6;
+  // R3 D-B: infrastructure resources this service depends on. Emitted as Store graph nodes since
+  // Batch B, but nothing carried them out of the graph, so no renderer could draw a repo's stores.
+  repeated ServiceStore stores = 7;
+  // R3 D-B: the projects this service orchestrates, when it is an AppHost. The canvas draws this as
+  // containment — an orchestrator expresses membership, not traffic.
+  repeated string orchestrates = 8;
+}
+
+// An infrastructure resource a service depends on. `resource_type` is the orchestrator's own word
+// for it, lowercased ("redis", "postgres"), and is empty when the orchestrator never named one.
+message ServiceStore {
+  string name = 1;
+  string resource_type = 2;
 }
 
 message TransportLink {
@@ -934,6 +947,9 @@ message TransportLink {
   string to_service = 2;
   string transport = 3;
   optional string evidence = 4;
+  // R3 D-B: "Semantic" | "Join" | "Syntactic" — how the underlying ServiceLink was established, so a
+  // topology edge can draw the verified/inferred distinction the trace tree has drawn since T6.2.
+  string resolution = 5;
 }
 
 message FlowListFacet {

@@ -541,6 +541,9 @@ internal static class ProtoMapper
             if (svc.Layer is { } l) card.Layer = l;
             if (svc.Feature is { } f) card.Feature = f;
             card.Stack.AddRange(svc.Stack);
+            foreach (var store in svc.Stores)
+                card.Stores.Add(new Proto.ServiceStore { Name = store.Name, ResourceType = store.ResourceType });
+            card.Orchestrates.AddRange(svc.Orchestrates);
             resp.ServiceMap.Services.Add(card);
         }
         foreach (var t in serviceMap.Transports)
@@ -550,6 +553,7 @@ internal static class ProtoMapper
                 FromService = t.FromService,
                 ToService = t.ToService,
                 Transport = t.Transport,
+                Resolution = t.Resolution.ToString(),
             };
             if (t.Evidence is { } ev) link.Evidence = ev;
             resp.ServiceMap.Transports.Add(link);

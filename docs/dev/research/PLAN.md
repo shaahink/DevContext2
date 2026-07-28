@@ -57,8 +57,16 @@
       the record for this strand. **D-B … D-H remain OPEN** — the next R3 session continues there,
       starting with D-B (canvas semantic language), which D-A promoted in importance by making the
       canvas the landing surface. Verdicts in the session log below.
-- [ ] S7 — R3 continued: D-B (canvas language) → D-C/D-D (library + CliTool archetypes) → D-E…D-H ·
-      render kernel built AFTER the decisions it must serve · re-point `screenshot-gate.mts` as pages land
+- [~] S7 — R3 continued 2026-07-28. **D-B DECIDED + LANDED** (owner: B2 the language · B1's frame
+      where an orchestrator is declared · B3's lanes for the picture surfaces). Transports are now the
+      only labelled edge layer, parallel links collapse with a count, a declared AppHost draws a
+      containment frame instead of nine identical labels, stores are drawn for the first time, and
+      the kind glyph is alive after being dead-by-construction on every repo. Three facet fields +
+      one membership edge added engine-side. **A-4 landed; A-3/A-5 were already built; A-1 deferred
+      with a dependency (Inspector needs a Neighbours section first).** Verdicts in the session log.
+- [ ] S8 — R3 continued: D-B's lane-view tail (narrowed) → D-C/D-D (library + CliTool archetypes,
+      capture their evidence FIRST) → D-E…D-H · render kernel built AFTER the decisions it must
+      serve · re-point `screenshot-gate.mts` as pages land
 - [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
 
 Session log (one line each: date · what closed · surprises):
@@ -260,6 +268,40 @@ Session log (one line each: date · what closed · surprises):
   the session through Home first, the way the capture driver does.
   Verdicts: app suite **15 files / 99 tests green** (was 92 — +7), `ng lint` clean, `ng build` clean,
   disclosure toggle verified in the real app (27→35→27 nodes, `r3-verify-hopgroup.mts`).
+- 2026-07-28 · S7 (R3 continued): **D-B decided and landed.** Owner picked **B2 as the base language
+  (transports are the edge layer), B1's containment frame where an orchestrator is declared, and
+  B3's lane grammar for the surfaces where the canvas is a picture** — one grammar, one stated
+  condition, one placement. Landed: parallel links collapse per pair per transport with a count
+  (23 links → a readable handful); deployment references keep their edge but lose their label and
+  their weight (the word `apphost` appeared ~9 times and was the loudest thing on the canvas);
+  `eShop.AppHost` draws a dashed frame around the 9 projects and 6 stores it orchestrates, which
+  also took it out of the "in no relationship" tray it had been stranded in; declared infrastructure
+  is drawn for the first time; the legend became an always-visible strip listing only what the
+  canvas actually drew; services in no relationship at all are named in a tray instead of floating.
+  Engine: three facet fields (`ServiceCard.Stores`, `ServiceCard.Orchestrates`,
+  `TransportLink.Resolution`) + one membership edge (AppHost → project, tagged `orchestrates` —
+  `WithReference` runs project→project, so no edge had ever expressed the one thing an AppHost is
+  for). **The kind glyph was dead by construction on every repo since D4.2**: `ClassifyService` read
+  a `Layer` that `AddServiceNodes` never sets, so every service classified "Service" and every glyph
+  rendered empty; it now derives from the entry surfaces a service owns, and eShop reads
+  `[UI] WebApp` / `[RPC] Basket.API` / `[JOB] PaymentProcessor` correctly on first run.
+  Surprises: (1) **two scope corrections, both recorded rather than quietly shrunk** — B-3 blamed the
+  fit CLAMP for the empty pane, but `fitAndCenter` centres correctly and the real cause is layout
+  ASPECT (a layered graph flows RIGHT and fits to width in a portrait pane; the topology now lays
+  out DOWN); and the lane views cannot honestly inherit transport-coloured edges, because lanes live
+  at the all-projects level whose edges are csproj references while transports are a service-level
+  fact. (2) **Three of the four "owed" D-A sub-decisions were not what S6 recorded** — A-3's depth
+  select was already labelled and already defaults to 3, A-5's Trail has been a first-class inspector
+  section since `f81a31f`, and A-4's middle-ellipsis existed but never fired because its 48-character
+  threshold sat above the ~34 the column shows, so CSS truncation always cut first. Check the code
+  before building to a note about the code. (3) **A-1 is bigger than "kill the modal"** — the
+  Inspector renders everything the node card does except its neighbour lists (Call Stack is the path
+  from the ENTRY, not the node's Called-by/Calls), so deleting the modal first would delete the only
+  home those lists have. (4) `barrel` was the wrong way to say "store": at a node's width-to-height
+  ratio it is indistinguishable from a round-rectangle, and the product already says kind in text
+  everywhere else — `[db]` reads instantly where the shape did not. (5) The S6 vite-overlay trap
+  fired again, from `pnpm test` this time rather than `ng build`; any command that rebuilds needs the
+  dev stack restarted before the next capture.
 
 ## 3. Session map
 
@@ -364,21 +406,25 @@ Session log (one line each: date · what closed · surprises):
   [focus]` regenerates honest current-state frames into `eval-results/<date>/r3-current-state/`.
   Restart `start-dev-bg.ps1` before capturing if anything ran `ng build` since it started.
 
-### S7 — R3 continued (owner-interactive)
-- **D-B first** (canvas semantic language) — D-A promoted it: the canvas is now what Explore opens on,
-  so its grammar is the product's first impression. Open items already visible in
-  `eval-results/2026-07-28/r3-current-state/eshop-after2/10-explore-default.png`: `eShop.AppHost` /
-  `HybridApp` / `ClientApp` render as floating peers (AppHost should be an orchestrator FRAME per
-  R3 §2 D-B), no kind glyphs, no store cylinders drawn, and `apphost` repeats as an edge label ~9
-  times where a grouping frame would say it once.
+### S7 — R3 continued (owner-interactive) — ~~D-B~~ **DECIDED + LANDED 2026-07-28**
+- ~~D-B (canvas semantic language)~~ **DECIDED + LANDED.** Owner picked **B2 as the language, B1's
+  frame as a conditional enrichment, B3's lane grammar for the picture surfaces**. Brief:
+  <https://claude.ai/code/artifact/25a53935-e9a2-49da-9bd9-486381d7db25>. See DECISIONS.md for the
+  entry, its five sub-decisions, and the two scope corrections made while implementing.
+  Before/after: `eval-results/2026-07-28/r3-current-state/eshop-after2/10-explore-default.png` vs
+  `.../eshop-db3-zoom/canvas.png` (close-up; `r3-canvas-zoom.mts` is the new driver — full-page
+  frames are too small to judge a node shape or an edge weight, which is most of a canvas decision).
+- **Left of D-B for S8:** the lane views' narrowed inheritance (kind glyph + store lane on Home's
+  *What runs* and Atlas — NOT transport-coloured edges, see the correction in DECISIONS.md).
 - Then D-C/D-D (library + CliTool archetypes — both changed materially in Batch C), then D-E…D-H.
-  **Their current-state evidence was NOT gathered in S6** — the FluentValidation capture was launched
-  from a drifted working directory and died on module resolution, and re-running it against a live
-  eval battery risked the CPU-contention flake S2 already paid for. Capture FluentValidation (library)
-  and GitVersion (CliTool) at the top of S7.
-- D-A sub-decisions NOT yet implemented (decided, still owed): A-1 dock the node card / kill the
-  modal · A-3 budget-elastic + labelled depth (still depth-1 + an unexplained 7% meter) · A-4
-  middle-ellipsis entry truncation · A-5 promote the Trail to a real section.
+  **Their current-state evidence was NOT gathered in S6 or S7** — the FluentValidation capture was
+  launched from a drifted working directory and died on module resolution, and re-running it against
+  a live eval battery risked the CPU-contention flake S2 already paid for. Capture FluentValidation
+  (library) and GitVersion (CliTool) at the top of S8.
+- D-A sub-decisions: **A-4 landed in S7** · **A-3 and A-5 were already built** (the S6 note was
+  stale — see the status table in DECISIONS.md; only A-3's budget-elastic half is open) · **A-1
+  remains, and needs an Inspector Neighbours section first** — killing the modal today would delete
+  the only surface the node card's Called-by/Calls lists have.
 - Engine follow-up A-2 implies: project the crossing edge's transport kind (and event name where
   known) onto `TraceNode` so the collapsed row can name seams instead of only counting them.
 

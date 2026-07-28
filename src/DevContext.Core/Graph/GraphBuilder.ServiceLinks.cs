@@ -287,9 +287,46 @@ public sealed partial class GraphBuilder
     /// off the services that reference them, which is what <see cref="RoleTags.DataStore"/> and the
     /// Store kind were declared for. Runs AFTER the transport and bus joins so that a pair with real
     /// protocol evidence keeps its specific tag.</summary>
+    /// <summary>R3 D-B — the orchestrator's own membership edge: AppHost → each project it declares as
+    /// a resource, tagged <c>orchestrates</c>.
+    /// <para>Until now an AppHost was a Service node that nothing pointed at, so it rendered as a
+    /// floating peer of the system it launches. The <c>WithReference</c> edges it produces run
+    /// project→project (A is handed B's address), never AppHost→project, so no edge existed to say
+    /// the one thing the AppHost is for. The canvas draws this as containment rather than as lines.</para></summary>
+    private static void AddOrchestratorEdges(CodeGraphBuilder g, DiscoveryModel model,
+        SolutionScope scope, NoiseFilter noise, ServiceAddressBook addresses)
+    {
+        foreach (var resource in model.Detections.OfType<AspireResourceDetection>()
+            .OrderBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber))
+        {
+            if (resource.ProjectRef is null) continue;              // infrastructure, not a project
+            if (!scope.Contains(resource.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(resource.SourceFile)) continue;
+            if (scope.ProjectForFile(resource.SourceFile) is not { } hostProject) continue;
+            if (!addresses.ProjectResources.TryGetValue(resource.ResourceName, out var member)) continue;
+            if (string.Equals(member, hostProject, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var hostId = NodeId.ForService(hostProject);
+            var memberId = NodeId.ForService(member);
+            if (!g.HasNode(hostId) || !g.HasNode(memberId)) continue;
+            g.AddEdge(new GraphEdge(hostId, memberId, EdgeKind.DependsOn)
+            {
+                Provenance = $"{resource.SourceFile}:{resource.LineNumber}",
+                Resolution = Resolution.Join,
+                Confidence = 0.9f,
+                Tags = [OrchestratesTag],
+            });
+        }
+    }
+
+    /// <summary>Edge tag marking an orchestrator's membership edge (R3 D-B).</summary>
+    internal const string OrchestratesTag = "orchestrates";
+
     private static void AddAspireTopology(CodeGraphBuilder g, DiscoveryModel model,
         SolutionScope scope, NoiseFilter noise, ServiceAddressBook addresses)
     {
+        AddOrchestratorEdges(g, model, scope, noise, addresses);
+
         foreach (var relationship in model.Detections.OfType<AspireRelationshipDetection>()
             .OrderBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber))
         {

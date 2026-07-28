@@ -6,7 +6,7 @@ import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
 import { ThemeService } from '../../core/theme/theme.service';
 import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutNodeIn } from './graph-layout';
-import { classifyTransport, serviceLabel, type TransportClass } from './semantics';
+import { classifyTransport, isTraffic, serviceLabel, storeLabel, type TransportClass } from './semantics';
 
 /** Minimap only earns its screen space in zen mode, and only once a graph is
  * big enough that the viewport can't already see everything at a glance. */
@@ -16,6 +16,11 @@ const MINIMAP_NODE_THRESHOLD = 40;
  * (baseline refit hero). Compact heroes sit inside prose, so they clamp harder. */
 const MAX_FIT_ZOOM_COMPACT = 1.0;
 const MAX_FIT_ZOOM = 1.25;
+/** R3 D-B (B-3): the clamp above exists so a small graph doesn't balloon inside an embedded hero,
+ * and on the Stage — where the canvas IS the pane since D-A — it held eShop's topology to about a
+ * quarter of the space available. A filling canvas may use its pane; it still clamps, so a two-node
+ * repo doesn't render as a billboard. */
+const MAX_FIT_ZOOM_FILL = 2.1;
 
 const LAYER_COLORS: Record<string, string> = {
   'Api': '#4493f8',
@@ -31,6 +36,13 @@ const LAYER_COLORS: Record<string, string> = {
 };
 
 const FEATURE_PALETTE = ['#4493f8', '#3fb950', '#d29922', '#f85149', '#a371f7', '#39c5cf', '#f778ba', '#ffa657', '#79c0ff', '#7ee787', '#d2a8ff', '#ff7b72'];
+
+/** Legend order — traffic first, deployment last, because that is the order of certainty. */
+const LEGEND_TRANSPORT_ORDER: readonly TransportClass[] = ['HTTP', 'queue', 'gRPC', 'event', 'other', 'deploy'];
+
+const TRANSPORT_LEGEND_LABEL: Record<TransportClass, string> = {
+  HTTP: 'HTTP', queue: 'queue', gRPC: 'gRPC', event: 'event', other: 'other', deploy: 'deploy ref',
+};
 
 function hashString(str: string): number {
   let hash = 0;
@@ -154,34 +166,136 @@ function buildTopologyElements(projects: readonly ProjectNode[]): cytoscape.Elem
   return els;
 }
 
-/** C4-ish level 1 (D4.2/M): service boxes + transport-labeled edges — what the system IS,
- * not what the csproj graph happens to reference. Endpoints resolve service → project →
- * dashed external (never dropped: a transport into the unknown is a finding, not noise).
- * An expanded service becomes a compound holding its project + direct dependencies. */
+/** One collapsed relationship between a pair of services: every link of the same transport class,
+ * counted once. R3 D-B (B-2) — 23 individual links on eShop drew 23 lines and 23 labels, where the
+ * count is the information and the repetition is the noise. */
+interface TransportGroup {
+  readonly from: string;
+  readonly to: string;
+  readonly cls: TransportClass;
+  readonly label: string;
+  count: number;
+  /** True once any member of the group was resolved by string heuristics rather than a real join. */
+  approx: boolean;
+}
+
+/** C4-ish level 1 (D4.2/M, re-grammared by R3 D-B): service boxes wired by TRANSPORT edges — what
+ * the system IS, not what the csproj graph happens to reference. Endpoints resolve service →
+ * project → dashed external (never dropped: a transport into the unknown is a finding, not noise).
+ * An expanded service becomes a compound holding its project + direct dependencies.
+ *
+ * D-B changes four things:
+ *  - parallel links between a pair collapse per transport class and carry a count (B-2);
+ *  - a deployment reference draws recessively and carries NO label — it is a real dependency but
+ *    not traffic, and `apphost` repeated nine times was the canvas's loudest noise;
+ *  - declared infrastructure resources are drawn as stores hanging off the service that named them;
+ *  - a service the engine placed in no relationship at all is returned for the tray instead of
+ *    being left to float in whitespace (B-5).
+ */
 function buildServiceLevelElements(
   projects: readonly ProjectNode[],
   services: readonly ServiceCard[],
   transports: readonly TransportLink[],
   expanded: ReadonlySet<string>,
-): cytoscape.ElementDefinition[] {
+): { els: cytoscape.ElementDefinition[]; isolated: readonly string[] } {
   const els: cytoscape.ElementDefinition[] = [];
   const projByName = new Map(projects.map((p) => [p.name, p]));
-  const placed = new Set<string>();
 
+  // Collapse first: which boxes are worth drawing depends on which relationships survive.
+  const groups = new Map<string, TransportGroup>();
+  for (const t of transports) {
+    if (t.fromService === t.toService) continue;
+    const vis = classifyTransport(t.transport);
+    const key = `${t.fromService}|${t.toService}|${vis.cls}`;
+    // "Syntactic" is the engine's own word for a string-heuristic resolution; Join and Semantic are
+    // both real joins of real detections. One inferred member makes the collapsed group inferred.
+    const approx = t.resolution === 'Syntactic';
+    const existing = groups.get(key);
+    if (existing) {
+      existing.count++;
+      existing.approx ||= approx;
+    } else {
+      groups.set(key, { from: t.fromService, to: t.toService, cls: vis.cls, label: vis.label, count: 1, approx });
+    }
+  }
+
+  const related = new Set<string>();
+  for (const g of groups.values()) {
+    related.add(g.from);
+    related.add(g.to);
+  }
+
+  // A repo whose services carry no links at all is an inventory, not a mesh — drawing the boxes
+  // beats an empty canvas plus a tray holding everything. The tray only earns its place when it is
+  // separating the unconnected FROM something connected.
+  const trayEarnsIts = services.some((s) => related.has(s.displayName));
+  const isolated: string[] = [];
+
+  // R3 D-B, B1's conditional half: a declared orchestrator expresses MEMBERSHIP, not traffic, so it
+  // becomes the frame its members sit inside. Only a frame with members earns the treatment — an
+  // AppHost whose projects all fell out of scope would otherwise render as an empty box.
+  const byName = new Map(services.map((s) => [s.displayName, s]));
+  const frameOf = new Map<string, string>();
+  const frames = new Set<string>();
+  for (const s of services) {
+    if (s.orchestrates.length === 0) continue;
+    const members = s.orchestrates.filter((m) => byName.has(m) && m !== s.displayName && !frameOf.has(m));
+    if (members.length === 0) continue;
+    frames.add(s.displayName);
+    for (const m of members) frameOf.set(m, s.displayName);
+  }
+
+  const placed = new Set<string>();
+  const drawnStores = new Set<string>();
   for (const s of services) {
     const name = s.displayName;
     if (placed.has(name)) continue;
+    // A frame is related to the canvas by definition — it contains it. Its own lack of transports is
+    // what used to strand it in the tray, which said the opposite of the truth.
+    if (trayEarnsIts && !related.has(name) && !frames.has(name)) {
+      isolated.push(name);
+      continue;
+    }
     placed.add(name);
     const proj = projByName.get(name);
     const expandable = !!proj && proj.dependsOn.length > 0;
     const isExpanded = expandable && expanded.has(name);
+    const isFrame = frames.has(name);
     els.push({
       data: {
-        id: name, nodeId: name, label: serviceLabel(name, s.kind, s.stack, truncateLabel), fullLabel: name,
-        seam: '', truncated: false, depth: 0, layer: s.layer ?? '', feature: s.feature ?? '', svc: true, expandable,
+        id: name, nodeId: name,
+        label: isFrame
+          ? `${truncateLabel(name)} — orchestrates ${s.orchestrates.length}`
+          : serviceLabel(name, s.kind, s.stack, truncateLabel, s.stores.length),
+        fullLabel: name,
+        seam: '', truncated: false, depth: 0, layer: s.layer ?? '', feature: s.feature ?? '',
+        svc: !isFrame, expandable: !isFrame && expandable, frame: isFrame,
+        parent: frameOf.get(name),
       },
-      classes: 'svc',
+      classes: isFrame ? 'frame' : 'svc',
     });
+
+    // Declared infrastructure. Two services naming the same resource share one store node — that is
+    // what the deployment says, and duplicating it would invent a second Redis.
+    for (const store of s.stores) {
+      const storeId = `store:${store.name}`;
+      if (!drawnStores.has(storeId)) {
+        drawnStores.add(storeId);
+        els.push({
+          data: {
+            id: storeId, nodeId: store.name,
+            label: storeLabel(store.name, store.resourceType, truncateLabel), fullLabel: store.name,
+            seam: '', truncated: false, depth: 0, layer: '', feature: '',
+            // A resource is declared in the same AppHost as the service that names it, so it belongs
+            // inside the same frame — otherwise every store edge crosses the boundary for no reason.
+            parent: frameOf.get(name),
+          },
+          classes: 'store',
+        });
+      }
+      els.push({ data: { id: `${name}->${storeId}`, source: name, target: storeId, seam: '', tclass: 'deploy' as TransportClass } });
+    }
+
     if (isExpanded && proj) {
       const selfId = `${name}::self`;
       els.push({ data: { id: selfId, nodeId: name, label: truncateLabel(name), fullLabel: name, seam: '', depth: 1, layer: proj.layer ?? '', feature: '', parent: name } });
@@ -195,13 +309,9 @@ function buildServiceLevelElements(
     }
   }
 
-  const seen = new Set<string>();
   let i = 0;
-  for (const t of transports) {
-    const key = `${t.fromService}|${t.toService}|${t.transport}`;
-    if (seen.has(key) || t.fromService === t.toService) continue;
-    seen.add(key);
-    for (const ep of [t.fromService, t.toService]) {
+  for (const g of groups.values()) {
+    for (const ep of [g.from, g.to]) {
       if (placed.has(ep)) continue;
       placed.add(ep);
       const proj = projByName.get(ep);
@@ -210,10 +320,18 @@ function buildServiceLevelElements(
         classes: proj ? '' : 'external',
       });
     }
-    const vis = classifyTransport(t.transport);
-    els.push({ data: { id: `t${i++}:${key}`, source: t.fromService, target: t.toService, seam: '', tlabel: vis.label, tclass: vis.cls } });
+    els.push({
+      data: {
+        id: `t${i++}:${g.from}|${g.to}|${g.cls}`, source: g.from, target: g.to, seam: '',
+        // Only traffic speaks. A deployment reference is drawn, because it is the only evidence some
+        // pairs have, but it is not allowed to say a word.
+        tlabel: isTraffic(g.cls) ? (g.count > 1 ? `${g.label} ×${g.count}` : g.label) : undefined,
+        tclass: g.cls,
+        approx: g.approx,
+      },
+    });
   }
-  return els;
+  return { els, isolated };
 }
 
 /** Node altitude: the selected node plus its one-hop neighborhood from GetNeighbors.
@@ -299,25 +417,31 @@ function borderWidthForDegree(degree: number): number {
         </div>
       }
 
-      <!-- Legend popover -->
-      @if (!compact()) {
-        <button
-          class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-2xs"
-          (click)="legendOpen.set(!legendOpen())"
-          title="Legend"
-        >Legend</button>
+      <!-- R3 D-B (B-1): the legend is a strip, not a popover behind a button — the colour language
+           is the first thing a reader needs on the surface Explore opens on. It lists only what
+           this canvas actually drew, so it stays short enough to live on screen. -->
+      @if (!compact() && legendItems().length > 0) {
+        <div class="pointer-events-none absolute bottom-2 left-3 z-10 flex max-w-[52%] flex-wrap items-center gap-x-3 gap-y-1 rounded border border-line bg-surface/85 px-2 py-1 text-2xs backdrop-blur">
+          @for (item of legendItems(); track item.label) {
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-sm" [style.background-color]="item.color"></span>
+              <span class="text-ink-muted">{{ item.label }}</span>
+            </div>
+          }
+        </div>
       }
-      @if (legendOpen()) {
-        <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-2xs backdrop-blur shadow-overlay">
-          <div class="mb-1 font-semibold uppercase text-ink-subtle">Legend</div>
-          <div class="grid grid-cols-3 gap-x-4 gap-y-1">
-            @for (item of legendItems(); track item.label) {
-              <div class="flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-sm" [style.background-color]="item.color"></span>
-                <span class="text-ink-muted">{{ item.label }}</span>
-              </div>
-            }
-          </div>
+
+      <!-- R3 D-B (B-5): services the engine placed in no relationship at all. They used to float in
+           the whitespace looking like peers of the mesh; naming them and saying how many is the
+           honest version of the same fact. -->
+      @if (!compact() && isolatedServices().length > 0) {
+        <div
+          class="pointer-events-none absolute right-3 z-10 max-w-[44%] rounded border border-dashed border-line bg-surface/85 px-2.5 py-1.5 text-2xs backdrop-blur"
+          [class.bottom-2]="!minimapVisible()"
+          [class.bottom-32]="minimapVisible()"
+        >
+          <span class="text-ink-subtle">in no relationship · {{ isolatedServices().length }}</span>
+          <span class="ml-2 text-ink-muted">{{ isolatedServices().join(' · ') }}</span>
         </div>
       }
 
@@ -330,7 +454,7 @@ function borderWidthForDegree(degree: number): number {
       }
 
       <!-- Minimap: zen mode only, and only once the graph is big enough to need one -->
-      @if (!compact() && zenMode() && nodeCount() > minimapThreshold) {
+      @if (minimapVisible()) {
         <canvas
           #minimap
           width="160" height="110"
@@ -369,9 +493,11 @@ export class GraphCanvas {
   readonly nodeSelected = output<string>();
   readonly nodeActivated = output<string>();
 
-  protected readonly legendOpen = signal(false);
   protected readonly nodeCount = signal(0);
-  protected readonly minimapThreshold = MINIMAP_NODE_THRESHOLD;
+  /** R3 D-B (B-5): services with no drawn relationship, named in the tray instead of floating. */
+  protected readonly isolatedServices = signal<readonly string[]>([]);
+  protected readonly minimapVisible = computed(
+    () => !this.compact() && this.zenMode() && this.nodeCount() > MINIMAP_NODE_THRESHOLD);
 
   /** D4.2 disclosure state. Level override is per-canvas; null = "services when available". */
   private readonly levelOverride = signal<'services' | 'projects' | null>(null);
@@ -400,6 +526,8 @@ export class GraphCanvas {
   private renderSeq = 0;
   private resizeObserver: ResizeObserver | null = null;
   private refitScheduled = false;
+  /** The elements of the last render — the legend reads what was actually drawn from here (B-1). */
+  private lastEls: cytoscape.ElementDefinition[] = [];
   /** Topology identity of the last render — a new repo resets disclosure state. */
   private lastProjectsRef: readonly ProjectNode[] | null = null;
 
@@ -409,7 +537,7 @@ export class GraphCanvas {
   };
 
   private transportColors: Record<TransportClass, string> = {
-    HTTP: '#4493f8', queue: '#d29922', gRPC: '#a371f7', event: '#ffa657', other: '#8b949e',
+    HTTP: '#4493f8', queue: '#d29922', gRPC: '#a371f7', event: '#ffa657', deploy: '#6b7480', other: '#8b949e',
   };
 
   readonly legendItems = signal<{ label: string; color: string }[]>([]);
@@ -426,7 +554,7 @@ export class GraphCanvas {
         Entry: p.accent, Send: '#a371f7', Handle: p.success, Raise: p.warn,
         Consume: p.warn, Data: '#39c5cf', Resolve: p.inkSubtle, Pipeline: '#a371f7', Call: p.inkMuted,
       };
-      this.transportColors = { HTTP: '#4493f8', queue: p.warn, gRPC: '#a371f7', event: '#ffa657', other: p.inkMuted };
+      this.transportColors = { HTTP: '#4493f8', queue: p.warn, gRPC: '#a371f7', event: '#ffa657', deploy: p.inkSubtle, other: p.inkMuted };
       this.updateLegend();
     }, { allowSignalWrites: true });
 
@@ -469,35 +597,67 @@ export class GraphCanvas {
     this.levelOverride.set(level);
   }
 
+  /** R3 D-B (B-1): the legend names what THIS canvas drew and nothing else. A fixed list was
+   * affordable behind a button; on an always-visible strip, listing five transports for a repo that
+   * speaks one is both noise and a quiet lie about what is on screen. */
   private updateLegend(): void {
+    const p = this.theme.palette();
+    const els = this.lastEls;
     const d = this.data();
+
     if (d?.mode === 'topology' && this.effectiveLevel() === 'services') {
-      const p = this.theme.palette();
-      this.legendItems.set([
-        { label: 'HTTP', color: this.transportColors.HTTP },
-        { label: 'queue', color: this.transportColors.queue },
-        { label: 'gRPC', color: this.transportColors.gRPC },
-        { label: 'event', color: this.transportColors.event },
-        { label: 'external', color: p.inkSubtle },
-      ]);
+      const present = new Set<TransportClass>();
+      let external = false;
+      let inferred = false;
+      let store = false;
+      for (const el of els) {
+        const data = el.data as { tclass?: TransportClass; source?: string; approx?: boolean };
+        const classes = (el.classes as string | undefined) ?? '';
+        if (data.source !== undefined) {
+          if (data.tclass) present.add(data.tclass);
+          if (data.approx) inferred = true;
+        } else {
+          if (classes.includes('external')) external = true;
+          if (classes.includes('store')) store = true;
+        }
+      }
+      const items: { label: string; color: string }[] = [];
+      for (const cls of LEGEND_TRANSPORT_ORDER) {
+        if (present.has(cls)) items.push({ label: TRANSPORT_LEGEND_LABEL[cls], color: this.transportColors[cls] });
+      }
+      if (store) items.push({ label: 'store', color: p.inkMuted });
+      if (external) items.push({ label: 'external', color: p.inkSubtle });
+      if (inferred) items.push({ label: 'inferred', color: p.inkMuted });
+      this.legendItems.set(items);
       return;
     }
+
     const lid = this.lensId();
-    if (lid === 'layer') {
-      const items: { label: string; color: string }[] = [];
-      for (const [key, color] of Object.entries(LAYER_COLORS)) {
-        items.push({ label: key, color });
-      }
-      this.legendItems.set(items);
-    } else if (lid === 'feature') {
+    if (lid === 'feature') {
       this.legendItems.set([]);
-    } else {
-      const items: { label: string; color: string }[] = [];
-      for (const [key, color] of Object.entries(this.seamColors)) {
-        if (SEAM_LABELS[key]) items.push({ label: SEAM_LABELS[key], color });
-      }
-      this.legendItems.set(items);
+      return;
     }
+    if (lid === 'layer') {
+      const present = new Set<string>();
+      for (const el of els) {
+        const layer = (el.data as { layer?: string; source?: string }).layer;
+        if ((el.data as { source?: string }).source === undefined && layer) present.add(layer);
+      }
+      this.legendItems.set(
+        Object.entries(LAYER_COLORS)
+          .filter(([key]) => present.has(key))
+          .map(([label, color]) => ({ label, color })));
+      return;
+    }
+    const seams = new Set<string>();
+    for (const el of els) {
+      const seam = (el.data as { seam?: string }).seam;
+      if (seam) seams.add(seam);
+    }
+    this.legendItems.set(
+      Object.entries(this.seamColors)
+        .filter(([key]) => seams.has(key) && SEAM_LABELS[key])
+        .map(([key, color]) => ({ label: SEAM_LABELS[key], color })));
   }
 
   private rebuild(): void {
@@ -521,12 +681,20 @@ export class GraphCanvas {
   private buildForData(data: GraphCanvasData): cytoscape.ElementDefinition[] {
     switch (data.mode) {
       case 'trace':
+        this.isolatedServices.set([]);
         return buildTraceElements(data.root, data.maxDepth);
-      case 'topology':
-        return this.effectiveLevel() === 'services' && (data.services?.length ?? 0) > 0
-          ? buildServiceLevelElements(data.projects, data.services ?? [], data.transports ?? [], this.expandedServices())
-          : buildTopologyElements(data.projects);
+      case 'topology': {
+        if (this.effectiveLevel() === 'services' && (data.services?.length ?? 0) > 0) {
+          const built = buildServiceLevelElements(
+            data.projects, data.services ?? [], data.transports ?? [], this.expandedServices());
+          this.isolatedServices.set(built.isolated);
+          return built.els;
+        }
+        this.isolatedServices.set([]);
+        return buildTopologyElements(data.projects);
+      }
       case 'neighbors':
+        this.isolatedServices.set([]);
         return buildNeighborsElements(data.centerId, data.centerTitle, data.edges);
     }
   }
@@ -535,6 +703,8 @@ export class GraphCanvas {
     const seq = ++this.renderSeq;
     const els = this.buildForData(data);
     annotateDegree(els);
+    this.lastEls = els;
+    this.updateLegend();
 
     // Deterministic geometry first (pure, DOM-free), then hand cytoscape a preset.
     // Compound membership (data.parent) becomes one level of ELK hierarchy.
@@ -564,7 +734,7 @@ export class GraphCanvas {
           const d = el.data as { id: string; source: string; target: string };
           return { id: d.id, source: d.source, target: d.target };
         }),
-      { compact: this.compact() },
+      { compact: this.compact(), direction: this.flowDirection(host) },
     );
     if (seq !== this.renderSeq) return; // a newer render superseded this one
 
@@ -674,6 +844,29 @@ export class GraphCanvas {
           },
         },
         {
+          // R3 D-B: declared infrastructure. A barrel reads as a store at a glance and, more to the
+          // point, reads as NOT a service — the one distinction the canvas most needed to draw.
+          selector: 'node.store',
+          style: {
+            shape: 'barrel',
+            'background-color': p.surface,
+            'border-color': p.inkSubtle,
+            'border-width': 1,
+            color: p.inkMuted,
+          },
+        },
+        {
+          // R3 D-B: the orchestrator frame. Dashed because a deployment boundary is not a call
+          // boundary, and quiet because the system inside it is the subject, not the host.
+          selector: 'node.frame',
+          style: {
+            'border-style': 'dashed',
+            'border-color': p.inkSubtle,
+            'background-opacity': 0.18,
+            color: p.inkSubtle,
+          },
+        },
+        {
           selector: 'node[?truncated]',
           style: { 'border-style': 'dashed', 'border-opacity': 0.5 },
         },
@@ -726,6 +919,13 @@ export class GraphCanvas {
           // T6.2 — approximate (non-Roslyn-verified) hops are dashed; verified stay solid.
           selector: 'edge[?approx]',
           style: { 'line-style': 'dashed', 'line-dash-pattern': [5, 3] },
+        },
+        {
+          // R3 D-B: a deployment reference is a real dependency but not traffic, so it is drawn and
+          // then made quiet — no label, thin, recessive. It stays on the canvas because for some
+          // pairs it is the only evidence there is; it stops shouting because it is the weakest.
+          selector: 'edge[tclass = "deploy"]',
+          style: { width: 0.9, opacity: 0.4, 'line-style': 'dotted', 'arrow-scale': 0.5 },
         },
         {
           selector: 'edge.highlighted',
@@ -781,6 +981,19 @@ export class GraphCanvas {
     this.drawMinimap();
   }
 
+  /**
+   * R3 D-B (B-3): lay the topology along the pane's LONG axis. A layered graph's aspect follows its
+   * flow direction, so a left-to-right topology in the Stage's portrait pane fits to width and
+   * leaves the height empty no matter how high the zoom clamp goes. Only the topology turns — a
+   * trace tree reads left-to-right because that is the direction the call flows, and a shallow one
+   * would look broken stacked downwards.
+   */
+  private flowDirection(host: HTMLElement): 'RIGHT' | 'DOWN' {
+    if (this.data()?.mode !== 'topology') return 'RIGHT';
+    const { clientWidth: w, clientHeight: h } = host;
+    return h > w * 1.15 ? 'DOWN' : 'RIGHT';
+  }
+
   /** Fit with padding, then clamp: small graphs center at natural size instead of
    * ballooning; large graphs shrink until everything (boxes = full label footprint,
    * known to the layout) is inside the viewport. Preset layout is synchronous, so no
@@ -789,7 +1002,7 @@ export class GraphCanvas {
     const cy = this.cy;
     if (!cy || cy.nodes().length === 0) return;
     cy.fit(undefined, this.compact() ? 16 : 32);
-    const maxZoom = this.compact() ? MAX_FIT_ZOOM_COMPACT : MAX_FIT_ZOOM;
+    const maxZoom = this.compact() ? MAX_FIT_ZOOM_COMPACT : this.fill() ? MAX_FIT_ZOOM_FILL : MAX_FIT_ZOOM;
     if (cy.zoom() > maxZoom) {
       cy.zoom(maxZoom);
       cy.center();

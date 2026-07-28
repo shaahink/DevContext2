@@ -40,6 +40,13 @@ export interface NodeGeometry {
 export interface LayoutOptions {
   /** Hero embedding: tighter spacing so small canvases stay dense. */
   readonly compact?: boolean;
+  /**
+   * Flow axis. R3 D-B (B-3): a layered graph is as wide as its longest chain and as tall as its
+   * widest layer, so a RIGHT layout in a portrait pane fits to WIDTH and leaves the height empty —
+   * which is what actually made eShop's topology use a quarter of the pane, not the zoom clamp.
+   * The Stage's pane is portrait, so the topology lays out DOWN there and fills it.
+   */
+  readonly direction?: 'RIGHT' | 'DOWN';
 }
 
 export const NODE_HEIGHT = 26;
@@ -115,7 +122,7 @@ export async function layoutGraph(
     id: 'root',
     layoutOptions: {
       'elk.algorithm': 'layered',
-      'elk.direction': 'RIGHT',
+      'elk.direction': opts.direction ?? 'RIGHT',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
       'elk.layered.spacing.nodeNodeBetweenLayers': opts.compact ? '40' : '60',
       'elk.spacing.nodeNode': opts.compact ? '12' : '20',

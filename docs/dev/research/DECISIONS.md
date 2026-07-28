@@ -103,14 +103,112 @@ mean inventing it, which PRODUCT-DIRECTION §2.2 forbids. The row therefore ship
 
 Reversible: this is a render policy, not a data change. Judge it running, not on paper.
 
+### D-A sub-decision status, re-checked against the code in S7
+
+Three of the four "decided, still owed" items were not what the S6 note said they were. Checked
+before implementing, because building to a stale premise is how a fix lands on a bug that moved:
+
+| # | What S6 recorded as owed | What the code actually said (2026-07-28) |
+|---|---|---|
+| A-3 | "still depth-1 + an unexplained 7% meter" | **Premise stale.** `stage.ts` defaults `graphDepth` to **3** and the select already reads "depth 1…depth 4". The label half of the decision is done; **budget-elastic is still open** and is the only part left. |
+| A-4 | middle-ellipsis truncation | **Half-built, never fired.** `middleEllipsis` has existed since T6.8 but its threshold was 48 characters while the deck column shows about 34 — so CSS `truncate` always cut first, and the audit's six identical `/api/catalog/i…` rows were the result. **Fixed in S7** by putting the budget under the column width. |
+| A-5 | "promote the Trail to a first-class right-panel section" | **Already satisfied.** The inspector has carried a `trail` section since `f81a31f`; the S6 evidence frame shows it expanded, with its own hint copy. Nothing to do. |
+| A-1 | "dock the node card; kill the modal" | **Real, and bigger than it reads.** Still open — see below. |
+
+**A-1 is deferred to S8 with a dependency the decision did not see.** The Inspector's Details section
+already renders everything the modal shows *except its neighbour lists*: the docked panel has
+Details, Code, Insights, Call Stack and Trail, and Call Stack is the path from the ENTRY to the
+selected node, not the node's Called-by/Calls. Deleting `NodeCard` today would therefore delete the
+only surface those lists have. Killing the modal is one line in `node-link.ts`
+(`nodeStore.show` → `trace.selectNode`); doing it honestly means giving the Inspector a Neighbours
+section first, fed by the `trace.neighbors()` the store already loads on selection.
+
 ---
 
-## D-B … D-H — NOT YET DECIDED
+## D-B. Canvas semantic language
 
-Open. `D-B` (canvas semantic language) is next and now carries more weight than R3 anticipated,
-because D-A makes the canvas the landing surface. Current-state evidence for it is captured at
-`eval-results/2026-07-28/r3-current-state/eshop/20-atlas.png` — known open items visible there:
-`eShop.AppHost`/`HybridApp`/`ClientApp` still render as floating peers (AppHost should be an
-orchestrator frame per R3 §2 D-B), no kind glyphs, no store cylinders drawn, repeated `apphost` edge
-labels adding noise, and Top-flows still ranked by internal DomainEventHandlers over user-facing
-endpoints (audit A2, unchanged).
+**DECIDED 2026-07-28 (owner): B2 is the language, B1's frame is a conditional enrichment, and B3's
+lane grammar is where the canvas is a picture rather than a workspace.**
+
+> Decision brief the owner reviewed (three positions as wireframes on post-Batch-E eShop data):
+> <https://claude.ai/code/artifact/25a53935-e9a2-49da-9bd9-486381d7db25>
+> Current-state frame: `eval-results/2026-07-28/r3-current-state/eshop-after2/10-explore-default.png`
+> — 12 service boxes · 23 transport links · ~9 repeated `apphost` edge labels · 3 floating peers ·
+> 0 kind glyphs · 0 stores drawn.
+
+- **Transports are the edge layer.** Only a real transport (http · grpc · queue · event) draws a
+  line. A deployment reference is not a call and stops competing with calls for the edge layer.
+- **A declared orchestrator draws a frame, not edges.** Where an AppHost exists, containment says
+  once what nine identical `apphost` labels were saying. Where none is declared, the frame simply
+  does not appear — the grammar below it is unchanged, which is why B2 and not B1 is the base.
+- **Lane arrangement is for the picture surfaces.** Home's *What runs* and Atlas, where the canvas is
+  read rather than operated.
+
+**Rationale (owner-facing, one line):** B2's grammar is the only one of the three that survives
+contact with the rest of the 47-pole matrix — every repo has calls, almost none has an AppHost — and
+it extends the verified/inferred honesty idiom the trace tree already speaks instead of adding a
+second one; B1 is strictly better than nine identical edges wherever an orchestrator is actually
+declared; B3 reads best where the canvas is a picture and worst where a service owns two roles.
+
+### D-B sub-decisions
+
+| # | Question | Decision | Rationale |
+|---|---|---|---|
+| B-1 | Legend | **Always-visible strip, listing only the classes present on this canvas** | Collapsed into a corner button today, so the colour language is undiscoverable on the surface Explore now opens on. |
+| B-2 | Parallel edges | **Collapse per pair per transport, count on the label (`http ×3`)** | 23 links currently draw 23 lines and 23 labels; the count is the information, the repetition is not. |
+| B-3 | Viewport fit | **Let the landing pane fit at a higher zoom clamp than an embedded hero** | eShop's topology uses about a quarter of the pane it now owns. |
+| B-4 | Node tap | **Keep expand-in-place; the same tap fills D-A's docked panel** | Two behaviours that don't conflict — one reveals structure, the other describes the node. |
+| B-5 | Nodes in no flow | **Named tray, not floating boxes** | `ClientApp`/`HybridApp`/`eShop.AppHost` float today. A tray that says how many and why is honest; whitespace is not. |
+
+### B3's placement — owner-delegated
+
+The owner picked B2+B1 for the working canvas and kept B3 on the grounds that it is *"very good
+visual … we can use them some places in the app"*, without naming the places. Decided on that:
+
+**B3 is not a new mode or a new toggle.** Home's *What runs* and Atlas already arrange in lanes (DDD
+layers, live since D4.2) — what they lack is B3's vocabulary. They inherit it rather than gaining a
+sixth artifact (PRODUCT-DIRECTION §3) or a fourth control axis on a page D-A just simplified.
+
+> **Scope correction, made while implementing (2026-07-28) — the second of this decision.** The
+> paragraph above originally promised the lane views would also get "transport-coloured edges in
+> place of grey csproj dependency lines". **They cannot, honestly.** Lanes live at the ALL-PROJECTS
+> level, whose edges are csproj references; transports are a SERVICE-level fact and there is no
+> service-to-project mapping that makes a project reference into a queue. Colouring them would be
+> inventing traffic. What the lane views can honestly inherit is the kind glyph (for the projects
+> that are services) and a store lane. Deferred to S8 with that narrower scope, because the frame
+> and the edge layer were what the landing surface needed first.
+
+> **Honesty guard.** A lane claims a service has one role, and some genuinely have two (`WebApp` is a
+> client that is also called). The lane is assigned by the service's dominant owned entry surface and
+> the box keeps its kind glyph, so the glyph can contradict the lane rather than the lane being the
+> only claim on screen.
+
+### What this costs, and what is engine work
+
+Kind glyphs are **dead by construction** and must be revived before any of this reads: service nodes
+are created with no layer (`GraphBuilder.Nodes.cs:45`) and `ClassifyService` only returns "Web API"
+when the layer is `Api` (`GraphProjections.cs:126`), so every service on every repo classifies as
+"Service" and every glyph renders empty. The replacement derives the kind from the entry surfaces a
+service actually owns — evidence the graph already carries and already attributes per project.
+
+Two more facet gaps: `ServiceCard` has no field for the `Store` nodes Batch B emits, so the canvas
+cannot draw stores; and `TransportLink` carries no resolution tier, so topology edges cannot make the
+verified/inferred distinction the trace tree makes. Both are one field each.
+
+**Correction made while implementing (2026-07-28).** The brief said the drawing "occupies the lower
+third of a pane whose top half is empty". It does not — `fitAndCenter` centres it correctly. What is
+actually wrong is the fit CLAMP: `MAX_FIT_ZOOM` is 1.25, a ceiling that exists so a three-node graph
+does not balloon inside an embedded hero, and on a full pane it holds eShop's 12 boxes to about a
+quarter of the space available. B-3 is therefore a clamp that knows which surface it is on, not a
+centring fix. Recorded rather than quietly restated, per the A-2 precedent.
+
+Reversible: everything except the three facet fields is render policy. Judge it running, not on paper.
+
+---
+
+## D-C … D-H — NOT YET DECIDED
+
+Open. Current-state evidence for `D-C` (library) and `D-D` (CliTool) was **not** gathered in S6 —
+capture FluentValidation and GitVersion before either is briefed. Known open item carried for `D-E`:
+Top-flows is still ranked by internal `DomainEventHandler`s over user-facing endpoints (audit A2,
+unchanged) — it belongs to Home, not to the canvas language.

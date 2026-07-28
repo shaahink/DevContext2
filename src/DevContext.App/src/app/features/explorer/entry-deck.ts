@@ -3,6 +3,11 @@ import { Component, computed, ElementRef, input, model, output, viewChild } from
 import { type EntryGroupVm, type EntryVm, KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
 
+/** Characters the entry deck's label column shows at its default width (12px monospace in a ~230px
+ * column). R3 D-A (A-4): middle-ellipsis has to fire BELOW this or CSS truncation cuts the tail
+ * first, which is the very failure the decision was made to fix. */
+const ENTRY_LABEL_BUDGET = 34;
+
 interface KindStat {
   readonly kind: string;
   readonly label: string;
@@ -247,10 +252,16 @@ export class EntryDeck {
 
   /** T6.8 (audit B5): CSS end-truncation collapsed 15 sibling routes into identical
    * "GET /api/c…" rows — the DISTINGUISHING part of a route is its tail. Middle-ellipsis
-   * keeps both ends; the full route stays on [title]. */
+   * keeps both ends; the full route stays on [title].
+   *
+   * R3 D-A (A-4): the threshold was 48 characters, but the deck column shows roughly 34 — so CSS
+   * `truncate` reached every real route first and this never fired, which is why the audit still
+   * saw six rows reading `/api/catalog/i…`. The budget has to be under what the column can show
+   * for the middle-ellipsis to be the one doing the cutting. CSS truncation stays as the backstop
+   * for a narrowed pane. */
   protected middleEllipsis(text: string): string {
-    if (text.length <= 48) return text;
-    return text.slice(0, 20) + '…' + text.slice(-26);
+    if (text.length <= ENTRY_LABEL_BUDGET) return text;
+    return text.slice(0, 14) + '…' + text.slice(-(ENTRY_LABEL_BUDGET - 15));
   }
 
   /** M7.3: Per-kind color from the M7.0 registry — CSS variable reference. */

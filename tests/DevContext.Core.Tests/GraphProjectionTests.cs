@@ -81,6 +81,102 @@ public sealed class GraphProjectionTests
         Assert.Equal("BasketCheckoutEvent", link.Evidence);
     }
 
+    // ── R3 D-B: the service kind is evidence, not a layer name ──
+
+    [Fact]
+    public void ServiceMap_kind_comes_from_the_entry_surfaces_a_service_owns()
+    {
+        // The old classifier read the service node's Layer, which AddServiceNodes never sets — so
+        // every service on every repo came back "Service" and every canvas kind glyph was empty.
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForService("Catalog.API"), "Catalog.API", NodeKind.Service) { Project = "Catalog.API", Tags = [RoleTags.Runnable] });
+        g.AddNode(new GraphNode(NodeId.ForService("Basket.API"), "Basket.API", NodeKind.Service) { Project = "Basket.API", Tags = [RoleTags.Runnable] });
+        g.AddNode(new GraphNode(NodeId.ForService("OrderProcessor"), "OrderProcessor", NodeKind.Service) { Project = "OrderProcessor", Tags = [RoleTags.Runnable] });
+        g.AddNode(new GraphNode(NodeId.ForService("WebApp"), "WebApp", NodeKind.Service) { Project = "WebApp", Tags = [RoleTags.Runnable] });
+        g.SetEntries(
+        [
+            Entry(EntryPointKind.HttpEndpoint, "GET /api/catalog/items", "Catalog.API"),
+            Entry(EntryPointKind.HttpEndpoint, "PUT /api/catalog/items", "Catalog.API"),
+            Entry(EntryPointKind.GrpcService, "Basket.GetBasket", "Basket.API"),
+            Entry(EntryPointKind.MessageConsumer, "OrderStartedConsumer", "OrderProcessor"),
+            Entry(EntryPointKind.HostedService, "GracePeriodWorker", "OrderProcessor"),
+            Entry(EntryPointKind.UiEntry, "Cart.razor", "WebApp"),
+        ]);
+        var graph = g.Build();
+
+        var byName = new ServiceMapProjection().Project(graph, ProjectionOptions.Default)
+            .Services.ToDictionary(s => s.DisplayName, s => s.Kind);
+
+        Assert.Equal("Web API", byName["Catalog.API"]);
+        Assert.Equal("gRPC", byName["Basket.API"]);
+        Assert.Equal("Worker", byName["OrderProcessor"]);
+        Assert.Equal("UI", byName["WebApp"]);
+    }
+
+    [Fact]
+    public void ServiceMap_kind_ignores_domain_event_handlers_and_falls_back_honestly()
+    {
+        // A domain reaction is something a service does internally, not something it offers: three of
+        // them must not outvote the one endpoint the service exists to serve. And a runnable that
+        // owns no nameable surface stays "Service" rather than being guessed into a kind.
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForService("Ordering.API"), "Ordering.API", NodeKind.Service) { Project = "Ordering.API", Tags = [RoleTags.Runnable] });
+        g.AddNode(new GraphNode(NodeId.ForService("Silent"), "Silent", NodeKind.Service) { Project = "Silent", Tags = [RoleTags.Runnable] });
+        g.SetEntries(
+        [
+            Entry(EntryPointKind.DomainEventHandler, "OrderStartedHandler", "Ordering.API"),
+            Entry(EntryPointKind.DomainEventHandler, "OrderPaidHandler", "Ordering.API"),
+            Entry(EntryPointKind.DomainEventHandler, "OrderShippedHandler", "Ordering.API"),
+            Entry(EntryPointKind.HttpEndpoint, "POST /api/orders/", "Ordering.API"),
+        ]);
+        var graph = g.Build();
+
+        var byName = new ServiceMapProjection().Project(graph, ProjectionOptions.Default)
+            .Services.ToDictionary(s => s.DisplayName, s => s.Kind);
+
+        Assert.Equal("Web API", byName["Ordering.API"]);
+        Assert.Equal("Service", byName["Silent"]);
+    }
+
+    [Fact]
+    public void ServiceMap_carries_the_stores_a_service_depends_on()
+    {
+        // Batch B has emitted these Store nodes since the Aspire topology landed; until D-B nothing
+        // carried them out of the graph, so no renderer could draw a repo's stores.
+        var g = new CodeGraphBuilder();
+        var svc = NodeId.ForService("Basket.API");
+        var redis = NodeId.ForStore("basketdb");
+        g.AddNode(new GraphNode(svc, "Basket.API", NodeKind.Service) { Project = "Basket.API", Tags = [RoleTags.Runnable] });
+        g.AddNode(new GraphNode(redis, "basketdb", NodeKind.Store) { Tags = [RoleTags.DataStore] });
+        g.AddEdge(new GraphEdge(svc, redis, EdgeKind.DependsOn) { Tags = ["redis"] });
+        var graph = g.Build();
+
+        var card = Assert.Single(new ServiceMapProjection().Project(graph, ProjectionOptions.Default).Services);
+        var store = Assert.Single(card.Stores);
+        Assert.Equal("basketdb", store.Name);
+        Assert.Equal("redis", store.ResourceType);
+    }
+
+    [Fact]
+    public void ServiceMap_transport_carries_the_resolution_tier()
+    {
+        // Without this the topology canvas cannot make the verified/inferred distinction the trace
+        // tree has drawn since T6.2 — a deployment-derived guess looked as certain as a verified call.
+        var g = new CodeGraphBuilder();
+        var from = NodeId.ForService("WebApp");
+        var to = NodeId.ForService("Catalog.API");
+        g.AddNode(new GraphNode(from, "WebApp", NodeKind.Service) { Project = "WebApp" });
+        g.AddNode(new GraphNode(to, "Catalog.API", NodeKind.Service) { Project = "Catalog.API" });
+        g.AddEdge(new GraphEdge(from, to, EdgeKind.ServiceLink) { Tags = ["http-direct"], Resolution = Resolution.Semantic });
+        var graph = g.Build();
+
+        var link = Assert.Single(new ServiceMapProjection().Project(graph, ProjectionOptions.Default).Transports);
+        Assert.Equal(Resolution.Semantic, link.Resolution);
+    }
+
+    private static EntryPoint Entry(EntryPointKind kind, string title, string project)
+        => new(kind, title, NodeId.ForEntry(title)) { Project = project };
+
     [Fact]
     public void FlowList_ranks_by_score_and_caps_at_max_flows()
     {
