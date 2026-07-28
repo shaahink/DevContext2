@@ -142,6 +142,41 @@ import { buildWaterfall, formatElapsedShort } from './waterfall.vm';
               </div>
             }
 
+            <!-- S9 contract sweep — J1/J3's swallowed-failure counters have ridden this exact
+                 stats payload since the silent-failure amnesty, and the CLI prints a table of them
+                 (AnalyzeCommand's "Failures are surfaced after the display closes, never swallowed").
+                 The app rendered every other section of the same object and dropped this one, so a
+                 desktop reader was the only reader who could not tell a clean run from a lossy one.
+                 Absent when the run was clean: a zero row on every repo is noise. -->
+            @if (extractionFailures().length) {
+              <div>
+                <h3 class="console-section-title">Swallowed failures</h3>
+                <p class="mb-1.5 text-2xs text-ink-subtle">
+                  Extraction continued past these — what they touched is missing from the graph, not wrong in it.
+                </p>
+                <div class="overflow-x-auto rounded border border-warn/40">
+                  <table class="w-full text-left text-2xs">
+                    <thead>
+                      <tr class="border-b border-line bg-surface-2 text-ink-muted">
+                        <th class="px-2 py-1 font-medium">Source</th>
+                        <th class="px-2 py-1 font-medium">Category</th>
+                        <th class="px-2 py-1 w-12 text-right tabular-nums">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line">
+                      @for (f of extractionFailures(); track f.source + f.category) {
+                        <tr class="hover:bg-surface-2" [title]="f.sample">
+                          <td class="px-2 py-1 text-ink">{{ f.source }}</td>
+                          <td class="px-2 py-1 text-ink-muted">{{ f.category }}</td>
+                          <td class="px-2 py-1 text-right tabular-nums text-warn">{{ f.count }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+
             @if (s.extractors.length) {
               <div>
                 <h3 class="console-section-title">Extractors</h3>
@@ -225,6 +260,12 @@ export class RunConsole implements OnDestroy {
     const f = this.session.stats()?.funnel;
     if (!f || f.budget === 0) return 0;
     return Math.round(f.renderedTokens / f.budget * 100);
+  });
+
+  /** S9 — loudest first, so a 400-count parse failure is not below a 1-count one. */
+  protected readonly extractionFailures = computed(() => {
+    const f = this.session.stats()?.extractionFailures ?? [];
+    return [...f].sort((a, b) => b.count - a.count);
   });
 
   protected readonly topExtractors = computed(() => {

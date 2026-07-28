@@ -319,6 +319,12 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             nodeCount = graph.NodeCount,
             edgeCount = graph.EdgeCount,
             entryCount = entries.Length,
+            // S9 contract sweep — L3.4's sparse verdict was computed on every analysis and reported
+            // NOWHERE: not here, not in the app, not in the CLI's own chips. It is the caveat that
+            // qualifies every edge number beside it, because on a sparse graph call-edge binding was
+            // BROADENED over the top central types rather than resolved the ordinary way.
+            sparseGraph = graph.IsSparseGraph,
+            hubScopeNodes = graph.HubScopeNodeCount,
             entriesWithTarget,
             entriesWithDeepSpine,
             deepSpineRatio,

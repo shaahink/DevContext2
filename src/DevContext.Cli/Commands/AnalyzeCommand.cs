@@ -320,7 +320,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         _ => "miss · not saved",
                     };
             ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default, cacheLine,
-                snapshot?.Model.ExtractionFailures);
+                snapshot?.Model.ExtractionFailures,
+                snapshot?.Graph is { IsSparseGraph: true } sg ? sg.HubScopeNodeCount : null);
         }
 
         if (!settings.Quiet)
@@ -414,7 +415,12 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
     }
 
     private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default, string? snapshotCache = null,
-        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? failures = null)
+        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? failures = null,
+        // S9 contract sweep — hub-scope node count when L3.4 judged the graph sparse and broadened
+        // call-edge binding, null otherwise. Passed in rather than added to GraphSummary because
+        // that record is persisted with the snapshot, and this is a caveat about a run's numbers,
+        // not a new number.
+        int? sparseHubs = null)
     {
         if (report is null) return;
 
@@ -539,6 +545,13 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             if (graph.Entries > 0)
                 AnsiConsole.MarkupLine(
                     $"[dim]{graph.Nodes} nodes · {graph.Edges} edges · {graph.EntriesWithTarget}/{graph.Entries} entries → target[/]");
+
+            // S9 — the qualifier on every edge number above. Without it the seam table reads as
+            // though these edges were resolved the ordinary way.
+            if (sparseHubs is { } hubs)
+                AnsiConsole.MarkupLine(
+                    $"[yellow]sparse graph[/][dim] · call-edge binding broadened over {hubs} central " +
+                    $"{(hubs == 1 ? "type" : "types")} (few entry points); those edges are approximate[/]");
         }
 
         // Cache + corpus chips

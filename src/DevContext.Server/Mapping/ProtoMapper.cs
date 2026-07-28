@@ -331,8 +331,17 @@ internal static class ProtoMapper
             Budget = report.Funnel.Budget,
         };
 
-        // L4.3 — Confidence Ledger
-        if (graph is not null && !entries.IsDefaultOrEmpty)
+        // L4.3 — Confidence Ledger.
+        //
+        // S9 contract sweep: the gate used to be `graph is not null && !entries.IsDefaultOrEmpty`,
+        // which suppressed the WHOLE ledger on any repo with no entry points -- i.e. every library.
+        // FluentValidation has 169 edges whose verified/approximate split is real and computed, and
+        // a reader saw none of it (no ledger meant no "verified" chip, and the chip is what opens
+        // the panel) because the repo has no HTTP endpoints. Only the auth and entry-target ROWS
+        // depend on entries; Compute() has always been zero-safe on both. The surface withholds
+        // those two rows instead, which is the C-3 rule: do not assert an entry fact where entries
+        // do not apply.
+        if (graph is not null)
         {
             var ledger = ConfidenceLedger.Compute(graph, entries);
             var pl = resp.ConfidenceLedger = new Proto.ConfidenceLedger

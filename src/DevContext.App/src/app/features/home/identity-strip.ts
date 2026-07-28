@@ -93,9 +93,29 @@ import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
                  ratio of counts shown beside it, and the chip above reads the SAME number. -->
             <span>Verified edges</span><span class="tabular-nums font-mono text-ink">{{ (l.verifiedEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
             <span>Approximate edges</span><span class="tabular-nums font-mono text-ink">{{ (l.approxEdgePct * 100).toFixed(0) }}% of {{ l.totalEdges }}</span>
-            <span>Auth coverage</span><span class="tabular-nums font-mono text-ink">{{ l.endpointsWithAuth }}/{{ l.totalEndpoints }}</span>
-            <span>Entry targets</span><span class="tabular-nums font-mono text-ink">{{ l.entriesWithTarget }}/{{ l.totalEntries }}</span>
+            <!-- S9: these two rows are the only entry-dependent ones. A library reaches this panel
+                 now (the server stopped suppressing the whole ledger on an entry-less repo), and
+                 "0/0" would be an assertion about endpoints it does not have. -->
+            @if (l.totalEndpoints > 0) {
+              <span>Auth coverage</span><span class="tabular-nums font-mono text-ink">{{ l.endpointsWithAuth }}/{{ l.totalEndpoints }}</span>
+            }
+            @if (l.totalEntries > 0) {
+              <span>Entry targets</span><span class="tabular-nums font-mono text-ink">{{ l.entriesWithTarget }}/{{ l.totalEntries }}</span>
+            }
           </div>
+          <!-- S9 contract sweep — sparse_graph / hub_scope_nodes (L3.4) were computed by the
+               engine, carried on the wire, and read by NOTHING: not the CLI, not the app. They are
+               the caveat that belongs most in a confidence panel — on a sparse graph the engine
+               BROADENS call-edge binding over the top central types, so the edges above were found
+               under a looser rule than the ones on a dense repo. Saying the percentage without
+               saying that overstates it. -->
+          @if (sparse(); as sp) {
+            <p class="border-t border-line pt-2 text-2xs text-ink-muted">
+              <span class="font-semibold text-warn">Sparse graph</span> &middot; call-edge binding was
+              broadened over {{ sp }} central {{ sp === 1 ? 'type' : 'types' }} to connect a repo with
+              few entry points. Edges found that way are reported as approximate.
+            </p>
+          }
           @if (l.perSeam.length) {
             <div class="pt-1">
               <span class="text-2xs text-ink-subtle">Per seam</span>
@@ -126,6 +146,14 @@ export class IdentityStrip {
   /** R3 D-D — present only when the repo declares more than one solution: the server sends the
    * facts (which one, how many, which others) and each surface says them in its own words. */
   protected readonly scope = computed(() => this.map()?.solutionScope ?? null);
+
+  /** S9 — hub-scope node count when the graph was classified sparse (L3.4: entries &lt; 5 or
+   * edge/node ratio &lt; 0.1), null otherwise. Null, not 0, so the template says nothing on a
+   * dense repo rather than claiming a broadening that never happened. */
+  protected readonly sparse = computed(() => {
+    const g = this.session.stats()?.graph;
+    return g?.sparseGraph ? g.hubScopeNodes : null;
+  });
   protected readonly analyzing = this.session.busy;
 
   protected switchSolution(relPath: string): void {
