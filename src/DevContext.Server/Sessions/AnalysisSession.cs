@@ -11,6 +11,10 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
     // M3.1 — session metadata for server-of-record
     public string RepoPath { get; init; } = "";
     public string CommitSha { get; init; } = "";
+    /// <summary>R3 D-D — the solution this session was scoped to (<c>--sln</c>), or null for the
+    /// scored default. Part of the session's IDENTITY: one repo at one HEAD has as many honest
+    /// analyses as it declares solutions, which is the rule the snapshot cache already keys on.</summary>
+    public string? Sln { get; init; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime LastActivity { get; set; } = DateTime.UtcNow;
     public int CallCount { get; set; }

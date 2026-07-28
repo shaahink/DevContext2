@@ -50,7 +50,8 @@ internal static class ProtoMapper
         return p;
     }
 
-    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown, string? solutionName = null)
+    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown, string? solutionName = null,
+        SolutionScopeNote? scope = null)
     {
         var resp = new Proto.MapResponse
         {
@@ -62,6 +63,20 @@ internal static class ProtoMapper
             Archetype = map?.Archetype.ToString() ?? "App",
         };
         if (solutionName is { Length: > 0 }) resp.SolutionName = solutionName;
+
+        // R3 D-D: the FACTS of the choice, not the CLI's sentence about it. Only when there was a
+        // choice — a one-solution repo has no scope to report and would just be noise on every page.
+        if (scope is { IsPartial: true })
+        {
+            resp.SolutionScope = new Proto.SolutionScope
+            {
+                AnalyzedRelPath = scope.AnalyzedRelPath,
+                AnalyzedName = scope.AnalyzedName,
+                TotalOnDisk = scope.TotalOnDisk,
+                WasRequested = scope.WasRequested,
+                OtherPaths = { scope.OtherPaths },
+            };
+        }
 
         if (map is null) return resp;
 

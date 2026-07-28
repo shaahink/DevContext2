@@ -26,7 +26,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             {
                 progress?.Report(new AnalysisProgress("Checking", 1, "Found cached clone, checking snapshots…"));
 
-                var rootResult = await ProjectRootResolver.ResolveAsync(registryEntry.Path, _fs, ct)
+                var rootResult = await ProjectRootResolver.ResolveAsync(registryEntry.Path, _fs, spec.Sln, ct)
                     .ConfigureAwait(false);
 
                 // D3.1 — keys carry the analysis flavor (a NoRoslyn run lives in its own slot).
@@ -61,7 +61,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         // Registry miss or snapshot miss — full clone + analyze path
         var (inputPath, gitClonePath) = await PrepareSourceAsync(spec.Path, progress, ct).ConfigureAwait(false);
 
-        var rootResult2 = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct).ConfigureAwait(false);
+        var rootResult2 = await ProjectRootResolver.ResolveAsync(inputPath, _fs, spec.Sln, ct).ConfigureAwait(false);
 
         var resolvedIntent2 = ResolveIntent(spec);
         var options2 = BuildOptions(rootResult2, resolvedIntent2, spec);
@@ -100,6 +100,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         {
             RootPath = rootResult2.EffectiveRootPath,
             ScopedProjectDirs = rootResult2.ScopeProjectDirs,
+            RequestedSolution = spec.Sln,
             Options = options2,
             ActiveScenario = resolvedIntent2.Scenario,
             Observer = observer,
@@ -157,6 +158,9 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         return new ExtractionOptions
         {
             EntryPaths = rootResult.EntryCandidates,
+            // Part of the cache FLAVOR (SnapshotCacheService.ComputeFlavorSuffix): analysing
+            // GitVersion's new-cli solution and its src solution are two analyses of one tree.
+            SolutionPath = spec.Sln,
             Profile = resolvedIntent.Profile,
             AllowRoslyn = !spec.NoRoslyn,
             BuildFullGraph = true,

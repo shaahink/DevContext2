@@ -33,7 +33,8 @@ public sealed class DevContextGrpcService(
             request.HasDepth ? request.Depth : null,
             request.HasDetail ? request.Detail : null,
             request.NoRoslyn,
-            request.HasCleanup ? request.Cleanup : null);
+            request.HasCleanup ? request.Cleanup : null,
+            request.HasSln ? request.Sln : null);
 
         var channel = Channel.CreateUnbounded<Proto.AnalyzeEvent>(
             new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
@@ -133,7 +134,8 @@ public sealed class DevContextGrpcService(
         => WrapAsyncT(request.Handle, async session =>
         {
             var markdown = await session.RenderMapMarkdownAsync(context.CancellationToken).ConfigureAwait(false);
-            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown, session.Snapshot.Model.Solution?.Name);
+            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown, session.Snapshot.Model.Solution?.Name,
+                session.Snapshot.Model.ScopeNote);
         });
 
     public override Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)

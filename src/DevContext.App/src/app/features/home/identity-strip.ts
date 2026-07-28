@@ -25,6 +25,31 @@ import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
       <!-- Identity sentence -->
       <p class="text-base leading-relaxed text-ink">{{ identitySentence() }}</p>
 
+      <!-- R3 D-D: what this analysis actually covered. The engine has known since Batch C that it
+           picked one solution of several and said so in the Map and the kernel JSON; the app showed
+           a third of GitVersion as the whole repo without a word. Information, not a warning — so it
+           reads quietly, and the way out is the picker rather than a flag name. -->
+      @if (scope(); as sc) {
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs">
+          <span class="text-ink-muted">
+            Analyzed <span class="font-mono text-ink">{{ sc.analyzedRelPath }}</span> —
+            1 of {{ sc.totalOnDisk }} solutions in this repo.
+          </span>
+          @if (sc.otherPaths.length) {
+            <span class="text-ink-subtle">Switch to</span>
+            @for (other of sc.otherPaths; track other) {
+              <button
+                type="button"
+                class="rounded border border-line px-1.5 py-0.5 font-mono text-2xs text-ink-muted transition-colors hover:border-accent hover:text-accent"
+                [disabled]="analyzing()"
+                [title]="'Re-analyze this repo scoped to ' + other"
+                (click)="switchSolution(other)"
+              >{{ other }}</button>
+            }
+          }
+        </div>
+      }
+
       <!-- Stat strip — human labels -->
       <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
         @for (label of statLabels(); track label[0]) {
@@ -97,6 +122,15 @@ export class IdentityStrip {
   protected readonly ledger = this.session.confidenceLedger;
   protected showLedger = signal(false);
   protected readonly humanizeTfms = humanizeTfms;
+
+  /** R3 D-D — present only when the repo declares more than one solution: the server sends the
+   * facts (which one, how many, which others) and each surface says them in its own words. */
+  protected readonly scope = computed(() => this.map()?.solutionScope ?? null);
+  protected readonly analyzing = this.session.busy;
+
+  protected switchSolution(relPath: string): void {
+    this.session.switchSolution(relPath);
+  }
 
   /** "services" is microservice vocabulary — a monolith+workers repo has projects. One
    * decision, shared by the sentence, the stat strip, and Home's tiles (T6.1). */

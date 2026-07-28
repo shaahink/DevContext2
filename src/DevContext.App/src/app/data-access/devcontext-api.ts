@@ -32,6 +32,9 @@ export interface AnalyzeSpec {
   readonly detail?: string;
   readonly noRoslyn?: boolean;
   readonly cleanup?: 'auto' | 'keep';
+  /** R3 D-D: which solution to analyze when the repo declares several — a name, a file name, or a
+   * repo-relative path, exactly as the CLI's `--sln` takes it. */
+  readonly sln?: string;
 }
 
 export type AnalyzeOutcome =
@@ -57,6 +60,7 @@ export class DevContextApi {
         detail: spec.detail,
         noRoslyn: spec.noRoslyn ?? false,
         cleanup: spec.cleanup,
+        sln: spec.sln,
       },
       { signal },
     );

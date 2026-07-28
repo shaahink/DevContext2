@@ -1,4 +1,5 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Models;
 using DevContext.Server.Mapping;
 
 using TypeKind = DevContext.Core.Models.TypeKind;
@@ -82,5 +83,44 @@ public sealed class ProtoMapperSurfaceTests
         var resp = ProtoMapper.ToMapResponse(new MapModel(), markdown: "m");
         Assert.False(resp.IsLibrary);
         Assert.Null(resp.Surface);
+    }
+
+    /// <summary>R3 D-D — the scope FACTS reach the client, alternatives included. Batch C computed
+    /// this and only ever rendered it as the CLI's sentence, so the desktop showed one solution of
+    /// GitVersion's three as the whole repo without a word.</summary>
+    [Fact]
+    public void ToMapResponse_carries_the_solution_scope_with_its_alternatives()
+    {
+        var scope = new SolutionScopeNote(
+            AnalyzedPath: @"C:\repos\GitVersion\src\GitVersion.slnx",
+            AnalyzedName: "GitVersion",
+            AnalyzedRelPath: "src/GitVersion.slnx",
+            TotalOnDisk: 3,
+            OtherPaths: ["build/CI.slnx", "new-cli/GitVersion.slnx"]);
+
+        var resp = ProtoMapper.ToMapResponse(new MapModel(), markdown: "m", solutionName: "GitVersion", scope: scope);
+
+        Assert.NotNull(resp.SolutionScope);
+        Assert.Equal("src/GitVersion.slnx", resp.SolutionScope.AnalyzedRelPath);
+        Assert.Equal(3, resp.SolutionScope.TotalOnDisk);
+        Assert.False(resp.SolutionScope.WasRequested);
+        Assert.Equal(["build/CI.slnx", "new-cli/GitVersion.slnx"], resp.SolutionScope.OtherPaths);
+    }
+
+    /// <summary>A repo with one solution made no choice, so there is nothing to report — a scope
+    /// row on every single-solution repo would be noise the reader learns to skip.</summary>
+    [Fact]
+    public void ToMapResponse_omits_the_scope_when_there_was_no_choice()
+    {
+        var scope = new SolutionScopeNote(
+            AnalyzedPath: @"C:\repos\Refit\Refit.sln",
+            AnalyzedName: "Refit",
+            AnalyzedRelPath: "Refit.sln",
+            TotalOnDisk: 1,
+            OtherPaths: []);
+
+        var resp = ProtoMapper.ToMapResponse(new MapModel(), markdown: "m", scope: scope);
+
+        Assert.Null(resp.SolutionScope);
     }
 }

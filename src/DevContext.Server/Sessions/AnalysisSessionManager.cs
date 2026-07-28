@@ -24,10 +24,13 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         var repoPath = ResolveRepoPath(spec.Path);
         var commitSha = ResolveCommitSha(repoPath);
 
-        // L5.1 — idempotent by repo+HEAD. TryGetByRepo already routes through Get(),
+        // L5.1 — idempotent by repo+HEAD+scope. TryGetByRepo already routes through Get(),
         // which stamps LastAccess/LastActivity and increments CallCount exactly once;
         // don't repeat those mutations here or the reuse double-counts the call.
-        var existing = TryGetByRepo(repoPath, commitSha);
+        // R3 D-D: the scope belongs in the key. Without it, asking for GitVersion's new-cli solution
+        // was answered in 2ms with the src solution already in hand — idempotence turned into a
+        // silent refusal, which is exactly what the snapshot cache's flavor suffix exists to prevent.
+        var existing = TryGetByRepo(repoPath, commitSha, spec.Sln);
         if (existing is not null)
         {
             progress?.Report(new AnalysisProgress("cached", 100, "Reusing existing analysis for this repo"));
@@ -41,10 +44,11 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         {
             RepoPath = repoPath,
             CommitSha = commitSha,
+            Sln = spec.Sln,
         };
         _sessions[handle] = new SessionEntry { Session = session, LastAccess = DateTime.UtcNow };
 
-        var repoKey = RepoKey(repoPath, commitSha);
+        var repoKey = RepoKey(repoPath, commitSha, spec.Sln);
         _repoToHandle[repoKey] = handle;
 
         return session;
@@ -59,9 +63,9 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         return entry.Session;
     }
 
-    public AnalysisSession? TryGetByRepo(string repoPath, string commitSha)
+    public AnalysisSession? TryGetByRepo(string repoPath, string commitSha, string? sln = null)
     {
-        var repoKey = RepoKey(repoPath, commitSha);
+        var repoKey = RepoKey(repoPath, commitSha, sln);
         if (!_repoToHandle.TryGetValue(repoKey, out var handle)) return null;
         return Get(handle);
     }
@@ -79,7 +83,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         if (!_sessions.TryRemove(handle, out var entry)) return false;
 
         // G3 — only remove repo index entry if it still points to this handle
-        var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha);
+        var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha, entry.Session.Sln);
         if (_repoToHandle.TryGetValue(repoKey, out var current) && current == handle)
             _repoToHandle.TryRemove(repoKey, out _);
 
@@ -116,7 +120,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         {
             if (_sessions.TryRemove(key, out var entry))
             {
-                var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha);
+                var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha, entry.Session.Sln);
                 _repoToHandle.TryRemove(repoKey, out _);
                 await entry.Session.DisposeAsync().ConfigureAwait(false);
                 await ReleaseHostIfOrphanedAsync(entry.Session).ConfigureAwait(false);
@@ -128,7 +132,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
             var lru = _sessions.Values.OrderBy(e => e.LastAccess).First();
             if (_sessions.TryRemove(lru.Session.Handle, out var lruEntry))
             {
-                var repoKey = RepoKey(lruEntry.Session.RepoPath, lruEntry.Session.CommitSha);
+                var repoKey = RepoKey(lruEntry.Session.RepoPath, lruEntry.Session.CommitSha, lruEntry.Session.Sln);
                 _repoToHandle.TryRemove(repoKey, out _);
                 await lruEntry.Session.DisposeAsync().ConfigureAwait(false);
                 await ReleaseHostIfOrphanedAsync(lruEntry.Session).ConfigureAwait(false);
@@ -155,8 +159,11 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         await _hostCache.ReleaseAsync(root).ConfigureAwait(false);
     }
 
-    private static string RepoKey(string repoPath, string commitSha)
-        => $"{repoPath}@{commitSha}";
+    /// <summary>Session identity: the tree, the commit, and the slice of it that was analyzed. The
+    /// empty scope (the scorer's pick) is its own key rather than an alias of whatever it picked —
+    /// naming a solution is a different request from letting the tool choose it.</summary>
+    private static string RepoKey(string repoPath, string commitSha, string? sln)
+        => $"{repoPath}@{commitSha}#{sln ?? ""}";
 
     private static string ResolveRepoPath(string path)
     {

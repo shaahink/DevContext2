@@ -107,6 +107,11 @@ message AnalyzeRequest {
   optional string detail = 4;  // "signature" | "salient" | "full" (default salient)
   bool no_roslyn = 5;          // skip the semantic tier (faster)
   optional string cleanup = 6; // "auto" (default) | "keep" — for cloned repos
+  // R3 D-D: which solution to analyze when the repo declares several — the CLI's `--sln`, as a
+  // name, a file name, or a repo-relative path. Without it the scorer picks, which is right until
+  // the pick is wrong: GitVersion's default read is one Main, and its five verbs are in a sibling
+  // solution no caller could reach from here.
+  optional string sln = 7;
 }
 
 message AnalyzeEvent {
@@ -209,6 +214,21 @@ message MapResponse {
   // D1.5 — the analyzed solution's name (e.g. "Newtonsoft.Json"): the product identity,
   // distinct from runnable hosts (a library's ServiceMap holds its test consoles).
   optional string solution_name = 17;
+  // R3 D-D — the scope FACTS, so each surface can say them in its own words. `scope_note` above is
+  // the CLI's sentence and ends by naming a flag no GUI has; a picker is the desktop's way of
+  // saying the same thing. Absent when the repo declares one solution — there is no choice to report.
+  optional SolutionScope solution_scope = 18;
+}
+
+// R3 D-D — which solution an analysis covered, and which ones it did not. Batch C already computed
+// this (SolutionScopeNote) and stamped it into the Map and the kernel JSON; nothing carried the
+// alternatives out, so no surface could offer them.
+message SolutionScope {
+  string analyzed_rel_path = 1;   // repo-relative, because a name need not identify it
+  string analyzed_name = 2;
+  int32 total_on_disk = 3;        // scaffolding already excluded
+  repeated string other_paths = 4; // repo-relative, deterministically ordered
+  bool was_requested = 5;         // true when the caller named this solution
 }
 
 message ProjectNode {

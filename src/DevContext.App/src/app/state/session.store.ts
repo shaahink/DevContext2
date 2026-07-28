@@ -74,6 +74,7 @@ export class SessionStore {
     this.workspace.updateSession(tabId, () => ({
       ...DEFAULT_SESSION_SLICE,
       status: isRepoUrl(spec.path) ? 'cloning' : 'analyzing',
+      requestedSln: spec.sln ?? null,
     }));
 
     try {
@@ -226,6 +227,10 @@ export class SessionStore {
         entryGroups,
         status: 'ready',
         error: null,
+        // R3 D-D — inherit the adopted session's scope choice, so a later re-analyze replays the
+        // solution the reader is actually looking at. Only when it was ASKED for: the scorer's own
+        // pick stays unrequested, which is a different analysis from naming it.
+        requestedSln: map.solutionScope?.wasRequested ? map.solutionScope.analyzedRelPath : null,
         // D4.6 (L2) — the adopted SessionInfo carries age + HEAD; stop dropping them.
         freshness: {
           analyzedAtMs: Date.now() - Number(match.ageSeconds) * 1000,
@@ -262,7 +267,17 @@ export class SessionStore {
   reAnalyze(): void {
     const tab = this.workspace.activeTab();
     if (!tab || !tab.path) return;
-    void this.analyze({ path: tab.path });
+    // Replay the solution choice: re-analyzing a repo must not quietly move the reader to a
+    // different slice of it than the one they were reading.
+    void this.analyze({ path: tab.path, sln: tab.session.requestedSln ?? undefined });
+  }
+
+  /** R3 D-D — analyze a different solution of the same repo. `relPath` is a repo-relative solution
+   * path from `MapResponse.solutionScope`; the engine resolves it the way `--sln` does. */
+  switchSolution(relPath: string): void {
+    const tab = this.workspace.activeTab();
+    if (!tab || !tab.path || !relPath) return;
+    void this.analyze({ path: tab.path, sln: relPath });
   }
 
   refreshStats(): void {

@@ -43,6 +43,10 @@ export interface TabSessionSlice {
   readonly progress: ProgressVm;
   readonly consoleLog: readonly LogLine[];
   readonly freshness: SessionFreshness | null;
+  /** R3 D-D — the solution this tab asked for, if it asked. Null means "whatever the scorer picks",
+   * which is a different analysis from naming that same solution explicitly (it keys a different
+   * snapshot slot), so a re-analyze has to replay the choice rather than re-derive it. */
+  readonly requestedSln: string | null;
 }
 
 /** Everything TraceStore used to hold as its own private signals — now one tab's slice. */
@@ -92,6 +96,7 @@ export const DEFAULT_SESSION_SLICE: TabSessionSlice = {
   progress: { stage: '', percent: 0, message: '' },
   consoleLog: [],
   freshness: null,
+  requestedSln: null,
 };
 
 export const DEFAULT_TRACE_SLICE: TabTraceSlice = {
