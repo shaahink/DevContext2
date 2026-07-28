@@ -1,9 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
+import { TraceStore } from '../../state/trace.store';
+import { TrailStore } from '../../state/trail.store';
+import { TraceNodeComponent } from '../trace/trace-node';
 import {
   defaultSection,
   filterGroups,
+  focusForSurfaceEntry,
   internalTypeCount,
   namespaceCount,
   publicTypeCount,
@@ -21,6 +25,7 @@ import {
  */
 @Component({
   selector: 'app-library-workbench',
+  imports: [TraceNodeComponent],
   host: { class: 'flex h-full min-h-0' },
   template: `
     <!-- Section rail -->
@@ -60,17 +65,29 @@ import {
           @if (surface()?.entryApi?.length) {
             <ul class="space-y-2">
               @for (e of surface()!.entryApi; track e.title) {
-                <li class="text-xs">
-                  <div class="flex items-baseline gap-2">
-                    <span class="chip shrink-0 text-2xs">{{ e.kind }}</span>
-                    <span class="font-mono font-semibold text-ink">{{ e.title }}</span>
-                    @if (e.location) {
-                      <span class="text-2xs text-ink-subtle">{{ e.location }}</span>
+                <li>
+                  <!-- R3 D-C (C2): a front door is the spine, so it opens. Selecting one traces the
+                       type or member it names, and the path panel shows what the framework actually
+                       calls back — the answer to "how do I use this". -->
+                  <!-- The list-row class is a flex ROW, so the doc has to be told to stack or it
+                       becomes a squeezed column the moment the path panel takes half the width. -->
+                  <button
+                    type="button"
+                    class="list-row w-full flex-col items-start gap-0 px-2 py-1 text-left text-xs"
+                    [class.selected]="selectedDoor() === e.title"
+                    (click)="openDoor(e.title)"
+                  >
+                    <span class="flex w-full flex-wrap items-baseline gap-x-2">
+                      <span class="chip shrink-0 text-2xs">{{ e.kind }}</span>
+                      <span class="font-mono font-semibold text-ink">{{ e.title }}</span>
+                      @if (e.location) {
+                        <span class="text-2xs text-ink-subtle">{{ e.location }}</span>
+                      }
+                    </span>
+                    @if (e.doc) {
+                      <span class="pl-1 text-2xs text-ink-muted">{{ e.doc }}</span>
                     }
-                  </div>
-                  @if (e.doc) {
-                    <p class="mt-0.5 pl-1 text-2xs text-ink-muted">{{ e.doc }}</p>
-                  }
+                  </button>
                 </li>
               }
             </ul>
@@ -82,12 +99,20 @@ import {
           @if (surface()?.abstractions?.length) {
             <ul class="space-y-1.5">
               @for (a of surface()!.abstractions; track a.name) {
-                <li class="flex items-baseline gap-2 text-xs">
-                  <span class="font-mono text-ink">{{ a.name }}</span>
-                  <span class="text-2xs text-ink-subtle">({{ a.kind }})</span>
-                  <span class="ml-auto tabular-nums text-2xs text-ink-muted">
-                    {{ a.implementorCount }} {{ a.implementorCount === 1 ? 'implementor' : 'implementors' }}
-                  </span>
+                <li>
+                  <!-- An abstraction is a seat you implement, which makes it a front door too. -->
+                  <button
+                    type="button"
+                    class="list-row flex w-full items-baseline gap-2 px-2 py-1 text-left text-xs"
+                    [class.selected]="selectedDoor() === a.name"
+                    (click)="openDoor(a.name)"
+                  >
+                    <span class="font-mono text-ink">{{ a.name }}</span>
+                    <span class="text-2xs text-ink-subtle">({{ a.kind }})</span>
+                    <span class="ml-auto tabular-nums text-2xs text-ink-muted">
+                      {{ a.implementorCount }} {{ a.implementorCount === 1 ? 'implementor' : 'implementors' }}
+                    </span>
+                  </button>
                 </li>
               }
             </ul>
@@ -176,10 +201,42 @@ import {
         }
       }
     </div>
+
+    <!-- R3 D-C (C2) — the consumer path. It appears only once a door is open, so the browser keeps
+         the full width until there is something to put beside it. -->
+    @if (selectedDoor(); as door) {
+      <aside class="flex w-[45%] min-w-0 shrink-0 flex-col border-l border-line">
+        <header class="flex items-baseline gap-2 border-b border-line px-3 py-2">
+          <span class="font-mono text-xs font-semibold text-ink">{{ door }}</span>
+          <span class="text-2xs text-ink-subtle">consumer path</span>
+          <button
+            type="button"
+            class="ml-auto text-2xs text-ink-subtle hover:text-ink"
+            (click)="closeDoor()"
+          >close</button>
+        </header>
+
+        <div class="min-h-0 flex-1 overflow-auto p-2" [class.opacity-60]="trace.loading()">
+          @if (trace.tree(); as tree) {
+            <app-trace-node [node]="tree" (nodeSelected)="onNode($event)" />
+          } @else if (trace.loading()) {
+            <p class="p-2 text-xs text-ink-subtle">Following the calls…</p>
+          } @else {
+            <!-- The resolver was asked and answered. Saying so beats an empty panel. -->
+            <p class="p-2 text-xs text-ink-muted">
+              No call path resolved for <span class="font-mono">{{ focusOf(door) }}</span> — it is
+              public surface the repo itself never calls.
+            </p>
+          }
+        </div>
+      </aside>
+    }
   `,
 })
 export class LibraryWorkbench {
   protected readonly session = inject(SessionStore);
+  protected readonly trace = inject(TraceStore);
+  private readonly trail = inject(TrailStore);
 
   protected readonly surface = computed(() => this.session.mapResponse()?.surface);
   protected readonly rail = computed(() => railItems(this.surface()));
@@ -198,4 +255,34 @@ export class LibraryWorkbench {
   protected readonly filteredGroups = computed(() =>
     filterGroups(this.surface()?.groups ?? [], this.filterText()),
   );
+
+  /** R3 D-C (C2) — the open front door, by its surface title. */
+  protected readonly selectedDoor = signal<string | null>(null);
+
+  protected focusOf(title: string): string {
+    return focusForSurfaceEntry(title);
+  }
+
+  /** Trace the door. The Trail collects it exactly as it collects an entry elsewhere, so a
+   * library finally feeds the pin/export loop it has been locked out of. */
+  protected openDoor(title: string): void {
+    const handle = this.session.handle();
+    if (!handle) return;
+    if (this.selectedDoor() === title) {
+      this.closeDoor();
+      return;
+    }
+    this.selectedDoor.set(title);
+    const focus = focusForSurfaceEntry(title);
+    this.trail.push({ kind: 'entry', id: focus, title, focus });
+    void this.trace.trace(handle, focus);
+  }
+
+  protected closeDoor(): void {
+    this.selectedDoor.set(null);
+  }
+
+  protected onNode(nodeId: string): void {
+    void this.trace.selectNode(nodeId);
+  }
 }

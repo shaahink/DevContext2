@@ -4,6 +4,7 @@ import {
   defaultSection,
   entryKindCounts,
   filterGroups,
+  focusForSurfaceEntry,
   internalTypeCount,
   namespaceCount,
   namespacesBySize,
@@ -95,5 +96,30 @@ describe('library surface vm (D4.4 F1)', () => {
       { namespace: 'Refit.Testing', count: 1 },
     ]);
     expect(namespacesBySize(REFIT_LIKE, 1)).toHaveLength(1);
+  });
+});
+
+describe('R3 D-C (C2) — a front door resolves to a focus', () => {
+  it('sends a bare type through untouched — the resolver already takes it', () => {
+    // Verified against the engine: `analyze FluentValidation --focus AbstractValidator` reaches
+    // ValidateInternalAsync → PreValidate / RaiseValidationException, which is the real answer to
+    // "what do I override".
+    expect(focusForSurfaceEntry('AbstractValidator')).toBe('AbstractValidator');
+    expect(focusForSurfaceEntry('IPropertyValidator')).toBe('IPropertyValidator');
+  });
+
+  it('rewrites a register door to the resolver Type:Member notation', () => {
+    expect(focusForSurfaceEntry('ServiceCollectionExtensions.AddValidatorsFromAssembly'))
+      .toBe('ServiceCollectionExtensions:AddValidatorsFromAssembly');
+  });
+
+  it('splits on the LAST dot, so a dotted namespace keeps its type', () => {
+    expect(focusForSurfaceEntry('Refit.HttpClientFactoryExtensions.AddRefitClient'))
+      .toBe('Refit.HttpClientFactoryExtensions:AddRefitClient');
+  });
+
+  it('unwraps an annotate door to the attribute type it names', () => {
+    expect(focusForSurfaceEntry('[Get]')).toBe('Get');
+    expect(focusForSurfaceEntry('[Fact]')).toBe('Fact');
   });
 });

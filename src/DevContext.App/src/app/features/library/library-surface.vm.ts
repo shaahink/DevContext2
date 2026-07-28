@@ -83,6 +83,22 @@ export function defaultSection(surface: LibrarySurfaceVm | undefined): LibSectio
   return surface?.entryApi.length ? 'entry-api' : 'surface';
 }
 
+/**
+ * R3 D-C (C2) — the focus token for a front door, so a consumer path is the REAL call path.
+ *
+ * Surface titles come off `LibrarySurfaceBuilder` in three shapes and the trace resolver takes two
+ * of them verbatim: a bare type (`AbstractValidator`, from derive/implement/build/extend) already
+ * resolves, and `Type.Member` (from register) is the same identity written with the wrong
+ * separator — the resolver's notation is `Type:Member`. An `annotate` row names an attribute in
+ * brackets (`[Get]`), whose type is the bracketless name; the resolver is asked for that and says
+ * so honestly when it cannot find it, which beats refusing to try.
+ */
+export function focusForSurfaceEntry(title: string): string {
+  const bare = title.startsWith('[') && title.endsWith(']') ? title.slice(1, -1) : title;
+  const lastDot = bare.lastIndexOf('.');
+  return lastDot > 0 ? `${bare.slice(0, lastDot)}:${bare.slice(lastDot + 1)}` : bare;
+}
+
 /** Case-insensitive filter over namespace, type name, and member names. Groups whose
  * namespace matches keep ALL their types; otherwise types are kept when the type name
  * or a member matches. Empty groups drop out. Empty query returns the input as-is. */
