@@ -312,7 +312,7 @@ internal static class ProtoMapper
                 SkipReason = e.SkipReason ?? string.Empty,
             });
 
-        resp.Corpus = new Proto.CorpusStat { TotalFiles = report.Corpus.TotalFiles, CsharpFiles = report.Corpus.CSharpFiles, Projects = report.Corpus.Projects };
+        resp.Corpus = new Proto.CorpusStat { CsharpFiles = report.Corpus.CSharpFiles, Projects = report.Corpus.Projects };
 
         resp.Cache = new Proto.CacheStat
         {
@@ -537,8 +537,6 @@ internal static class ProtoMapper
     public static Proto.GraphFacetsResponse ToGraphFacetsResponse(
         ServiceMapResult serviceMap,
         FlowListResult flowList,
-        EntryTableResult entryTable,
-        LayerBandResult layerBand,
         ImmutableArray<EventWire> eventWiring = default)
     {
         var resp = new Proto.GraphFacetsResponse();
@@ -597,38 +595,8 @@ internal static class ProtoMapper
             resp.FlowList.Flows.Add(card);
         }
 
-        // EntryTable facet
-        resp.EntryTable = new Proto.EntryTableFacet();
-        foreach (var r in entryTable.Rows)
-        {
-            var row = new Proto.EntryTableRow
-            {
-                Kind = r.Kind,
-                Title = r.Title,
-                Score = r.Score,
-                Reach = r.Reach,
-                CrossProjects = r.CrossProjects,
-            };
-            if (r.Route is { } rt) row.Route = rt;
-            if (r.Target is { } tgt) row.Target = tgt;
-            if (r.Project is { } p) row.Project = p;
-            if (r.GroupPath is { } gp) row.GroupPath = gp;
-            if (r.Layer is { } ly) row.Layer = ly;
-            if (r.Feature is { } ft) row.Feature = ft;
-            resp.EntryTable.Rows.Add(row);
-        }
-
-        // LayerBand facet
-        resp.LayerBand = new Proto.LayerBandFacet();
-        resp.LayerBand.Layers.AddRange(layerBand.Layers);
-        resp.LayerBand.Features.AddRange(layerBand.Features);
-        foreach (var nb in layerBand.NodeBands)
-        {
-            var band = new Proto.NodeBand { NodeId = nb.NodeId };
-            if (nb.Layer is { } l2) band.Layer = l2;
-            if (nb.Feature is { } f2) band.Feature = f2;
-            resp.LayerBand.NodeBands.Add(band);
-        }
+        // S9 contract sweep — the EntryTable and LayerBand facets used to be built here. No client
+        // read either one; both are gone from the contract (`reserved 3, 4`) and no longer projected.
 
         // EventWiring facet (T6.11) — the ONE T2.6 join, verbatim; the Atlas board and
         // one-pager stop re-deriving publisher→event→consumer client-side.

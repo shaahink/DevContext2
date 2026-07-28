@@ -507,7 +507,12 @@ message SeamStat {
 }
 
 message CorpusStat {
-  int32 total_files = 1;
+  // S9 contract sweep — `total_files` (1) was dead at the PRODUCER: the pipeline's one call site
+  // passes a literal 0 (`SetCorpusFileCounts(0, csharpFiles, ...)`), so every response ever sent
+  // said the corpus held zero files. Unread everywhere, which is the only reason it never lied to
+  // anyone's face. Core keeps the field; the contract stops carrying a constant.
+  reserved 1;
+  reserved "total_files";
   int32 csharp_files = 2;
   int32 projects = 3;
 }
@@ -769,7 +774,10 @@ message ObserveToolCallsRequest {}
 message ToolCallEvent {
   string session_handle = 1;
   string tool = 2;
-  string args_digest = 3;
+  // S9 contract sweep — `args_digest` (3) was dead on BOTH ends: nothing ever assigned it and
+  // nothing ever read it, so every event on this stream carried an empty string for it.
+  reserved 3;
+  reserved "args_digest";
   int64 bytes = 4;
   int64 est_tokens = 5;
   int64 elapsed_ms = 6;
@@ -869,8 +877,12 @@ message GraphFacetsRequest {
 message GraphFacetsResponse {
   ServiceMapFacet service_map = 1;
   FlowListFacet flow_list = 2;
-  EntryTableFacet entry_table = 3;
-  LayerBandFacet layer_band = 4;
+  // S9 contract sweep — `entry_table` (3) and `layer_band` (4) were projected on every call and
+  // read by NO client: the app takes entries from GetEntryPoints and MCP never touched either.
+  // Removed rather than left empty, because a field that is always default is the same defect this
+  // sweep exists to find. The Core projections survive as tested capability, uncalled.
+  reserved 3, 4;
+  reserved "entry_table", "layer_band";
   // T6.11 — the ONE event join (T2.6 EventWiringProjection), so the Atlas board and
   // one-pager render the server's truth instead of a client-side name-match heuristic.
   EventWiringFacet event_wiring = 5;
@@ -993,32 +1005,6 @@ message FlowCard {
   optional string group_path = 13;  // L4.3 — grouping path
 }
 
-message EntryTableFacet {
-  repeated EntryTableRow rows = 1;
-}
-
-message EntryTableRow {
-  string kind = 1;
-  string title = 2;
-  optional string route = 3;
-  optional string target = 4;
-  optional string project = 5;
-  optional string group_path = 6;
-  optional string layer = 7;
-  optional string feature = 8;
-  double score = 9;
-  int32 reach = 10;
-  int32 cross_projects = 11;
-}
-
-message LayerBandFacet {
-  repeated NodeBand node_bands = 1;
-  repeated string layers = 2;
-  repeated string features = 3;
-}
-
-message NodeBand {
-  string node_id = 1;
-  optional string layer = 2;
-  optional string feature = 3;
-}
+// S9 contract sweep — `EntryTableFacet` / `EntryTableRow` / `LayerBandFacet` / `NodeBand` were
+// removed with the two `GraphFacetsResponse` fields that carried them (see `reserved 3, 4` above).
+// Nothing on either client had ever read them.

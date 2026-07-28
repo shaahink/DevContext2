@@ -301,12 +301,14 @@ public sealed class DevContextGrpcService(
             var graph = session.Query.Graph;
             var maxFlows = request.MaxFlows > 0 ? request.MaxFlows : 10;
 
+            // S9 contract sweep — this call used to project four facets and ship them all. The
+            // EntryTable and LayerBand projections ran on every call (LayerBand walks every node in
+            // the graph) and NO client read either: the app reads entries from GetEntryPoints, and
+            // MCP only ever touched ServiceMap and FlowList. Both are out of the contract now.
             var serviceMap = new ServiceMapProjection().Project(graph, ProjectionOptions.Default);
             var flowList = new FlowListProjection().Project(graph, new ProjectionOptions { MaxFlows = maxFlows });
-            var entryTable = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
-            var layerBand = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
 
-            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand, graph.EventWiring);
+            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, graph.EventWiring);
         });
 
     // Gap 1 — read_source RPC: Returns raw source code for the Inspector Code tab.
