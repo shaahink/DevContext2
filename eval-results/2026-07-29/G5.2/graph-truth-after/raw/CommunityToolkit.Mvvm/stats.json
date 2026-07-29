@@ -1,0 +1,106 @@
+﻿{
+  "snapshotCache": "HIT \u00B7 b135626",
+  "nodeCount": 462,
+  "edgeCount": 265,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 264,
+      "verified": 180,
+      "approx": 84
+    },
+    {
+      "kind": "Resolves",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    }
+  ],
+  "totalWallMs": 6249,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 445
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1474
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 1093
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 1894
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 255
+    },
+    {
+      "stage": "Insights",
+      "ms": 130
+    },
+    {
+      "stage": "Compression",
+      "ms": 196
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 100
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 18 interfaces, 107 classes (157 total public types)",
+      "evidence": [
+        "18 interfaces",
+        "107 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: CommunityToolkit.Mvvm (12 dependents) \u00B7 CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001 (4 dependents) \u00B7 CommunityToolkit.Mvvm.CodeFixers.Roslyn4120 (4 dependents)",
+      "evidence": [
+        "CommunityToolkit.Mvvm (12 dependents)",
+        "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001 (4 dependents)",
+        "CommunityToolkit.Mvvm.CodeFixers.Roslyn4120 (4 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ImmutableArrayBuilder (36) \u00B7 AnalysisContext (16) \u00B7 Dictionary2 (14) \u00B7 CompilationStartAnalysisContext (14) \u00B7 SymbolAnalysisContext (14)",
+      "evidence": [
+        "ImmutableArrayBuilder (36)",
+        "AnalysisContext (16)",
+        "Dictionary2 (14)",
+        "CompilationStartAnalysisContext (14)",
+        "SymbolAnalysisContext (14)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

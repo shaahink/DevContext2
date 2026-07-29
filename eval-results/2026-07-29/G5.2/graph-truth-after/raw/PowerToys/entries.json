@@ -1,0 +1,1977 @@
+﻿{
+  "count": 243,
+  "byKind": {
+    "UiEntry": 237,
+    "CliCommand": 5,
+    "HostedService": 1
+  },
+  "entries": [
+    {
+      "kind": "UiEntry",
+      "title": "DockControl",
+      "nodeId": "ui:DockControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.5,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Dock\\DockControl.xaml.cs:30"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmMatrix",
+      "nodeId": "ui:FrmMatrix",
+      "project": "MouseWithoutBorders",
+      "score": 0.274,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmMatrix.cs:42"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ProjectEditor",
+      "nodeId": "ui:ProjectEditor",
+      "project": "WorkspacesEditor",
+      "score": 0.274,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Workspaces\\WorkspacesEditor\\WorkspacesEditorPage.xaml.cs:21"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "EnvironmentVariablesMainPage",
+      "nodeId": "ui:EnvironmentVariablesMainPage",
+      "target": "MainViewModel.LoadEnvironmentVariables",
+      "project": "EnvironmentVariablesUILib",
+      "score": 0.234,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\EnvironmentVariables\\EnvironmentVariablesUILib\\EnvironmentVariablesMainPage.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "GridEditor",
+      "nodeId": "ui:GridEditor",
+      "project": "FancyZonesEditor",
+      "score": 0.234,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\GridEditor.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "RegistryPreviewMainPage",
+      "nodeId": "ui:RegistryPreviewMainPage",
+      "project": "RegistryPreviewUILib",
+      "score": 0.234,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\registrypreview\\RegistryPreviewUILib\\RegistryPreviewMainPage.DataPreview.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MainPage",
+      "nodeId": "ui:MainPage",
+      "project": "AdvancedPaste",
+      "score": 0.184,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\Pages\\MainPage.xaml.cs:25"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "UnifiedMappingControl",
+      "nodeId": "ui:UnifiedMappingControl",
+      "project": "KeyboardManagerEditorUI",
+      "score": 0.171,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\keyboardmanager\\KeyboardManagerEditorUI\\Controls\\UnifiedMappingControl.xaml.cs:30"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HostsMainPage",
+      "nodeId": "ui:HostsMainPage",
+      "project": "HostsUILib",
+      "score": 0.162,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\HostsMainPage.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PromptBox",
+      "nodeId": "ui:PromptBox",
+      "project": "AdvancedPaste",
+      "score": 0.157,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\Controls\\PromptBox.xaml.cs:21"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] PromptBox.GenerateCustomAIAsync",
+      "nodeId": "ui:PromptBox.GenerateCustomAIAsync",
+      "target": "OptionsViewModel.ExecuteCustomAIFormatFromCurrentQueryAsync",
+      "project": "AdvancedPaste",
+      "score": 0.153,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\Controls\\PromptBox.xaml.cs:100"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ExtensionGalleryPage",
+      "nodeId": "ui:ExtensionGalleryPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.144,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\ExtensionGalleryPage.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "Timeline",
+      "nodeId": "ui:Timeline",
+      "project": "PowerToys.Settings",
+      "score": 0.139,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\Timeline\\Timeline.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmScreen",
+      "nodeId": "ui:FrmScreen",
+      "project": "MouseWithoutBorders",
+      "score": 0.135,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmScreen.cs:53"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ListItemsView",
+      "nodeId": "ui:ListItemsView",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.135,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\ListItemsView.xaml.cs:32"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] TopLevelCommandManager.LoadExternalProvidersAsync",
+      "nodeId": "ui:TopLevelCommandManager.LoadExternalProvidersAsync",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.126,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\TopLevelCommandManager.cs:264"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CanvasZone",
+      "nodeId": "ui:CanvasZone",
+      "project": "FancyZonesEditor",
+      "score": 0.126,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\CanvasZone.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FormHelper",
+      "nodeId": "ui:FormHelper",
+      "project": "MouseWithoutBordersHelper",
+      "score": 0.117,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Helper\\FormHelper.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ContextMenu",
+      "nodeId": "ui:ContextMenu",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.108,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ContextMenu.xaml.cs:23"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] OptionsViewModel.SetActiveProviderAsync",
+      "nodeId": "ui:OptionsViewModel.SetActiveProviderAsync",
+      "target": "UserSettings.SetActiveAIProviderAsync",
+      "project": "AdvancedPaste",
+      "score": 0.103,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\ViewModels\\OptionsViewModel.cs:879"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SnapshotWindow",
+      "nodeId": "ui:SnapshotWindow",
+      "project": "WorkspacesEditor",
+      "score": 0.103,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Workspaces\\WorkspacesEditor\\SnapshotWindow.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.InstallViaWinGetAsync",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.InstallViaWinGetAsync",
+      "target": "WinGetPackageManagerService.InstallPackageAsync",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.099,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:371"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorPickerControl",
+      "nodeId": "ui:ColorPickerControl",
+      "project": "ColorPickerUI",
+      "score": 0.094,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\Controls\\ColorPickerControl.xaml.cs:25"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "IconCarouselControl",
+      "nodeId": "ui:IconCarouselControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.085,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\IconCarouselControl.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OCROverlay",
+      "nodeId": "ui:OCROverlay",
+      "project": "PowerOCR",
+      "score": 0.081,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\PowerOCR\\PowerOCR\\OCROverlay.xaml.cs:31"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ShellViewModel.LoadAsync",
+      "nodeId": "ui:ShellViewModel.LoadAsync",
+      "target": "PowerToysRootPageService.PreLoadAsync",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.081,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ShellViewModel.cs:124"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ImageViewer",
+      "nodeId": "ui:ImageViewer",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.081,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ImageViewer.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ImageContentViewer",
+      "nodeId": "ui:ImageContentViewer",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.081,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\Controls\\ImageContentViewer.xaml.cs:31"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MainWindow",
+      "nodeId": "ui:MainWindow",
+      "target": "NativeEventWaiter.WaitForEventLoop",
+      "project": "WorkspacesEditor",
+      "score": 0.076,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Workspaces\\WorkspacesEditor\\MainWindow.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CustomVcpMappingEditorDialog",
+      "nodeId": "ui:CustomVcpMappingEditorDialog",
+      "project": "PowerToys.Settings",
+      "score": 0.076,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Views\\CustomVcpMappingEditorDialog.xaml.cs:25"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.ReadHosts",
+      "nodeId": "ui:MainViewModel.ReadHosts",
+      "target": "HostsService.ReadAsync",
+      "project": "HostsUILib",
+      "score": 0.072,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:174"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "InternalPage",
+      "nodeId": "ui:InternalPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.072,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\InternalPage.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MainForm",
+      "nodeId": "ui:MainForm",
+      "project": "MouseJumpUI",
+      "score": 0.067,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseUtils\\MouseJumpUI\\MainForm.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PlainTextContentViewer",
+      "nodeId": "ui:PlainTextContentViewer",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.067,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\Controls\\PlainTextContentViewer.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorEditorWindow",
+      "nodeId": "ui:ColorEditorWindow",
+      "project": "ColorPickerUI",
+      "score": 0.067,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\ColorEditorWindow.xaml.cs:24"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SearchBar",
+      "nodeId": "ui:SearchBar",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.063,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\SearchBar.xaml.cs:29"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShellPage",
+      "nodeId": "ui:ShellPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.063,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Pages\\ShellPage.xaml.cs:37"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FiltersDropDown",
+      "nodeId": "ui:FiltersDropDown",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.058,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\FiltersDropDown.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "LayoutPreview",
+      "nodeId": "ui:LayoutPreview",
+      "project": "FancyZonesEditor",
+      "score": 0.058,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\LayoutPreview.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FoundryLocalModelPicker",
+      "nodeId": "ui:FoundryLocalModelPicker",
+      "project": "PowerToys.Settings",
+      "score": 0.054,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\ModelPicker\\FoundryLocalModelPicker.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ScreenPreview",
+      "nodeId": "ui:ScreenPreview",
+      "target": "WallpaperHelper.GetWallpaperColor",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.045,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ScreenPreview.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ProgressViewModel.StartAsync",
+      "nodeId": "ui:ProgressViewModel.StartAsync",
+      "target": "ResizeBatch.ProcessAsync",
+      "project": "ImageResizerUI",
+      "score": 0.045,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\ProgressViewModel.cs:69"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MonitorViewModel.SetInputSource",
+      "nodeId": "ui:MonitorViewModel.SetInputSource",
+      "project": "PowerDisplay",
+      "score": 0.045,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MonitorViewModel.cs:723"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FormDot",
+      "nodeId": "ui:FormDot",
+      "project": "MouseWithoutBordersHelper",
+      "score": 0.04,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Helper\\FormDot.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CommandBar",
+      "nodeId": "ui:CommandBar",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.04,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\CommandBar.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ScrollContainer",
+      "nodeId": "ui:ScrollContainer",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.04,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ScrollContainer.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShortcutControl",
+      "nodeId": "ui:ShortcutControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.04,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ShortcutControl\\ShortcutControl.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "LaunchPage",
+      "nodeId": "ui:LaunchPage",
+      "project": "PowerToys.QuickAccess",
+      "score": 0.04,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\QuickAccess.UI\\QuickAccessXAML\\Flyout\\LaunchPage.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CanvasEditor",
+      "nodeId": "ui:CanvasEditor",
+      "project": "FancyZonesEditor",
+      "score": 0.036,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\CanvasEditor.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "EditorWindow",
+      "nodeId": "ui:EditorWindow",
+      "project": "FancyZonesEditor",
+      "score": 0.036,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\EditorWindow.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SettingsForm",
+      "nodeId": "ui:SettingsForm",
+      "project": "MouseWithoutBorders",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\Settings\\SettingsForm.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "StatusWindow",
+      "nodeId": "ui:StatusWindow",
+      "target": "MainViewModel.SetSnapshotWindow",
+      "project": "WorkspacesLauncherUI",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Workspaces\\WorkspacesLauncherUI\\StatusWindow.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] PageViewModel.InitializeAsync",
+      "nodeId": "ui:PageViewModel.InitializeAsync",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\PageViewModel.cs:128"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.IdentifyMonitors",
+      "nodeId": "ui:MainViewModel.IdentifyMonitors",
+      "target": "IdentifyWindow.PositionOnDisplay",
+      "project": "PowerDisplay",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MainViewModel.cs:305"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "NavigablePage",
+      "nodeId": "ui:NavigablePage",
+      "project": "PowerToys.Settings",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\Helpers\\NavigablePage.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShortcutConflictControl",
+      "nodeId": "ui:ShortcutConflictControl",
+      "project": "PowerToys.Settings",
+      "score": 0.031,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\Dashboard\\ShortcutConflictControl.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorBorderField",
+      "nodeId": "ui:ColorBorderField",
+      "project": "MouseWithoutBorders",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Control\\ColorBorderField.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SettingsFormPage",
+      "nodeId": "ui:SettingsFormPage",
+      "project": "MouseWithoutBorders",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\Settings\\SettingsFormPage.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmInputCallback",
+      "nodeId": "ui:FrmInputCallback",
+      "project": "MouseWithoutBorders",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmInputCallback.cs:25"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.CancelWinGetAction",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.CancelWinGetAction",
+      "target": "WinGetOperationTrackerService.TryCancelOperation",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:420"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ListViewModel.UpdateSelectedItem",
+      "nodeId": "ui:ListViewModel.UpdateSelectedItem",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ListViewModel.cs:800"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "GeneralPage",
+      "nodeId": "ui:GeneralPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\GeneralPage.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorFormatControl",
+      "nodeId": "ui:ColorFormatControl",
+      "project": "ColorPickerUI",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\Controls\\ColorFormatControl.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.LoadAsync",
+      "nodeId": "ui:MainViewModel.LoadAsync",
+      "target": "IMainView.OpenPictureFilesAsync",
+      "project": "ImageResizerUI",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\MainViewModel.cs:30"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ResultList",
+      "nodeId": "ui:ResultList",
+      "project": "PowerLauncher",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\launcher\\PowerLauncher\\ResultList.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeColorPicker",
+      "nodeId": "ui:OobeColorPicker",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeColorPicker.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeRun",
+      "nodeId": "ui:OobeRun",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeRun.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeShortcutGuide",
+      "nodeId": "ui:OobeShortcutGuide",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeShortcutGuide.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ScoobeReleaseNotesPage",
+      "nodeId": "ui:ScoobeReleaseNotesPage",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\ScoobeReleaseNotesPage.xaml.cs:21"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MouseJumpPanel",
+      "nodeId": "ui:MouseJumpPanel",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Panels\\MouseJumpPanel.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SearchResultsPage",
+      "nodeId": "ui:SearchResultsPage",
+      "project": "PowerToys.Settings",
+      "score": 0.027,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Views\\SearchResultsPage.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.OpenHostsFile",
+      "nodeId": "ui:MainViewModel.OpenHostsFile",
+      "target": "HostsService.OpenHostsFile",
+      "project": "HostsUILib",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:281"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "Machine",
+      "nodeId": "ui:Machine",
+      "project": "MouseWithoutBorders",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Control\\Machine.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "frmLogon",
+      "nodeId": "ui:frmLogon",
+      "project": "MouseWithoutBorders",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmLogon.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmMessage",
+      "nodeId": "ui:FrmMessage",
+      "project": "MouseWithoutBorders",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmMessage.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] WinGetOperationViewModel.Cancel",
+      "nodeId": "ui:WinGetOperationViewModel.Cancel",
+      "target": "WinGetOperationTrackerService.TryCancelOperation",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\WinGet\\WinGetOperationViewModel.cs:108"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorPickerButton",
+      "nodeId": "ui:ColorPickerButton",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ColorPickerButton.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorEditorView",
+      "nodeId": "ui:ColorEditorView",
+      "project": "ColorPickerUI",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\Views\\ColorEditorView.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "GridZone",
+      "nodeId": "ui:GridZone",
+      "project": "FancyZonesEditor",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\GridZone.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "BrowserControl",
+      "nodeId": "ui:BrowserControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\BrowserControl.xaml.cs:26"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorFormatEditor",
+      "nodeId": "ui:ColorFormatEditor",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\ColorFormatEditor.xaml.cs:21"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeEnvironmentVariables",
+      "nodeId": "ui:OobeEnvironmentVariables",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeEnvironmentVariables.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeHosts",
+      "nodeId": "ui:OobeHosts",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeHosts.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeOverview",
+      "nodeId": "ui:OobeOverview",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeOverview.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobePowerDisplay",
+      "nodeId": "ui:OobePowerDisplay",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobePowerDisplay.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeRegistryPreview",
+      "nodeId": "ui:OobeRegistryPreview",
+      "project": "PowerToys.Settings",
+      "score": 0.022,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeRegistryPreview.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.DeleteEntry",
+      "nodeId": "ui:MainViewModel.DeleteEntry",
+      "target": "DuplicateService.CheckDuplicates",
+      "project": "HostsUILib",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:162"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.OverwriteHosts",
+      "nodeId": "ui:MainViewModel.OverwriteHosts",
+      "target": "HostsService.RemoveReadOnlyAttribute",
+      "project": "HostsUILib",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:287"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmMouseCursor",
+      "nodeId": "ui:FrmMouseCursor",
+      "project": "MouseWithoutBorders",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmMouseCursor.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ContentFormControl",
+      "nodeId": "ui:ContentFormControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ContentFormControl.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DockSettingsPage",
+      "nodeId": "ui:DockSettingsPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\DockSettingsPage.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ExtensionGalleryItemPage",
+      "nodeId": "ui:ExtensionGalleryItemPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\ExtensionGalleryItemPage.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ExtensionsPage",
+      "nodeId": "ui:ExtensionsPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\ExtensionsPage.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "InputPage",
+      "nodeId": "ui:InputPage",
+      "project": "ImageResizerUI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ImageResizerXAML\\Views\\InputPage.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] InputViewModel.Resize",
+      "nodeId": "ui:InputViewModel.Resize",
+      "target": "Settings.Save",
+      "project": "ImageResizerUI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\InputViewModel.cs:145"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] InputViewModel.Cancel",
+      "nodeId": "ui:InputViewModel.Cancel",
+      "target": "IMainView.Close",
+      "project": "ImageResizerUI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\InputViewModel.cs:166"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ProgressViewModel.Stop",
+      "nodeId": "ui:ProgressViewModel.Stop",
+      "target": "IMainView.Close",
+      "project": "ImageResizerUI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\ProgressViewModel.cs:108"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ResultsViewModel.Close",
+      "nodeId": "ui:ResultsViewModel.Close",
+      "target": "IMainView.Close",
+      "project": "ImageResizerUI",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\ResultsViewModel.cs:26"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FilePreview",
+      "nodeId": "ui:FilePreview",
+      "project": "Peek.FilePreviewer",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\FilePreview.xaml.cs:30"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.ApplyProfile",
+      "nodeId": "ui:MainViewModel.ApplyProfile",
+      "target": "PowerDisplayProfile.IsValid",
+      "project": "PowerDisplay",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MainViewModel.cs:373"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "AppsListPage",
+      "nodeId": "ui:AppsListPage",
+      "project": "PowerToys.QuickAccess",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\QuickAccess.UI\\QuickAccessXAML\\Flyout\\AppsListPage.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FancyZonesPreviewControl",
+      "nodeId": "ui:FancyZonesPreviewControl",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\FancyZonesPreviewControl.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeAdvancedPaste",
+      "nodeId": "ui:OobeAdvancedPaste",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeAdvancedPaste.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeAlwaysOnTop",
+      "nodeId": "ui:OobeAlwaysOnTop",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeAlwaysOnTop.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeAwake",
+      "nodeId": "ui:OobeAwake",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeAwake.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeCmdNotFound",
+      "nodeId": "ui:OobeCmdNotFound",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeCmdNotFound.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeCmdPal",
+      "nodeId": "ui:OobeCmdPal",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeCmdPal.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeCropAndLock",
+      "nodeId": "ui:OobeCropAndLock",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeCropAndLock.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeFancyZones",
+      "nodeId": "ui:OobeFancyZones",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeFancyZones.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeFileExplorer",
+      "nodeId": "ui:OobeFileExplorer",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeFileExplorer.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeFileLocksmith",
+      "nodeId": "ui:OobeFileLocksmith",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeFileLocksmith.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeGrabAndMove",
+      "nodeId": "ui:OobeGrabAndMove",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeGrabAndMove.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeImageResizer",
+      "nodeId": "ui:OobeImageResizer",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeImageResizer.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeKBM",
+      "nodeId": "ui:OobeKBM",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeKBM.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeLightSwitch",
+      "nodeId": "ui:OobeLightSwitch",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeLightSwitch.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeMeasureTool",
+      "nodeId": "ui:OobeMeasureTool",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeMeasureTool.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeMouseUtils",
+      "nodeId": "ui:OobeMouseUtils",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeMouseUtils.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeMouseWithoutBorders",
+      "nodeId": "ui:OobeMouseWithoutBorders",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeMouseWithoutBorders.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeNewPlus",
+      "nodeId": "ui:OobeNewPlus",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeNewPlus.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobePeek",
+      "nodeId": "ui:OobePeek",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobePeek.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobePowerAccent",
+      "nodeId": "ui:OobePowerAccent",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobePowerAccent.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobePowerOCR",
+      "nodeId": "ui:OobePowerOCR",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobePowerOCR.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobePowerRename",
+      "nodeId": "ui:OobePowerRename",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobePowerRename.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeWorkspaces",
+      "nodeId": "ui:OobeWorkspaces",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeWorkspaces.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OobeZoomIt",
+      "nodeId": "ui:OobeZoomIt",
+      "project": "PowerToys.Settings",
+      "score": 0.018,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\OOBE\\Views\\OobeZoomIt.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "App",
+      "nodeId": "ui:App",
+      "project": "AdvancedPaste",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\App.xaml.cs:115"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] PromptBox.CancelPasteActionAsync",
+      "nodeId": "ui:PromptBox.CancelPasteActionAsync",
+      "target": "OptionsViewModel.CancelPasteActionAsync",
+      "project": "AdvancedPaste",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\Controls\\PromptBox.xaml.cs:103"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FrmAbout",
+      "nodeId": "ui:FrmAbout",
+      "project": "MouseWithoutBorders",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Form\\frmAbout.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DevRibbon",
+      "nodeId": "ui:DevRibbon",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\DevRibbon.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "AppearancePage",
+      "nodeId": "ui:AppearancePage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\AppearancePage.xaml.cs:24"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MainView",
+      "nodeId": "ui:MainView",
+      "project": "ColorPickerUI",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\Views\\MainView.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] InputViewModel.DownloadModelAsync",
+      "nodeId": "ui:InputViewModel.DownloadModelAsync",
+      "project": "ImageResizerUI",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\InputViewModel.cs:176"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DriveControl",
+      "nodeId": "ui:DriveControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\DriveControl.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "TitleBar",
+      "nodeId": "ui:TitleBar",
+      "project": "Peek.UI",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.UI\\PeekXAML\\Views\\TitleBar.xaml.cs:29"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MonacoEditorControl",
+      "nodeId": "ui:MonacoEditorControl",
+      "project": "RegistryPreviewUILib",
+      "score": 0.013,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\registrypreview\\RegistryPreviewUILib\\Controls\\MonacoEditor\\MonacoEditorControl.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] OptionsViewModel.PasteCustomAsync",
+      "nodeId": "ui:OptionsViewModel.PasteCustomAsync",
+      "project": "AdvancedPaste",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\ViewModels\\OptionsViewModel.cs:622"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] OptionsViewModel.OpenSettings",
+      "nodeId": "ui:OptionsViewModel.OpenSettings",
+      "project": "AdvancedPaste",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\ViewModels\\OptionsViewModel.cs:664"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.EndTask",
+      "nodeId": "ui:MainViewModel.EndTask",
+      "project": "FileLocksmithUI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\FileLocksmith\\FileLocksmithUI\\ViewModels\\MainViewModel.cs:148"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.ClearFilters",
+      "nodeId": "ui:MainViewModel.ClearFilters",
+      "project": "HostsUILib",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:256"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShortcutItemView",
+      "nodeId": "ui:ShortcutItemView",
+      "project": "ShortcutGuide.Ui",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\ShortcutGuide\\ShortcutGuide.Ui\\ShortcutGuideXAML\\Controls\\ShortcutItemView.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OverlayWindow",
+      "nodeId": "ui:OverlayWindow",
+      "project": "WorkspacesEditor",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Workspaces\\WorkspacesEditor\\OverlayWindow.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] AppearanceSettingsViewModel.ResetAppearanceSettings",
+      "nodeId": "ui:AppearanceSettingsViewModel.ResetAppearanceSettings",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\AppearanceSettingsViewModel.cs:508"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorPalette",
+      "nodeId": "ui:ColorPalette",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ColorPalette.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PinToDockDialogContent",
+      "nodeId": "ui:PinToDockDialogContent",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Dock\\PinToDockDialogContent.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ContentPage",
+      "nodeId": "ui:ContentPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\ContentPage.xaml.cs:18"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ExtensionPage",
+      "nodeId": "ui:ExtensionPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Settings\\ExtensionPage.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleMarkdownDetails",
+      "nodeId": "ui:SampleMarkdownDetails",
+      "project": "SamplePagesExtension",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleMarkdownDetails.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleMarkdownImagesPage",
+      "nodeId": "ui:SampleMarkdownImagesPage",
+      "project": "SamplePagesExtension",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleMarkdownImagesPage.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "LayoutOverlayWindow",
+      "nodeId": "ui:LayoutOverlayWindow",
+      "project": "FancyZonesEditor",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\editor\\FancyZonesEditor\\LayoutOverlayWindow.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ProgressPage",
+      "nodeId": "ui:ProgressPage",
+      "project": "ImageResizerUI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ImageResizerXAML\\Views\\ProgressPage.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "KeyDropDownButton",
+      "nodeId": "ui:KeyDropDownButton",
+      "project": "KeyboardManagerEditorUI",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\keyboardmanager\\KeyboardManagerEditorUI\\Controls\\KeyDropDownButton.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShellPreviewHandlerControl",
+      "nodeId": "ui:ShellPreviewHandlerControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\ShellPreviewHandlerControl.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.RefreshAsync",
+      "nodeId": "ui:MainViewModel.RefreshAsync",
+      "project": "PowerDisplay",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MainViewModel.cs:302"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ModuleList",
+      "nodeId": "ui:ModuleList",
+      "project": "Settings.UI.Controls",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI.Controls\\ModuleList\\ModuleList.xaml.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "Card",
+      "nodeId": "ui:Card",
+      "project": "Settings.UI.Controls",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI.Controls\\Primitives\\Card.xaml.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CheckUpdateControl",
+      "nodeId": "ui:CheckUpdateControl",
+      "project": "PowerToys.Settings",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\Dashboard\\CheckUpdateControl.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SettingsPageControl",
+      "nodeId": "ui:SettingsPageControl",
+      "project": "PowerToys.Settings",
+      "score": 0.009,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\SettingsPageControl\\SettingsPageControl.xaml.cs:13"
+    },
+    {
+      "kind": "HostedService",
+      "title": "Worker",
+      "nodeId": "worker:Worker",
+      "project": "MouseWithoutBordersService",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\MouseWithoutBorders\\App\\Service\\Program.cs:50"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ClipboardHistoryItemPreviewControl",
+      "nodeId": "ui:ClipboardHistoryItemPreviewControl",
+      "project": "AdvancedPaste",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\AdvancedPasteXAML\\Controls\\ClipboardHistoryItemPreviewControl.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] OptionsViewModel.PreviousCustomFormat",
+      "nodeId": "ui:OptionsViewModel.PreviousCustomFormat",
+      "project": "AdvancedPaste",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\ViewModels\\OptionsViewModel.cs:644"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] OptionsViewModel.NextCustomFormat",
+      "nodeId": "ui:OptionsViewModel.NextCustomFormat",
+      "project": "AdvancedPaste",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\AdvancedPaste\\AdvancedPaste\\ViewModels\\OptionsViewModel.cs:654"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.RestartElevated",
+      "nodeId": "ui:MainViewModel.RestartElevated",
+      "project": "FileLocksmithUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\FileLocksmith\\FileLocksmithUI\\ViewModels\\MainViewModel.cs:170"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.ApplyFilters",
+      "nodeId": "ui:MainViewModel.ApplyFilters",
+      "project": "HostsUILib",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:219"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MainViewModel.OpenSettings",
+      "nodeId": "ui:MainViewModel.OpenSettings",
+      "project": "HostsUILib",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\Hosts\\HostsUILib\\ViewModels\\MainViewModel.cs:275"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "TaskbarIndicator",
+      "nodeId": "ui:TaskbarIndicator",
+      "project": "ShortcutGuide.Ui",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\ShortcutGuide\\ShortcutGuide.Ui\\ShortcutGuideXAML\\Controls\\TaskbarIndicator.xaml.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShortcutsPage",
+      "nodeId": "ui:ShortcutsPage",
+      "project": "ShortcutGuide.Ui",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\ShortcutGuide\\ShortcutGuide.Ui\\ShortcutGuideXAML\\Pages\\ShortcutsPage.xaml.cs:24"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] AppearanceSettingsViewModel.ResetBackgroundImageProperties",
+      "nodeId": "ui:AppearanceSettingsViewModel.ResetBackgroundImageProperties",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\AppearanceSettingsViewModel.cs:498"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "NewExtensionPage",
+      "nodeId": "ui:NewExtensionPage",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Commands\\NewExtensionPage.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ContentPageViewModel.InvokePrimaryCommand",
+      "nodeId": "ui:ContentPageViewModel.InvokePrimaryCommand",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ContentPageViewModel.cs:296"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ContentPageViewModel.InvokeSecondaryCommand",
+      "nodeId": "ui:ContentPageViewModel.InvokeSecondaryCommand",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ContentPageViewModel.cs:306"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DockAppearanceSettingsViewModel.ResetBackgroundImageProperties",
+      "nodeId": "ui:DockAppearanceSettingsViewModel.ResetBackgroundImageProperties",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\DockAppearanceSettingsViewModel.cs:323"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.OpenHomepage",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.OpenHomepage",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:318"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.OpenAuthorPage",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.OpenAuthorPage",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:327"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.InstallViaStore",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.InstallViaStore",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:336"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.OpenInstallUrl",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.OpenInstallUrl",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:345"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.OpenInstalledApps",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.OpenInstalledApps",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:354"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryItemViewModel.CopyWinGetInstall",
+      "nodeId": "ui:ExtensionGalleryItemViewModel.CopyWinGetInstall",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryItemViewModel.cs:360"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryViewModel.SortByFeatured",
+      "nodeId": "ui:ExtensionGalleryViewModel.SortByFeatured",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryViewModel.cs:195"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryViewModel.SortByName",
+      "nodeId": "ui:ExtensionGalleryViewModel.SortByName",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryViewModel.cs:201"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryViewModel.SortByAuthor",
+      "nodeId": "ui:ExtensionGalleryViewModel.SortByAuthor",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryViewModel.cs:207"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ExtensionGalleryViewModel.SortByInstallationStatus",
+      "nodeId": "ui:ExtensionGalleryViewModel.SortByInstallationStatus",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\Gallery\\ExtensionGalleryViewModel.cs:213"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ListViewModel.InvokeItem",
+      "nodeId": "ui:ListViewModel.InvokeItem",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ListViewModel.cs:766"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] ListViewModel.InvokeSecondaryCommand",
+      "nodeId": "ui:ListViewModel.InvokeSecondaryCommand",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ListViewModel.cs:782"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] CommandParameterRunViewModel.Invoke",
+      "nodeId": "ui:CommandParameterRunViewModel.Invoke",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\ParametersViewModels.cs:508"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] SettingsExtensionsViewModel.OpenStoreWithExtension",
+      "nodeId": "ui:SettingsExtensionsViewModel.OpenStoreWithExtension",
+      "project": "Microsoft.CmdPal.UI.ViewModels",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI.ViewModels\\SettingsExtensionsViewModel.cs:129"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CmdPalMainControl",
+      "nodeId": "ui:CmdPalMainControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\CmdPalMainControl.xaml.cs:21"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CommandPalettePreview",
+      "nodeId": "ui:CommandPalettePreview",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\CommandPalettePreview.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FallbackRanker",
+      "nodeId": "ui:FallbackRanker",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\FallbackRanker.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FallbackRankerDialog",
+      "nodeId": "ui:FallbackRankerDialog",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\FallbackRankerDialog.xaml.cs:22"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ShortcutDialogContentControl",
+      "nodeId": "ui:ShortcutDialogContentControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\ShortcutControl\\ShortcutDialogContentControl.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "WinGetOperationsButton",
+      "nodeId": "ui:WinGetOperationsButton",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Controls\\WinGetOperationsButton.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DockContentControl",
+      "nodeId": "ui:DockContentControl",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Dock\\DockContentControl.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ListPage",
+      "nodeId": "ui:ListPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\ListPage.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ParametersPage",
+      "nodeId": "ui:ParametersPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ExtViews\\ParametersPage.xaml.cs:19"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "LoadingPage",
+      "nodeId": "ui:LoadingPage",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\Pages\\LoadingPage.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DevRibbonViewModel.OpenLogFileAsync",
+      "nodeId": "ui:DevRibbonViewModel.OpenLogFileAsync",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ViewModels\\DevRibbonViewModel.cs:76"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DevRibbonViewModel.OpenLogFolderAsync",
+      "nodeId": "ui:DevRibbonViewModel.OpenLogFolderAsync",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ViewModels\\DevRibbonViewModel.cs:86"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DevRibbonViewModel.ResetErrorCounters",
+      "nodeId": "ui:DevRibbonViewModel.ResetErrorCounters",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ViewModels\\DevRibbonViewModel.cs:96"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DevRibbonViewModel.OpenInternalTools",
+      "nodeId": "ui:DevRibbonViewModel.OpenInternalTools",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ViewModels\\DevRibbonViewModel.cs:104"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] DevRibbonViewModel.ToggleDevRibbonVisibility",
+      "nodeId": "ui:DevRibbonViewModel.ToggleDevRibbonVisibility",
+      "project": "Microsoft.CmdPal.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\Microsoft.CmdPal.UI\\ViewModels\\DevRibbonViewModel.cs:110"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "AddBookmarkPage",
+      "nodeId": "ui:AddBookmarkPage",
+      "project": "Microsoft.CmdPal.Ext.Bookmarks",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\Microsoft.CmdPal.Ext.Bookmark\\Pages\\AddBookmarkPage.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OnLoadBasePage",
+      "nodeId": "ui:OnLoadBasePage",
+      "project": "Microsoft.CmdPal.Ext.PerformanceMonitor",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\Microsoft.CmdPal.Ext.PerformanceMonitor\\OnLoadStaticPage.cs:72"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PerformanceMonitorDisabledPage",
+      "nodeId": "ui:PerformanceMonitorDisabledPage",
+      "project": "Microsoft.CmdPal.Ext.PerformanceMonitor",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\Microsoft.CmdPal.Ext.PerformanceMonitor\\PerformanceMonitorDisabledPage.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleCommentsPage",
+      "nodeId": "ui:SampleCommentsPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleCommentsPage.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleContentPage",
+      "nodeId": "ui:SampleContentPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleContentPage.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SamplePlainTextContentPage",
+      "nodeId": "ui:SamplePlainTextContentPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleContentPage.cs:42"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleImageContentPage",
+      "nodeId": "ui:SampleImageContentPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleContentPage.cs:81"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleTreeContentPage",
+      "nodeId": "ui:SampleTreeContentPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleContentPage.cs:373"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleMarkdownManyBodies",
+      "nodeId": "ui:SampleMarkdownManyBodies",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleMarkdownManyBodies.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleMarkdownPage",
+      "nodeId": "ui:SampleMarkdownPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleMarkdownPage.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SampleSettingsPage",
+      "nodeId": "ui:SampleSettingsPage",
+      "project": "SamplePagesExtension",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\ext\\SamplePagesExtension\\Pages\\SampleSettingsPage.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SettingsContentPage",
+      "nodeId": "ui:SettingsContentPage",
+      "project": "Microsoft.CommandPalette.Extensions.Toolkit",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\cmdpal\\extensionsdk\\Microsoft.CommandPalette.Extensions.Toolkit\\Settings.cs:110"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ZoomView",
+      "nodeId": "ui:ZoomView",
+      "project": "ColorPickerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\Views\\ZoomView.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ZoomWindow",
+      "nodeId": "ui:ZoomWindow",
+      "project": "ColorPickerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\colorPicker\\ColorPickerUI\\ZoomWindow.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ResultsPage",
+      "nodeId": "ui:ResultsPage",
+      "project": "ImageResizerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ImageResizerXAML\\Views\\ResultsPage.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] InputViewModel.EnterKeyPressed",
+      "nodeId": "ui:InputViewModel.EnterKeyPressed",
+      "project": "ImageResizerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\InputViewModel.cs:152"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] InputViewModel.OpenSettings",
+      "nodeId": "ui:InputViewModel.OpenSettings",
+      "project": "ImageResizerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\ViewModels\\InputViewModel.cs:170"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "LauncherControl",
+      "nodeId": "ui:LauncherControl",
+      "project": "PowerLauncher",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\launcher\\PowerLauncher\\LauncherControl.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ArchiveControl",
+      "nodeId": "ui:ArchiveControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\ArchiveControl.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "AudioControl",
+      "nodeId": "ui:AudioControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\AudioControl.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SpecialFolderInformationalPreviewControl",
+      "nodeId": "ui:SpecialFolderInformationalPreviewControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\SpecialFolderPreview\\SpecialFolderInformationalPreviewControl.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SpecialFolderPreview",
+      "nodeId": "ui:SpecialFolderPreview",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\SpecialFolderPreview\\SpecialFolderPreview.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FailedFallbackPreviewControl",
+      "nodeId": "ui:FailedFallbackPreviewControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\UnsupportedFilePreview\\FailedFallbackPreviewControl.xaml.cs:9"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "InformationalPreviewControl",
+      "nodeId": "ui:InformationalPreviewControl",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\UnsupportedFilePreview\\InformationalPreviewControl.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "UnsupportedFilePreview",
+      "nodeId": "ui:UnsupportedFilePreview",
+      "project": "Peek.FilePreviewer",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.FilePreviewer\\Controls\\UnsupportedFilePreview\\UnsupportedFilePreview.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] TitleBar.LaunchDefaultAppButtonAsync",
+      "nodeId": "ui:TitleBar.LaunchDefaultAppButtonAsync",
+      "project": "Peek.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.UI\\PeekXAML\\Views\\TitleBar.xaml.cs:136"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] TitleBar.Pin",
+      "nodeId": "ui:TitleBar.Pin",
+      "project": "Peek.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\peek\\Peek.UI\\PeekXAML\\Views\\TitleBar.xaml.cs:185"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SelectorControl",
+      "nodeId": "ui:SelectorControl",
+      "project": "PowerAccent.UI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\poweraccent\\PowerAccent.UI\\PowerAccentXAML\\SelectorControl.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MonitorIcon",
+      "nodeId": "ui:MonitorIcon",
+      "project": "PowerDisplay",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\PowerDisplayXAML\\MonitorIcon.xaml.cs:10"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MonitorViewModel.SetBrightness",
+      "nodeId": "ui:MonitorViewModel.SetBrightness",
+      "project": "PowerDisplay",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MonitorViewModel.cs:839"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MonitorViewModel.SetContrast",
+      "nodeId": "ui:MonitorViewModel.SetContrast",
+      "project": "PowerDisplay",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MonitorViewModel.cs:848"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "[RelayCommand] MonitorViewModel.SetVolume",
+      "nodeId": "ui:MonitorViewModel.SetVolume",
+      "project": "PowerDisplay",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay\\ViewModels\\MonitorViewModel.cs:857"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "FormHandlerControl",
+      "nodeId": "ui:FormHandlerControl",
+      "project": "PreviewHandlerCommon",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\previewpane\\common\\controls\\FormHandlerControl.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "QuickAccessList",
+      "nodeId": "ui:QuickAccessList",
+      "project": "Settings.UI.Controls",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI.Controls\\QuickAccess\\QuickAccessList.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OOBEPageControl",
+      "nodeId": "ui:OOBEPageControl",
+      "project": "PowerToys.Settings",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\OOBEPageControl.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PowerAccentShortcutControl",
+      "nodeId": "ui:PowerAccentShortcutControl",
+      "project": "PowerToys.Settings",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Controls\\PowerAccentShortcutControl.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PowerDisplayWarningDialog",
+      "nodeId": "ui:PowerDisplayWarningDialog",
+      "project": "PowerToys.Settings",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Views\\PowerDisplayWarningDialog.xaml.cs:20"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ProfileEditorDialog",
+      "nodeId": "ui:ProfileEditorDialog",
+      "project": "PowerToys.Settings",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI\\SettingsXAML\\Views\\ProfileEditorDialog.xaml.cs:21"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "BaseCommand \u2014settings object",
+      "nodeId": "cli:BaseCommand",
+      "project": "PowerToys.DSC",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\dsc\\v3\\PowerToys.DSC\\Commands\\BaseCommand.cs:22"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "FancyZonesBaseCommand \u2014settings object",
+      "nodeId": "cli:FancyZonesBaseCommand",
+      "project": "FancyZonesCLI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\fancyzones\\FancyZonesCLI\\CommandLine\\Commands\\FancyZonesBaseCommand.cs:16"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "ImageResizerRootCommand \u2014settings object",
+      "nodeId": "cli:ImageResizerRootCommand",
+      "project": "ImageResizerUI",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\imageresizer\\ui\\Cli\\Commands\\ImageResizerRootCommand.cs:14"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "PowerDisplayRootCommand \u2014settings object",
+      "nodeId": "cli:PowerDisplayRootCommand",
+      "project": "PowerDisplay.Cli",
+      "score": 0.004,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\modules\\powerdisplay\\PowerDisplay.Cli\\Commands\\PowerDisplayRootCommand.cs:18"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "Settings.UI.XamlIndexBuilder (Main)",
+      "nodeId": "cli:Settings.UI.XamlIndexBuilder",
+      "project": "Settings.UI.XamlIndexBuilder",
+      "score": 0,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\PowerToys\\src\\settings-ui\\Settings.UI.XamlIndexBuilder\\Program.cs:35"
+    }
+  ]
+}

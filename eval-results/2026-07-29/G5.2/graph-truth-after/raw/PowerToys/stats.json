@@ -1,0 +1,160 @@
+﻿{
+  "snapshotCache": "HIT \u00B7 5c9c93d",
+  "nodeCount": 8487,
+  "edgeCount": 6514,
+  "entryCount": 243,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 23,
+  "entriesWithDeepSpine": 242,
+  "deepSpineRatio": 0.9958847736625515,
+  "entriesByKind": {
+    "UiEntry": 237,
+    "CliCommand": 5,
+    "HostedService": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 6350,
+      "verified": 1851,
+      "approx": 4499
+    },
+    {
+      "kind": "Resolves",
+      "total": 164,
+      "verified": 72,
+      "approx": 92
+    }
+  ],
+  "totalWallMs": 24819,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 1173
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 5844
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 1
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 5286
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 8271
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1172
+    },
+    {
+      "stage": "Insights",
+      "ms": 191
+    },
+    {
+      "stage": "Compression",
+      "ms": 594
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 352
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: Common.UI (33 dependents) \u00B7 PowerToys.Interop (28 dependents) \u00B7 ManagedCommon (27 dependents)",
+      "evidence": [
+        "Common.UI (33 dependents)",
+        "PowerToys.Interop (28 dependents)",
+        "ManagedCommon (27 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: ICommandProvider (14 impls) \u00B7 IUserSettings (2 impls) \u00B7 IExtensionService (2 impls)",
+      "evidence": [
+        "ICommandProvider (14 impls)",
+        "IUserSettings (2 impls)",
+        "IExtensionService (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "desktop.command-inventory",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Command inventory: 174 ICommand implementations",
+      "evidence": [
+        "CopyTextCommand",
+        "ReactivatePerformanceMonitorCommand",
+        "ToggleFindMyMouseCommand",
+        "CropAndLockThumbnailCommand",
+        "OpenWorkspaceEditorCommand"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "ICommand interface detection \u002B naming convention \u2014 reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 23/243 (9%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "desktop.module-map",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Module map: 8 feature areas",
+      "evidence": [
+        "Controls (37 entries)",
+        "Microsoft/PowerToys/Settings/UI/OOBE/Views (32 entries)",
+        "ViewModels (24 entries)",
+        "MouseWithoutBorders (13 entries)",
+        "Microsoft.CmdPal.UI.ViewModels (13 entries)",
+        "Gallery (12 entries)",
+        "Microsoft/PowerToys/Settings/UI/Controls (12 entries)",
+        "SamplePagesExtension (9 entries)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "GroupPath is namespace-derived \u2014 consider D9 feature classification for better grouping"
+    },
+    {
+      "id": "desktop.vm-view-wiring",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "ViewModel-View: 147 VMs \u002B 220 Views (15 call edges)",
+      "evidence": [
+        "147 ViewModels",
+        "220 Views"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Naming-convention detection \u2014 some VMs/Views may not follow naming patterns"
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 237 UI \u00B7 1 hosted",
+      "evidence": [
+        "237 UI",
+        "1 hosted"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

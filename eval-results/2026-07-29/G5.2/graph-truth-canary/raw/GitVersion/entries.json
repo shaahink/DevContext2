@@ -1,0 +1,52 @@
+﻿{
+  "count": 5,
+  "byKind": {
+    "CliCommand": 5
+  },
+  "entries": [
+    {
+      "kind": "CliCommand",
+      "title": "calculate (CalculateCommand)",
+      "nodeId": "cli:CalculateCommand",
+      "target": "Service.Call",
+      "project": "GitVersion.Calculation",
+      "score": 0.5,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.Calculation\\CalculateCommand.cs:9"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "config (ConfigCommand)",
+      "nodeId": "cli:ConfigCommand",
+      "target": "Service.Call",
+      "project": "GitVersion.Configuration",
+      "score": 0.42,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.Configuration\\ConfigCommand.cs:8"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "normalize (NormalizeCommand)",
+      "nodeId": "cli:NormalizeCommand",
+      "target": "Service.Call",
+      "project": "GitVersion.Normalization",
+      "score": 0.42,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.Normalization\\NormalizeCommand.cs:8"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "output (OutputCommand)",
+      "nodeId": "cli:OutputCommand",
+      "target": "Service.Call",
+      "project": "GitVersion.Output",
+      "score": 0.42,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.Output\\OutputCommand.cs:6"
+    },
+    {
+      "kind": "CliCommand",
+      "title": "test (TestCommand)",
+      "nodeId": "cli:TestCommand",
+      "project": "GitVersion.Cli",
+      "score": 0.08,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.Cli\\TestCommand.cs:5"
+    }
+  ]
+}

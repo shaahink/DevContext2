@@ -1,0 +1,90 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-29T14:09:11.2425723+00:00",
+  "archetype": "Library",
+  "architectureStyle": "NotApplicable",
+  "styleConfidence": 0,
+  "projectCount": 26,
+  "projectNames": [
+    "CommunityToolkit.Common",
+    "CommunityToolkit.Common.UnitTests",
+    "CommunityToolkit.Diagnostics",
+    "CommunityToolkit.Diagnostics.UnitTests",
+    "CommunityToolkit.HighPerformance",
+    "CommunityToolkit.HighPerformance.UnitTests",
+    "CommunityToolkit.Mvvm",
+    "CommunityToolkit.Mvvm.CodeFixers.Roslyn4001",
+    "CommunityToolkit.Mvvm.CodeFixers.Roslyn4120",
+    "CommunityToolkit.Mvvm.CodeFixers.Roslyn5000",
+    "CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests",
+    "CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4001",
+    "CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4031",
+    "CommunityToolkit.Mvvm.Internals.UnitTests",
+    "CommunityToolkit.Mvvm.Roslyn4001.UnitTests",
+    "CommunityToolkit.Mvvm.Roslyn4031.UnitTests",
+    "CommunityToolkit.Mvvm.Roslyn4120.UnitTests",
+    "CommunityToolkit.Mvvm.Roslyn5000.UnitTests",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001.UnitTests",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031.UnitTests",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120.UnitTests",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000",
+    "CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000.UnitTests"
+  ],
+  "typeCount": 570,
+  "topologyProjectCount": 13,
+  "graphNodeCount": 462,
+  "graphEdgeCount": 265,
+  "signals": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 18 interfaces, 107 classes (157 total public types)",
+      "detail": "",
+      "evidence": [
+        "18 interfaces",
+        "107 classes"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: CommunityToolkit.Mvvm (12 dependents) \u00B7 CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001 (4 dependents) \u00B7 CommunityToolkit.Mvvm.CodeFixers.Roslyn4120 (4 dependents)",
+      "detail": "",
+      "evidence": [
+        "CommunityToolkit.Mvvm (12 dependents)",
+        "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001 (4 dependents)",
+        "CommunityToolkit.Mvvm.CodeFixers.Roslyn4120 (4 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ImmutableArrayBuilder (36) \u00B7 AnalysisContext (16) \u00B7 Dictionary2 (14) \u00B7 CompilationStartAnalysisContext (14) \u00B7 SymbolAnalysisContext (14)",
+      "detail": "",
+      "evidence": [
+        "ImmutableArrayBuilder (36)",
+        "AnalysisContext (16)",
+        "Dictionary2 (14)",
+        "CompilationStartAnalysisContext (14)",
+        "SymbolAnalysisContext (14)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "dotnet.slnx",
+    "analyzedName": "dotnet",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\dotnet.slnx",
+    "solutionsOnDisk": 1,
+    "others": [],
+    "requested": false,
+    "partial": false,
+    "note": "analyzed dotnet"
+  }
+}

@@ -1,0 +1,130 @@
+﻿{
+  "snapshotCache": "HIT \u00B7 72099e3",
+  "nodeCount": 475,
+  "edgeCount": 176,
+  "entryCount": 25,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 25,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "UiEntry": 25
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 164,
+      "verified": 101,
+      "approx": 63
+    },
+    {
+      "kind": "Resolves",
+      "total": 12,
+      "verified": 0,
+      "approx": 12
+    }
+  ],
+  "totalWallMs": 5338,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 170
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 691
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 1
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 679
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 2546
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 243
+    },
+    {
+      "stage": "Insights",
+      "ms": 111
+    },
+    {
+      "stage": "Compression",
+      "ms": 123
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 93
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "desktop.command-inventory",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Command inventory: 6 ICommand implementations",
+      "evidence": [
+        "ShowAboutCommand",
+        "DropDownButton",
+        "SimpleCommand",
+        "SplitButton",
+        "ToggleSwitch"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "ICommand interface detection \u002B naming convention \u2014 reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/25 (0%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "desktop.module-map",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Module map: 3 feature areas",
+      "evidence": [
+        "MetroDemo/ExampleViews (18 entries)",
+        "MetroDemo (5 entries)",
+        "MetroDemo/Navigation (2 entries)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "GroupPath is namespace-derived \u2014 consider D9 feature classification for better grouping"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: MahApps.Metro (2 dependents) \u00B7 MahApps.Metro (1 dependents)",
+      "evidence": [
+        "MahApps.Metro (2 dependents)",
+        "MahApps.Metro (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: MetroWindow (40) \u00B7 ProgressDialog (11) \u00B7 MathConverter (8) \u00B7 IDialogCoordinator (7)",
+      "evidence": [
+        "MetroWindow (40)",
+        "ProgressDialog (11)",
+        "MathConverter (8)",
+        "IDialogCoordinator (7)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

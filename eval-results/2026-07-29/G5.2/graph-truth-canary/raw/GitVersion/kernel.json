@@ -1,0 +1,157 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-29T13:57:25.3157029+00:00",
+  "archetype": "CliTool",
+  "architectureStyle": "NotApplicable",
+  "styleConfidence": 0,
+  "projectCount": 36,
+  "projectNames": [
+    "app",
+    "artifacts",
+    "build",
+    "common",
+    "config",
+    "docker",
+    "docs",
+    "GitVersion.App",
+    "GitVersion.App.Tests",
+    "GitVersion.BuildAgents",
+    "GitVersion.BuildAgents.Tests",
+    "GitVersion.Calculation",
+    "GitVersion.Cli",
+    "GitVersion.Cli.Generator",
+    "GitVersion.Cli.Generator.Tests",
+    "GitVersion.Common",
+    "GitVersion.Common.Command",
+    "GitVersion.Configuration",
+    "GitVersion.Configuration",
+    "GitVersion.Configuration.Tests",
+    "GitVersion.Core",
+    "GitVersion.Core",
+    "GitVersion.Core.Libgit2Sharp",
+    "GitVersion.Core.Tester",
+    "GitVersion.Core.Tests",
+    "GitVersion.LibGit2Sharp",
+    "GitVersion.MsBuild",
+    "GitVersion.MsBuild.Tests",
+    "GitVersion.Normalization",
+    "GitVersion.Output",
+    "GitVersion.Output",
+    "GitVersion.Output.Tests",
+    "GitVersion.Schema",
+    "GitVersion.Testing",
+    "publish",
+    "release"
+  ],
+  "typeCount": 684,
+  "entryCount": 5,
+  "topologyProjectCount": 14,
+  "graphNodeCount": 77,
+  "graphEdgeCount": 28,
+  "signals": [
+    {
+      "key": "cli-commands",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "polly",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: GitVersion.Core (16 dependents) \u00B7 GitVersion.Configuration (8 dependents) \u00B7 GitVersion.Output (7 dependents)",
+      "detail": "",
+      "evidence": [
+        "GitVersion.Core (16 dependents)",
+        "GitVersion.Configuration (8 dependents)",
+        "GitVersion.Output (7 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) \u00B7 IEnvironment (2 impls) \u00B7 ILog (2 impls)",
+      "detail": "",
+      "evidence": [
+        "IDeploymentModeCalculator (3 impls)",
+        "IEnvironment (2 impls)",
+        "ILog (2 impls)"
+      ]
+    },
+    {
+      "id": "cli.command-tree",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Command tree: 5 CLI commands, 5 top-level groups",
+      "detail": "",
+      "evidence": [
+        "calculate (1 commands)",
+        "config (1 commands)",
+        "normalize (1 commands)",
+        "output (1 commands)",
+        "test (1 commands)"
+      ]
+    },
+    {
+      "id": "cli.parameter-inventory",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Parameter inventory: ~0.8 params per command (avg)",
+      "detail": "",
+      "evidence": [
+        "5 commands"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 4/5 (80%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 122 Singleton \u00B7 26 Extension (148 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: IService (10)",
+      "detail": "",
+      "evidence": [
+        "IService (10)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "new-cli/GitVersion.slnx",
+    "analyzedName": "GitVersion",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\GitVersion\\new-cli\\GitVersion.slnx",
+    "solutionsOnDisk": 3,
+    "others": [
+      "build/CI.slnx",
+      "src/GitVersion.slnx"
+    ],
+    "requested": true,
+    "partial": true,
+    "note": "analyzed new-cli/GitVersion.slnx \u2014 1 of 3 solutions in this repo"
+  }
+}

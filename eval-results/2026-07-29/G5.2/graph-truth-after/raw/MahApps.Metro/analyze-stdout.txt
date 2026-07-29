@@ -1,0 +1,15 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G5.2\graph-truth-after\raw\MahApps.M
+etro\kernel.json
+analyzed 330 files ú 0 types kept of 338 ú 651/8000 tokens ú 5.3s stage2 x2.9 
+stage3 x1.8
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³    MahApps.Metro     ³
+³   Time   ³        5717ms        ³
+³  Tokens  ³  ~651 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.350 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

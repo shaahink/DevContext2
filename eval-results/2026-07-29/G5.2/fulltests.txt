@@ -1,0 +1,44 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DevContext.Core -> C:\code\DevContext2\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll
+  DevContext.Contracts -> C:\code\DevContext2\src\DevContext.Contracts\bin\Debug\net10.0\DevContext.Contracts.dll
+  DevContext.Mcp -> C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.dll
+  DevContext.Core.Tests -> C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  DevContext.Cli -> C:\code\DevContext2\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.dll
+  DevContext.Server -> C:\code\DevContext2\src\DevContext.Server\bin\Debug\net10.0\DevContext.Server.dll
+[xUnit.net 00:00:03.18]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+[xUnit.net 00:00:03.76]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  DevContext.Server.Tests -> C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+dotnet : [xUnit.net 00:00:13.58]     DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [FAIL]
+At line:1 char:25
++ ... evContext2; dotnet test DevContext.slnx --filter 'Category!=Eval' 2>& ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0..._Dogfood [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [12 s]
+  Error Message:
+   The harness never reached scoring.
+exit 1
+--- stderr ---
+FAILED: Could not analyze repo
+
+--- stdout ---
+DevContext MCP QA Harness (M4 post-gate)
+Repo: C:/Users/shahi/source/repos/run-aspnetcore-microservices/src
+MCP:  C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+
+
+  Stack Trace:
+     at DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood() in C:\code\DevContext2\tests\DevContext.Core.Tests\McpQaGateTests.cs:line 57
+--- End of stack trace from previous location ---
+
+Passed!  - Failed:     0, Passed:   104, Skipped:     0, Total:   104, Duration: 8 s - DevContext.Server.Tests.dll (net10.0)
+
+Failed!  - Failed:     1, Passed:   713, Skipped:     2, Total:   716, Duration: 17 s - DevContext.Core.Tests.dll (net10.0)

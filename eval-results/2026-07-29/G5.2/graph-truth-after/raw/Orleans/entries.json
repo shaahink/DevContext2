@@ -1,0 +1,653 @@
+﻿{
+  "count": 66,
+  "byKind": {
+    "HttpEndpoint": 39,
+    "GrainMethod": 22,
+    "HostedService": 5
+  },
+  "entries": [
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/load/reset",
+      "nodeId": "POST /api/load/reset",
+      "httpMethod": "POST",
+      "route": "/api/load/reset",
+      "target": "LoadDriver.ResetAsync",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:57"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/metrics/snapshot",
+      "nodeId": "GET /api/metrics/snapshot",
+      "httpMethod": "GET",
+      "route": "/api/metrics/snapshot",
+      "target": "WorkflowMetrics.GetSnapshot",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:64"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /DashboardCounters",
+      "nodeId": "GET /DashboardCounters",
+      "httpMethod": "GET",
+      "route": "/DashboardCounters",
+      "target": "IDashboardClient.DashboardCounters",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:140"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /ClusterStats",
+      "nodeId": "GET /ClusterStats",
+      "httpMethod": "GET",
+      "route": "/ClusterStats",
+      "target": "IDashboardClient.ClusterStats",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:153"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /HistoricalStats/{*path}",
+      "nodeId": "GET /HistoricalStats/{*path}",
+      "httpMethod": "GET",
+      "route": "/HistoricalStats/{*path}",
+      "target": "IDashboardClient.HistoricalStats",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:169"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /SiloProperties/{*address}",
+      "nodeId": "GET /SiloProperties/{*address}",
+      "httpMethod": "GET",
+      "route": "/SiloProperties/{*address}",
+      "target": "IDashboardClient.SiloProperties",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:182"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /SiloMetadata/{*address}",
+      "nodeId": "GET /SiloMetadata/{*address}",
+      "httpMethod": "GET",
+      "route": "/SiloMetadata/{*address}",
+      "target": "IDashboardClient.SiloMetadata",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:195"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /SiloStats/{*address}",
+      "nodeId": "GET /SiloStats/{*address}",
+      "httpMethod": "GET",
+      "route": "/SiloStats/{*address}",
+      "target": "IDashboardClient.SiloStats",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:208"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /SiloCounters/{*address}",
+      "nodeId": "GET /SiloCounters/{*address}",
+      "httpMethod": "GET",
+      "route": "/SiloCounters/{*address}",
+      "target": "IDashboardClient.GetCounters",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:221"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /GrainStats/{*grainName}",
+      "nodeId": "GET /GrainStats/{*grainName}",
+      "httpMethod": "GET",
+      "route": "/GrainStats/{*grainName}",
+      "target": "IDashboardClient.GrainStats",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:234"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /TopGrainMethods",
+      "nodeId": "GET /TopGrainMethods",
+      "httpMethod": "GET",
+      "route": "/TopGrainMethods",
+      "target": "IDashboardClient.TopGrainMethods",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:247"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /GrainState",
+      "nodeId": "GET /GrainState",
+      "httpMethod": "GET",
+      "route": "/GrainState",
+      "target": "IDashboardClient.GetGrainState",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:260"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /LifecycleStages",
+      "nodeId": "GET /LifecycleStages",
+      "httpMethod": "GET",
+      "route": "/LifecycleStages",
+      "target": "IDashboardClient.GetLifecycleStages",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:275"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /GrainTypes",
+      "nodeId": "GET /GrainTypes",
+      "httpMethod": "GET",
+      "route": "/GrainTypes",
+      "target": "IDashboardClient.GetGrainTypes",
+      "project": "Orleans.Dashboard",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:288"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/workflows/start",
+      "nodeId": "POST /api/workflows/start",
+      "httpMethod": "POST",
+      "route": "/api/workflows/start",
+      "target": "LoadSettings.Normalize",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.367,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:71"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/Stats/silos",
+      "nodeId": "GET /api/Stats/silos",
+      "httpMethod": "GET",
+      "route": "/api/Stats/silos",
+      "target": "StatsController",
+      "project": "ActivationRebalancing.Frontend",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRebalancing\\ActivationRebalancing.Frontend\\Controllers\\StatsController.cs:11"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /data.json",
+      "nodeId": "GET /data.json",
+      "httpMethod": "GET",
+      "route": "/data.json",
+      "target": "ClusterDiagnosticsService.GetGrainCallFrequencies",
+      "project": "ActivationRepartitioning.Frontend",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRepartitioning\\ActivationRepartitioning.Frontend\\Program.cs:37"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/load",
+      "nodeId": "GET /api/load",
+      "httpMethod": "GET",
+      "route": "/api/load",
+      "target": "LoadDriver.GetState",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:28"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "PUT /api/load",
+      "nodeId": "PUT /api/load",
+      "httpMethod": "PUT",
+      "route": "/api/load",
+      "target": "LoadDriver.UpdateSettings",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:29"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/load/start",
+      "nodeId": "POST /api/load/start",
+      "httpMethod": "POST",
+      "route": "/api/load/start",
+      "target": "LoadDriver.UpdateSettings",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:30"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/load/stop",
+      "nodeId": "POST /api/load/stop",
+      "httpMethod": "POST",
+      "route": "/api/load/stop",
+      "target": "LoadDriver.Disable",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:47"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/load/drain",
+      "nodeId": "POST /api/load/drain",
+      "httpMethod": "POST",
+      "route": "/api/load/drain",
+      "target": "LoadDriver.DrainAsync",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:52"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/workflows/recent",
+      "nodeId": "GET /api/workflows/recent",
+      "httpMethod": "GET",
+      "route": "/api/workflows/recent",
+      "target": "WorkflowMetrics.GetRecentWorkflows",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:65"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /api/chaos/silo/kill",
+      "nodeId": "POST /api/chaos/silo/kill",
+      "httpMethod": "POST",
+      "route": "/api/chaos/silo/kill",
+      "target": "WorkflowMetrics.RecordChaos",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.267,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:79"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /reset",
+      "nodeId": "POST /reset",
+      "httpMethod": "POST",
+      "route": "/reset",
+      "target": "FanOutGrain",
+      "project": "ActivationRepartitioning.Frontend",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRepartitioning\\ActivationRepartitioning.Frontend\\Program.cs:38"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /add",
+      "nodeId": "POST /add",
+      "httpMethod": "POST",
+      "route": "/add",
+      "target": "FanOutGrain",
+      "project": "ActivationRepartitioning.Frontend",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRepartitioning\\ActivationRepartitioning.Frontend\\Program.cs:42"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/workflows/{workflowId:guid}",
+      "nodeId": "GET /api/workflows/{workflowId:guid}",
+      "httpMethod": "GET",
+      "route": "/api/workflows/{workflowId:guid}",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:66"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /api/chaos/last",
+      "nodeId": "GET /api/chaos/last",
+      "httpMethod": "GET",
+      "route": "/api/chaos/last",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:85"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /",
+      "nodeId": "GET /",
+      "httpMethod": "GET",
+      "route": "/",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:107"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /index.html",
+      "nodeId": "GET /index.html",
+      "httpMethod": "GET",
+      "route": "/index.html",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:117"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /favicon.ico",
+      "nodeId": "GET /favicon.ico",
+      "httpMethod": "GET",
+      "route": "/favicon.ico",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:118"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /index.min.js",
+      "nodeId": "GET /index.min.js",
+      "httpMethod": "GET",
+      "route": "/index.min.js",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:119"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /index.css",
+      "nodeId": "GET /index.css",
+      "httpMethod": "GET",
+      "route": "/index.css",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:120"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /fonts/{**path}",
+      "nodeId": "GET /fonts/{**path}",
+      "httpMethod": "GET",
+      "route": "/fonts/{**path}",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:123"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /img/{**path}",
+      "nodeId": "GET /img/{**path}",
+      "httpMethod": "GET",
+      "route": "/img/{**path}",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:126"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /version",
+      "nodeId": "GET /version",
+      "httpMethod": "GET",
+      "route": "/version",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:136"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /Reminders",
+      "nodeId": "GET /Reminders",
+      "httpMethod": "GET",
+      "route": "/Reminders",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:166"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /Reminders/{page:int}",
+      "nodeId": "GET /Reminders/{page:int}",
+      "httpMethod": "GET",
+      "route": "/Reminders/{page:int}",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:167"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /Trace",
+      "nodeId": "GET /Trace",
+      "httpMethod": "GET",
+      "route": "/Trace",
+      "target": "ServiceCollectionExtensions",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:301"
+    },
+    {
+      "kind": "HostedService",
+      "title": "LoadDriverBackgroundService",
+      "nodeId": "worker:LoadDriverBackgroundService",
+      "project": "ActivationRebalancing.Cluster",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRebalancing\\ActivationRebalancing.Cluster\\Program.cs:30"
+    },
+    {
+      "kind": "HostedService",
+      "title": "ActivationSheddingToyHostedService",
+      "nodeId": "worker:ActivationSheddingToyHostedService",
+      "project": "ActivationSheddingToy",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationSheddingToy\\Program.cs:22"
+    },
+    {
+      "kind": "HostedService",
+      "title": "LoadDriver",
+      "nodeId": "worker:LoadDriver",
+      "project": "DurableJobsJournaling.Web",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Web\\Program.cs:15"
+    },
+    {
+      "kind": "HostedService",
+      "title": "DashboardHost",
+      "nodeId": "worker:DashboardHost",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\ServiceCollectionExtensions.cs:48"
+    },
+    {
+      "kind": "HostedService",
+      "title": "SiloHostedService",
+      "nodeId": "worker:SiloHostedService",
+      "project": "Orleans.Runtime",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Runtime\\Hosting\\DefaultSiloServices.cs:83"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "RebalancingTestGrain : Grain (1 methods: Ping)",
+      "nodeId": "grain:RebalancingTestGrain",
+      "project": "ActivationRebalancing.Cluster",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRebalancing\\ActivationRebalancing.Cluster\\Program.cs:56"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "LoaderGrain : Grain (3 methods: AddForest, Reset, GetResetCount)",
+      "nodeId": "grain:LoaderGrain",
+      "project": "ActivationRepartitioning.Frontend",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRepartitioning\\ActivationRepartitioning.Frontend\\Program.cs:84"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "FanOutGrain : Grain (1 methods: Ping)",
+      "nodeId": "grain:FanOutGrain",
+      "project": "ActivationRepartitioning.Frontend",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationRepartitioning\\ActivationRepartitioning.Frontend\\Program.cs:112"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "ActivationSheddingToyGrain : Grain (1 methods: Ping)",
+      "nodeId": "grain:ActivationSheddingToyGrain",
+      "project": "ActivationSheddingToy",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ActivationSheddingToy\\ActivationSheddingToyHostedService.cs:91"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "MyTestGrain : Grain (1 methods: Ping)",
+      "nodeId": "grain:MyTestGrain",
+      "project": "ChaoticCluster.Silo",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\ChaoticCluster\\ChaoticCluster.Silo\\SiloBuilderConfigurator.cs:20"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "ChaosGrain : Grain (2 methods: TryKillSiloAsync, GetLastResultAsync)",
+      "nodeId": "grain:ChaosGrain",
+      "project": "DurableJobsJournaling.Silo",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Silo\\ChaosGrain.cs:5"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "WorkflowCoordinatorGrain : Grain (5 methods: StartAsync, AwaitCompletionAsync, GetSnapshotAsync)",
+      "nodeId": "grain:WorkflowCoordinatorGrain",
+      "project": "DurableJobsJournaling.Silo",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\playground\\DurableJobsJournaling\\DurableJobsJournaling.Silo\\WorkflowGrains.cs:7"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "DashboardGrain : Grain (10 methods: OnActivateAsync, GetCounters, GetGrainTracing)",
+      "nodeId": "grain:DashboardGrain",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\Implementation\\Grains\\DashboardGrain.cs:23"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "DashboardRemindersGrain : Grain (1 methods: GetReminders)",
+      "nodeId": "grain:DashboardRemindersGrain",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\Implementation\\Grains\\DashboardRemindersGrain.cs:11"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "SiloGrainProxy : Grain (8 methods: SetVersion, ReportCounters, Enable)",
+      "nodeId": "grain:SiloGrainProxy",
+      "project": "Orleans.Dashboard",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Dashboard\\Orleans.Dashboard\\Implementation\\Grains\\SiloGrainProxy.cs:14"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "DurableGrain : Grain",
+      "nodeId": "grain:DurableGrain",
+      "project": "Orleans.Journaling",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Journaling\\DurableGrain.cs:5"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "MemoryStorageGrain : Grain (3 methods: ReadStateAsync, WriteStateAsync, DeleteStateAsync)",
+      "nodeId": "grain:MemoryStorageGrain",
+      "project": "Orleans.Persistence.Memory",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Persistence.Memory\\Storage\\MemoryStorageGrain.cs:14"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "ReminderTableGrain : Grain (8 methods: OnActivateAsync, OnDeactivateAsync, TestOnlyClearTable)",
+      "nodeId": "grain:ReminderTableGrain",
+      "project": "Orleans.Reminders",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Reminders\\ReminderService\\GrainBasedReminderTable.cs:14"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "ManagementGrain : Grain (21 methods: GetHosts, GetDetailedHosts, ForceGarbageCollection)",
+      "nodeId": "grain:ManagementGrain",
+      "project": "Orleans.Runtime",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Runtime\\Core\\ManagementGrain.cs:23"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "DevelopmentLeaseProviderGrain : Grain (4 methods: Acquire, Release, Renew)",
+      "nodeId": "grain:DevelopmentLeaseProviderGrain",
+      "project": "Orleans.Runtime",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Runtime\\Development\\InMemoryLeaseProvider.cs:80"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "ActivationRebalancerWorker : Grain (7 methods: OnActivateAsync, OnDeactivateAsync, OnDehydrate)",
+      "nodeId": "grain:ActivationRebalancerWorker",
+      "project": "Orleans.Runtime",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Runtime\\Placement\\Rebalancing\\ActivationRebalancerWorker.cs:21"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "VersionStoreGrain : Grain (8 methods: SetCompatibilityStrategy, SetSelectorStrategy, SetCompatibilityStrategy)",
+      "nodeId": "grain:VersionStoreGrain",
+      "project": "Orleans.Runtime",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Runtime\\Versions\\VersionStoreGrain.cs:35"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "PubSubRendezvousGrain : Grain (12 methods: OnActivateAsync, OnDeactivateAsync, RegisterProducer)",
+      "nodeId": "grain:PubSubRendezvousGrain",
+      "project": "Orleans.Streaming",
+      "score": 0.133,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Streaming\\PubSub\\PubSubRendezvousGrain.cs:78"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "Grain : Grain",
+      "nodeId": "grain:Grain",
+      "project": "Orleans.Core.Abstractions",
+      "score": 0,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Core.Abstractions\\Core\\Grain.cs:179"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "LogConsistentGrain : Grain (1 methods: Participate)",
+      "nodeId": "grain:LogConsistentGrain",
+      "project": "Orleans.EventSourcing",
+      "score": 0,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.EventSourcing\\LogConsistency\\LogConsistentGrain.cs:20"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "MemoryStreamQueueGrain : Grain (2 methods: Enqueue, Dequeue)",
+      "nodeId": "grain:MemoryStreamQueueGrain",
+      "project": "Orleans.Streaming",
+      "score": 0,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.Streaming\\MemoryStreams\\MemoryStreamQueueGrain.cs:14"
+    },
+    {
+      "kind": "GrainMethod",
+      "title": "StorageFaultGrain : Grain (7 methods: OnActivateAsync, AddFaultOnRead, AddFaultOnWrite)",
+      "nodeId": "grain:StorageFaultGrain",
+      "project": "Orleans.TestingHost",
+      "score": 0,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\Orleans\\src\\Orleans.TestingHost\\TestStorageProviders\\StorageFaultGrain.cs:16"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-29T14:08:58.7574128+00:00",
+  "archetype": "Desktop",
+  "architectureStyle": "Unknown",
+  "styleConfidence": 0,
+  "projectCount": 4,
+  "projectNames": [
+    "MahApps.Metro",
+    "MahApps.Metro.Caliburn.Demo",
+    "MahApps.Metro.Demo",
+    "MahApps.Metro.Tests"
+  ],
+  "typeCount": 338,
+  "entryCount": 25,
+  "topologyProjectCount": 3,
+  "graphNodeCount": 475,
+  "graphEdgeCount": 176,
+  "signals": [
+    {
+      "key": "desktop-ui",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "desktop.command-inventory",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Command inventory: 6 ICommand implementations",
+      "detail": "",
+      "evidence": [
+        "ShowAboutCommand",
+        "DropDownButton",
+        "SimpleCommand",
+        "SplitButton",
+        "ToggleSwitch"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/25 (0%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "desktop.module-map",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Module map: 3 feature areas",
+      "detail": "",
+      "evidence": [
+        "MetroDemo/ExampleViews (18 entries)",
+        "MetroDemo (5 entries)",
+        "MetroDemo/Navigation (2 entries)"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: MahApps.Metro (2 dependents) \u00B7 MahApps.Metro (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "MahApps.Metro (2 dependents)",
+        "MahApps.Metro (1 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: MetroWindow (40) \u00B7 ProgressDialog (11) \u00B7 MathConverter (8) \u00B7 IDialogCoordinator (7)",
+      "detail": "",
+      "evidence": [
+        "MetroWindow (40)",
+        "ProgressDialog (11)",
+        "MathConverter (8)",
+        "IDialogCoordinator (7)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "src/MahApps.Metro.sln",
+    "analyzedName": "MahApps.Metro",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.sln",
+    "solutionsOnDisk": 1,
+    "others": [],
+    "requested": false,
+    "partial": false,
+    "note": "analyzed MahApps.Metro"
+  }
+}

@@ -1,0 +1,15 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G5.2\graph-truth-after\raw\CleanArch
+itecture\kernel.json
+analyzed 361 files ú 0 types kept of 380 ú 1514/8000 tokens ú 3.1s stage2 x3.1 
+stage3 x1.6
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³  Clean.Architecture  ³
+³   Time   ³        3250ms        ³
+³  Tokens  ³ ~1514 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.350 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

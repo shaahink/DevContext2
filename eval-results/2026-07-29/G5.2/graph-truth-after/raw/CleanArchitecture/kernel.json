@@ -1,0 +1,208 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-29T13:53:10.0114778+00:00",
+  "archetype": "App",
+  "architectureStyle": "CleanArchitecture",
+  "styleConfidence": 0.7,
+  "projectCount": 22,
+  "projectNames": [
+    "Clean.Architecture.AspireHost",
+    "Clean.Architecture.AspireTests",
+    "Clean.Architecture.Core",
+    "Clean.Architecture.FunctionalTests",
+    "Clean.Architecture.Infrastructure",
+    "Clean.Architecture.IntegrationTests",
+    "Clean.Architecture.ServiceDefaults",
+    "Clean.Architecture.UnitTests",
+    "Clean.Architecture.UseCases",
+    "Clean.Architecture.Web",
+    "MinimalClean.Architecture.AspireHost",
+    "MinimalClean.Architecture.ServiceDefaults",
+    "MinimalClean.Architecture.Web",
+    "NimblePros.SampleToDo.AspireHost",
+    "NimblePros.SampleToDo.Core",
+    "NimblePros.SampleToDo.FunctionalTests",
+    "NimblePros.SampleToDo.Infrastructure",
+    "NimblePros.SampleToDo.IntegrationTests",
+    "NimblePros.SampleToDo.ServiceDefaults",
+    "NimblePros.SampleToDo.UnitTests",
+    "NimblePros.SampleToDo.UseCases",
+    "NimblePros.SampleToDo.Web"
+  ],
+  "typeCount": 380,
+  "entryCount": 7,
+  "topologyProjectCount": 6,
+  "graphNodeCount": 139,
+  "graphEdgeCount": 64,
+  "signals": [
+    {
+      "key": "aspire",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "fast-endpoints",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "5/5 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "POST /Contributors",
+        "DELETE /Contributors/{ContributorId:int}",
+        "GET /Contributors/{ContributorId:int}",
+        "GET /Contributors",
+        "PUT /Contributors/{ContributorId:int}"
+      ]
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IEmailSender (2 impls) \u00B7 IListContributorsQueryService (2 impls) \u00B7 IListIncompleteItemsQueryService (2 impls)",
+      "detail": "",
+      "evidence": [
+        "IEmailSender (2 impls)",
+        "IListContributorsQueryService (2 impls)",
+        "IListIncompleteItemsQueryService (2 impls)"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 5/7 (71%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 52 Extension \u00B7 33 Scoped \u00B7 1 Singleton (86 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "msg.produce-consume",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Message flow: 0 producers, 2 consumers, 0 message types",
+      "detail": "",
+      "evidence": [
+        "2 consumers"
+      ]
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 5 HTTP \u00B7 2 DomainEventHandler",
+      "detail": "",
+      "evidence": [
+        "5 HTTP",
+        "2 DomainEventHandler"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Clean.Architecture.ServiceDefaults (2 dependents) \u00B7 Clean.Architecture.Core (2 dependents) \u00B7 Clean.Architecture.UseCases (2 dependents)",
+      "detail": "",
+      "evidence": [
+        "Clean.Architecture.ServiceDefaults (2 dependents)",
+        "Clean.Architecture.Core (2 dependents)",
+        "Clean.Architecture.UseCases (2 dependents)"
+      ]
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 3 entities across 2 scopes",
+      "detail": "",
+      "evidence": [
+        "Clean.Architecture.Core (1 entities)",
+        "AppDbContext (1 entities)"
+      ]
+    }
+  ],
+  "eventWiring": {
+    "total": 2,
+    "integration": 0,
+    "crossService": 0,
+    "orphan": 0,
+    "events": [
+      {
+        "event": "ContributorDeletedEvent",
+        "integration": false,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "Clean.Architecture.Core"
+        ]
+      },
+      {
+        "event": "ContributorNameUpdatedEvent",
+        "integration": false,
+        "crossService": false,
+        "publishers": [],
+        "consumers": [
+          "Clean.Architecture.Core"
+        ]
+      }
+    ]
+  },
+  "scope": {
+    "analyzed": "Clean.Architecture.slnx",
+    "analyzedName": "Clean.Architecture",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\Clean.Architecture.slnx",
+    "solutionsOnDisk": 4,
+    "others": [
+      "src/Clean.Architecture.Core/Clean.Architecture.Core.sln",
+      "MinimalClean/MinimalClean.Architecture.slnx",
+      "sample/NimblePros.SampleToDo.slnx"
+    ],
+    "requested": false,
+    "partial": true,
+    "note": "analyzed Clean.Architecture.slnx \u2014 1 of 4 solutions in this repo; analyze another by naming its solution"
+  }
+}

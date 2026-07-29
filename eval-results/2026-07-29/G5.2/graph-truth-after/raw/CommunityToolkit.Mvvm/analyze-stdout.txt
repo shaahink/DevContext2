@@ -1,0 +1,15 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G5.2\graph-truth-after\raw\Community
+Toolkit.Mvvm\kernel.json
+analyzed 385 files ú 0 types kept of 570 ú 862/8000 tokens ú 6.2s stage2 x2.7 
+stage3 x1.5
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³        dotnet        ³
+³   Time   ³        6606ms        ³
+³  Tokens  ³  ~862 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.350 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

@@ -1,0 +1,6 @@
+﻿[sweep] reading consumers...
+
+[sweep] messages 107 - fields 499
+[sweep] unread by every client: 10 (10 allow-listed, 0 NEW)
+
+GATE: PASS - every response field is read by a client or allow-listed with a reason.

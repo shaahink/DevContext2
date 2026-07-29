@@ -1,0 +1,334 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-29T14:08:42.0113803+00:00",
+  "archetype": "Library",
+  "architectureStyle": "NotApplicable",
+  "styleConfidence": 0,
+  "projectCount": 133,
+  "projectNames": [
+    "ActivationRebalancing.AppHost",
+    "ActivationRebalancing.Cluster",
+    "ActivationRebalancing.Frontend",
+    "ActivationRepartitioning.AppHost",
+    "ActivationRepartitioning.Frontend",
+    "ActivationSheddingToy",
+    "BenchmarkGrainInterfaces",
+    "BenchmarkGrains",
+    "Benchmarks",
+    "Benchmarks.AdoNet",
+    "ChaoticCluster.AppHost",
+    "ChaoticCluster.ServiceDefaults",
+    "ChaoticCluster.Silo",
+    "DashboardCohosted",
+    "DashboardSeparateHost",
+    "DistributedTests.Client",
+    "DistributedTests.Common",
+    "DistributedTests.Grains",
+    "DistributedTests.Server",
+    "DurableJobsJournaling.Abstractions",
+    "DurableJobsJournaling.AppHost",
+    "DurableJobsJournaling.ServiceDefaults",
+    "DurableJobsJournaling.Silo",
+    "DurableJobsJournaling.Web",
+    "JournalingAzureBlobJson",
+    "JournalingAzureBlobJson.AppHost",
+    "Orleans.AdoNet.Tests",
+    "Orleans.Analyzers",
+    "Orleans.Analyzers.Tests",
+    "Orleans.AWS.Tests",
+    "Orleans.Azure.Tests",
+    "Orleans.BroadcastChannel",
+    "Orleans.BroadcastChannel.Tests",
+    "Orleans.Client",
+    "Orleans.Clustering.AdoNet",
+    "Orleans.Clustering.AzureStorage",
+    "Orleans.Clustering.Cassandra",
+    "Orleans.Clustering.Cassandra.Tests",
+    "Orleans.Clustering.Consul",
+    "Orleans.Clustering.Consul.Tests",
+    "Orleans.Clustering.Cosmos",
+    "Orleans.Clustering.DynamoDB",
+    "Orleans.Clustering.Redis",
+    "Orleans.Clustering.ZooKeeper",
+    "Orleans.Clustering.ZooKeeper.Tests",
+    "Orleans.CodeGenerator",
+    "Orleans.CodeGenerator.Tests",
+    "Orleans.Connections.Security",
+    "Orleans.Connections.Security.Tests",
+    "Orleans.Core",
+    "Orleans.Core.Abstractions",
+    "Orleans.Core.Tests",
+    "Orleans.Cosmos.Tests",
+    "Orleans.Dashboard",
+    "Orleans.Dashboard.Abstractions",
+    "Orleans.Dashboard.TestGrains",
+    "Orleans.Dashboard.UnitTests",
+    "Orleans.DefaultCluster.Tests",
+    "Orleans.DependencyInjection.Tests",
+    "Orleans.DurableJobs",
+    "Orleans.DurableJobs.AzureStorage",
+    "Orleans.DurableJobs.AzureStorage.Tests",
+    "Orleans.DurableJobs.Tests",
+    "Orleans.EventSourcing",
+    "Orleans.EventSourcing.Tests",
+    "Orleans.GrainDirectory.AdoNet",
+    "Orleans.GrainDirectory.AzureStorage",
+    "Orleans.GrainDirectory.Redis",
+    "Orleans.GrainDirectory.Tests",
+    "Orleans.Hosting.Kubernetes",
+    "Orleans.Journaling",
+    "Orleans.Journaling.AzureStorage",
+    "Orleans.Journaling.Json.Tests",
+    "Orleans.Journaling.Tests",
+    "Orleans.Persistence.AdoNet",
+    "Orleans.Persistence.AzureStorage",
+    "Orleans.Persistence.Cosmos",
+    "Orleans.Persistence.DynamoDB",
+    "Orleans.Persistence.Memory",
+    "Orleans.Persistence.Redis",
+    "Orleans.Placement.Tests",
+    "Orleans.Redis.Tests",
+    "Orleans.Reminders",
+    "Orleans.Reminders.Abstractions",
+    "Orleans.Reminders.AdoNet",
+    "Orleans.Reminders.AzureStorage",
+    "Orleans.Reminders.Cosmos",
+    "Orleans.Reminders.DynamoDB",
+    "Orleans.Reminders.Redis",
+    "Orleans.Reminders.Tests",
+    "Orleans.Runtime",
+    "Orleans.Runtime.Internal.Tests",
+    "Orleans.Runtime.Tests",
+    "Orleans.Sdk",
+    "Orleans.Serialization",
+    "Orleans.Serialization.Abstractions",
+    "Orleans.Serialization.FSharp",
+    "Orleans.Serialization.MemoryPack",
+    "Orleans.Serialization.MessagePack",
+    "Orleans.Serialization.NewtonsoftJson",
+    "Orleans.Serialization.Protobuf",
+    "Orleans.Serialization.SystemTextJson",
+    "Orleans.Serialization.TestKit",
+    "Orleans.Serialization.UnitTests",
+    "Orleans.Server",
+    "Orleans.Streaming",
+    "Orleans.Streaming.AdoNet",
+    "Orleans.Streaming.AzureStorage",
+    "Orleans.Streaming.EventHubs",
+    "Orleans.Streaming.EventHubs.Tests",
+    "Orleans.Streaming.NATS",
+    "Orleans.Streaming.NATS.Tests",
+    "Orleans.Streaming.Redis",
+    "Orleans.Streaming.SQS",
+    "Orleans.Streaming.Tests",
+    "Orleans.Testing.Reminders",
+    "Orleans.TestingHost",
+    "Orleans.TestingHost.Tests",
+    "Orleans.Transactions",
+    "Orleans.Transactions.Azure.Test",
+    "Orleans.Transactions.AzureStorage",
+    "Orleans.Transactions.TestKit.Base",
+    "Orleans.Transactions.TestKit.xUnit",
+    "Orleans.Transactions.Tests",
+    "TestExtensions",
+    "TestFSharpGrainInterfaces",
+    "TestGrainInterfaces",
+    "TestGrains",
+    "TestInternalGrainInterfaces",
+    "TestInternalGrains",
+    "TestSerializerExternalModels",
+    "TestVersionGrains",
+    "TestVersionGrains2"
+  ],
+  "typeCount": 7440,
+  "entryCount": 66,
+  "topologyProjectCount": 87,
+  "graphNodeCount": 5400,
+  "graphEdgeCount": 3964,
+  "signals": [
+    {
+      "key": "aspire",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "orleans",
+      "confidence": 0.7,
+      "detected": true
+    },
+    {
+      "key": "redis",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "39/39 endpoints anonymous, incl. 9 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "GET /api/Stats/silos",
+        "GET /data.json",
+        "POST /reset",
+        "POST /add",
+        "GET /api/load"
+      ]
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 4 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "Orleans",
+        "Orleans:Streaming:AzureQueueProvider",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ]
+    },
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 5 heavily-referenced internal types",
+      "detail": "",
+      "evidence": [
+        "MembershipTableManager (98 refs)",
+        "LocalDurableJobManager (55 refs)",
+        "JournaledStateManager (45 refs)",
+        "ManagementGrain (44 refs)",
+        "PubSubRendezvousGrain (38 refs)"
+      ]
+    },
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: IConfigurationValidator (20 impls) \u00B7 IGatewayListProvider (9 impls) \u00B7 IMembershipTable (8 impls)",
+      "detail": "",
+      "evidence": [
+        "IConfigurationValidator (20 impls)",
+        "IGatewayListProvider (9 impls)",
+        "IMembershipTable (8 impls)"
+      ]
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 2 events (0 integration), 0 cross-service, 2 orphan",
+      "detail": "",
+      "evidence": [
+        "ActivityEvent \u2190 Orleans.Runtime (no consumer)",
+        "EventKind \u2190 DurableJobsJournaling.Web (no consumer)"
+      ]
+    },
+    {
+      "id": "wiring.external-events",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "External event contracts: 15 consumed but never produced internally",
+      "detail": "",
+      "evidence": [
+        "BeforeStartEvent",
+        "GrainProfiler",
+        "ClientOptionsLogger",
+        "LogConsistentGrain\u003CTView\u003E",
+        "SiloOptionsLogger"
+      ]
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 376 interfaces, 2017 classes (2521 total public types)",
+      "detail": "",
+      "evidence": [
+        "376 interfaces",
+        "2017 classes"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 37/66 (56%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 39 HTTP \u00B7 22 GrainMethod \u00B7 5 hosted",
+      "detail": "",
+      "evidence": [
+        "39 HTTP",
+        "22 GrainMethod",
+        "5 hosted"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Orleans.Runtime (25 dependents) \u00B7 Orleans.Reminders (14 dependents) \u00B7 Orleans.Streaming (11 dependents)",
+      "detail": "",
+      "evidence": [
+        "Orleans.Runtime (25 dependents)",
+        "Orleans.Reminders (14 dependents)",
+        "Orleans.Streaming (11 dependents)"
+      ]
+    }
+  ],
+  "eventWiring": {
+    "total": 2,
+    "integration": 0,
+    "crossService": 0,
+    "orphan": 2,
+    "events": [
+      {
+        "event": "ActivityEvent",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "Orleans.Runtime"
+        ],
+        "consumers": []
+      },
+      {
+        "event": "EventKind",
+        "integration": false,
+        "crossService": false,
+        "publishers": [
+          "DurableJobsJournaling.Web"
+        ],
+        "consumers": []
+      }
+    ]
+  },
+  "scope": {
+    "analyzed": "Orleans.slnx",
+    "analyzedName": "Orleans",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\Orleans\\Orleans.slnx",
+    "solutionsOnDisk": 1,
+    "others": [],
+    "requested": false,
+    "partial": false,
+    "note": "analyzed Orleans"
+  }
+}

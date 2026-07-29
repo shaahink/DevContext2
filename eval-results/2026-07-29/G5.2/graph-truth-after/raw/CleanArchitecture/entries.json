@@ -1,0 +1,80 @@
+﻿{
+  "count": 7,
+  "byKind": {
+    "HttpEndpoint": 5,
+    "DomainEventHandler": 2
+  },
+  "entries": [
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /Contributors",
+      "nodeId": "GET /Contributors",
+      "httpMethod": "GET",
+      "route": "/Contributors",
+      "target": "ListContributorsQuery",
+      "project": "Clean.Architecture.Web",
+      "score": 0.8,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Web\\Contributors\\List.cs:14"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /Contributors",
+      "nodeId": "POST /Contributors",
+      "httpMethod": "POST",
+      "route": "/Contributors",
+      "target": "Create",
+      "project": "Clean.Architecture.Web",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Web\\Contributors\\Create.cs:25"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "DELETE /Contributors/{ContributorId:int}",
+      "nodeId": "DELETE /Contributors/{ContributorId:int}",
+      "httpMethod": "DELETE",
+      "route": "/Contributors/{ContributorId:int}",
+      "target": "Delete",
+      "project": "Clean.Architecture.Web",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Web\\Contributors\\Delete.cs:19"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /Contributors/{ContributorId:int}",
+      "nodeId": "GET /Contributors/{ContributorId:int}",
+      "httpMethod": "GET",
+      "route": "/Contributors/{ContributorId:int}",
+      "target": "GetById",
+      "project": "Clean.Architecture.Web",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Web\\Contributors\\GetById.cs:18"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "PUT /Contributors/{ContributorId:int}",
+      "nodeId": "PUT /Contributors/{ContributorId:int}",
+      "httpMethod": "PUT",
+      "route": "/Contributors/{ContributorId:int}",
+      "target": "Update",
+      "project": "Clean.Architecture.Web",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Web\\Contributors\\Update.cs:20"
+    },
+    {
+      "kind": "DomainEventHandler",
+      "title": "ContributorDeletedHandler",
+      "nodeId": "domain:ContributorDeletedHandler",
+      "project": "Clean.Architecture.Core",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Core\\ContributorAggregate\\Handlers\\ContributorDeletedHandler.cs:6"
+    },
+    {
+      "kind": "DomainEventHandler",
+      "title": "ContributorNameUpdatedEmailNotificationHandler",
+      "nodeId": "domain:ContributorNameUpdatedEmailNotificationHandler",
+      "project": "Clean.Architecture.Core",
+      "score": 0.1,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\CleanArchitecture\\src\\Clean.Architecture.Core\\ContributorAggregate\\Handlers\\ContributorNameUpdatedEmailNotificationHandler.cs:6"
+    }
+  ]
+}

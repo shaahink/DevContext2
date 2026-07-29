@@ -1,0 +1,51 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DevContext.Core -> C:\code\DevContext2\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll
+  DevContext.Core.Tests -> C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 00:00:00.61]     DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_field_receiver_
+resolves_like_the_unqualified_spelling [FAIL]
+At line:1 char:25
++ ... evContext2; dotnet test tests\DevContext.Core.Tests --filter 'FullyQu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...spelling [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:00.62]     
+DevContext.Core.Tests.GraphBuilderTests.Cli_command_entry_joins_its_execute_member_and_resolves_the_collaborator [FAIL]
+[xUnit.net 00:00:00.62]     
+DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_chain_keeps_its_trailing_segment [FAIL]
+  Failed DevContext.Core.Tests.GraphBuilderTests.Cli_command_entry_joins_its_execute_member_and_resolves_the_collaborator [14 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Member:Gv.Commands.OutputCommand::InvokeAsync
+Actual:   Type:Gv.Commands.OutputCommand
+  Stack Trace:
+     at DevContext.Core.Tests.GraphBuilderTests.Cli_command_entry_joins_its_execute_member_and_resolves_the_collaborator() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphBuilderTests.cs:line 615
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_field_receiver_resolves_like_the_unqualified_spelling [23 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           Γåô (pos 0)
+Expected: "widget"
+Actual:   "this"
+           Γåæ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_field_receiver_resolves_like_the_unqualified_spelling() in C:\code\DevContext2\tests\DevContext.Core.Tests\Graph2\BodyFactExtractorTests.cs:line 292
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_chain_keeps_its_trailing_segment [6 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           Γåô (pos 0)
+Expected: "services"
+Actual:   "this"
+           Γåæ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.BodyFactExtractorTests.This_qualified_chain_keeps_its_trailing_segment() in C:\code\DevContext2\tests\DevContext.Core.Tests\Graph2\BodyFactExtractorTests.cs:line 315
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     3, Passed:     4, Skipped:     0, Total:     7, Duration: 216 ms - DevContext.Core.Tests.dll (net10.0)

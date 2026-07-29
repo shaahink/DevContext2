@@ -1,0 +1,217 @@
+﻿{
+  "snapshotCache": "HIT \u00B7 cff8fbe",
+  "nodeCount": 5400,
+  "edgeCount": 3964,
+  "entryCount": 66,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 37,
+  "entriesWithDeepSpine": 62,
+  "deepSpineRatio": 0.9393939393939394,
+  "entriesByKind": {
+    "HttpEndpoint": 39,
+    "GrainMethod": 22,
+    "HostedService": 5
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 3454,
+      "verified": 805,
+      "approx": 2649
+    },
+    {
+      "kind": "Sends",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 4,
+      "verified": 4,
+      "approx": 0
+    },
+    {
+      "kind": "Resolves",
+      "total": 496,
+      "verified": 340,
+      "approx": 156
+    },
+    {
+      "kind": "DependsOn",
+      "total": 9,
+      "verified": 9,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 40008,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 2589
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 15864
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 1
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 5540
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 11285
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1147
+    },
+    {
+      "stage": "Insights",
+      "ms": 408
+    },
+    {
+      "stage": "Compression",
+      "ms": 770
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 242
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "39/39 endpoints anonymous, incl. 9 POST/PUT/DELETE",
+      "evidence": [
+        "GET /api/Stats/silos",
+        "GET /data.json",
+        "POST /reset",
+        "POST /add",
+        "GET /api/load"
+      ],
+      "confidence": 0,
+      "confidenceBasis": "0/39 endpoints have known auth"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 4 consumed keys have no appsettings default",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "Orleans",
+        "Orleans:Streaming:AzureQueueProvider",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 5 heavily-referenced internal types",
+      "evidence": [
+        "MembershipTableManager (98 refs)",
+        "LocalDurableJobManager (55 refs)",
+        "JournaledStateManager (45 refs)",
+        "ManagementGrain (44 refs)",
+        "PubSubRendezvousGrain (38 refs)"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Reference counting is body-scan approximate \u2014 hubs are likely correct, counts approximate"
+    },
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: IConfigurationValidator (20 impls) \u00B7 IGatewayListProvider (9 impls) \u00B7 IMembershipTable (8 impls)",
+      "evidence": [
+        "IConfigurationValidator (20 impls)",
+        "IGatewayListProvider (9 impls)",
+        "IMembershipTable (8 impls)"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "DI registration detection is established \u2014 counts are reliable for collected registrations"
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 2 events (0 integration), 0 cross-service, 2 orphan",
+      "evidence": [
+        "ActivityEvent \u2190 Orleans.Runtime (no consumer)",
+        "EventKind \u2190 DurableJobsJournaling.Web (no consumer)"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "Publisher\u2192event\u2192consumer join over Raises\u002BConsumes seams; events matched by type name within the detected event set"
+    },
+    {
+      "id": "wiring.external-events",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "External event contracts: 15 consumed but never produced internally",
+      "evidence": [
+        "BeforeStartEvent",
+        "GrainProfiler",
+        "ClientOptionsLogger",
+        "LogConsistentGrain\u003CTView\u003E",
+        "SiloOptionsLogger"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 376 interfaces, 2017 classes (2521 total public types)",
+      "evidence": [
+        "376 interfaces",
+        "2017 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 37/66 (56%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 39 HTTP \u00B7 22 GrainMethod \u00B7 5 hosted",
+      "evidence": [
+        "39 HTTP",
+        "22 GrainMethod",
+        "5 hosted"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Orleans.Runtime (25 dependents) \u00B7 Orleans.Reminders (14 dependents) \u00B7 Orleans.Streaming (11 dependents)",
+      "evidence": [
+        "Orleans.Runtime (25 dependents)",
+        "Orleans.Reminders (14 dependents)",
+        "Orleans.Streaming (11 dependents)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}
