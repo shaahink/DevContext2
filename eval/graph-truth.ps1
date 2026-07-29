@@ -355,12 +355,21 @@ foreach ($Sel in $Selected) {
     # S3: an entry SURFACE that should exist but does not is a DC8 defect the quality ratio cannot
     # see -- a tool with one entry scores a perfect 0% DI-interface targets. Declared per repo.
     $MinEntries = [int](Get-Prop (Get-Prop $Expect "entryTargets" $null) "minEntries" 0)
+    # D-3 (G5.2): the DI-interface ratio is a QUALITY metric over the entries that resolved, so a pole
+    # where NOTHING resolves scores a perfect 0% -- GitVersion sat at 0 of 5 wired and passed this check
+    # for months. minWithTarget is the floor that ratio cannot see: how many entries must reach a target
+    # at all. Declared per repo, default 0 (every other pole is unchanged), and it is a ratchet -- raise
+    # it when a pole improves, never lower it to make a run green.
+    $MinWithTarget = [int](Get-Prop (Get-Prop $Expect "entryTargets" $null) "minWithTarget" 0)
     $c.metrics = [ordered]@{
         entries = $EntryList.Count; withTarget = $WithTarget; diInterfaceTargets = $DiTargets
-        diInterfacePct = $DiPct; minEntries = $MinEntries; sample = @($DiSamples)
+        diInterfacePct = $DiPct; minEntries = $MinEntries; minWithTarget = $MinWithTarget
+        sample = @($DiSamples)
     }
     if ($EntryList.Count -lt $MinEntries) {
         $c.verdict = "FAIL"; $c.detail = "$($EntryList.Count) entries detected, expected at least $MinEntries (entry surface missing -- DC8)"
+    } elseif ($WithTarget -lt $MinWithTarget) {
+        $c.verdict = "FAIL"; $c.detail = "$WithTarget of $($EntryList.Count) entries reach a target, expected at least $MinWithTarget (handler join lost -- D-3)"
     } elseif ($EntryList.Count -eq 0) {
         $c.verdict = "SKIP"; $c.detail = "no entries detected (see style/DC8)"
     } elseif ($DiPct -le $MaxDiPct) {

@@ -1,12 +1,13 @@
 {
     "repo":  "eval-repos/GitVersion",
     "sln":  "new-cli/GitVersion.slnx",
-    "note":  "CliTool pole (octet-pinned archetype since Prism D1.1d). S4/Batch C: this row is now measured WITH --sln new-cli/GitVersion.slnx from the repo ROOT. That is the S3-declared acceptance cell -- \u0027explicit sln scope is the whole fix\u0027 -- and it needs no change to the [Command] detection Batch B built. It supersedes the old gitversion-new-cli pole, which measured the same 5 verbs by pointing the tool at a subdirectory instead of at the repo. The flag-less read is measured by the gitversion-default pole. hubs.allow: this tool has a command literally named test, so the entry node \u0027test (TestCommand)\u0027 is fixture-ish by NAME while being ordinary production code.",
+    "note":  "CliTool pole (octet-pinned archetype since Prism D1.1d). S4/Batch C: this row is now measured WITH --sln new-cli/GitVersion.slnx from the repo ROOT. That is the S3-declared acceptance cell -- \u0027explicit sln scope is the whole fix\u0027 -- and it needs no change to the [Command] detection Batch B built. It supersedes the old gitversion-new-cli pole, which measured the same 5 verbs by pointing the tool at a subdirectory instead of at the repo. The flag-less read is measured by the gitversion-default pole. hubs.allow: this tool has a command literally named test, so the entry node \u0027test (TestCommand)\u0027 is fixture-ish by NAME while being ordinary production code. entryTargets.minWithTarget 4 (G5.2 / D-3, measured 2026-07-29): four of the five verbs call a collaborator and must resolve to it. Source, per verb -- new-cli/GitVersion.Calculation/CalculateCommand.cs, GitVersion.Configuration/ConfigCommand.cs, GitVersion.Normalization/NormalizeCommand.cs and GitVersion.Output/OutputCommand.cs each declare 'private readonly IService service' and call 'this.service.Call()' inside InvokeAsync, and new-cli/GitVersion.Cli/TestCommand.cs calls only Console.WriteLine and Task.FromResult. So the fifth is honestly unwired: 5 would be a fabricated target, not a better score. Measured 0/5 before the fix, 4/5 after (eval-results/2026-07-29/G5.2/before and /after).",
     "transports":  {
 
                    },
     "entryTargets":  {
-                         "minEntries":  5
+                         "minEntries":  5,
+                         "minWithTarget":  4
                      },
     "hubs":  {
                  "allow":  [
