@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 17:07 UTC · branch `feat/graph-v2` · HEAD `7c65b3e`_
+_Updated 2026-07-29 17:17 UTC · branch `feat/graph-v2` · HEAD `5940292`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 1
+**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 0
 **Checkpoints:** 16/22 done · **Sessions run:** 22 · **Cost:** $288.9126 (agent $288.6276 + gates $0.2850) · **Tokens:** 4,059,116 in / 1,557,965 out
-**Confirmed phases:** G1, G2, G3, G4, G5
-**Pending:** full-battery phase gate for G6
+**Confirmed phases:** G1, G2, G3, G4, G5, G6
 
 ## Stage progress
 
@@ -17,7 +16,7 @@ _Updated 2026-07-29 17:07 UTC · branch `feat/graph-v2` · HEAD `7c65b3e`_
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
 | G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
-| G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | gating… |
+| G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
@@ -147,11 +146,6 @@ _Updated 2026-07-29 17:07 UTC · branch `feat/graph-v2` · HEAD `7c65b3e`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 13:02:10  ▪ gate fast-engine pass [phase]  (1m32s)
-07-29 13:02:10  ▪ gate guards pass [phase]  (38.6s)
-07-29 13:02:10  ▪ gate battery pass [phase]  (11m01s)
-07-29 13:02:10  ▸ stage G4 confirmed  (1h15m15s)
-07-29 13:02:13  ▸ stage G5 entered — D-3 — a CLI verb reaches its handler
 07-29 13:02:13  • session #16 G5 Deliver started (attempt 1/4)
 07-29 13:29:27  ▪ gate fast-engine FAIL [session]  (52.7s)
 07-29 13:29:27  ▪ gate guards pass [session]  (47.4s)
@@ -187,6 +181,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 17:30:47  • session #22 G6 Fix started (attempt 2/2)
 07-29 18:07:15  ▪ gate fast-app pass [session]  (1m27s)
 07-29 18:07:15  ▪ gate guards pass [session]  (45.3s)
+07-29 18:07:19  • session #22 G6 → Progress · 1 commit(s)  (36m31s)
+07-29 18:17:05  ▪ gate fast-app pass [phase]  (1m19s)
+07-29 18:17:05  ▪ gate guards pass [phase]  (40.0s)
+07-29 18:17:05  ▪ gate battery pass [phase]  (7m46s)
+07-29 18:17:05  ▸ stage G6 confirmed  (2h45m15s)
 ```
 
 ## Health
@@ -216,7 +215,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -251,7 +250,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:OK
 
 ## Last session result
 
