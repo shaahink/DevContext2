@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 18:16 UTC · branch `feat/graph-v2` · HEAD `a07fb64`_
+_Updated 2026-07-29 19:32 UTC · branch `feat/graph-v2` · HEAD `2fb2cc2`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason · attempts used 0
-**Checkpoints:** 18/22 done · **Sessions run:** 23 · **Cost:** $310.1387 (agent $309.8329 + gates $0.3059) · **Tokens:** 4,305,033 in / 1,664,225 out
+**Stage:** G8 — R1 scale wall — profile HotChocolate, do not raise the timeout · attempts used 0
+**Checkpoints:** 20/22 done · **Sessions run:** 24 · **Cost:** $332.2524 (agent $331.9346 + gates $0.3179) · **Tokens:** 4,567,564 in / 1,784,100 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7
+**Pending:** full-battery phase gate for G8
 
 ## Stage progress
 
@@ -18,7 +19,7 @@ _Updated 2026-07-29 18:16 UTC · branch `feat/graph-v2` · HEAD `a07fb64`_
 | G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
-| G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
+| G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | gating… |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
@@ -89,12 +90,12 @@ _Updated 2026-07-29 18:16 UTC · branch `feat/graph-v2` · HEAD `a07fb64`_
 
 </details>
 
-<details><summary>G8 — R1 scale wall — profile HotChocolate, do not raise the timeout (0/2)</summary>
+<details> ✅<summary>G8 — R1 scale wall — profile HotChocolate, do not raise the timeout (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | ⬜ TODO | - |
-| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | ⬜ TODO | - |
+| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | ✅ DONE | - |
+| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | ✅ DONE | - |
 
 </details>
 
@@ -141,16 +142,13 @@ _Updated 2026-07-29 18:16 UTC · branch `feat/graph-v2` · HEAD `a07fb64`_
 | 21 | G6 | Deliver | 1 | 07-29 15:30 | 0:43 | Advanced | G6.2 | 1 | fast-app:OK · guards:OK | $20.6312 | $0.0160 | 257,618/110,930 |
 | 22 | G6 | Fix | 2 | 07-29 16:30 | 0:34 | Progress |  | 1 | fast-app:OK · guards:OK | $13.7036 | $0.0133 | 209,463/73,225 |
 | 23 | G7 | Deliver | 1 | 07-29 17:17 | 0:42 | Advanced | G7.1 G7.2 | 5 | fast-app:OK · guards:OK | $21.2053 | $0.0209 | 245,917/106,260 |
+| 24 | G8 | Deliver | 1 | 07-29 18:16 | 1:13 | Advanced | G8.1 G8.2 | 4 | fast-engine:OK · guards:OK | $22.1017 | $0.0120 | 262,531/119,875 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 15:20:37  ▪ gate fast-engine pass [session]  (1m36s)
-07-29 15:20:37  ▪ gate guards pass [session]  (1m20s)
-07-29 15:20:40  • session #19 G5 → Advanced · done G5.2 · 4 commit(s)  (49m30s)
-07-29 15:31:45  ▪ gate fast-engine pass [phase]  (1m18s)
 07-29 15:31:45  ▪ gate guards pass [phase]  (41.2s)
 07-29 15:31:45  ▪ gate battery pass [phase]  (9m04s)
 07-29 15:31:45  ▸ stage G5 confirmed  (2h29m31s)
@@ -187,6 +185,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 19:16:50  ▪ gate guards pass [phase]  (41.0s)
 07-29 19:16:50  ▪ gate battery pass [phase]  (8m52s)
 07-29 19:16:50  ▸ stage G7 confirmed  (59m40s)
+07-29 19:16:54  ▸ stage G8 entered — R1 scale wall — profile HotChocolate, do not raise the timeout
+07-29 19:16:55  • session #24 G8 Deliver started (attempt 1/4)
+07-29 20:32:39  ▪ gate fast-engine pass [session]  (1m21s)
+07-29 20:32:39  ▪ gate guards pass [session]  (38.9s)
 ```
 
 ## Health
@@ -194,7 +196,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 23 · retries 9 (39 %) · overall Alert
+sessions 24 · retries 9 (38 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -217,15 +219,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M conductor.plan.json, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt (+84 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+82 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s16 (G5 Deliver)** — 2 commit(s):
-  - [`961f239`](https://github.com/shaahink/DevContext2/commit/961f239) chore(conductor): s16 G5.1 handoff - D-3 root-caused, G5.2 scoped
-  - [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) G5.1: root cause per verb - why GitVersion's five verbs join no handler
 - **s17 (G5 Fix)** — 2 commit(s):
   - [`45454e8`](https://github.com/shaahink/DevContext2/commit/45454e8) chore: MCP QA report regenerated by the s17 verification run (12/12, timing line only)
   - [`68ad4ff`](https://github.com/shaahink/DevContext2/commit/68ad4ff) G5: the gate script was dying mid-step and reporting it as a test failure
@@ -250,33 +249,38 @@ vs upstream: up to date
   - [`1518807`](https://github.com/shaahink/DevContext2/commit/1518807) conductor: the orchestrator plan edits from this run (planVersion 5, run budget)
   - [`d6ef0b0`](https://github.com/shaahink/DevContext2/commit/d6ef0b0) chore(tracker): G7.1 handoff — C-2 landed, C-3 instrument named
   - [`55af763`](https://github.com/shaahink/DevContext2/commit/55af763) G7.1 (R3 C-2): a library's empty Atlas sections say why
+- **s24 (G8 Deliver)** — 4 commit(s):
+  - [`2fb2cc2`](https://github.com/shaahink/DevContext2/commit/2fb2cc2) chore(conductor): commit orchestrator plan state + refreshed mcp-qa artifact
+  - [`73a03c2`](https://github.com/shaahink/DevContext2/commit/73a03c2) chore(conductor): s24 G8 handoff — scale wall profiled + fixed
+  - [`d6be215`](https://github.com/shaahink/DevContext2/commit/d6be215) perf(G8.2): one per-file index kills the R1 scale wall — HotChocolate 1275s -> 64s
+  - [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) perf(G8.1): profile HotChocolate — the scale wall is one file meeting a per-file quadratic
 
 ## Last gate run
 
-fast-app:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** Both G7 checkpoints landed and claimed with evidence. **G7.1 (C-2)** @ `55af763` — measured first on the live page, and C-2's "five empty sections" is exact (FluentValidation renders 7 Atlas sections, 5 empty; Architecture and Cross-cutting fill on a library, which the brief never said). Two already stated a reason; the other three failed in three distinct ways — Hub radar issued an instruction a reader with zero entry points cannot act on, Per-service breakdown described an empty set as a set *and* printed a second notice under it, and Data stores reported "No data-store signals detected" over inputs that are empty **by construction** on a library (its only sources are per…
+> SESSION-RESULT: Stage G8 is complete and pushed to `feat/graph-v2` — G8.1 (profile) @ `59b17aa`, G8.2 (fix) @ `d6be215`, handoff @ `73a03c2`, leftover orchestrator state @ `2fb2cc2`; both checkpoints claimed through `conductor task --done` with evidence under `eval-results/2026-07-29/G8/`, and bug #21 filed and closed. R1's scale wall was never repo size: `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole file's syntax tree once per base-list entry, so HotChocolate's single 11.3 MB generated client with 4,598 base lists cost 1,216,998 ms of a 1,275 s run (95.4 %); a per-file index takes the whole analysis to 64.3 s with byte-identical output on 15 poles by SHA-256, proven thr…
 
 ## Tracker handoff
 
 ```
-**STAGE G7 COMPLETE — G7.1 (C-2) @ 55af763, G7.2 (C-3) @ 5ba0ec7.** Evidence `eval-results/2026-07-29/G7/
-G7.1-EVIDENCE.md` + `G7.2-EVIDENCE.md`; `pnpm check` `CHECK-EXIT=0` (19 files / **151** tests). C-2's "five"
-is EXACT (FluentValidation: 7 Atlas sections, 5 empty). The three unexplained ones each failed differently —
-an instruction the reader cannot act on, an empty set described as a set (**plus a second notice under it**),
-and — the sharp one — a "nothing found" over inputs empty BY CONSTRUCTION (Data stores reads only per-service
-styles + ServiceMap cards, so on a library it examined NOTHING). **Nothing was looked at is not nothing was
-found.** C-3 then found the same class twice more: the Studio picker told an **analyzed** repo to go analyze
-a repo, and Insights printed "Coverage" over nothing. Rule = S9's shape with three non-interchangeable reason
-classes (`archetype`/`none-found`/`not-computed`) as DATA ATTRIBUTES — a text grep passes on a page that
-DELETED the section. **Instruments to reuse: `ui/withheld` · pure-fn + spec (`atlas-sections.vm.ts`,
-`scopePickerWithheld`) · `scripts/g71-atlas-empty-sections.mts` + `g72-withhold-sweep.mts`.**
-**NAMED, NOT CLEARED:** the C-3 sweep drives 6 routes in their DEFAULT state — Inspector tabs / node card /
-peek / entry-browser were NOT driven and 3 carry unmarked empty states (`inspector.ts:184,217`,
-`node-card.ts:82`, `stage.ts:250`). Filed **bug #20**: AutoMapper (a LIBRARY) cards `TestApp` as a service —
-`ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same root cause as G9.1.
-**Method, twice over: the full-text dump beat the verdict line both times** (the probe PASSED on AutoMapper
-before I read it; my own `/^no/` flagged the Hub radar's caption). **Next = G8.1 (HotChocolate profile).**
+**STAGE G8 COMPLETE — G8.1 (profile) @ 59b17aa, G8.2 (fix) @ d6be215.** Evidence `eval-results/2026-07-29/G8/`.
+**R1's scale wall was never a big repo.** `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole
+file's syntax tree once per base-list entry — `baseEntries × nodes` **inside one file**. HotChocolate carries an
+11.3 MB generated client with 4,598 base lists: **1,216,998 ms of a 1,275 s run (95.4 %)**. One per-file index →
+**11,830 ms**, whole analysis **64.3 s**, `types=19456 detections=3889` **identical**. Timeout untouched, bug #21
+closed. **The class is large AND base-list dense, not large** — SignalR's 3.0 MB generated file has ONE base list
+and never engages it (121s→113s, and my first "196s→110s" was a cold-cache artefact I had to retract).
+**Instruments to reuse: `DEVCONTEXT_PROFILE=1`** (stderr stage/extractor stream + heartbeat naming what is still
+outstanding — both old observers report a hang as SILENCE) **· `dotnet-stack report --process-id`
+· `g82-capture*.ps1` + `g82-diff.ps1`** (15-pole SHA-256 differential, the acceptance instrument).
+**TRAPS PAID FOR:** any engine before/after MUST pass `--no-cache` — the snapshot key is the TARGET repo's git
+HEAD, *not* the DevContext build, so `graph-truth.ps1` would serve pre-change results; take BOTH sides of a
+timing comparison back-to-back or the ratio is fiction; `eval-repos/VerticalSlice` IS `CleanArchitecture`
+(identical dump hash), so never count it as a second pole. `McpQaGateTests` flaked once under load — bug #3/#1,
+green alone and on a quiet re-run, not a regression. **Next = G9.1** (archetype loses to an auxiliary exe:
+`CLI` + `MahApps.Metro` read CliTool/Desktop; same root cause as bug #20 — `ArchetypeDetector` excludes
+auxiliary samples, `RunnableProjects` does not).
 ```
