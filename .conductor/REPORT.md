@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 17:17 UTC · branch `feat/graph-v2` · HEAD `5940292`_
+_Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `ff64251`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 0
-**Checkpoints:** 16/22 done · **Sessions run:** 22 · **Cost:** $288.9126 (agent $288.6276 + gates $0.2850) · **Tokens:** 4,059,116 in / 1,557,965 out
+**Stage:** G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason · attempts used 0
+**Checkpoints:** 18/22 done · **Sessions run:** 23 · **Cost:** $310.1387 (agent $309.8329 + gates $0.3059) · **Tokens:** 4,305,033 in / 1,664,225 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6
+**Pending:** full-battery phase gate for G7
 
 ## Stage progress
 
@@ -17,7 +18,7 @@ _Updated 2026-07-29 17:17 UTC · branch `feat/graph-v2` · HEAD `5940292`_
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
 | G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
-| G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
+| G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | gating… |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
@@ -80,12 +81,12 @@ _Updated 2026-07-29 17:17 UTC · branch `feat/graph-v2` · HEAD `5940292`_
 
 </details>
 
-<details><summary>G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason (0/2)</summary>
+<details> ✅<summary>G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G7.1 | C-2 — Atlas's five empty sections on a library either fill or withhold themselves with a stated reason | ⬜ TODO | - |
-| G7.2 | C-3 — the withhold-don't-suppress rule applied consistently wherever a surface has no entries | ⬜ TODO | - |
+| G7.1 | C-2 — Atlas's five empty sections on a library either fill or withhold themselves with a stated reason | ✅ DONE | - |
+| G7.2 | C-3 — the withhold-don't-suppress rule applied consistently wherever a surface has no entries | ✅ DONE | - |
 
 </details>
 
@@ -140,16 +141,13 @@ _Updated 2026-07-29 17:17 UTC · branch `feat/graph-v2` · HEAD `5940292`_
 | 20 | G6 | Deliver | 1 | 07-29 14:31 | 0:54 | Advanced | G6.1 | 2 | fast-app:OK · guards:OK | $31.7807 | $0.0260 | 303,408/117,180 |
 | 21 | G6 | Deliver | 1 | 07-29 15:30 | 0:43 | Advanced | G6.2 | 1 | fast-app:OK · guards:OK | $20.6312 | $0.0160 | 257,618/110,930 |
 | 22 | G6 | Fix | 2 | 07-29 16:30 | 0:34 | Progress |  | 1 | fast-app:OK · guards:OK | $13.7036 | $0.0133 | 209,463/73,225 |
+| 23 | G7 | Deliver | 1 | 07-29 17:17 | 0:42 | Advanced | G7.1 G7.2 | 5 | fast-app:OK · guards:OK | $21.2053 | $0.0209 | 245,917/106,260 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 13:02:13  • session #16 G5 Deliver started (attempt 1/4)
-07-29 13:29:27  ▪ gate fast-engine FAIL [session]  (52.7s)
-07-29 13:29:27  ▪ gate guards pass [session]  (47.4s)
-07-29 13:29:30  • session #16 G5 → GatesRed · done G5.1 · 2 commit(s)  (27m16s)
 07-29 13:29:30  • session #17 G5 Fix started (attempt 2/4)
 07-29 13:46:46  ▪ gate fast-engine FAIL [session]  (48.8s)
 07-29 13:46:46  ▪ gate guards pass [session]  (39.8s)
@@ -186,6 +184,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 18:17:05  ▪ gate guards pass [phase]  (40.0s)
 07-29 18:17:05  ▪ gate battery pass [phase]  (7m46s)
 07-29 18:17:05  ▸ stage G6 confirmed  (2h45m15s)
+07-29 18:17:09  ▸ stage G7 entered — C-2 / C-3 — a library's empty sections fill or withhold with a reason
+07-29 18:17:09  • session #23 G7 Deliver started (attempt 1/4)
+07-29 19:03:36  ▪ gate fast-app pass [session]  (1m46s)
+07-29 19:03:36  ▪ gate guards pass [session]  (1m41s)
 ```
 
 ## Health
@@ -193,7 +195,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 22 · retries 9 (41 %) · overall Alert
+sessions 23 · retries 9 (39 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -215,17 +217,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+81 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s15 (G4 Deliver)** — 4 commit(s):
-  - [`ebf5b3a`](https://github.com/shaahink/DevContext2/commit/ebf5b3a) G4 close: PLAN status + handoff for the next session
-  - [`8541958`](https://github.com/shaahink/DevContext2/commit/8541958) G4.3: the R4 dogfood REPORT - 81 calls graded, judged against the success bar
-  - [`e954c79`](https://github.com/shaahink/DevContext2/commit/e954c79) G4.2: dogfood Tasks 2+3 - a real change through MCP orientation, and DevContext on itself
-  - [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) G4.2: the Task 2 change spec, committed BEFORE the drive
 - **s16 (G5 Deliver)** — 2 commit(s):
   - [`961f239`](https://github.com/shaahink/DevContext2/commit/961f239) chore(conductor): s16 G5.1 handoff - D-3 root-caused, G5.2 scoped
   - [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) G5.1: root cause per verb - why GitVersion's five verbs join no handler
@@ -247,30 +244,39 @@ vs upstream: up to date
   - [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) G6.2 (R3 D-4): a metadata arity marker is identity, never a name
 - **s22 (G6 Fix)** — 1 commit(s):
   - [`7c65b3e`](https://github.com/shaahink/DevContext2/commit/7c65b3e) G6.3 (R3 D-4): the scope boundary names what it drops
+- **s23 (G7 Deliver)** — 5 commit(s):
+  - [`ff64251`](https://github.com/shaahink/DevContext2/commit/ff64251) chore(tracker): stage G7 complete — C-2 + C-3 landed, C-3 boundary named
+  - [`5ba0ec7`](https://github.com/shaahink/DevContext2/commit/5ba0ec7) G7.2 (R3 C-3): zero entries is not "no analysis"
+  - [`1518807`](https://github.com/shaahink/DevContext2/commit/1518807) conductor: the orchestrator plan edits from this run (planVersion 5, run budget)
+  - [`d6ef0b0`](https://github.com/shaahink/DevContext2/commit/d6ef0b0) chore(tracker): G7.1 handoff — C-2 landed, C-3 instrument named
+  - [`55af763`](https://github.com/shaahink/DevContext2/commit/55af763) G7.1 (R3 C-2): a library's empty Atlas sections say why
 
 ## Last gate run
 
-fast-app:OK · guards:OK · battery:OK
+fast-app:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: The battery's one red (dotnet-podcasts `maui-present`) is fixed at root and the FULL `eval/gates.ps1` is now `GATE: PASS` / `BATTERY-EXIT=0` — build 0w/0e, contract sweep 0 new dead fields, fast tests, MCP QA, eval over 24 repos on both hosts (A=0 B=0), CLI matrix, `pnpm check` — committed as `7c65b3e` and pushed to `feat/graph-v2`, with G6.1 re-claimed against `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md`; the cause was G6.1 silently swapping a *population* (`model.Projects` → the analysed `.sln`'s projects) inside what read as a *predicate* change, so podcasts' two MAUI clients — which live in sibling solutions — lost the only surface that had ever named them, and the fix n…
+> SESSION-RESULT:** Both G7 checkpoints landed and claimed with evidence. **G7.1 (C-2)** @ `55af763` — measured first on the live page, and C-2's "five empty sections" is exact (FluentValidation renders 7 Atlas sections, 5 empty; Architecture and Cross-cutting fill on a library, which the brief never said). Two already stated a reason; the other three failed in three distinct ways — Hub radar issued an instruction a reader with zero entry points cannot act on, Per-service breakdown described an empty set as a set *and* printed a second notice under it, and Data stores reported "No data-store signals detected" over inputs that are empty **by construction** on a library (its only sources are per…
 
 ## Tracker handoff
 
 ```
-**FIX SESSION — the battery's one red was a real G6.1 regression; FULL battery now `GATE: PASS` (`BATTERY-EXIT=0`).**
-Evidence `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md` + `G6.3-battery.log`. Red: dotnet-podcasts
-`maui-present`. G6.1 swapped a PREDICATE (`model.Projects` + a home-grown skip list → `RunnableProjects(scope,…)`)
-and, invisibly, a **POPULATION** — `SolutionScope` keeps only the resolved `.sln`'s csprojs, and podcasts holds
-its two MAUI clients in sibling solutions, so the rollup that was the only surface ever naming them went silent.
-**The lesson is bigger than the bug: G6.1's own 5-pole invariant was blind BY CONSTRUCTION.** "Breakdown rows ==
-Service nodes" now reads BOTH sides from the same narrowed list, so a shared shrink measures as agreement —
-podcasts read 5=5 before AND after; the 5 used to be 7. **Pair every A==B invariant with a content ratchet.**
-Fix NAMES the boundary rather than re-admitting non-services: `outside_scope_apps` (proto 19; MCP `map` + Atlas
-read it) renders under SCOPE as "not analyzed — 2 runnable apps outside this solution". D-4's "service" is
-untouched, and the live DOM probe (`scripts/g63-outside-scope-dom.mts`) proves BOTH halves: block present, and
-0 of its names leaked onto a service card. Still open, filed: **bug #19** — the same page states a FOURTH count
-(STYLE evidence "6 runnable web services" vs 5 rows / 5 boxes); the STACK line still reads every discovered
-project (podcasts prints `net7.0-android` from the out-of-scope csprojs). **Next = G7.1 (C-2).**
+**STAGE G7 COMPLETE — G7.1 (C-2) @ 55af763, G7.2 (C-3) @ 5ba0ec7.** Evidence `eval-results/2026-07-29/G7/
+G7.1-EVIDENCE.md` + `G7.2-EVIDENCE.md`; `pnpm check` `CHECK-EXIT=0` (19 files / **151** tests). C-2's "five"
+is EXACT (FluentValidation: 7 Atlas sections, 5 empty). The three unexplained ones each failed differently —
+an instruction the reader cannot act on, an empty set described as a set (**plus a second notice under it**),
+and — the sharp one — a "nothing found" over inputs empty BY CONSTRUCTION (Data stores reads only per-service
+styles + ServiceMap cards, so on a library it examined NOTHING). **Nothing was looked at is not nothing was
+found.** C-3 then found the same class twice more: the Studio picker told an **analyzed** repo to go analyze
+a repo, and Insights printed "Coverage" over nothing. Rule = S9's shape with three non-interchangeable reason
+classes (`archetype`/`none-found`/`not-computed`) as DATA ATTRIBUTES — a text grep passes on a page that
+DELETED the section. **Instruments to reuse: `ui/withheld` · pure-fn + spec (`atlas-sections.vm.ts`,
+`scopePickerWithheld`) · `scripts/g71-atlas-empty-sections.mts` + `g72-withhold-sweep.mts`.**
+**NAMED, NOT CLEARED:** the C-3 sweep drives 6 routes in their DEFAULT state — Inspector tabs / node card /
+peek / entry-browser were NOT driven and 3 carry unmarked empty states (`inspector.ts:184,217`,
+`node-card.ts:82`, `stage.ts:250`). Filed **bug #20**: AutoMapper (a LIBRARY) cards `TestApp` as a service —
+`ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same root cause as G9.1.
+**Method, twice over: the full-text dump beat the verdict line both times** (the probe PASSED on AutoMapper
+before I read it; my own `/^no/` flagged the Hub radar's caption). **Next = G8.1 (HotChocolate profile).**
 ```
