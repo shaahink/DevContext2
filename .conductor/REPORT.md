@@ -1,6 +1,6 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `d4e9e04`_
+_Updated 2026-07-29 18:05 UTC · branch `feat/graph-v2` · HEAD `164af16`_
 
 **Status:** AwaitingOwner — advisor: human intervention required
 **Stage:** G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason · attempts used 0
@@ -148,7 +148,6 @@ _Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `d4e9e04`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 13:46:46  ▪ gate guards pass [session]  (39.8s)
 07-29 13:46:48  • session #17 G5 → GatesRed · 2 commit(s)  (17m17s)
 07-29 13:46:49  • session #18 G5 Fix started (attempt 3/4)
 07-29 14:31:07  ▪ gate fast-engine pass [session]  (1m14s)
@@ -188,6 +187,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 19:03:36  ▪ gate guards pass [session]  (1m41s)
 07-29 19:03:40  • session #23 G7 → Advanced · done G7.1,G7.2 · 5 commit(s)  (46m30s)
 07-29 19:03:40  § owner approval requested — G7
+07-29 19:03:43  ◆ plan reloaded — v5 · 10 stages · 4 gates
 ```
 
 ## Health
@@ -218,7 +218,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+82 more)
+working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+83 more)
 vs upstream: up to date
 ```
 
