@@ -1,31 +1,32 @@
-﻿# DevContext graph-v2 — autonomous remainder Phase Tracker
+# DevContext graph-v2 — autonomous remainder Phase Tracker
 
 **Plan:** DevContext graph-v2 — autonomous remainder | **Branch:** `feat/graph-v2` | **Design doc:** docs/dev/research/PLAN.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G5.2 CLAIMED — the join lands: gitversion `entriesWithTarget` 0/5 → 4/5, CleanArchitecture canary
-bit-identical** (139 nodes / 64 edges / 7 entries / 5 targets both sides). Writeup + every raw dump:
-`eval-results/2026-07-29/G5.2/G5.2-EVIDENCE.md`. Commits `11ebe20` (fix+tests) · `a637b54` (truth
-ratchet) · `5805713` (evidence). **G5 is now fully claimed; the next session starts G6.1.**
-**G5.1 §5 named the WRONG LOCUS for Defect 1 and its own §3 disproves it** — `HopThroughProperty` is
-properties-only and GitVersion's collaborators are FIELDS (`TypeDiscovery` has no `Fields` at all).
-Real fix was upstream in `BodyFactExtractor` (new `SplitReceiver`): a receiver chain rooted at `this`
-reports the member declared on `this`, so `this.x.M()` and `x.M()` are one fact. `BuildTypeScope`
-already held every field/property/primary-ctor param. Plus the entry builder joins the execute MEMBER,
-by SHAPE (the method taking the detected settings type), not by `ExecuteMethod`'s name list.
-**BLAST RADIUS IS WIDER THAN G5.1 §4b SAID** (it sampled 7 repos): Orleans **1603** sites, GitVersion
-878, PowerToys 440, MahApps.Metro 266, CommunityToolkit.Mvvm 186 (`blast-radius.csv`, all 47 repos).
-All four unmeasured movers were graph-truth'd and diffed vs their 07-28 verdicts — **identical**,
-including the two pre-existing FAILs (Orleans handler-join; MahApps `style`, which IS G9.1's subject).
-**G9.1 and any R1 scale work must RE-MEASURE, not inherit a pre-G5.2 number.**
-Gates at close: build 0w/0e · loom-guards PASS (incl. `Category=Truth`) · contract-sweep PASS ·
-Server 104/104 · Core 713 pass, 1 fail = **bug #1** (cold-snapshot MCP QA race; warm re-run passes).
-**NEW TRAP, may hit the battery:** the MCP QA gate can leave a `DevContext.Server.exe` alive holding
-`DevContext.Core.dll`; the next build then fails MSB3027 with "10 Warning(s)" that are copy retries,
-not code. Read the pid out of the error, stop THAT pid only. Zero were alive at close, verified.
-Still open and untouched: bug #12 (Defect 2), #14 (generic `[Command<Parent>]` sub-commands), #16.
-
+**G6.1 CLAIMED** — commit `2fdd4cf`, evidence `eval-results/2026-07-29/G6/G6.1-EVIDENCE.md`.
+Definition adopted: *a service is a RUNNABLE PRODUCTION project* (`RunnableProjects` →
+`NodeKind.Service`). **MEASURE THE PAGE, NOT THE PROJECTION**: new probe
+`src/DevContext.App/scripts/g6-atlas-vocabulary.mts` reads the DRAWN cytoscape nodes via the
+container's `_cyreg` — canvas labels are pixels, not DOM. It also greps the page for arity, which is
+**G6.2's measurement for free**. DECISIONS.md D-H was WRONG on one point: canvas and breakdown were
+set-identical on eShop (9 boxes + 1 frame + 2 TRAYED = 12 = 12 cards) — the canvas trays
+ClientApp/HybridApp, it does not exclude them. But the divergence was real and latent: two membership
+predicates, the breakdown's keyed on the project NAME containing "shared"/"common" — red proof: 5
+runnable projects, it returned 2. Sweep then found a **fourth instance of the same class**:
+`model.SamplesAreTheProduct` was assigned only at graph-assembly time, AFTER the rollup reads it, so
+the rollup read `false` on **every repo ever analysed** (aspire-samples: 2 Service nodes, 0 rows;
+proven pre-existing by measuring both binaries). Hub radar: **7 of 10 rows were Service nodes**,
+titled by splitting the node id on `[./:]` — `Service:WebApp` printed "Service.WebApp".
+Invariant now 5/5 SAME SET across eShop/aspire-samples/CleanArchitecture/podcasts/bitwarden.
+Gates: build 0w/0e · sweep PASS · guards PASS · Server 104/104 · Core 717 pass/2 skip/**1 fail =
+bug #1** (warm re-run 2/2) · `pnpm check` PASS (130 tests). **Next = G6.2 (arity).** Do NOT patch display
+strings — find where arity survives in a node **Title**, and probe a generic-heavy library pole
+(FluentValidation / AutoMapper), not just eShop. **A gRPC driver importing `devcontext_pb.ts` cannot
+run under `node --experimental-strip-types`** (a TS `enum` in the generated file) — drive via
+Playwright. Traps unchanged, plus: `Copy-Item` PRESERVES LastWriteTime, so a red/green swap script
+restores a source file MSBuild thinks is up to date and the "green" leg silently re-runs the old
+binary — use `git stash push -- <file>` or reset the timestamp, and read the elapsed time.
 
 ## Baseline numbers (from run.db)
 
@@ -33,7 +34,7 @@ Still open and untouched: bug #12 (Defect 2), #14 (generic `[Command<Parent>]` s
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 13 |
+| Claimed (unconfirmed) | 14 |
 
 ## Checkpoints
 
@@ -77,7 +78,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | DONE | d21e72b | fast-engine:FAIL · guards:OK |
-| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | TODO | - | - |
+| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | DONE | 11ebe20 | fast-engine:OK · guards:OK |
 
 ### G6 — D-4 — one vocabulary for "service" on Atlas
 
