@@ -3,6 +3,7 @@ import { Component, computed, input } from '@angular/core';
 import type { ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { projectDisplayName } from '../../core/format';
 import type { ServiceRole } from '../../ui/graph-canvas/semantics';
+import { Withheld } from '../../ui/withheld/withheld';
 
 /** D4.3 (L3): per-service entry mix, computed by AtlasPage from entryGroups —
  * `projectName → [{ label: 'HTTP', count: 12 }, …]`. */
@@ -10,6 +11,7 @@ export type EntryMix = ReadonlyMap<string, readonly { label: string; count: numb
 
 @Component({
   selector: 'app-service-cards',
+  imports: [Withheld],
   template: `
     @if (services().length > 0) {
       <div class="grid grid-cols-2 gap-3">
@@ -47,7 +49,13 @@ export type EntryMix = ReadonlyMap<string, readonly { label: string; count: numb
         }
       </div>
     } @else {
-      <p class="py-4 text-center text-xs text-ink-subtle">No service styles resolved.</p>
+      <!-- R3 C-2: reached only when the caller HAS services but no per-service styles came back —
+           the caller withholds the whole section when the set is empty. Two counts disagreeing is
+           itself worth seeing, so the notice says which one is missing rather than "not resolved". -->
+      <app-withheld
+        reason="none-found"
+        text="No per-service style resolved — the services are drawn on the canvas above, but no style, stack or entry mix came back for them."
+      />
     }
   `,
   styles: `

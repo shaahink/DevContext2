@@ -245,8 +245,8 @@ building, per the standing rule that cost S7 three stale premises.
 | # | Sub-decision | Call |
 |---|---|---|
 | C-1 | What replaces "What runs" on Home for a library | **Open.** The Explore spine landed first; Home still asks the wrong question of a library. |
-| C-2 | Atlas's five empty sections | **Open.** |
-| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. **S9 applied C-3's rule to one panel already**, see below. |
+| C-2 | Atlas's five empty sections | **Decided + landed (G7.1, see below).** The five are exact, and each section now fills or withholds itself with a stated reason in one of three classes. |
+| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. **S9 applied C-3's rule to one panel already**, see below; **G7.1 built the reusable instrument** (`ui/withheld`), so C-3 is now a sweep with a component rather than a design call. |
 
 ### S9 scope correction — the Confidence Ledger was suppressed on every library
 
@@ -263,6 +263,43 @@ The gate is now `graph is not null`, and the two entry-dependent rows (auth cove
 withhold themselves when their denominator is zero — which is exactly C-3's rule, applied to the one
 panel where the suppression was hiding real numbers. C-3 itself stays open: it is about what Home
 and Atlas say to a library, and that is still the owner's call.
+
+### C-2 — Atlas's five empty sections (DECIDED + LANDED, G7.1)
+
+Evidence: `eval-results/2026-07-29/G7/G7.1-EVIDENCE.md`, four poles.
+
+**The five are exact, and measured rather than read.** FluentValidation's Atlas renders 7 sections
+and 5 are empty: Top flows, Event & queue board, Data stores, Per-service breakdown, Hub radar.
+(Architecture and Cross-cutting fill on a library — the brief's list did not name which five.)
+
+Two already said why. The other three failed in three different ways, and naming them separately is
+the decision:
+
+1. **An instruction the reader cannot act on.** Hub radar said "index flows from the Explore page" on
+   a repo with no entry points. Nothing to index; nothing changes. The same defect T6.0 S1.8 fixed
+   for the event board and nobody swept for.
+2. **An empty set described as a set.** "The 0 services the Architecture canvas draws", with a second
+   empty notice under it from inside the cards component. Two messages, neither a reason.
+3. **A "nothing found" over inputs that were empty by construction.** Data stores reads only the
+   per-service style stacks and the ServiceMap cards, both empty when a repo has no services — so on
+   a library it examined nothing and reported "No data-store signals detected". *Nothing was looked
+   at* is not *nothing was found*, and the page was saying the wrong one.
+
+**The rule, and it is the S9 shape generalised:** a section keeps its heading and states, in its own
+words, why it is empty *on this repo* — in one of three classes that are not interchangeable:
+`archetype` (the subject does not exist for this kind of repo) · `none-found` (it exists, was
+examined, nothing matched) · `not-computed` (it exists, the data is not built yet). The classes are
+rendered as data attributes, so a withheld section is structurally distinct from content and a probe
+cannot be fooled by a page that deleted the section instead — which is the defect S9 named.
+
+The CliTool pole is what proves the classes carry weight: the three sections a library withholds by
+`archetype` are withheld by `none-found` on GitVersion, whose Hub radar now reads "no node appears
+on more than one indexed flow" instead of an instruction it has already carried out.
+
+**Found, not fixed (bug #20):** AutoMapper — a packable library — reads "1 service (1 drawn)" and
+draws a per-service card for `TestApp`, its demo executable. `ArchetypeDetector` excludes auxiliary
+samples when deciding Library; `ServiceBoundaryInference.RunnableProjects` does not apply the same
+exclusion. Two judgements about the same projects, one narrower. Same root cause as **G9.1**.
 
 ---
 

@@ -1,0 +1,272 @@
+REPO      C:\code\DevContext2\eval-repos\eShop
+ARCHETYPE App
+SECTIONS  7
+
+[1] EVERY SECTION, AS THE READER SEES IT
+  --- Architecture  [content=1 withheld=0]
+      12 services (9 drawn · 1 orchestrator · 2 in no relationship) · 19 projects · 36 dependency edges · 23 transport links
+      
+      Services
+      All projects
+      HTTP
+      queue
+      gRPC
+      deploy ref
+      store
+      in no relationship · 2ClientApp · HybridApp
+      +
+      −
+      ⊡
+  --- Top flows  [content=1 withheld=0]
+      POST /api/orders/
+      33 steps
+      ·
+      3 deep
+      ·
+      20 cross-service
+      ·
+      HTTP
+      PUT /api/catalog/items/{id:int}
+      35 steps
+      ·
+      3 deep
+      ·
+      11 cross-service
+      ·
+      HTTP
+      PUT /api/orders/cancel
+      22 steps
+      ·
+      3 deep
+      ·
+      14 cross-service
+      ·
+      HTTP
+      PUT /api/orders/ship
+      22 steps
+      ·
+      3 deep
+      ·
+      14 cross-service
+      ·
+      HTTP
+      POST /api/orders/draft
+      22 steps
+      ·
+      3 deep
+      ·
+      14 cross-service
+      ·
+      HTTP
+  --- Event & queue board  [content=2 withheld=0]
+      OrderProcessor
+      bus-publish→consume
+      →
+      Ordering.API
+      PaymentProcessor
+      bus-publish→consume
+      →
+      Ordering.API
+      Ordering.API
+      bus-publish→consume
+      →
+      Basket.API
+      Ordering.API
+      bus-publish→consume
+      →
+      Catalog.API
+      Ordering.API
+      bus-publish→consume
+      →
+      WebApp
+      Ordering.API
+      bus-publish→consume
+      →
+      Webhooks.API
+      Ordering.API
+      bus-publish→consume
+      →
+      PaymentProcessor
+      Catalog.API
+      bus-publish→consume
+      →
+      Ordering.API
+      Catalog.API
+      bus-publish→consume
+      →
+      Webhooks.API
+      PUBLISHER	EVENT	CONSUMER
+      VerifyOrAddPaymentMethod	BuyerAndPaymentMethodVerifiedDomainEvent	UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
+      CheckConfirmedGracePeriodOrders	GracePeriodConfirmedIntegrationEvent cross-service	GracePeriodConfirmedIntegrationEventHandler
+      SetCancelledStatus	OrderCancelledDomainEvent	OrderCancelledDomainEventHandler
+      Handle	OrderPaymentFailedIntegrationEvent cross-service	OrderPaymentFailedIntegrationEventHandler
+      Handle	OrderPaymentSucceededIntegrationEvent cross-service	OrderPaymentSucceededIntegrationEventHandler
+      SetShippedStatus	OrderShippedDomainEvent	OrderShippedDomainEventHandler
+      AddOrderStartedDomainEvent	OrderStartedDomainEvent	ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+      Handle	OrderStartedIntegrationEvent cross-service	OrderStartedIntegrationEventHandler
+      SetAwaitingValidationStatus	OrderStatusChangedToAwaitingValidationDomainEvent	OrderStatusChangedToAwaitingValidationDomainEventHandler
+      Handle	OrderStatusChangedToAwaitingValidationIntegrationEvent cross-service	OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+      Handle	OrderStatusChangedToAwaitingValidationIntegrationEvent cross-service	OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+      Handle	OrderStatusChangedToCancelledIntegrationEvent cross-service	OrderStatusChangedToCancelledIntegrationEventHandler
+      SetPaidStatus	OrderStatusChangedToPaidDomainEvent	OrderStatusChangedToPaidDomainEventHandler
+      Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+      Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+      Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+      Handle	OrderStatusChangedToShippedIntegrationEvent cross-service	OrderStatusChangedToShippedIntegrationEventHandler
+      Handle	OrderStatusChangedToShippedIntegrationEvent cross-service	OrderStatusChangedToShippedIntegrationEventHandler
+      SetStockConfirmedStatus	OrderStatusChangedToStockConfirmedDomainEvent	OrderStatusChangedToStockConfirmedDomainEventHandler
+      Handle	OrderStatusChangedToStockConfirmedIntegrationEvent cross-service	OrderStatusChangedToStockConfirmedIntegrationEventHandler
+      Handle	OrderStatusChangedToStockConfirmedIntegrationEvent cross-service	OrderStatusChangedToStockConfirmedIntegrationEventHandler
+      Handle	OrderStatusChangedToSubmittedIntegrationEvent cross-service	OrderStatusChangedToSubmittedIntegrationEventHandler
+      Handle	OrderStockConfirmedIntegrationEvent cross-service	OrderStockConfirmedIntegrationEventHandler
+      Handle	OrderStockRejectedIntegrationEvent cross-service	OrderStockRejectedIntegrationEventHandler
+      CatalogApi.UpdateItem	ProductPriceChangedIntegrationEvent cross-service	ProductPriceChangedIntegrationEventHandler
+  --- Data stores  [content=1 withheld=0]
+      Catalog.API
+      EF Core
+      Ordering.API
+      EF Core
+      Webhooks.API
+      EF Core
+  --- Per-service breakdown  [content=1 withheld=0]
+      The 12 services the Architecture canvas draws — a service is a runnable production project.
+      
+      Basket.API
+      gRPC Service
+      drawn on the canvas
+      3 gRPC
+      1 Bus consumers
+      gRPC
+      Catalog.API
+      Web API
+      drawn on the canvas
+      16 HTTP
+      2 Bus consumers
+      EF Core
+      ClientApp
+      MAUI App
+      in no relationship — trayed on the canvas
+      28 UI
+      .NET MAUI
+      eShop.AppHost
+      Aspire AppHost
+      orchestrator — drawn as the frame on the canvas
+      Aspire
+      HybridApp
+      MAUI App
+      in no relationship — trayed on the canvas
+      3 UI
+      .NET MAUI
+      Identity.API
+      Identity provider
+      drawn on the canvas
+      14 HTTP
+      IdentityServer
+      Ordering.API
+      Web API
+      drawn on the canvas
+      7 HTTP
+      7 Domain events
+      5 Bus consumers
+      EF Core
+      FluentValidation
+      OrderProcessor
+      Worker Service
+      drawn on the canvas
+      1 Hosted services
+      Worker
+      PaymentProcessor
+      Worker Service
+      drawn on the canvas
+      1 Bus consumers
+      Worker
+      WebApp
+      Blazor
+      drawn on the canvas
+      7 UI
+      3 Bus consumers
+      Blazor
+      YARP
+      WebhookClient
+      Blazor
+      drawn on the canvas
+      4 UI
+      2 HTTP
+      Blazor
+      Webhooks.API
+      Web API
+      drawn on the canvas
+      4 HTTP
+      1 Bus consumers
+      EF Core
+  --- Cross-cutting  [content=1 withheld=0]
+      PIPELINE BEHAVIORS
+      LoggingBehavior
+      TransactionBehavior
+      ValidatorBehavior
+      PACKAGES
+      Web/API (14)
+      ORM/Data (6)
+      Mediator/CQRS (1)
+      Messaging (2)
+      Validation (2)
+      Logging (5)
+      Testing (3)
+      Cloud (2)
+      Other (35)
+  --- Hub radar  [content=1 withheld=0]
+      Nodes appearing in the most distinct flows across the repo.
+      
+      service
+      Webhooks.API
+      38 flows · in 5 · out 3
+      service
+      Identity.API
+      35 flows · in 6 · out 6
+      service
+      Basket.API
+      30 flows · in 4 · out 3
+      service
+      Catalog.API
+      28 flows · in 3 · out 4
+      service
+      Ordering.API
+      27 flows · in 6 · out 8
+      service
+      WebApp
+      25 flows · in 3 · out 5
+      service
+      PaymentProcessor
+      23 flows · in 2 · out 2
+      type
+      ILogger
+      9 flows · in 10 · out 0
+      type
+      CatalogContext
+      Catalog.API
+      9 flows · in 13 · out 0
+      type
+      OrderingContext
+      Ordering.Infrastructure
+      9 flows · in 18 · out 0
+
+[2] A1 — FILLS OR WITHHOLDS WITH A REASON
+    ok    Architecture             FILLED
+    ok    Top flows                FILLED
+    ok    Event & queue board      FILLED
+    ok    Data stores              FILLED
+    ok    Per-service breakdown    FILLED
+    ok    Cross-cutting            FILLED
+    ok    Hub radar                FILLED
+
+[3] A2 — NO HEADING OVER A BLANK BODY
+    ok    no blank bodies
+
+[4] A3 — NO INSTRUCTION THE READER CANNOT ACT ON
+    n/a   this repo has entry points
+
+[5] A4 — NO EMPTY SET DESCRIBED AS A SET
+    ok    no zero-count set sentences
+
+[6] VERDICT
+    PASS — every section fills or withholds with a stated reason

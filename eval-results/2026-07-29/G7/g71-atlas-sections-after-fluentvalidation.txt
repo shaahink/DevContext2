@@ -1,0 +1,49 @@
+REPO      C:\code\DevContext2\eval-repos\FluentValidation
+ARCHETYPE Library  (page states: no entry points)
+SECTIONS  7
+
+[1] EVERY SECTION, AS THE READER SEES IT
+  --- Architecture  [content=1 withheld=0]
+      2 projects · 1 dependency edge
+      
+      +
+      −
+      ⊡
+  --- Top flows  [content=0 withheld=1]
+      No entry points — a library exposes a surface, not flows. Its front doors are on the Explore page.
+  --- Event & queue board  [content=0 withheld=1]
+      No entry points — event wiring does not apply to a pure library surface.
+  --- Data stores  [content=0 withheld=1]
+      Data stores are read per service, and a library has none — whatever runs this library owns its storage.
+  --- Per-service breakdown  [content=0 withheld=1]
+      No services — a library is packaged, not run. Its 2 projects are on the Architecture canvas above.
+  --- Cross-cutting  [content=1 withheld=0]
+      PACKAGES
+      Testing (3)
+      Utilities (1)
+      Other (9)
+  --- Hub radar  [content=0 withheld=1]
+      Nodes appearing in the most distinct flows across the repo.
+      
+      No hubs — the radar ranks nodes by how many flows pass through them, and a repo with no entry points has no flows.
+
+[2] A1 — FILLS OR WITHHOLDS WITH A REASON
+    ok    Architecture             FILLED
+    ok    Top flows                WITHHELD (archetype)
+    ok    Event & queue board      WITHHELD (archetype)
+    ok    Data stores              WITHHELD (archetype)
+    ok    Per-service breakdown    WITHHELD (archetype)
+    ok    Cross-cutting            FILLED
+    ok    Hub radar                WITHHELD (archetype)
+
+[3] A2 — NO HEADING OVER A BLANK BODY
+    ok    no blank bodies
+
+[4] A3 — NO INSTRUCTION THE READER CANNOT ACT ON
+    ok    no unactionable instruction
+
+[5] A4 — NO EMPTY SET DESCRIBED AS A SET
+    ok    no zero-count set sentences
+
+[6] VERDICT
+    PASS — every section fills or withholds with a stated reason

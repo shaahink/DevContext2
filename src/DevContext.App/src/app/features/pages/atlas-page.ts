@@ -9,11 +9,20 @@ import { FlowStepper } from '../shared/flow-stepper';
 import { ServiceCards, type EntryMix } from '../shared/service-cards';
 import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-canvas';
 import { classifyServiceRoles, classifyTransport } from '../../ui/graph-canvas/semantics';
+import { Withheld } from '../../ui/withheld/withheld';
+import {
+  type AtlasSectionFacts,
+  dataStoresWithheld as dataStoresNote,
+  eventWiringWithheld as eventWiringNote,
+  hubRadarWithheld as hubRadarNote,
+  serviceBreakdownWithheld as serviceBreakdownNote,
+  topFlowsWithheld as topFlowsNote,
+} from './atlas-sections.vm';
 import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
 
 @Component({
   selector: 'app-atlas-page',
-  imports: [RouterLink, FlowStepper, ServiceCards, GraphCanvas],
+  imports: [RouterLink, FlowStepper, ServiceCards, GraphCanvas, Withheld],
   template: `
     <div class="mx-auto max-w-4xl space-y-8 px-5 pb-10 pt-6">
       @if (!session.ready()) {
@@ -81,28 +90,36 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
                that one number and accounts for every member of it. -->
           <p class="mb-2 text-2xs text-ink-subtle">
             @if (serviceCount()) {
-              <span class="text-ink-muted">{{ serviceCount() }} services</span>
+              <span class="text-ink-muted">{{ serviceCount() }} service{{ serviceCount() === 1 ? '' : 's' }}</span>
               <span> ({{ serviceRoleSummary() }})</span> &middot;
             }
-            {{ topology().length }} projects &middot;
-            {{ topology().reduce((n, p) => n + p.dependsOn.length, 0) }} dependency edges
+            {{ topology().length }} project{{ topology().length === 1 ? '' : 's' }} &middot;
+            {{ dependencyEdgeCount() }} dependency edge{{ dependencyEdgeCount() === 1 ? '' : 's' }}
             @if (atlasTransports().length) {
-              &middot; {{ atlasTransports().length }} transport links
+              &middot; {{ atlasTransports().length }} transport link{{ atlasTransports().length === 1 ? '' : 's' }}
             }
           </p>
-          <app-graph-canvas
-            [data]="atlasCanvasData()"
-            (nodeActivated)="onProjectTap($event)"
-          />
+          @if (topology().length) {
+            <app-graph-canvas
+              data-section-content
+              [data]="atlasCanvasData()"
+              (nodeActivated)="onProjectTap($event)"
+            />
+          } @else {
+            <app-withheld
+              reason="none-found"
+              text="No projects resolved in the analyzed scope, so there is nothing to draw."
+            />
+          }
         </div>
 
         <!-- ② Top flows as stepper strips -->
         <div>
           <h2 class="section-h mb-3">Top flows</h2>
-          @if ((session.summary()?.entries ?? 0) === 0) {
-            <p class="py-4 text-center text-xs text-ink-subtle">No entry points — a library exposes surface, not flows.</p>
+          @if (topFlowsWithheld(); as w) {
+            <app-withheld [reason]="w.reason" [text]="w.text" />
           } @else {
-            <app-flow-stepper [flows]="atlasTopFlows()" />
+            <app-flow-stepper data-section-content [flows]="atlasTopFlows()" />
           }
         </div>
 
@@ -110,7 +127,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
         <div>
           <h2 class="section-h mb-3">Event &amp; queue board</h2>
           @if (queueLinks().length) {
-            <div class="mb-2 space-y-1">
+            <div data-section-content class="mb-2 space-y-1">
               @for (q of queueLinks(); track q.key) {
                 <div class="flex items-center gap-2 rounded border border-line bg-surface px-3 py-1.5 text-xs" [title]="q.evidence">
                   <span class="font-mono text-ink">{{ q.from }}</span>
@@ -122,7 +139,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
             </div>
           }
           @if (eventWiring().length) {
-            <div class="overflow-x-auto rounded border border-line">
+            <div data-section-content class="overflow-x-auto rounded border border-line">
               <table class="w-full text-left text-xs">
                 <thead>
                   <tr class="border-b border-line bg-surface-2 text-2xs uppercase tracking-wider text-ink-muted">
@@ -163,7 +180,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
               </table>
             </div>
           } @else if (!queueLinks().length) {
-            <p class="py-4 text-center text-xs text-ink-subtle">{{ eventWiringEmptyText() }}</p>
+            <app-withheld [reason]="eventWiringWithheld().reason" [text]="eventWiringWithheld().text" />
           }
         </div>
 
@@ -171,7 +188,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
         <div>
           <h2 class="section-h mb-3">Data stores</h2>
           @if (dataStores().length) {
-            <div class="space-y-1">
+            <div data-section-content class="space-y-1">
               @for (d of dataStores(); track d.service) {
                 <div class="flex items-center gap-2 rounded border border-line bg-surface px-3 py-1.5 text-xs">
                   <span class="min-w-0 flex-1 truncate font-mono text-ink">{{ d.service }}</span>
@@ -182,20 +199,35 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
               }
             </div>
           } @else {
-            <p class="py-4 text-center text-xs text-ink-subtle">No data-store signals detected.</p>
+            <!-- R3 C-2: this used to read "No data-store signals detected", which a reader takes as
+                 a finding about the repo. On a library it was a finding about the INPUT: the only
+                 sources here are the per-service style stacks and the ServiceMap cards, and both are
+                 empty by construction when there are no services. Nothing was looked at, which is a
+                 different sentence from nothing was found. -->
+            <app-withheld [reason]="dataStoresWithheld().reason" [text]="dataStoresWithheld().text" />
           }
         </div>
 
         <!-- ⑤ Per-service cards (style + entry mix, D4.3) -->
         <div>
           <h2 class="section-h mb-3">Per-service breakdown</h2>
-          <!-- R3 D-4: same set as the canvas above, same count, and every card says how the canvas
-               drew it — the reader can now join a card to a box, a frame, or the tray. -->
-          <p class="mb-2 text-2xs text-ink-subtle">
-            The {{ serviceCount() }} services the Architecture canvas draws &mdash; a service is a
-            runnable production project.
-          </p>
-          <app-service-cards [services]="serviceStyles()" [entryMix]="entryMix()" [roles]="serviceRoles()" />
+          <!-- R3 C-2: the caption below counts a set, so it is only true of a set that exists. On a
+               library it printed "The 0 services the Architecture canvas draws", and the cards then
+               printed a second empty notice underneath it — two messages, neither saying why a
+               library has none. An empty set withholds the section instead. -->
+          @if (!serviceCount() && !serviceStyles().length) {
+            <app-withheld [reason]="serviceBreakdownWithheld().reason" [text]="serviceBreakdownWithheld().text" />
+          } @else {
+            <!-- R3 D-4: same set as the canvas above, same count, and every card says how the canvas
+                 drew it — the reader can now join a card to a box, a frame, or the tray. -->
+            <p class="mb-2 text-2xs text-ink-subtle">
+              The {{ serviceCount() }} service{{ serviceCount() === 1 ? '' : 's' }} the Architecture
+              canvas draws &mdash; a service is a runnable production project.
+            </p>
+            <app-service-cards
+              [attr.data-section-content]="serviceStyles().length ? '' : null"
+              [services]="serviceStyles()" [entryMix]="entryMix()" [roles]="serviceRoles()" />
+          }
 
           <!-- R3 D-4: the boundary the scope pick draws. A repo that declares several solutions is
                analysed one at a time, so some runnable apps are discovered on disk and then never
@@ -229,7 +261,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
         <div>
           <h2 class="section-h mb-3">Cross-cutting</h2>
           @if (pipelineBehaviors().length || packages().length) {
-            <div class="flex flex-wrap gap-3">
+            <div data-section-content class="flex flex-wrap gap-3">
               @if (pipelineBehaviors().length) {
                 <div class="flex-1 min-w-48 rounded-lg border border-line bg-surface p-3">
                   <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle mb-2">Pipeline behaviors</h3>
@@ -252,7 +284,10 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
               }
             </div>
           } @else {
-            <p class="py-4 text-center text-xs text-ink-subtle">No cross-cutting data resolved.</p>
+            <app-withheld
+              reason="none-found"
+              text="Nothing cross-cutting — this solution declares no pipeline behaviors and no package references the engine could group."
+            />
           }
         </div>
 
@@ -261,7 +296,7 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
           <h2 class="section-h mb-3">Hub radar</h2>
           <p class="mb-2 text-2xs text-ink-subtle">Nodes appearing in the most distinct flows across the repo.</p>
           @if (hubsWithDegree().length) {
-            <div class="space-y-1">
+            <div data-section-content class="space-y-1">
               @for (h of hubsWithDegree(); track h.nodeId) {
                 <div
                   class="list-row justify-between"
@@ -292,7 +327,10 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
               }
             </div>
           } @else {
-            <p class="py-4 text-center text-xs text-ink-subtle">No hubs indexed — index flows from the Explore page.</p>
+            <!-- R3 C-2: "index flows from the Explore page" is an instruction a reader with no entry
+                 points cannot act on — there is nothing to index. Same defect class T6.0 S1.8 fixed
+                 for the event board, never swept for until now. -->
+            <app-withheld [reason]="hubRadarWithheld().reason" [text]="hubRadarWithheld().text" />
           }
         </div>
       }
@@ -429,16 +467,32 @@ export class AtlasPage {
   protected readonly hubsWithDegree = this.atlas.hubsWithDegree;
   protected readonly atlasTopFlows = computed(() => this.atlas.topFlows().slice(0, 5));
 
-  /** Honest empty state (T6.0 S1.8): "index flows" was shown even AFTER indexing finished —
-   * on a monolith the truthful message is "there are no cross-service events", not an
-   * instruction that changes nothing. */
-  protected readonly eventWiringEmptyText = computed(() => {
-    if ((this.session.summary()?.entries ?? 0) === 0) return 'No entry points — event wiring does not apply to a pure library surface.';
-    const status = this.atlas.status();
-    if (status === 'indexing' || status === 'paused') return 'Indexing flows… event wiring appears as publishers are found.';
-    if (status === 'done') return 'No events detected — every indexed flow stays in-process.';
-    return 'No event wiring data — flows have not been indexed yet.';
-  });
+  protected readonly dependencyEdgeCount = computed(() =>
+    this.topology().reduce((n, p) => n + p.dependsOn.length, 0));
+
+  /**
+   * R3 C-2 — the facts every withheld section on this page is allowed to read, in one object.
+   * The decisions themselves are pure functions in `atlas-sections.vm.ts` so the rule they encode
+   * is unit-tested in the battery, not only observed through a DOM probe.
+   *
+   * `entries` is the repo's own count, not an archetype guess: a library has none by construction,
+   * but so does a repo the engine found no front door in, and those two deserve different sentences.
+   */
+  private readonly sectionFacts = computed<AtlasSectionFacts>(() => ({
+    entries: this.session.summary()?.entries ?? 0,
+    isLibrary: this.map()?.isLibrary ?? false,
+    projectCount: this.topology().length,
+    serviceCount: this.serviceCount(),
+    serviceStyleCount: this.serviceStyles().length,
+    topFlowCount: this.atlasTopFlows().length,
+    flowStatus: this.atlas.status(),
+  }));
+
+  protected readonly topFlowsWithheld = computed(() => topFlowsNote(this.sectionFacts()));
+  protected readonly eventWiringWithheld = computed(() => eventWiringNote(this.sectionFacts()));
+  protected readonly dataStoresWithheld = computed(() => dataStoresNote(this.sectionFacts()));
+  protected readonly serviceBreakdownWithheld = computed(() => serviceBreakdownNote(this.sectionFacts()));
+  protected readonly hubRadarWithheld = computed(() => hubRadarNote(this.sectionFacts()));
 
   protected copied = signal(false);
 
@@ -553,7 +607,7 @@ export class AtlasPage {
     if (hubs.length) {
       lines.push('## Hub Radar');
       for (const h of hubs) {
-        lines.push(`- ${h.title}: ${h.flowCount} flows${h.degree ? ` (in ${h.degree.inDegree}, out ${h.degree.outDegree})` : ''}`);
+        lines.push(`- ${h.title}: ${h.flowCount} flow${h.flowCount === 1 ? '' : 's'}${h.degree ? ` (in ${h.degree.inDegree}, out ${h.degree.outDegree})` : ''}`);
       }
       lines.push('');
     }

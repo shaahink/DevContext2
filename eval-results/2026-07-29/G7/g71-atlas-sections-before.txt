@@ -1,0 +1,60 @@
+REPO      C:\code\DevContext2\eval-repos\FluentValidation
+ARCHETYPE Library  (page states: no entry points)
+SECTIONS  7
+
+[1] EVERY SECTION, AS THE READER SEES IT
+  --- Architecture  [content=0 withheld=0]
+      2 projects · 1 dependency edges
+      
+      +
+      −
+      ⊡
+  --- Top flows  [content=0 withheld=0]
+      No entry points — a library exposes surface, not flows.
+  --- Event & queue board  [content=0 withheld=0]
+      No entry points — event wiring does not apply to a pure library surface.
+  --- Data stores  [content=0 withheld=0]
+      No data-store signals detected.
+  --- Per-service breakdown  [content=0 withheld=0]
+      The 0 services the Architecture canvas draws — a service is a runnable production project.
+      
+      No service styles resolved.
+  --- Cross-cutting  [content=0 withheld=0]
+      PACKAGES
+      Testing (3)
+      Utilities (1)
+      Other (9)
+  --- Hub radar  [content=0 withheld=0]
+      Nodes appearing in the most distinct flows across the repo.
+      
+      No hubs indexed — index flows from the Explore page.
+
+[2] A1 — FILLS OR WITHHOLDS WITH A REASON
+    FAIL  Architecture             FAIL — neither content nor a stated reason
+    FAIL  Top flows                FAIL — neither content nor a stated reason
+    FAIL  Event & queue board      FAIL — neither content nor a stated reason
+    FAIL  Data stores              FAIL — neither content nor a stated reason
+    FAIL  Per-service breakdown    FAIL — neither content nor a stated reason
+    FAIL  Cross-cutting            FAIL — neither content nor a stated reason
+    FAIL  Hub radar                FAIL — neither content nor a stated reason
+
+[3] A2 — NO HEADING OVER A BLANK BODY
+    ok    no blank bodies
+
+[4] A3 — NO INSTRUCTION THE READER CANNOT ACT ON
+    FAIL  Hub radar: "index flows" on a repo with no entry points
+
+[5] A4 — NO EMPTY SET DESCRIBED AS A SET
+    FAIL  Per-service breakdown: "The 0 services"
+
+[6] VERDICT
+    FAIL — 9 problem(s)
+      · A1 Architecture: empty with no stated reason
+      · A1 Top flows: empty with no stated reason
+      · A1 Event & queue board: empty with no stated reason
+      · A1 Data stores: empty with no stated reason
+      · A1 Per-service breakdown: empty with no stated reason
+      · A1 Cross-cutting: empty with no stated reason
+      · A1 Hub radar: empty with no stated reason
+      · A3 Hub radar: tells a reader with 0 entry points to index flows
+      · A4 Per-service breakdown: "The 0 services"
