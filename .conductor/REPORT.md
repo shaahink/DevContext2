@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 02:27 UTC · branch `feat/graph-v2` · HEAD `ccd8a41`_
+_Updated 2026-07-29 02:36 UTC · branch `feat/graph-v2` · HEAD `1a7a219`_
 
-**Status:** Paused
+**Status:** Aborted
 **Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 1 · working ▸ G1.3
 **Checkpoints:** 2/22 done · **Sessions run:** 2 · **Cost:** $29.2151 (agent $29.1684 + gates $0.0467) · **Tokens:** 402,746 in / 159,252 out
 
@@ -152,7 +152,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
