@@ -1,6 +1,6 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `d762adb`_
+_Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `d4e9e04`_
 
 **Status:** AwaitingOwner — advisor: human intervention required
 **Stage:** G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason · attempts used 0
@@ -148,7 +148,6 @@ _Updated 2026-07-29 18:03 UTC · branch `feat/graph-v2` · HEAD `d762adb`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 13:46:46  ▪ gate fast-engine FAIL [session]  (48.8s)
 07-29 13:46:46  ▪ gate guards pass [session]  (39.8s)
 07-29 13:46:48  • session #17 G5 → GatesRed · 2 commit(s)  (17m17s)
 07-29 13:46:49  • session #18 G5 Fix started (attempt 3/4)
@@ -188,6 +187,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 19:03:36  ▪ gate fast-app pass [session]  (1m46s)
 07-29 19:03:36  ▪ gate guards pass [session]  (1m41s)
 07-29 19:03:40  • session #23 G7 → Advanced · done G7.1,G7.2 · 5 commit(s)  (46m30s)
+07-29 19:03:40  § owner approval requested — G7
 ```
 
 ## Health
