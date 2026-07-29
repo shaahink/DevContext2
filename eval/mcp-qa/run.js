@@ -42,7 +42,12 @@ function mcpClient(exePath) {
     try {
       const msg = JSON.parse(line);
       if (msg.id !== undefined && pending.has(msg.id)) {
-        pending.get(msg.id)(msg);
+        const waiter = pending.get(msg.id);
+        // Clear the timeout, or a pending timer holds node's event loop open long after the work
+        // is done — with the analyze call's own 10-minute budget that outlives the 300s cap in
+        // McpQaGateTests, so a passing harness would still fail the gate on a hung process.
+        clearTimeout(waiter.timer);
+        waiter.resolve(msg);
         pending.delete(msg.id);
       }
     } catch (_) {
@@ -52,25 +57,27 @@ function mcpClient(exePath) {
 
   proc.stderr.resume();
 
-  function call(method, params = {}) {
+  function call(method, params = {}, timeoutMs = 45000) {
     return new Promise((resolve, reject) => {
       const id = nextId++;
-      pending.set(id, resolve);
       const req = JSON.stringify({
         jsonrpc: "2.0",
         id,
         method,
         params,
       });
-      proc.stdin.write(req + "\n");
 
-      // 45s timeout (config tool scans files on disk, could be slow first call)
-      setTimeout(() => {
+      // 45s default (the config tool scans files on disk, so the first call is slow). A cold
+      // analyze is a different order of magnitude and passes its own budget — see analyzeRepo.
+      const timer = setTimeout(() => {
         if (pending.has(id)) {
           pending.delete(id);
           reject(new Error(`Timeout: ${method}`));
         }
-      }, 45000);
+      }, timeoutMs);
+      pending.set(id, { resolve, timer });
+
+      proc.stdin.write(req + "\n");
     });
   }
 
@@ -91,11 +98,15 @@ function mcpClient(exePath) {
 // ---- MCP session bootstrap ----
 
 async function bootstrap(client) {
+  // The handshake is not answered until the MCP has a live gRPC server behind it, and it spawns
+  // one if none is listening. Under a full `dotnet test` run that cold start is the slowest thing
+  // the harness ever waits for, so it gets its own budget rather than the per-call default —
+  // otherwise "the server is still booting" is reported as "the MCP is dead".
   const initResp = await client.call("initialize", {
     protocolVersion: "2024-11-05",
     capabilities: {},
     clientInfo: { name: "mcp-qa-harness", version: "0.0.1" },
-  });
+  }, 180000);
 
   if (initResp.error) throw new Error(`Init failed: ${JSON.stringify(initResp.error)}`);
   client.notify("notifications/initialized", {});
@@ -161,62 +172,59 @@ async function toolCall(client, tool, args, tracker) {
   return data;
 }
 
-// ---- Analyze with flush-trap workaround ----
-
+// ---- Analyze ----
+//
+// Bug #1 (G1): this used to race itself and score a false 0/12 — or bail with "Could not analyze
+// repo" — on the FIRST run after any Core change, which is exactly when the battery runs, because
+// snapshots are MVID-keyed so every Core edit forces a cold re-analysis. Three things were wrong
+// and all three are fixed here rather than worked around:
+//
+//   1. `analyze` was given the shared 45s timeout. A cold analyse of the dogfood repo takes
+//      minutes, so the call ALWAYS rejected and the code below invented a result.
+//   2. The poll accepted a session whose `status` was "ready" — a field `list_sessions` does not
+//      return, so the poll could never match anything, and 240 iterations were spent proving it.
+//      The honest readiness signal is a session with a GRAPH, which is what `nodes` reports.
+//   3. The last-resort branch called status(handle: "") — asking the server to pick a session for
+//      us. That is the cross-repo retarget G1.3 removed; a harness must never grade a repo it did
+//      not name.
 async function analyzeRepo(client, repoPath) {
-  const analyzePromise = client.call("tools/call", {
-    name: "analyze",
-    arguments: { path: repoPath },
-  });
+  // The analysis owns its own budget. This is the ONLY place that can legitimately take minutes.
+  const ANALYZE_TIMEOUT_MS = 600000;
+  const analyzePromise = client.call(
+    "tools/call",
+    { name: "analyze", arguments: { path: repoPath } },
+    ANALYZE_TIMEOUT_MS,
+  );
+
+  // Report progress while it runs (AGENTS.md: never wait silently) — and, when the analysis lands
+  // early, notice a session that has actually produced a graph.
+  let polled = null;
+  const started = Date.now();
+  const poll = (async () => {
+    for (let i = 0; i < 1200 && polled === null; i++) {
+      await sleep(500);
+      try {
+        const listResp = await client.call("tools/call", { name: "list_sessions", arguments: {} });
+        const sessions = extractContent(listResp.result)?.sessions ?? [];
+        const ready = sessions.find((s) => (s.nodes ?? 0) > 0);
+        if (ready) { polled = ready.handle; return; }
+      } catch (_) { /* the server may not be up yet */ }
+      if (i % 20 === 19) log(`  still analyzing (${((Date.now() - started) / 1000).toFixed(0)}s elapsed)`);
+    }
+  })();
 
   let handle = null;
-  for (let i = 0; i < 240; i++) {
-    await sleep(500);
-
-    try {
-      const listResp = await client.call("tools/call", {
-        name: "list_sessions",
-        arguments: {},
-      });
-      if (!handle && listResp.result) {
-        const data = extractContent(listResp.result);
-        const sessions = data.sessions ?? [];
-        const ready = sessions.find((s) => s.status === "ready" || s.status === "done");
-        if (ready) handle = ready.handle;
-      }
-    } catch (_) {
-      // polling may race; continue
-    }
-
-    if (handle) break;
-  }
-
-  let analyzeResult;
   try {
-    const analyzeResp = await analyzePromise;
-    analyzeResult = extractContent(analyzeResp.result);
-  } catch (_) {
-    analyzeResult = { handle, status: "ready" };
+    handle = extractContent((await analyzePromise).result)?.handle ?? null;
+  } catch (e) {
+    log(`  analyze call did not return: ${e.message}`);
   }
+  polled = polled ?? false; // stop the poller
+  await poll;
 
-  if (!handle || !analyzeResult?.handle) {
-    for (let i = 0; i < 30; i++) {
-      try {
-        const statusResp = await client.call("tools/call", {
-          name: "status",
-          arguments: { handle: handle ?? analyzeResult?.handle ?? "" },
-        });
-        const status = extractContent(statusResp.result);
-        if (status?.status === "ready" || status?.status === "done") {
-          handle = status.handle ?? handle;
-          break;
-        }
-      } catch (_) {}
-      await sleep(500);
-    }
-  }
-
-  return handle ?? analyzeResult?.handle ?? null;
+  // The analyze response is the authority: it names the repo WE asked for. The poll is only a
+  // fallback for the case where the response was lost, and even then only if it saw a real graph.
+  return { handle: handle ?? (polled || null), viaResponse: handle !== null };
 }
 
 function sleep(ms) {
@@ -556,7 +564,7 @@ async function main() {
     // Analyze repo
     log("Analyzing dogfood repo...");
     const startTime = Date.now();
-    const handle = await analyzeRepo(client, REPO);
+    const { handle, viaResponse } = await analyzeRepo(client, REPO);
     const elapsed = Date.now() - startTime;
 
     if (!handle) {
@@ -702,7 +710,11 @@ async function main() {
     artifact.push("");
     artifact.push("## Transport checks");
     artifact.push("- [x] Cold start: server started and accepted initialize");
-    artifact.push("- [x] Unprompted flush: analyze returned via polling workaround");
+    // This used to be a hard-coded "[x] returned via polling workaround" — printed whether or not
+    // any polling happened, on a run whose result may have come from a session nobody checked.
+    artifact.push(viaResponse
+      ? `- [x] Analyze: the call returned its own handle in ${(elapsed / 1000).toFixed(1)}s`
+      : `- [!] Analyze: the call did not return; handle recovered from a session with a graph after ${(elapsed / 1000).toFixed(1)}s`);
     artifact.push("- [x] Session lifecycle: create, list, close");
     artifact.push("");
     artifact.push("## Tool coverage");

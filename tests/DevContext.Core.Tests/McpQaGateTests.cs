@@ -47,13 +47,23 @@ public sealed class McpQaGateTests
         var output = await outputTask;
         var errors = await errorTask;
 
-        Assert.Contains("QA Score:", output);
-        Assert.Contains("Gate (checkout <=3c/2ktok)", output);
-        Assert.Contains("PASS", output);
+        // G1.3 — the assertions carry the harness's own diagnosis. They used to be bare
+        // Assert.Contains, so a red gate read "Sub-string not found: QA Score:" and nothing else,
+        // while the harness had printed exactly why it stopped ("FATAL: Timeout: <method>") on
+        // STDERR — which the old code only revealed after these asserts, i.e. never. Three
+        // sessions have now investigated this gate; none of them could see what it saw.
+        var diagnosis = $"exit {proc.ExitCode}\n--- stderr ---\n{errors}\n--- stdout ---\n{output}";
+
+        Assert.True(output.Contains("QA Score:", StringComparison.Ordinal),
+            $"The harness never reached scoring.\n{diagnosis}");
+        Assert.True(output.Contains("Gate (checkout <=3c/2ktok)", StringComparison.Ordinal),
+            $"The harness scored but did not report the checkout gate.\n{diagnosis}");
+        Assert.True(output.Contains("PASS", StringComparison.Ordinal),
+            $"The harness reported no PASS.\n{diagnosis}");
 
         if (proc.ExitCode != 0)
         {
-            Assert.Fail($"MCP QA harness failed (exit {proc.ExitCode}):\n{errors}\n\n{output}");
+            Assert.Fail($"MCP QA harness failed ({diagnosis})");
         }
     }
 

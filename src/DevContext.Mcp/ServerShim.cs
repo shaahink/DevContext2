@@ -46,8 +46,24 @@ internal static class ServerShim
 
         process.Start();
 
-        // Wait for server to be ready (retry logic)
-        var deadline = DateTime.UtcNow.AddSeconds(30);
+        // Wait for the server to be ready.
+        //
+        // G1.3: this was 30s, and 30s is not enough on a busy machine. Measured, from this
+        // process's own log during a full `dotnet test DevContext.slnx` run (671 tests in
+        // parallel):
+        //   05:08:13 Starting DevContext server: …\DevContext.Server.exe
+        //   05:08:44 DevContext server did not become ready within 30s
+        //   05:08:46 Cannot reach DevContext server … (FATAL, Program.cs returns 1)
+        // The MCP then EXITS, so the client's `initialize` handshake gets no answer at all. Nothing
+        // was wrong with the product — the shim simply ran out of patience while an ASP.NET Core
+        // host cold-started under load — but the MCP QA gate goes red and reads as a catastrophic
+        // regression. It cost three sessions before the log above was read.
+        //
+        // A real user meets the same wall: the first MCP call after a reboot, on a machine that is
+        // also compiling something, kills the MCP outright. Waiting longer costs nothing when the
+        // server is quick (the loop exits as soon as /health answers) and everything when it is not.
+        var startupBudget = TimeSpan.FromSeconds(120);
+        var deadline = DateTime.UtcNow.Add(startupBudget);
         while (DateTime.UtcNow < deadline)
         {
             try
@@ -68,7 +84,8 @@ internal static class ServerShim
             Thread.Sleep(500);
         }
 
-        Serilog.Log.Warning("DevContext server did not become ready within 30s");
+        Serilog.Log.Warning("DevContext server did not become ready within {Budget}s (exited={Exited})",
+            startupBudget.TotalSeconds, process.HasExited ? process.ExitCode.ToString() : "no");
         try { process.Kill(entireProcessTree: true); process.Dispose(); } catch { /* already exited */ }
         return null;
     }

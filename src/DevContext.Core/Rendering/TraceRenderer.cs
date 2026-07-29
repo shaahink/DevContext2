@@ -157,6 +157,10 @@ public static class TraceRenderer
         SeamKind.Data => "data",
         SeamKind.Resolve => "di",
         SeamKind.Pipeline => "pipeline",
+        // G1.3 — the only member of the enum this switch had no arm for, so every hop between two
+        // services rendered a bare "?" in the tree. Found while fixing the same class of hole in the
+        // MCP's glyph map; SeamVocabularyTests now walks the enum for both.
+        SeamKind.CrossService => "cross-service",
         _ => "?",
     };
 

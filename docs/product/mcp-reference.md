@@ -63,7 +63,12 @@ path or put the directory on `PATH`):
 - A repo with several solutions analyses one of them. `map` says which in `solutionScope` and lists
   the alternatives; `analyze(path, sln:)` switches to one of them by name, file name, or
   repo-relative path.
-- Every other tool takes `handle` **optionally** — omitted, it uses the most recent session.
+- Every other tool takes `handle` **optionally** — omitted, it uses **the session this client last
+  analyzed**, not whichever session the server touched most recently. That distinction is the whole
+  point: the server bumps a session's last-access time on every call from anyone, so the desktop app
+  opening one repo used to silently retarget an agent's next handle-less call to it. If this client
+  has analyzed nothing and more than one session is open, the tools name the open sessions and ask
+  for a handle rather than guessing.
 - Symbols are addressed two ways: a precise `nodeId` (`Kind:Key`, from `resolve`/`find`) or a fuzzy
   `query`. Ambiguity is honest: a query matching several nodes returns the candidates — no tool
   ever silently picks one.
@@ -109,7 +114,7 @@ path or put the directory on `PATH`):
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
 | `flow` | Compact flow summary for an entry (≤150 tokens typical): what it touches/emits. Deep-link to `trace` for detail. | `focus`/`query`, `depth` |
-| `trace` | Full call spine from one entry. Budgeted: cut subtrees are named ("N omitted"); `budgetTokens: 0` = full tree. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
+| `trace` | Full call spine from one entry. Budgeted: cut subtrees are named ("N omitted"); `budgetTokens: 0` = full tree. `format: compact` prefixes each step with a seam glyph and returns a `legend` keying the ones it used. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
 | `tests_for` | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
 | `config` | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |

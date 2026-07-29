@@ -26,7 +26,13 @@ function mcpClient(exePath) {
     try {
       const msg = JSON.parse(line);
       if (msg.id !== undefined && pending.has(msg.id)) {
-        pending.get(msg.id)(msg);
+        const waiter = pending.get(msg.id);
+        // Clear the timer. An uncleared one holds node's event loop open until it fires, and
+        // analyzeRepo's is TEN MINUTES: the retarget case finished its last check and then sat
+        // there for the rest of the timer, so the glyphs case behind it never started. Cost this
+        // session two runs before the cause was obvious.
+        clearTimeout(waiter.timer);
+        waiter.resolve(msg);
         pending.delete(msg.id);
       }
     } catch (_) { /* non-JSON line */ }
@@ -35,11 +41,11 @@ function mcpClient(exePath) {
   function call(method, params = {}, timeoutMs = 45000) {
     return new Promise((resolvep, reject) => {
       const id = nextId++;
-      pending.set(id, resolvep);
-      proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (pending.has(id)) { pending.delete(id); reject(new Error(`Timeout: ${method}`)); }
       }, timeoutMs);
+      pending.set(id, { resolve: resolvep, timer });
+      proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
     });
   }
   function notify(method, params = {}) {
@@ -49,10 +55,11 @@ function mcpClient(exePath) {
 }
 
 async function bootstrap(client) {
+  // Own budget: the handshake waits for the MCP to cold-start a gRPC server behind it (see run.js).
   const init = await client.call("initialize", {
     protocolVersion: "2024-11-05", capabilities: {},
     clientInfo: { name: "drive-r4", version: "0.0.1" },
-  });
+  }, 180000);
   if (init.error) throw new Error(`init failed: ${JSON.stringify(init.error)}`);
   client.notify("notifications/initialized", {});
 }
@@ -202,13 +209,31 @@ const CASES = {
     const { handle } = await analyzeRepo(client, join(REPOS, "eShop"));
     check("analyze eShop", !!handle);
     if (!handle) return;
-    const { data } = await tool(client, "trace", { handle, focus: "POST /api/orders/", format: "compact", budgetTokens: 3000 }, 90000);
+    const args = { handle, focus: "POST /api/orders/", budgetTokens: 3000 };
+    const { data } = await tool(client, "trace", { ...args, format: "compact" }, 90000);
     dump("glyphs-trace-eshop.json", data);
+    // The same trace, structured — this is where the seam NAMES live, so the compact render can be
+    // checked against the vocabulary the repo actually produced instead of against a guess.
+    const { data: tree } = await tool(client, "trace", args, 90000);
+    dump("glyphs-trace-eshop-tree.json", tree);
+    const seams = new Set();
+    (function walk(n) { if (!n) return; if (n.seam) seams.add(n.seam); (n.children ?? []).forEach(walk); })(tree.root);
+
     const text = data.text ?? "";
     const fallbacks = (text.match(/^\s*·/gm) ?? []).length;
     const glyphs = [...new Set([...text.matchAll(/^\s*([▼→⇒⬆↓◉⇛≡◇∥·])/gmu)].map((m) => m[1]))];
+    console.log(`  seams in the tree: ${[...seams].sort().join(" ")}`);
     console.log(`  glyphs used: ${glyphs.join(" ")} · fallback rows: ${fallbacks}`);
-    check("non-Call seams render a real glyph (not the · fallback)", /[⇒⬆↓◉⇛≡◇∥]/u.test(text), glyphs.join(" "));
+    console.log(`  legend: ${data.legend ?? "(none)"}`);
+    // BEFORE (2026-07-29, mcp-r4-g13-before/glyphs-trace-eshop.json): "▼ → · ⇛", 3 fallback rows —
+    // and the two that mattered were the MediatR dispatch and its handler at the top of eShop's
+    // order flow, so the spine this program cites most read as two anonymous dots. "at least one
+    // non-Call glyph" was too weak a bar to catch that: ⇛ alone satisfied it. The bar is zero.
+    check("no seam renders the mute fallback", fallbacks === 0,
+      `${fallbacks} mute row(s) · glyphs ${glyphs.join(" ")} · seams ${[...seams].sort().join(",")}`);
+    check("the trace exercised more than one seam kind", seams.size > 1, [...seams].join(","));
+    check("a legend keys the glyphs that were used", typeof data.legend === "string" && data.legend.length > 0,
+      data.legend ?? "(none)");
   },
 
   // G1.3 — handle-less calls must not retarget to a session another client touched.

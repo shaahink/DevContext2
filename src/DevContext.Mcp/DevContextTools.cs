@@ -16,6 +16,15 @@ public sealed class DevContextTools
     private readonly ILogger<DevContextTools> _logger;
     private readonly ConcurrentDictionary<string, string> _repoRoots = new(StringComparer.Ordinal); // G4 — handle→repoRoot
 
+    // G1.3 (R4 §1 item 4) — the handle a handle-less call belongs to.
+    // The server orders ListSessions by LastAccess and bumps LastAccess on EVERY access, including
+    // the desktop app's. Taking Sessions[0] therefore meant "whatever repo anyone touched most
+    // recently": the app opening repo A silently retargeted this agent's next call about repo B,
+    // and the answer came back about the wrong codebase with no sign anything had moved.
+    // DevContextTools is a singleton for the life of the MCP process (Program.cs), so this field
+    // is exactly "the session THIS client analyzed".
+    private string? _lastAnalyzedHandle;
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = false,
@@ -38,7 +47,18 @@ public sealed class DevContextTools
             throw new RpcException(new Status(StatusCode.FailedPrecondition,
                 "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")"));
 
-        return list.Sessions[0].Handle;
+        // Ours first — but only if the server still has it (sessions expire and can be closed).
+        var mine = _lastAnalyzedHandle;
+        if (mine is not null && list.Sessions.Any(s => s.Handle == mine)) return mine;
+
+        // Nothing of ours. One session is unambiguous; two or more is a guess, and guessing which
+        // repo the agent meant is the whole defect — so name the choices instead of picking one.
+        if (list.Sessions.Count == 1) return list.Sessions[0].Handle;
+
+        var open = string.Join(", ", list.Sessions.Take(4).Select(s => $"{s.Handle}={s.Repo}"));
+        throw new RpcException(new Status(StatusCode.FailedPrecondition,
+            $"This client has analyzed nothing and {list.Sessions.Count} sessions are open ({open}). "
+            + "Pass handle: explicitly, or run analyze(path) first."));
     }
 
     // L5.2 — error envelope: every tool failure returns {error, hint, example}.
@@ -173,19 +193,28 @@ public sealed class DevContextTools
     {
         var req = new AnalyzeRequest { Path = path };
         if (sln is { Length: > 0 }) req.Sln = sln;
-        var call = _client.Analyze(req);
         string? handle = null;
 
-        await foreach (var evt in call.ResponseStream.ReadAllAsync())
+        try
         {
-            if (evt.EventCase == AnalyzeEvent.EventOneofCase.Result)
+            var call = _client.Analyze(req);
+            await foreach (var evt in call.ResponseStream.ReadAllAsync())
             {
-                handle = evt.Result.Handle;
+                if (evt.EventCase == AnalyzeEvent.EventOneofCase.Result)
+                {
+                    handle = evt.Result.Handle;
+                }
             }
         }
+        catch (RpcException ex) { return FromRpc(ex, "analyze", "analyze(\"C:/repos/MyApp\")"); }
 
         if (handle is null)
-            throw new RpcException(new Status(StatusCode.Internal, "Analysis did not return a handle."));
+            return Envelope("Analysis did not return a handle.",
+                "The server finished the stream without a result — check the path is a .NET repo, then retry.",
+                "analyze(\"C:/repos/MyApp\")");
+
+        // G1.3 — this is the session a later handle-less call belongs to.
+        _lastAnalyzedHandle = handle;
 
         try
         {
@@ -203,7 +232,7 @@ public sealed class DevContextTools
         {
             handle,
             status = "ready",
-            hint = "Analysis complete. Other tools will use this session by default. Omit 'handle' to use the most recent session.",
+            hint = "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving.",
         }, JsonOpts);
     }
 
@@ -369,7 +398,8 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Status(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "status", "analyze(path) then status()"); }
         try
         {
             await _client.GetStatsAsync(new SessionRequest { Handle = handle });
@@ -379,6 +409,7 @@ public sealed class DevContextTools
         {
             return JsonSerializer.Serialize(new { found = false, handle, error = "Unknown handle." }, JsonOpts);
         }
+        catch (RpcException ex) { return FromRpc(ex, "status", "status(handle)"); }
     }
 
     /// <summary>Release a session's resources (engine + any clone). Idempotent. Example: close_session("abc123")</summary>
@@ -387,15 +418,30 @@ public sealed class DevContextTools
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "close_session", "close_session(handle)"); }
-        var resp = await _client.CloseSessionAsync(new SessionRequest { Handle = handle });
-        return JsonSerializer.Serialize(new { closed = resp.Closed, handle }, JsonOpts);
+        try
+        {
+            var resp = await _client.CloseSessionAsync(new SessionRequest { Handle = handle });
+            if (resp.Closed && handle == _lastAnalyzedHandle) _lastAnalyzedHandle = null;
+            // G1.3 — closed:false used to be the whole answer, so closing a handle that was never
+            // open read as "done" to an agent skimming for an error. Idempotent, but say which.
+            return JsonSerializer.Serialize(new
+            {
+                closed = resp.Closed,
+                found = resp.Closed ? (bool?)null : false,
+                handle,
+                note = resp.Closed ? null : "No open session with that handle — nothing to close.",
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "close_session", "close_session(handle)"); }
     }
 
     /// <summary>List all active analysis sessions on the server. Example: list_sessions()</summary>
     [McpServerTool]
     public async Task<string> ListSessions()
     {
-        var resp = await _client.ListSessionsAsync(new ListSessionsRequest());
+        ListSessionsResponse resp;
+        try { resp = await _client.ListSessionsAsync(new ListSessionsRequest()); }
+        catch (RpcException ex) { return FromRpc(ex, "list_sessions", "list_sessions()"); }
         return JsonSerializer.Serialize(new
         {
             count = resp.Sessions.Count,
@@ -474,7 +520,9 @@ public sealed class DevContextTools
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "entrypoints", "analyze(path) then entrypoints()"); }
-        var resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
+        EntryPointsResponse resp;
+        try { resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle }); }
+        catch (RpcException ex) { return FromRpc(ex, "entrypoints", "entrypoints(handle)"); }
 
         // Per-kind counts over the WHOLE set (honest even when the body is truncated).
         var byKind = resp.EntryPoints
@@ -663,7 +711,9 @@ public sealed class DevContextTools
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "top_flows", "analyze(path) then top_flows()"); }
         // L4.3: ranking + shaping done once by FlowListProjection (server-side), not client-side here.
-        var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 20 });
+        GraphFacetsResponse resp;
+        try { resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 20 }); }
+        catch (RpcException ex) { return FromRpc(ex, "top_flows", "top_flows(handle)"); }
         var flows = resp.FlowList?.Flows ?? new();
         return JsonSerializer.Serialize(new
         {
@@ -742,6 +792,7 @@ public sealed class DevContextTools
                 touches = resp.TouchedEntities.Count,
                 emits = resp.EmittedEvents.Count,
                 approxTokens,
+                legend = SeamLegend(compact),
                 text = compact,
                 hint,
             }, JsonOpts);
@@ -785,12 +836,18 @@ public sealed class DevContextTools
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "interesting_points", "analyze(path) then interesting_points()"); }
-        var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
-        var pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
+        MapResponse map;
+        InterestingPointsResponse pts;
+        try
         {
-            Handle = handle,
-            Archetype = map.Archetype,
-        });
+            map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
+            pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
+            {
+                Handle = handle,
+                Archetype = map.Archetype,
+            });
+        }
+        catch (RpcException ex) { return FromRpc(ex, "interesting_points", "interesting_points(handle)"); }
         return JsonSerializer.Serialize(new
         {
             archetype = map.Archetype,
@@ -855,7 +912,7 @@ public sealed class DevContextTools
 
                 var compact = sb.ToString();
                 var tokens = (compact.Length + 3) / 4;
-                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, budgetTokens, omitted = OmittedNodes(resp.Root), hint = BudgetHint(resp.Root, budgetTokens), text = compact }, JsonOpts);
+                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, budgetTokens, omitted = OmittedNodes(resp.Root), hint = BudgetHint(resp.Root, budgetTokens), legend = SeamLegend(compact), text = compact }, JsonOpts);
             }
 
             return JsonSerializer.Serialize(new
@@ -881,21 +938,56 @@ public sealed class DevContextTools
         }
     }
 
+    // G1.3 (R4 §1 item 3) — the glyph for a seam, keyed on the value the wire actually carries.
+    //
+    // These arms are Core's SeamKind enum as the server sends it (ProtoMapper: Seam =
+    // step.Seam.ToString()). They used to read "Sends"/"Raises"/"Consumes"/"Handles" — four plurals
+    // that enum has never produced — and Data/Resolve/Pipeline had no arm at all, so SEVEN of the
+    // ten seam kinds rendered the mute fallback. A compact trace said what the next step was and
+    // never why it followed: a DI resolution, a bus send and a database write all read as "·".
+    // McpSeamGlyphTests walks the real enum, so a new seam kind cannot land mute again.
+    //
+    // Label words are TraceRenderer.SeamLabel's, so the CLI tree and this text say the same word
+    // for the same edge.
+    private static readonly (string Seam, string Glyph, string Label)[] SeamGlyphs =
+    [
+        ("Entry", "▼", "entry"),
+        ("Call", "→", "call"),
+        ("Send", "⇒", "send"),
+        ("Handle", "◉", "handler"),
+        ("Raise", "⬆", "raises"),
+        ("Consume", "↓", "consumes"),
+        ("Data", "≡", "data"),
+        ("Resolve", "◇", "di"),
+        ("Pipeline", "∥", "pipeline"),
+        ("CrossService", "⇛", "cross-service"),
+    ];
+
+    /// <summary>Glyph for a wire seam name. An unmapped seam names itself rather than going mute.</summary>
+    public static string SeamGlyph(string? seam)
+    {
+        if (string.IsNullOrEmpty(seam)) return "·";
+        foreach (var (name, glyph, _) in SeamGlyphs)
+            if (string.Equals(name, seam, StringComparison.Ordinal)) return glyph;
+        return $"[{seam}]";
+    }
+
+    /// <summary>Key for the glyphs a rendered trace actually used — ten mystery symbols are not
+    /// readable by the agent on the other end, and only the used ones are worth the tokens.</summary>
+    public static string? SeamLegend(string rendered)
+    {
+        var used = SeamGlyphs
+            .Where(g => rendered.Contains(g.Glyph, StringComparison.Ordinal))
+            .Select(g => $"{g.Glyph} {g.Label}")
+            .ToArray();
+        return used.Length == 0 ? null : string.Join(" · ", used);
+    }
+
     // M4.3 — compact flow: indented text with seam glyphs and provenance
     private void BuildCompactFlow(StringBuilder sb, TraceNode node, int indent, string handle)
     {
         var prefix = new string(' ', indent * 2);
-        var seamGlyph = node.Seam switch
-        {
-            "Entry" => "▼",
-            "Call" => "→",
-            "Sends" => "⇒",
-            "Raises" => "⬆",
-            "Consumes" => "↓",
-            "Handles" => "◉",
-            "CrossService" => "⇛",
-            _ => "·",
-        };
+        var seamGlyph = SeamGlyph(node.Seam);
         sb.Append(prefix).Append(seamGlyph).Append(' ').Append(node.Kind).Append(": ").Append(node.Title);
         if (node.HasSalient && node.Salient.Length > 0)
             sb.Append(" (").Append(node.Salient).Append(')');
@@ -1396,7 +1488,9 @@ public sealed class DevContextTools
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "insights", "analyze(path) then insights()"); }
-        var resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
+        StatsResponse resp;
+        try { resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle }); }
+        catch (RpcException ex) { return FromRpc(ex, "insights", "insights(handle)"); }
         return JsonSerializer.Serialize(new
         {
             count = resp.Insights.Count,

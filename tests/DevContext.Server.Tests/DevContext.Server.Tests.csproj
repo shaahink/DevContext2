@@ -8,6 +8,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DevContext.Server\DevContext.Server.csproj" />
     <ProjectReference Include="..\..\src\DevContext.Contracts\DevContext.Contracts.csproj" />
+    <!-- G1.3: the MCP proxy's cross-surface contracts (error envelope, seam vocabulary, which
+         session a handle-less call belongs to) are asserted here against the REAL types, because
+         DevContext.Mcp is a gRPC client that cannot reference Core and so cannot check itself. -->
+    <ProjectReference Include="..\..\src\DevContext.Mcp\DevContext.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
