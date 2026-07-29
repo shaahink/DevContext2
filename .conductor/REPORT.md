@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 10:03 UTC · branch `feat/graph-v2` · HEAD `d82d074`_
+_Updated 2026-07-29 10:35 UTC · branch `feat/graph-v2` · HEAD `1b3f7b4`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0 · working ▸ G3.3
-**Checkpoints:** 8/22 done · **Sessions run:** 12 · **Cost:** $130.3711 (agent $130.2357 + gates $0.1353) · **Tokens:** 1,613,210 in / 663,201 out
+**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0
+**Checkpoints:** 9/22 done · **Sessions run:** 13 · **Cost:** $144.8592 (agent $144.7099 + gates $0.1493) · **Tokens:** 1,823,902 in / 744,758 out
 **Confirmed phases:** G1, G2
+**Pending:** full-battery phase gate for G3
 
 ## Stage progress
 
@@ -13,7 +14,7 @@ _Updated 2026-07-29 10:03 UTC · branch `feat/graph-v2` · HEAD `d82d074`_
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
-| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ███████░░░ 2/3 | **← active** |
+| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | gating… |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
@@ -42,13 +43,13 @@ _Updated 2026-07-29 10:03 UTC · branch `feat/graph-v2` · HEAD `d82d074`_
 
 </details>
 
-<details><summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (2/3)</summary>
+<details> ✅<summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (3/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) |
-| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ✅ DONE | - |
-| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ⬜ TODO | - |
+| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ✅ DONE | [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) |
+| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ✅ DONE | - |
 
 </details>
 
@@ -130,16 +131,13 @@ _Updated 2026-07-29 10:03 UTC · branch `feat/graph-v2` · HEAD `d82d074`_
 | 10 | G3 | Deliver | 3 | 07-29 07:05 | 2:22 | Interrupted |  | 0 |  |  |  |  |
 | 11 | G3 | Resume | 3r1 | 07-29 09:27 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:OK | $0.0000 | $0.0095 |  |
 | 12 | G3 | Deliver | 1 | 07-29 09:29 | 0:31 | Advanced | G3.2 | 1 | fast-engine:OK · guards:OK | $16.9310 | $0.0132 | 240,450/86,120 |
+| 13 | G3 | Deliver | 1 | 07-29 10:03 | 0:29 | Advanced | G3.3 | 3 | fast-engine:OK · guards:OK | $14.4742 | $0.0140 | 210,692/81,557 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 05:28:32  • session #5 G1 Deliver started (attempt 1/6)
-07-29 05:55:31  ▪ gate fast-engine pass [session]  (1m46s)
-07-29 05:55:31  ▪ gate guards pass [session]  (49.7s)
-07-29 05:55:34  • session #5 G1 → Advanced · done G1.4 · 3 commit(s)  (27m02s)
 07-29 06:11:38  ▪ gate fast-engine pass [phase]  (1m50s)
 07-29 06:11:38  ▪ gate guards pass [phase]  (50.2s)
 07-29 06:11:38  ▪ gate battery pass [phase]  (13m22s)
@@ -176,6 +174,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 10:29:58  • session #12 G3 Deliver started (attempt 1/4)
 07-29 11:03:24  ▪ gate fast-engine pass [session]  (1m17s)
 07-29 11:03:24  ▪ gate guards pass [session]  (55.5s)
+07-29 11:03:28  • session #12 G3 → Advanced · done G3.2 · 1 commit(s)  (33m29s)
+07-29 11:03:28  • session #13 G3 Deliver started (attempt 1/4)
+07-29 11:35:08  ▪ gate fast-engine pass [session]  (1m40s)
+07-29 11:35:08  ▪ gate guards pass [session]  (39.7s)
 ```
 
 ## Health
@@ -183,9 +185,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 12 · retries 5 (42 %) · overall Alert
+sessions 13 · retries 5 (38 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
+⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -231,6 +234,10 @@ vs upstream: up to date
   - [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) G3.1: the path between two symbols, and the roll-up that makes it real
 - **s12 (G3 Deliver)** — 1 commit(s):
   - [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) G3.2: who writes this table, and the roll-up that makes it answerable
+- **s13 (G3 Deliver)** — 3 commit(s):
+  - [`1b3f7b4`](https://github.com/shaahink/DevContext2/commit/1b3f7b4) chore: mcp-qa report timing, rewritten by the McpQa gate run
+  - [`9beb733`](https://github.com/shaahink/DevContext2/commit/9beb733) chore(G3.3): handoff for the next session
+  - [`cf0fa62`](https://github.com/shaahink/DevContext2/commit/cf0fa62) G3.3: how old is this answer, and which commit is it about
 
 ## Last gate run
 
@@ -238,25 +245,25 @@ fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: G3.2 (kind-filtered `neighbors`, R4 §1 item 9) CLAIMED done at commit d82d074 on feat/graph-v2, pushed, evidence at eval-results/2026-07-29/G3.2-EVIDENCE.md — resumed from session #11's uncommitted, non-compiling tree, whose implementation I verified rather than trusted and whose entire evidence half (20 Core + 15 Server tests, `pnpm gen:proto`, MCP drive 15/15, CLI drive on eShop, docs in the same commit) is new here; all gates green (build 0w/0e, Core 683→703, Server 85→100, McpQa alone, guards, contract-sweep 494 fields 0 NEW, `pnpm check` exit 0), and the C3-roll-up discriminator was watched going RED with 16 of 20 tests passing on the broken implementation. Nothing is re…
+> SESSION-RESULT: **G3.3 landed and is claimed (`conductor task --done`), completing stage G3** — R4 §1 items 1–12 are now all in. `AnalysisSummary` gained `from_cache`/`analyzed_at`/`git_head` and `SessionInfo` gained `from_cache`/`analyzed_at`, backed by a new `CreatedAtUtc` in the snapshot envelope (metadata, so no schema bump; `TryLoadAsync` keeps its shape and the CLI's three load sites are untouched), filled on all three `EngineRunner` return paths, read by MCP `analyze` + `list_sessions`, and rendered by the app's Freshness tile. The defect this closes is concrete: the tile was dated from `age_seconds`, which is the *session's* age, and a snapshot hit opens a brand-new session — so ever…
 
 ## Tracker handoff
 
 ```
-**G3.2 CLAIMED** — kind-filtered `neighbors` at `GraphQuery.NeighborsView` + proto (5 fields +
-`EdgeKindCount`) + tool + CLI `--kind`. Evidence `eval-results/2026-07-29/G3.2-EVIDENCE.md`.
-Counts **Core 703 / Server 100** (was 683/85, **+20/+15**) — the delta is your only proof a new
-file ran. Verify: `eval-results/2026-07-29/g32/g3.2-verify.ps1` (battery's OWN Step 2 filter, then
-`Category=McpQa` ALONE — never bare `Category!=Eval`). All green + sweep PASS 494 fields 0 NEW.
-**I INHERITED SESSION #11's UNCOMMITTED TREE AND IT DID NOT COMPILE** — it had the whole
-implementation and not one test. Check `git diff` before assuming a dead session left nothing.
-Next: **G3.3** (cache truth; `AnalyzeCacheTruthTests` already exists from G1.4 — extend, don't add).
-**MEASURE THE SUBJECT BEFORE BLAMING THE QUERY**: my first eShop drive got totalEdges=0 everywhere
-and it was MY node choice (OrderingContext is a DbContext, outDegree 0/inDegree 43). `query node
---focus X` shows degrees in one call. Traps re-paid: `Assert.Equal` on two `ImmutableArray<T>` binds
-the STRUCT overload (reference equality) and prints two IDENTICAL lines on failure — `.ToArray()`
-both sides. `dotnet test 2>&1 | Tee-Object` in PS 5.1 destroys the assertion text; capture via Bash.
-`query` OP is POSITIONAL (`query neighbors`, never `--op`). In an MCP driver read the field names the
-AGENT is handed, not the wire's (`stats.seams` is `{seam,count}` on the wire, `{kind,total}` in the
-tool). Still open from G2.2 §6: `TraceResponse.applied_budget_tokens` on the next proto edit.
+**G3.3 CLAIMED — STAGE G3 IS COMPLETE.** `from_cache`/`analyzed_at`/`git_head` on AnalysisSummary
+(+`from_cache`/`analyzed_at` on SessionInfo), persisted in the snapshot envelope. Evidence
+`eval-results/2026-07-29/G3.3-EVIDENCE.md`, commit cf0fa62. Counts **Core 704 / Server 104**
+(+1/+4) — the delta is your only proof a new file ran. Verify `eval-results/2026-07-29/g33/
+g3.3-verify.ps1` (battery's OWN Step 2 filter, then `Category=McpQa` ALONE — never bare
+`Category!=Eval`). All green, sweep PASS **499 fields 0 NEW**, `pnpm check` exit 0.
+Next: **G4.1** — the R4 dogfood drive (§2), the strand's actual point. Unseen repo, MCP tools ONLY,
+every call graded. Hangfire and OrchardCore are both already in `eval-repos/`.
+**A TEST THAT CANNOT FAIL LOOKS EXACTLY LIKE ONE THAT PASSES**: asserting a rehydrate reports the
+original instant is vacuous unless you BACK-DATE the persisted stamp — `DateTime.UtcNow` has ~15.6ms
+granularity on Windows, so two calls milliseconds apart return bit-identical values. Traps re-paid:
+`DevContext.Server.Tests` has NO Xunit.SkippableFact (`Assert.Skip*` will not compile there — use the
+early-`return` guard SnapshotCacheTests uses). An MCP drive that needs a COLD cache cannot get one by
+setting DEVCONTEXT_CACHE_ROOT: ServerShim pings 127.0.0.1:5179 and reuses any live server, env and
+all — check whether the cold path ran, don't assume. Still open from G2.2 §6, and I did not fold it
+in: `TraceResponse.applied_budget_tokens` on the next proto edit.
 ```
