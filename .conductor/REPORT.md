@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 06:54 UTC · branch `feat/graph-v2` · HEAD `baa5ffd`_
+_Updated 2026-07-29 09:29 UTC · branch `feat/graph-v2` · HEAD `8beb896`_
 
-**Status:** Idle
-**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0 · working ▸ G3.2
-**Checkpoints:** 7/22 done · **Sessions run:** 7 · **Cost:** $113.4173 (agent $113.3048 + gates $0.1125) · **Tokens:** 1,372,760 in / 577,081 out
+**Status:** Idle — advisor: human intervention required
+**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 3 · working ▸ G3.2
+**Checkpoints:** 7/22 done · **Sessions run:** 11 · **Cost:** $113.4269 (agent $113.3048 + gates $0.1221) · **Tokens:** 1,372,760 in / 577,081 out
 **Confirmed phases:** G1, G2
 
 ## Stage progress
@@ -46,8 +46,8 @@ _Updated 2026-07-29 06:54 UTC · branch `feat/graph-v2` · HEAD `baa5ffd`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | - |
-| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ⬜ TODO | - |
+| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) |
+| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | 🔄 IN PROGRESS | - |
 | G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ⬜ TODO | - |
 
 </details>
@@ -125,25 +125,16 @@ _Updated 2026-07-29 06:54 UTC · branch `feat/graph-v2` · HEAD `baa5ffd`_
 | 5 | G1 | Deliver | 1 | 07-29 04:28 | 0:24 | Advanced | G1.4 | 3 | fast-engine:OK · guards:OK | $16.5483 | $0.0156 | 225,857/83,097 |
 | 6 | G2 | Deliver | 1 | 07-29 05:11 | 0:52 | Advanced | G2.1 G2.2 | 4 | fast-engine:OK · guards:OK | $25.1946 | $0.0223 | 308,321/130,080 |
 | 7 | G3 | Deliver | 1 | 07-29 06:23 | 0:28 | Advanced | G3.1 | 1 | fast-engine:OK · guards:OK | $16.9647 | $0.0133 | 262,171/89,155 |
+| 8 | G3 | Deliver | 1 | 07-29 06:54 | 0:10 | AgentError |  | 0 | fast-engine:FAIL · guards:FAIL |  | $0.0000 |  |
+| 9 | G3 | Fix | 2 | 07-29 07:05 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:FAIL |  | $0.0000 |  |
+| 10 | G3 | Deliver | 3 | 07-29 07:05 | 2:22 | Interrupted |  | 0 |  |  |  |  |
+| 11 | G3 | Resume | 3r1 | 07-29 09:27 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:OK | $0.0000 | $0.0095 |  |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 01:28:11  ◆ run started · DevContext graph-v2 — autonomous remainder
-07-29 01:28:12  ▸ stage G1 entered — R4 MCP correctness + honesty fixes (R4 §1 items 1-7)
-07-29 01:28:12  • session #1 G1 Deliver started (attempt 1/6)
-07-29 02:29:42  ▪ gate fast-engine pass [session]  (4m09s)
-07-29 02:29:42  ▪ gate guards pass [session]  (55.6s)
-07-29 02:29:48  • session #1 G1 → Advanced · done G1.1 · 2 commit(s)  (1h01m35s)
-07-29 02:29:48  • session #2 G1 Deliver started (attempt 1/6)
-07-29 03:27:42  ▪ gate fast-engine FAIL [session]  (59.4s)
-07-29 03:27:42  ▪ gate guards pass [session]  (1m43s)
-07-29 03:27:47  • session #2 G1 → GatesRed · done G1.2 · 3 commit(s)  (57m58s)
-07-29 03:36:37  ◆ run resumed · DevContext graph-v2 — autonomous remainder
-07-29 04:04:17  • session #3 G1 Fix started (attempt 2/6)
-07-29 04:11:14  ◆ run resumed · DevContext graph-v2 — autonomous remainder
 07-29 04:12:15  • session #4 G1 Resume started (attempt 2/6)
 07-29 05:28:29  ▪ gate fast-engine pass [session]  (1m38s)
 07-29 05:28:29  ▪ gate guards pass [session]  (48.0s)
@@ -169,6 +160,21 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 07:23:06  • session #7 G3 Deliver started (attempt 1/4)
 07-29 07:54:04  ▪ gate fast-engine pass [session]  (1m29s)
 07-29 07:54:04  ▪ gate guards pass [session]  (42.9s)
+07-29 07:54:07  • session #7 G3 → Advanced · done G3.1 · 1 commit(s)  (31m00s)
+07-29 07:54:07  • session #8 G3 Deliver started (attempt 1/4)
+07-29 08:05:07  ▪ gate fast-engine FAIL [session]  (0.2s)
+07-29 08:05:07  ▪ gate guards FAIL [session]  (0.0s)
+07-29 08:05:08  • session #8 G3 → AgentError  (11m00s)
+07-29 08:05:08  • session #9 G3 Fix started (attempt 2/4)
+07-29 08:05:09  ▪ gate fast-engine FAIL [session]  (0.0s)
+07-29 08:05:09  ▪ gate guards FAIL [session]  (0.0s)
+07-29 08:05:09  ■ needs human — advisor: human intervention required
+07-29 08:05:09  • session #9 G3 → AgentError  (0.9s)
+07-29 08:05:09  • session #10 G3 Deliver started (attempt 3/4)
+07-29 10:27:54  ◆ run resumed · DevContext graph-v2 — autonomous remainder
+07-29 10:27:54  • session #11 G3 Resume started (attempt 3/4)
+07-29 10:29:32  ▪ gate fast-engine FAIL [session]  (8.2s)
+07-29 10:29:32  ▪ gate guards pass [session]  (1m26s)
 ```
 
 ## Health
@@ -176,11 +182,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 7 · retries 2 (29 %) · overall Warn
+sessions 11 · retries 5 (45 %) · overall Alert
+⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #7: 24,222,376 context tokens (≥ 20,000,000)
+⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 3x
 ```
 
 ## Repo
@@ -189,7 +198,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M .conductor/REPORT.md, M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.Cli/Commands/QueryCommand.cs, M src/DevContext.Cli/Settings/QuerySettings.cs, M src/DevContext.Core/Graph/GraphQuery.cs, M src/DevContext.Mcp/DevContextTools.cs (+91 more)
 vs upstream: up to date
 ```
 
@@ -221,7 +230,21 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:FAIL · guards:OK
+
+<details><summary>fast-engine — exit 1</summary>
+
+```
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  Determining projects to restore...   All projects are up-to-date for restore.   DevContext.Contracts -> C:\code\DevContext2\src\DevContext.Contracts\bin\Debug\net10.0\DevContext.Contracts.dll   DevContext.Core -> C:\code\DevContext2\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll   DevContext.Mcp -> C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.dll   DevContext.Core.Tests -> C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll C:\code\DevContext2\src\DevContext.Cli\Commands\QueryCommand.cs(255,9): error CA1806: NeighborsOp calls TryParseEdgeKind but does not explicitly check whether the conversion succeeded. Either use the return value in a conditional statement or verify that the call site expects that the out argument will be set to the default value when the conversion fails. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1806) [C:\code\DevContext2\src\DevContext.Cli\DevContext.Cli.csproj]  Build FAILED.  C:\code\DevContext2\src\DevContext.Cli\Commands\QueryCommand.cs(255,9): error CA1806: NeighborsOp calls TryParseEdgeKind but does not explicitly check whether the conversion succeeded. Either use the return value in a conditional statement or verify that the call site expects that the out argument will be set to the default value when the conversion fails. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1806) [C:\code\DevContext2\src\DevContext.Cli\DevContext.Cli.csproj]     0 Warning(s)     1 Error(s)  Time Elapsed 00:00:04.60
+  FAIL  Build failed
+
+GATE: FAIL (step 1 - build)
+```
+</details>
 
 ## Last session result
 
