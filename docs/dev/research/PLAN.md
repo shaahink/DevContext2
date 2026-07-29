@@ -121,8 +121,30 @@
       the session it analyzed, and names the open ones rather than guessing. Item 5's [audit] ref
       named 5 tools; a sweep of all 24 found **8**, so the fix is a test that walks every
       `[McpServerTool]` method against a failing client. Evidence:
-      `eval-results/2026-07-29/G1.3-EVIDENCE.md`. Items 6-7 + 11-12 open; dogfood + REPORT.md
+      `eval-results/2026-07-29/G1.3-EVIDENCE.md`.
+      **§1 items 6+7 LANDED 2026-07-29** (a09c456) — **§1 items 1-7 are now complete.** Item 6 was
+      understated by the [audit] ref: the kind filter running below the truncation made BOTH totals
+      artefacts of the page size, not just the kind-filtered one. On eShop, `find("Order",
+      limit:100)` reported `total=120` — which is `limit+20`, the MCP's own fetch window — when the
+      answer is **354**, and `kind:"Type"` reported 22 when the answer is **174**. The kind now
+      rides on `SearchRequest` and `GraphQuery.FindPage` applies it above the limit, returning the
+      uncapped count on `SearchResponse.total_matches`; `Find()` is that method's page, so
+      resolve/usages/impact are provably unmoved. Item 7: `analyze` read the event stream for one
+      field and dropped the rest — same eleven words for an eight-minute analysis and a 12ms session
+      reuse. It now returns the `AnalysisSummary` the server had already computed plus
+      `AnalyzeResult.cached`, whose truth had to be built: three paths return an analysis without
+      analysing and only ONE said so (to a progress event nobody read) — the runner's two
+      snapshot-cache branches returned an `EngineResult` indistinguishable from a full run.
+      Two riders, both from re-verifying rather than reading the refs: **`AnalysisSummary.archetype`
+      was assigned nowhere** (every analyze the server has ever answered carried `""`, while
+      `ToMapResponse` filled the same fact from the same source), and the MCP dropped the
+      `AnalyzeEvent.Error` arm, so a failed analysis lost the server's own reason. Evidence:
+      `eval-results/2026-07-29/G1.4-EVIDENCE.md`. Items 11-12 (G2) open; dogfood + REPORT.md
       ungraded.
+      **A driver check is vacuous until you have watched it go red** — G1.4's `find-kind` case
+      PASSED on the broken before-state (`total >= page length` = 22 >= 5), the same way G1.3's
+      glyphs case did. The check that discriminates is the INVARIANT: a true total does not move
+      when the page size moves. Third occurrence in this program.
       **Verification-command trap, worth more than any of the above**: `dotnet test --filter
       "Category!=Eval"` is NOT `eval/gates.ps1` Step 2 (`:136` also excludes `CliSmoke` and
       `McpQa`, and runs the MCP QA drive alone as Step 2b). Verifying with it drags a 3-minute

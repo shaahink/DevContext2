@@ -4,19 +4,20 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-G1.3 CLAIMED @ 75704f2 (+ evidence 2d27a6c) — `eval-results/2026-07-29/G1.3-EVIDENCE.md`. Next: **G1.4**.
-RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js find-kind|analyze-honesty <outDir>`.
-**VERIFY WITH THE BATTERY'S OWN COMMANDS.** `--filter "Category!=Eval"` is NOT gates.ps1 Step 2 — it
-drags the 3-minute MCP QA drive into a 674-test parallel run where the server the MCP spawns exits
-before binding, and you get `FATAL: Timeout: initialize` that reads as an engine collapse. Use
-`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE. That is the
-whole McpQaGateTests mystery three sessions have chased; bug #1 should be re-read in that light.
-**Re-verify every [audit] ref before editing** — item 5's named 5 tools and the real set was 8, found
-by sweeping all 24, not by reading the ref. Tighten your own driver too: the glyphs case PASSED on
-the broken before-state (one non-Call glyph satisfied it) — assert the ZERO, not the some.
-Traps paid for: the MCP spawns a DevContext.Server that outlives the driver and locks the DLLs —
-kill it BY PID before any build; pin `DEVCONTEXT_SERVER`; and never raise a timeout in a node
-harness without clearing the timer, or the timeout becomes the process's minimum lifetime.
+G1.4 CLAIMED @ a09c456 (+ evidence 74a1d73) — `eval-results/2026-07-29/G1.4-EVIDENCE.md`. **G1 §1
+items 1-7 are now all landed.** Next: **G2.1** (fold `flow`→`trace(compact)`, `insights`→`stats`,
+`interesting_points`→`overview`; make did-you-mean reflect the real tool list).
+**VERIFY WITH THE BATTERY'S OWN COMMANDS**, never the bare `--filter "Category!=Eval"` — use
+`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE (gates.ps1:136).
+**A passing test is not named in the log** — the only proof yours ran is the count delta: G1.3 Core
+669 / Server 43 → G1.4 Core 674 / Server 58. Record yours for the next session.
+**Assume your own driver check is vacuous until you have watched it go red.** G1.4's `find-kind`
+case PASSED on the broken before-state (`total >= page` = 22 >= 5); the check that works is the
+INVARIANT — a true total does not move when the page size does. Third time this has bitten.
+Traps re-paid: the MCP spawns a DevContext.Server that outlives the driver and locks
+Core/Cli/Contracts.dll — `dotnet build` then reports 6 errors + 30 warnings that read as a code
+break. Kill it BY PID first. And run `pnpm gen:proto` after any proto edit — `pnpm check` neither
+regenerates nor verifies the app's generated TS, so drift there is silent.
 
 
 ## Baseline numbers (from run.db)
@@ -25,7 +26,7 @@ harness without clearing the timer, or the timeout becomes the process's minimum
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 2 |
+| Claimed (unconfirmed) | 3 |
 
 ## Checkpoints
 
@@ -38,7 +39,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 |---|-----------|--------|--------|----------|
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | DONE | cf1a822 | fast-engine:OK · guards:OK |
 | G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | DONE | 79743b0 | fast-engine:FAIL · guards:OK |
-| G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | TODO | - | - |
+| G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | DONE | 75704f2 | fast-engine:OK · guards:OK |
 | G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | TODO | - | - |
 
 ### G2 — R4 menu hygiene + one trace default (items 11-12)
