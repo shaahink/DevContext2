@@ -1,16 +1,16 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 01:29 UTC · branch `feat/graph-v2` · HEAD `0f1a5fc`_
+_Updated 2026-07-29 02:27 UTC · branch `feat/graph-v2` · HEAD `27de288`_
 
 **Status:** Idle
-**Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 0 · working ▸ G1.2
-**Checkpoints:** 1/22 done · **Sessions run:** 1 · **Cost:** $12.7032 (agent $12.6728 + gates $0.0305) · **Tokens:** 172,654 in / 66,379 out
+**Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 1 · working ▸ G1.3
+**Checkpoints:** 2/22 done · **Sessions run:** 2 · **Cost:** $29.2151 (agent $29.1684 + gates $0.0467) · **Tokens:** 402,746 in / 159,252 out
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██░░░░░░░░ 1/4 | **← active** |
+| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | █████░░░░░ 2/4 | **← active** |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ░░░░░░░░░░ 0/2 | todo |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
@@ -21,12 +21,12 @@ _Updated 2026-07-29 01:29 UTC · branch `feat/graph-v2` · HEAD `0f1a5fc`_
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
-<details><summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (1/4)</summary>
+<details><summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (2/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | - |
-| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ⬜ TODO | - |
+| G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) |
+| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | - |
 | G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ⬜ TODO | - |
 | G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ⬜ TODO | - |
 
@@ -118,6 +118,7 @@ _Updated 2026-07-29 01:29 UTC · branch `feat/graph-v2` · HEAD `0f1a5fc`_
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Overhead | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | G1 | Deliver | 1 | 07-29 00:28 | 0:56 | Advanced | G1.1 | 2 | fast-engine:OK · guards:OK | $12.6728 | $0.0305 | 172,654/66,379 |
+| 2 | G1 | Deliver | 1 | 07-29 01:29 | 0:55 | GatesRed | G1.2 | 3 | fast-engine:FAIL · guards:OK | $16.4956 | $0.0163 | 230,092/92,873 |
 
 ## Timeline
 
@@ -129,6 +130,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 01:28:12  • session #1 G1 Deliver started (attempt 1/6)
 07-29 02:29:42  ▪ gate fast-engine pass [session]  (4m09s)
 07-29 02:29:42  ▪ gate guards pass [session]  (55.6s)
+07-29 02:29:48  • session #1 G1 → Advanced · done G1.1 · 2 commit(s)  (1h01m35s)
+07-29 02:29:48  • session #2 G1 Deliver started (attempt 1/6)
+07-29 03:27:42  ▪ gate fast-engine FAIL [session]  (59.4s)
+07-29 03:27:42  ▪ gate guards pass [session]  (1m43s)
 ```
 
 ## Health
@@ -136,7 +141,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 1 · retries 0 (0 %) · overall Ok
+sessions 2 · retries 0 (0 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -155,33 +160,49 @@ vs upstream: up to date
 - **s1 (G1 Deliver)** — 2 commit(s):
   - [`0f1a5fc`](https://github.com/shaahink/DevContext2/commit/0f1a5fc) conductor: orchestrator's own template + plan edits from this run
   - [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) G1.1: the structured map the MCP dropped, and the flags it told agents to run
+- **s2 (G1 Deliver)** — 3 commit(s):
+  - [`27de288`](https://github.com/shaahink/DevContext2/commit/27de288) conductor: G1.2 handoff + the orchestrator's own plan edits from this run
+  - [`7c6eb5e`](https://github.com/shaahink/DevContext2/commit/7c6eb5e) G1.2: a library symbol gets a pack — member roots resolve, and the pack carries who uses it
+  - [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) conductor: telegram gets the one field without which it is a silent no-op
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:FAIL · guards:OK
+
+<details><summary>fast-engine — exit 1</summary>
+
+```
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+```
+</details>
 
 ## Last session result
 
-> SESSION-RESULT: G1.1 is DONE and claimed with evidence at `eval-results/2026-07-29/G1.1-EVIDENCE.md` — `map` now returns the structured Map surface and no shared-render markdown advertises a CLI flag, proven by real MCP calls on a library pole (FluentValidation, 6/6 PASS) and a multi-solution pole (GitVersion, `solutionScope` 1-of-3, 120s cold analyse confirming the render came from the new Core); commits cf1a822 + 0f1a5fc pushed to `feat/graph-v2`, tracked tree clean, port 5179 free. Green: build 0w/0e, contract-sweep PASS (0 new), loom-guards PASS, slnx `Category!=Eval` 689 pass / 0 fail once the single red was run down and acquitted — nothing is red. The next session should take **G1.2** …
+> SESSION-RESULT:** G1.2 landed and is claimed (`task_update(G1.2, done)`, commit `7c6eb5e`, pushed as `6c6eccb..27de288`), evidence at `eval-results/2026-07-29/G1.2-EVIDENCE.md`. The item-2 `[audit]` premise turned out **partly stale** and re-measuring it first was the whole session's leverage: a TYPE focus already resolved (`AbstractValidator` filled 43%), so "libraries get nothing" was false — the two real defects were that a bare **member** name resolved to nothing (`get_context(focus:"RuleFor")` returned an envelope while `resolve("RuleFor")` on the same handle listed that member), and that every pack section is built from a trace, which walks OUT-edges — so `IValidator`, with 9 in-edges …
 
 ## Tracker handoff
 
 ```
-last: **G1.1 CLAIMED** — `map` now returns the structured surface (FluentValidation: entryApi 10 ·
-  abstractions 10 · groups 5 · internals 1 · extensionPoints 68 · consumerPaths 6 · surface packages)
-  and no shared-render markdown names a CLI flag. Evidence = real MCP calls, not a diff:
-  `eval-results/2026-07-29/G1.1-EVIDENCE.md`. The aborted session's tree was kept where right and
-  corrected where not: it MISSED `LibrarySurfaceRenderer.cs:122,125` ("use --format json"), which fire
-  on exactly the library archetype item 1 is about. Its six goldens were reverted and REGENERATED from
-  a fresh run — the diff came back byte-identical (footer line only), so they were right, just unproven.
-stage: **G1 IN PROGRESS** — G1.1 done, G1.2 next.
-gate: build 0w/0e · contract-sweep PASS (0 new) · loom-guards PASS · slnx `Category!=Eval` = 689 pass,
-  0 fail after the one red was run down. **READ THIS BEFORE PANICKING AT THE BATTERY:** `McpQaGateTests`
-  scores a false **0/12** on the first run after ANY Core edit — MVID-keyed snapshots invalidate, the
-  harness takes a session before its graph exists. Cold 0/12 -> warm 12/12, same binaries. Tracked bug #1.
-next: **G1.2** — `get_context` accepts type/symbol roots so a library gets a pack instead of nothing.
-  `drive-r4.js getctx-library` already exists and MEASURES the before-state — run it first.
-trap: the MCP driver leaves a spawned DevContext.Server holding bin DLL locks — kill it by PID before
-  any build, `start-dev-bg.ps1 -Kill` does NOT get it. Pin `DEVCONTEXT_SERVER` or a stale/installed
-  server serves your "evidence". Find flag leaks by sweeping Core renderers, not by reading the [audit] line.
+G1.2 CLAIMED @ 7c6eb5e — evidence `eval-results/2026-07-29/G1.2-EVIDENCE.md`. Next: **G1.3**.
+RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js glyphs|retarget|envelope <outDir>` — the
+driver already has a case per remaining G1 checkpoint and each measures the before-state.
+**Re-verify every [audit] ref before editing.** Item 1's was wider than written; item 2's was partly
+STALE (type roots already resolved — "libraries get nothing" was false). Assume item 3-7's are too.
+Make the evidence print the IDENTITY a tool resolved, not just PASS/FAIL — that is the only reason
+G1.2 caught its second defect. And a negative assertion needs a positive precondition: G1.2's canary
+first passed on a pack with ZERO sections.
+Traps paid for: the MCP SPAWNS a DevContext.Server that outlives the driver and locks Core/Cli/
+Contracts DLLs — kill it BY PID before any build (`start-dev-bg.ps1 -Kill` does not know it), and
+pin `DEVCONTEXT_SERVER` to the fresh exe or an installed copy shadows your build.
+RED, not mine and not new: `McpQaGateTests` fails 0/12 on the FIRST run after any Core edit
+(open bug #1, MVID snapshot invalidation). Warm re-run = 12/12. Do not weaken it. Bug #2 also filed.
 ```
