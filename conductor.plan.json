@@ -1,6 +1,6 @@
 ﻿{
   "version": "1.0",
-  "planVersion": 5,
+  "planVersion": 6,
   "name": "DevContext graph-v2 \u2014 autonomous remainder",
   "repo": "C:/code/DevContext2",
   "tracker": "GRAPH-V2-START.md",
@@ -200,7 +200,7 @@
     "stageSlackFactor": 2,
     "backoffMinutes": 30,
     "maxBackoffs": 10,
-    "maxRunCostUsd": 550,
+    "maxRunCostUsd": 240,
     "approvalMode": false,
     "maxConcurrentLanes": 2,
     "stallPatternTermination": true,
