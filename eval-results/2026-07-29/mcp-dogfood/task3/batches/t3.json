@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "BodyFactsExtractor", "kind": "Member", "limit": 25 }, "preview": 900, "why": "A6: the producer's members - which one walks a method body" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "BodyFactsExtractor", "direction": "out" }, "preview": 1400, "why": "A6: what the body walker calls - a syntax walker would show up here" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "Invocation", "limit": 20 }, "preview": 900, "why": "A6: the invocation-collecting code, whatever it is called" }
+  ]
+}

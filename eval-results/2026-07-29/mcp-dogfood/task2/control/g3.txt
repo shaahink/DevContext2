@@ -1,0 +1,9 @@
+src/Hangfire.Core\AutomaticRetryAttribute.cs:78:    public sealed class AutomaticRetryAttribute : JobFilterAttribute, IElectStateFilter, IApplyStateFilter
+src/Hangfire.Core\CaptureCultureAttribute.cs:26:    public sealed class CaptureCultureAttribute : JobFilterAttribute, IClientFilter, IServerFilter
+src/Hangfire.Core\DisableConcurrentExecutionAttribute.cs:26:    public class DisableConcurrentExecutionAttribute : JobFilterAttribute, IServerFilter
+src/Hangfire.Core\ContinuationsSupportAttribute.cs:28:    public class ContinuationsSupportAttribute : JobFilterAttribute, IElectStateFilter, IApplyStateFilter
+src/Hangfire.Core\IdempotentCompletionAttribute.cs:22:    public class IdempotentCompletionAttribute : JobFilterAttribute, IElectStateFilter
+src/Hangfire.Core\LogJobDurationAttribute.cs:34:    public class LogJobDurationAttribute : JobFilterAttribute, IServerFilter
+src/Hangfire.Core\LatencyTimeoutAttribute.cs:29:    public sealed class LatencyTimeoutAttribute : JobFilterAttribute, IElectStateFilter
+src/Hangfire.Core\StatisticsHistoryAttribute.cs:23:    public sealed class StatisticsHistoryAttribute : JobFilterAttribute, IElectStateFilter
+src/Hangfire.Core\QueueAttribute.cs:49:    public sealed class QueueAttribute : JobFilterAttribute, IElectStateFilter

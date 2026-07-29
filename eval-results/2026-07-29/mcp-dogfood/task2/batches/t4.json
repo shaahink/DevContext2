@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "PerformContext", "budgetTokens": 3000 }, "preview": 3200, "why": "F4: the base both hooks share - does it carry a bag a filter can stash a stopwatch in" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "Log", "kind": "Type", "limit": 20 }, "preview": 800, "why": "F5: how does THIS repo log - the answer a general .NET agent gets wrong" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "LogProvider", "budgetTokens": 2500 }, "preview": 2200, "why": "F5: how a logger is obtained, and what the call looks like at a real site" }
+  ]
+}

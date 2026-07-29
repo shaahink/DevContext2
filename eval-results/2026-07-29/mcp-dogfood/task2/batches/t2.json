@@ -1,0 +1,9 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "node", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.Server.IServerFilter" }, "preview": 500, "why": "F1: find gave a namespace but no file - which project and folder is this in" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "IServerFilter", "budgetTokens": 3000 }, "preview": 3000, "why": "F2: the method signatures an implementor must write" },
+    { "tool": "usages", "args": { "handle": "$HANDLE", "query": "IServerFilter", "limit": 20 }, "preview": 1400, "why": "F6: who already implements or consumes it - the file to model mine on" },
+    { "tool": "node", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.Common.JobFilterAttribute" }, "preview": 400, "why": "F3: is this the base class the repo's own filters derive from, and where does it live" }
+  ]
+}

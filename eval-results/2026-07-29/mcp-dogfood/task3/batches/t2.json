@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "CallGraphBinder", "limit": 8 }, "preview": 700, "why": "A6 maintenance question (bug #8's own 'what to measure first'): what turns a method body into call edges" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "CallGraphBinder", "budgetTokens": 8000 }, "preview": 3500, "why": "A6: the binder's shape and what feeds it - budget deliberately roomy after bug #9" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "BodyFacts", "limit": 15 }, "preview": 900, "why": "A6: the fact record the binder consumes - who produces it is where a lambda body would be walked or dropped" }
+  ]
+}

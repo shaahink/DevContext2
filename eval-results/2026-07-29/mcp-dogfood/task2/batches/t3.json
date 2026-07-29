@@ -1,0 +1,9 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "usages", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.Server.IServerFilter", "limit": 20 }, "preview": 400, "why": "taking the previous envelope's OWN recommended next step, verbatim - does it return more than the call it replaced" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "ServerFilter", "kind": "Type", "limit": 20 }, "preview": 900, "why": "F6: an existing IServerFilter implementation to model the new file on" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "PerformingContext", "budgetTokens": 2500 }, "preview": 2600, "why": "F4: what the before-hook is handed, and whether it carries a bag that survives to the after-hook" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "PerformedContext", "budgetTokens": 2000 }, "preview": 2000, "why": "F4: what the after-hook is handed" }
+  ]
+}

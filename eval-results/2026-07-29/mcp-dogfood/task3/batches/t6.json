@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "nodeId": "Type:DevContext.Core.Graph2.BodyFactExtractor", "direction": "in" }, "preview": 900, "why": "DECISIVE: the body walker's callers. Source has at least two (BodyFactsExtractor.cs:56 and :80). How many does the graph have" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "nodeId": "Type:DevContext.Core.Utilities.RazorCodeVirtualizer", "direction": "in" }, "preview": 700, "why": "DECISIVE control, and the one NOT inside any lambda: BodyFactsExtractor.cs:74 calls it at method level" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "nodeId": "Type:DevContext.Core.Graph2.BodyFactExtractor", "direction": "out" }, "preview": 900, "why": "does the walker itself have outward wiring, or is the whole type edge-isolated" }
+  ]
+}

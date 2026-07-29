@@ -1,0 +1,217 @@
+Overview map (no focus).
+Analyzing project...
+
+MAP  DevContext     (5 projects)
+SCOPE  analyzed DevContext.slnx - 1 of 316 solutions in this repo; analyze 
+another by naming its solution - style/topology are local to this slice, not the
+whole system
+
+STACK  net10.0 ú Minimal APIs
+
+STYLE  MinimalApi  (confidence moderate)
+       evidence: Minimal APIs + 6 project(s); no MediatR
+
+       per service:
+         DevContext.Cli: CLI [CLI]
+         DevContext.Mcp: Unknown
+         DevContext.Server: gRPC Service [gRPC]
+
+TOPOLOGY (depends-on)
+   DevContext.Contracts
+   DevContext.Core
+   DevContext.Cli ÄÄ DevContext.Core
+   DevContext.Mcp ÄÄ DevContext.Contracts
+   DevContext.Server ÄÄ DevContext.Cli, DevContext.Contracts, DevContext.Core
+
+CROSS-SERVICE
+  gRPC (1)
+    [gRPC] DevContext.Mcp  DevContext.Server  
+(C:\code\DevContext2\src\DevContext.Mcp\DevContextTools.cs:35C:\code\DevContext
+2\src\DevContext.Server\Endpoints\DevContextGrpcService.cs:17)
+
+ENTRY POINTS
+   HTTP (1)
+      GET /health   Program  (src/DevContext.Server/Program.cs:52)
+   gRPC (26)
+      DevContextService.Analyze   AnalysisOutcome.ConfigureAwait  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.CloseSession   AnalysisSessionManager.CloseSessionAsync
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.ConfigLookup   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.FindTestsFor   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetContext   ContextPackBuilder.Build  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetContextPack   ContextPackBuilder.BuildMulti  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetFlowIndex   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetGraphFacets   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetImpact   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetInterestingPoints   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetMap   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetNeighbors   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetNode   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetSeam   NodeId  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetStats   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.GetTrace   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.ListEntryPoints   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.ListSessions   AnalysisSessionManager.ListSessions  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.ObserveToolCalls   McpObservabilityService.Subscribe  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      DevContextService.Ping   DevContextGrpcService  
+(src/DevContext.Server/Endpoints/DevContextGrpcService.cs:17)
+      . and 6 more (grpc entries - trace one for a drill-in)
+   CLI (3)
+      AnalyzeCommand -settings AnalyzeSettings  
+(src/DevContext.Cli/Commands/AnalyzeCommand.cs:10)
+      QueryCommand -settings QuerySettings  
+(src/DevContext.Cli/Commands/QueryCommand.cs:14)
+      ReportCommand -settings ReportSettings  
+(src/DevContext.Cli/Commands/ReportCommand.cs:11)
+
+PACKAGES
+   Web/API:  Grpc.AspNetCore 2.*, Grpc.AspNetCore.Web 2.*, 
+Microsoft.AspNetCore.Mvc.Testing 10.0.*
+   Logging:  Serilog 4.3.1, Serilog.Extensions.Logging 10.0.0, 
+Serilog.Sinks.Console 6.1.1, Serilog.Sinks.File 7.0.0
+   Testing:  coverlet.collector 10.0.1, xunit 2.9.3, xunit.runner.visualstudio 
+3.1.5, Xunit.SkippableFact 1.5.23
+   Other:  BenchmarkDotNet 0.15.8, Google.Protobuf 3.*, Grpc.Core.Api 2.*, 
+Grpc.Net.Client 2.*, Grpc.Net.Client.Web 2.*, Grpc.Tools 2.*, LibGit2Sharp 
+0.30.*, Microsoft.CodeAnalysis.CSharp 5.3.0 . (16 total)
+
+ drill in:  trace a focused entry   (e.g. trace 
+"DevContextService.GetContextPack")
+
+analyzed 385 files ú 1254 nodes ú 1383 edges ú 30 entries ú 27/30 target ú 
+~1148 tokens ú 32.6s stage2 x2.9 stage3 x2.4
+
+Snapshot cache: miss ú saved 546fb32
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ NOTE ³ Risk     ³ Config without defaults: 1   ³ x                           ³
+³      ³          ³ consumed keys have no        ³                             ³
+³      ³          ³ appsettings default          ³                             ³
+³ NOTE ³ Risk     ³ 1/1 endpoints anonymous      ³ GET /health                 ³
+³ INFO ³ Coverage ³ Entry targets resolved 27/30 ³                             ³
+³      ³          ³ (90%) - trace any entry for  ³                             ³
+³      ³          ³ its full path                ³                             ³
+³ INFO ³ Wiring   ³ DI: 25 Singleton ú 12        ³                             ³
+³      ³          ³ Extension (37 total)         ³                             ³
+³ INFO ³ Shape    ³ Entry surface: 26            ³ 26 GrpcService, 1 HTTP      ³
+³      ³          ³ GrpcService ú 1 HTTP         ³                             ³
+³ INFO ³ Topology ³ Most depended-upon:          ³ DevContext.Core (2          ³
+³      ³          ³ DevContext.Core (2           ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ DevContext.Core (2          ³
+³      ³          ³ DevContext.Core (2           ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ DevContext.Contracts (2     ³
+³      ³          ³ DevContext.Contracts (2      ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs: DiscoveryModel  ³ DiscoveryModel (102),       ³
+³      ³          ³ (102) ú SealableBag (72) ú   ³ SealableBag (72), CodeGraph ³
+³      ³          ³ CodeGraph (65) ú             ³ (65)                        ³
+³      ³          ³ IAnalysisCache (40) ú        ³                             ³
+³      ³          ³ ImmutableArray (35)          ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                            Stage Timing                            
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³ 22982ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GenericExtraction       ³   970ms ³ Û                            ³
+³ SignalSealing           ³     2ms ³                              ³
+³ SpecificExtraction      ³  1639ms ³ ÛÛ                           ³
+³ SemanticLite            ³  5828ms ³ ÛÛÛÛÛÛÛ                      ³
+³ GraphAssembly           ³   187ms ³                              ³
+³ Insights                ³   144ms ³                              ³
+³ Compression             ³    88ms ³                              ³
+³ Snapshot                ³    78ms ³                              ³
+³ Total                   ³ 32600ms ³                              ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄ¿
+³ Name                ³    Time ³ +Types ³ +Dets ³ Status              ³ Fails ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄ´
+³ FileTreeExtractor   ³ 17208ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ SolutionDiscovery   ³  5740ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ EndpointExtractor   ³  1424ms ³      0 ³    18 ³ ran                 ³     0 ³
+³ ProgramCsFlowExtrac ³   967ms ³    580 ³    42 ³ ran                 ³     0 ³
+³ tor                 ³         ³        ³       ³                     ³       ³
+³ SyntaxStructureExtr ³   948ms ³    580 ³    42 ³ ran                 ³     0 ³
+³ actor               ³         ³        ³       ³                     ³       ³
+³ DiRegistrationExtra ³   905ms ³      0 ³    37 ³ ran                 ³     0 ³
+³ ctor                ³         ³        ³       ³                     ³       ³
+³ CliCommandExtractor ³   489ms ³      0 ³    17 ³ ran                 ³     0 ³
+³ GrpcClientExtractor ³   476ms ³      0 ³    17 ³ ran                 ³     0 ³
+³ InMemoryEventBusExt ³   474ms ³      0 ³    17 ³ ran                 ³     0 ³
+³ ractor              ³         ³        ³       ³                     ³       ³
+³ GrpcServiceExtracto ³   466ms ³      0 ³    17 ³ ran                 ³     0 ³
+³ r                   ³         ³        ³       ³                     ³       ³
+³ BodyFactsExtractor  ³   209ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ SourceBodyExtractor ³   203ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ IndirectWiringDetec ³   138ms ³      0 ³    13 ³ ran                 ³     0 ³
+³ tor                 ³         ³        ³       ³                     ³       ³
+³ DependencyExtractor ³    20ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ ProjectStructure    ³    19ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ LayerClassifier     ³    11ms ³      0 ³     0 ³ ran                 ³     0 ³
+³ AntiPatternDetector ³     0ms ³      0 ³     0 ³ skipped: gated by   ³     0 ³
+³                     ³         ³        ³       ³ ShouldRun           ³       ³
+³ AspireExtractor     ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³                     ³         ³        ³       ³ gate: needs aspire  ³       ³
+³ AwsLambdaExtractor  ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³                     ³         ³        ³       ³ gate: needs         ³       ³
+³                     ³         ³        ³       ³ aws-lambda          ³       ³
+³ AzureFunctionsExtra ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³ ctor                ³         ³        ³       ³ gate: needs         ³       ³
+³                     ³         ³        ³       ³ azure-functions     ³       ³
+³ BlazorEntryExtracto ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³ r                   ³         ³        ³       ³ gate: needs blazor  ³       ³
+³                     ³         ³        ³       ³ or controllers      ³       ³
+³ ControllerActionExt ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³ ractor              ³         ³        ³       ³ gate: needs         ³       ³
+³                     ³         ³        ³       ³ controllers         ³       ³
+³ DesktopEntryExtract ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³ or                  ³         ³        ³       ³ gate: needs         ³       ³
+³                     ³         ³        ³       ³ desktop-ui or maui  ³       ³
+³ EfCoreExtractor     ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³                     ³         ³        ³       ³ gate: needs efcore  ³       ³
+³ EventBusExtractor   ³     0ms ³      0 ³     0 ³ skipped: signal     ³     0 ³
+³                     ³         ³        ³       ³ gate: needs         ³       ³
+³                     ³         ³        ³       ³ masstransit or      ³       ³
+³                     ³         ³        ³       ³ nservicebus         ³       ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÙ
+
+          Graph Seams           
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam        ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls       ³  1368 ³   1103 ³
+³ Resolves    ³    14 ³      2 ³
+³ ServiceLink ³     1 ³      0 ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+1254 nodes ú 1383 edges ú 27/30 entries  target
+cache 86% hit ú 385 files ú 8 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³      DevContext      ³
+³   Time   ³       33167ms        ³
+³  Tokens  ³ ~1148 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.334 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

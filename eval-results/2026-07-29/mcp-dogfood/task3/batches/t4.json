@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "InvocationOp", "budgetTokens": 4000 }, "preview": 2000, "why": "A6: the only Invocation-named node in the whole graph - what is it and who fills it" },
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "BodyFactsExtractor", "mode": "member" }, "preview": 2600, "why": "A6: the graph says this extractor calls a cache and a context and nothing else, which cannot be true of a body walker - read it" }
+  ]
+}

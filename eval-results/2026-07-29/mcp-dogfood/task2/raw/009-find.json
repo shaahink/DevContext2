@@ -1,0 +1,1 @@
+{"query":"ServerFilter","kind":"Type","cursor":0,"limit":20,"count":1,"total":1,"hasMore":false,"results":[{"nodeId":"Type:Hangfire.Server.IServerFilter","title":"IServerFilter","kind":"Type","tags":[]}]}

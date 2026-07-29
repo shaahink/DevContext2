@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "InfoFormat", "limit": 5 }, "preview": 400, "why": "F5 tail: is the ILog logging verb an addressable node, or does the graph stop at the interface" },
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "LogExtensions", "windowLines": 40 }, "preview": 1500, "why": "F5 tail: the exact ILog call shape - the last fact needed before writing a line" }
+  ]
+}

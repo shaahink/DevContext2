@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "AutomaticRetryAttribute", "windowLines": 45 }, "preview": 1800, "why": "F5: the logging convention at a real filter site in this repo - what an existing JobFilterAttribute declares as its logger" },
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "PerformContext", "mode": "member" }, "preview": 700, "why": "F4 confirm + control for the invalid-mode finding: 'member' is a LEGAL mode value where 'full' was not, on the same node" }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "PerformContext", "budgetTokens": 20000 }, "preview": 300, "previewPath": "fillNote", "why": "DISCRIMINATING PROBE: at 3000 the pack said fill 42% and 'already contains everything reachable' while eliding the 75-line body I need. Does a 6.7x budget fill it in, or is the elision a hard cap the fillNote is not telling the truth about" },
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "PerformContext", "mode": "full" }, "preview": 1800, "why": "F4: the class body get_context elided - does PerformContext carry a bag a filter can stash a stopwatch in" },
+    { "tool": "read_source", "args": { "handle": "$HANDLE", "query": "DisableConcurrentExecutionAttribute", "windowLines": 80 }, "preview": 2400, "why": "F6: the existing filter to model the new file on, found via the PerformingContext usage section" }
+  ]
+}

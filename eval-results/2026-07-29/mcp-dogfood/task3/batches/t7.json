@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "nodeId": "Type:DevContext.Core.Utilities.ExtractorHelpers", "direction": "in" }, "preview": 700, "why": "HYPOTHESIS TEST: a static helper class called from many extractors. If a static type-name receiver never binds, this has 0 in-edges too" },
+    { "tool": "stats", "args": { "handle": "$HANDLE" }, "preview": 1400, "why": "A5/A6: the server's own view of what it analysed - seam mix and any sparse-graph caveat" }
+  ]
+}

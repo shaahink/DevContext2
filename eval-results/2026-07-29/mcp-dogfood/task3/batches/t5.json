@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "BodyFactExtractor", "limit": 10 }, "preview": 500, "why": "DECISIVE: line 56 calls BodyFactExtractor.Extract (singular Fact) and no edge exists for it. Is the CALLEE TYPE even a node - i.e. is the missing edge a binder failure or a missing node" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "RazorCodeVirtualizer", "limit": 10 }, "preview": 400, "why": "DECISIVE control: line 74's static callee, also edge-less, also outside any lambda - if this is absent too the pattern is the node, not the lambda" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "Extract", "kind": "Type", "limit": 30 }, "preview": 1200, "why": "how many extractor TYPES made it into the graph at all - the denominator for the missing-node hypothesis" }
+  ]
+}

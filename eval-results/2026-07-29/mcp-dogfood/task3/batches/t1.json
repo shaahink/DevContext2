@@ -1,0 +1,6 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task3",
+  "calls": [
+    { "tool": "analyze", "args": { "path": "C:/code/DevContext2" }, "timeoutMs": 1500000, "preview": 1200, "why": "A5: DevContext on itself. The CLI, reading devcontext.json, saw 385 files / 1254 nodes / 1383 edges / 30 entries / 8 projects. Does the server see the same repo" }
+  ]
+}

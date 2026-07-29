@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood/task2",
+  "calls": [
+    { "tool": "analyze", "args": { "path": "C:/code/DevContext2/eval-repos/Hangfire" }, "timeoutMs": 900000, "preview": 900, "why": "handle for the change task; also re-checks G1.4's cached flag on a second server process" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "IServerFilter", "limit": 10 }, "preview": 1200, "why": "F1/F2: does the server-side filter contract exist as a node, and where" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "Filter", "kind": "Type", "limit": 30 }, "preview": 2200, "why": "F1/F3/F6: the whole filter family in one call - contracts, base class, existing implementations" }
+  ]
+}

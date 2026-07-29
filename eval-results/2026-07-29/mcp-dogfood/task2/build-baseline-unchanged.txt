@@ -1,0 +1,11 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Code\DevContext2\eval-repos\Hangfire\src\Hangfire.Core\Razor.build(3,3): error MSB4019: The imported project "C:\Code\DevContext2\eval-repos\Hangfire\packages\RazorGenerator.MsBuild.2.5.0\build\RazorGenerator.MsBuild.targets" was not found. Confirm that the expression in the Import declaration "..\..\packages\RazorGenerator.MsBuild.2.5.0\build\RazorGenerator.MsBuild.targets", which evaluated to "..\..\packages\RazorGenerator.MsBuild.2.5.0\build\RazorGenerator.MsBuild.targets", is correct, and that the file exists on disk. [C:\code\DevContext2\eval-repos\Hangfire\src\Hangfire.Core\Hangfire.Core.csproj::TargetFramework=netstandard2.0]
+C:\code\DevContext2\eval-repos\Hangfire\src\Hangfire.Core\Hangfire.Core.csproj(59,5): error MSB3073: The command ""C:\Program Files\dotnet\sdk\10.0.301\MSBuild.exe" Razor.build /v:quiet /nologo" exited with code 1. [TargetFramework=netstandard2.0]
+
+Build FAILED.
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:02.95
+EXITCODE=1
