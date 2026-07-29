@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 12:46 UTC · branch `feat/graph-v2` · HEAD `45454e8`_
+_Updated 2026-07-29 13:31 UTC · branch `feat/graph-v2` · HEAD `c1949ef`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G5 — D-3 — a CLI verb reaches its handler · attempts used 2 · working ▸ G5.2
-**Checkpoints:** 13/22 done · **Sessions run:** 17 · **Cost:** $191.6948 (agent $191.4938 + gates $0.2010) · **Tokens:** 2,840,541 in / 1,060,074 out
+**Checkpoints:** 13/22 done · **Sessions run:** 18 · **Cost:** $204.7229 (agent $204.5109 + gates $0.2120) · **Tokens:** 3,061,742 in / 1,163,762 out
 **Confirmed phases:** G1, G2, G3, G4
 
 ## Stage progress
@@ -135,16 +135,13 @@ _Updated 2026-07-29 12:46 UTC · branch `feat/graph-v2` · HEAD `45454e8`_
 | 15 | G4 | Deliver | 1 | 07-29 11:17 | 0:28 | Advanced | G4.2 G4.3 | 4 | fast-engine:OK · guards:OK | $14.4902 | $0.0155 | 249,634/100,477 |
 | 16 | G5 | Deliver | 1 | 07-29 12:02 | 0:25 | GatesRed | G5.1 | 2 | fast-engine:FAIL · guards:OK | $10.9637 | $0.0100 | 198,784/74,494 |
 | 17 | G5 | Fix | 2 | 07-29 12:29 | 0:15 | GatesRed |  | 2 | fast-engine:FAIL · guards:OK | $8.4244 | $0.0089 | 164,208/46,667 |
+| 18 | G5 | Fix | 3 | 07-29 12:46 | 0:42 | Progress |  | 2 | fast-engine:OK · guards:OK | $13.0171 | $0.0110 | 221,201/103,688 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 08:05:09  • session #9 G3 → AgentError  (0.9s)
-07-29 08:05:09  • session #10 G3 Deliver started (attempt 3/4)
-07-29 10:27:54  ◆ run resumed · DevContext graph-v2 — autonomous remainder
-07-29 10:27:54  • session #11 G3 Resume started (attempt 3/4)
 07-29 10:29:32  ▪ gate fast-engine FAIL [session]  (8.2s)
 07-29 10:29:32  ▪ gate guards pass [session]  (1m26s)
 07-29 10:29:36  • session #11 G3 → AgentError  (1m41s)
@@ -181,6 +178,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 13:29:30  • session #17 G5 Fix started (attempt 2/4)
 07-29 13:46:46  ▪ gate fast-engine FAIL [session]  (48.8s)
 07-29 13:46:46  ▪ gate guards pass [session]  (39.8s)
+07-29 13:46:48  • session #17 G5 → GatesRed · 2 commit(s)  (17m17s)
+07-29 13:46:49  • session #18 G5 Fix started (attempt 3/4)
+07-29 14:31:07  ▪ gate fast-engine pass [session]  (1m14s)
+07-29 14:31:07  ▪ gate guards pass [session]  (35.6s)
 ```
 
 ## Health
@@ -188,7 +189,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 17 · retries 6 (35 %) · overall Alert
+sessions 18 · retries 7 (39 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -198,7 +199,7 @@ sessions 17 · retries 6 (35 %) · overall Alert
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #7: 24,222,376 context tokens (≥ 20,000,000)
-⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 5x
+⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 6x
 ```
 
 ## Repo
@@ -207,17 +208,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s6 (G2 Deliver)** — 4 commit(s):
-  - [`efe70fb`](https://github.com/shaahink/DevContext2/commit/efe70fb) G2 handoff: stage complete, next session opens G3.1
-  - [`7d42c08`](https://github.com/shaahink/DevContext2/commit/7d42c08) G2.2: one trace policy, and the rule that had never run
-  - [`b579030`](https://github.com/shaahink/DevContext2/commit/b579030) G2.1 evidence: the menu in three states, with the red in the middle
-  - [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) G2.1: 24 tools become 21, and the menu stops being told twice
 - **s7 (G3 Deliver)** — 1 commit(s):
   - [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) G3.1: the path between two symbols, and the roll-up that makes it real
 - **s12 (G3 Deliver)** — 1 commit(s):
@@ -241,57 +237,42 @@ vs upstream: up to date
 - **s17 (G5 Fix)** — 2 commit(s):
   - [`45454e8`](https://github.com/shaahink/DevContext2/commit/45454e8) chore: MCP QA report regenerated by the s17 verification run (12/12, timing line only)
   - [`68ad4ff`](https://github.com/shaahink/DevContext2/commit/68ad4ff) G5: the gate script was dying mid-step and reporting it as a test failure
+- **s18 (G5 Fix)** — 2 commit(s):
+  - [`c1949ef`](https://github.com/shaahink/DevContext2/commit/c1949ef) chore: MCP QA report regenerated by the s18 verification run (12/12, timing line only)
+  - [`5b401dd`](https://github.com/shaahink/DevContext2/commit/5b401dd) G5: fast-engine was a coin flip, not a red — five test classes owned one env var
 
 ## Last gate run
 
-fast-engine:FAIL · guards:OK
-
-<details><summary>fast-engine — exit 2</summary>
-
-```
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 0 orphaned process(es)
-
---- Step 1: Build solution ---
-  PASS  Build succeeded
-
---- Step 1a: Contract sweep (dead proto fields) ---
-  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
-
---- Step 2: Fast unit tests ---
-Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0) Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0) A total of 1 test files matched the specified pattern. A total of 1 test files matched the specified pattern. [xUnit.net 00:00:03.82]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP] [xUnit.net 00:00:03.97]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]   Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]   Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]  Passed!  - Failed:     0, Passed:   702, Skipped:     2, Total:   704, Duration: 4 s - DevContext.Core.Tests.dll (net10.0) [xUnit.net 00:00:07.55]     DevContext.Server.Tests.AnalyzeCacheTruthTests.A_rehydrate_reports_the_originals_instant_not_its_own [FAIL]   Failed DevContext.Server.Tests.AnalyzeCacheTruthTests.A_rehydrate_reports_the_originals_instant_not_its_own [843 ms]   Error Message:    System.IO.DirectoryNotFoundException : Could not find a part of the path 'C:\Users\shahi\AppData\Local\Temp\devcontext-cachetruth-tests\9b9e2174dea7400188465d4c6c02369e'.   Stack Trace:      at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)    at System.IO.Enumeration.FileSystemEnumerator`1.Init()    at System.IO.Enumeration.FileSystemEnumerator`1..ctor(String directory, Boolean isNormalized, EnumerationOptions options, String expression)    at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized, String expression)    at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)    at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)    at System.IO.Directory.GetFiles(String path, String searchPattern, EnumerationOptions enumerationOptions)    at DevContext.Server.Tests.AnalyzeCacheTruthTests.BackdatePersistedSnapshot(DateTime instant) in C:\code\DevContext2\tests\DevContext.Server.Tests\AnalyzeCacheTruthTests.cs:line 197    at DevContext.Server.Tests.AnalyzeCacheTruthTests.A_rehydrate_reports_the_originals_instant_not_its_own() in C:\code\DevContext2\tests\DevContext.Server.Tests\AnalyzeCacheTruthTests.cs:line 117    at DevContext.Server.Tests.AnalyzeCacheTruthTests.A_rehydrate_reports_the_originals_instant_not_its_own() in C:\code\DevContext2\tests\DevContext.Server.Tests\AnalyzeCacheTruthTests.cs:line 127 --- End of stack trace from previous location ---  Failed!  - Failed:     1, Passed:   103, Skipped:     0, Total:   104, Duration: 8 s - DevContext.Server.Tests.dll (net10.0)
-  FAIL  Fast tests failed
-
-GATE: FAIL (step 2 - fast tests)
-```
-</details>
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: The s16 `fast-engine` red was not a test failure but the gate script terminating mid-statement — proven by non-reproduction on the unchanged tree, by `exit 1` being a code Step 2 cannot return, and by a 6-line probe reproducing the exact signature (stdout ending at the step banner, exit 1) from a native command that writes one stderr line and exits **0**; root cause is PowerShell 5.1's `NativeCommandError` becoming terminating under `$ErrorActionPreference='Stop'`, which aborts every `$x = <native> 2>&1` capture before its `$LASTEXITCODE` check, so a green suite reports FAIL and a real red loses its failing test names. Fixed by promoting the workaround `gates.ps1` already car…
+> SESSION-RESULT: I fixed the `fast-engine` red at its root — `AnalyzeCacheTruthTests` was failing ~30% of runs because five concurrent xUnit collections each owned one process-wide `DEVCONTEXT_CACHE_ROOT`, so I moved the cache root into `ServerOptions` and inject it per host, added `loom-guards` Rule 7 to ban the env write from tests (verified it fires), and made one opaque `DirectoryNotFoundException` report as "zero snapshots" without changing the bar; verified 0 failures in 25 runs of the full 104-test assembly, `fast-engine` exit 0, `guards` exit 0, build 0w/0e, committed and pushed as 5b401dd + c1949ef. Still red/open: bug #16, a second and much rarer failure in the same class (`third.Ca…
 
 ## Tracker handoff
 
 ```
-**s16's `fast-engine` red was the GATE SCRIPT DYING, not a test. Fixed at the root; both fast gates
-now exit 0** (`eval-results/2026-07-29/G5/`: `verify-fast-engine.exit.txt`, `verify-guards.exit.txt`).
-No test, expectation, golden or gate bar was touched — **G5.2 is still the next job and src/ is
-untouched.** Proof it was never a red: the identical command passes on the identical tree, and
-`exit 1` is a code only Step 1 can return (it prints the build log first). Mechanism, reproduced in a
-6-line probe: under `$ErrorActionPreference='Stop'`, PS 5.1 turns any stderr line from a native
-command captured as `2>&1` into a **terminating** error, so the script dies *before* the
-`$LASTEXITCODE` check — the suite can be green and the gate still says FAIL, and a real red loses its
-failing test names the same way. `gates.ps1` already carried this workaround inline for `pnpm check`
-and nowhere else; it is now `Invoke-NativeCapture` on all 12 captures + the `loom-guards.ps1` truth
-gate. **Read a gate red this way from now on: no `GATE: FAIL (step N)` line = the script died.**
-Same signature already hit s2 — `run.db` gates row 3 — and the board still shows `fast-engine:FAIL`
-as **G1.2**'s evidence; that annotation is a false red, G1.2's own work is fine.
+**s17's `fast-engine` red was a FLAKY TEST, at ~1 run in 3. Root-caused, fixed, verified: both fast
+gates exit 0** (`eval-results/2026-07-29/G5-s18/`, full writeup in `G5-s18-EVIDENCE.md`). Nothing was
+weakened; one gate got stricter. **G5.2 is still the next job and no G5 checkpoint is claimed.**
+Measured: 5 failures / 15 before (`loop-A-repro-multiclass.txt`), **0 / 25** after on the whole
+104-test assembly (`loop-D`). Cause: `DEVCONTEXT_CACHE_ROOT` is process-wide and **five** concurrent
+xUnit collections each wrote it in their ctor (3 × `ServerTestFactory` + `HostReleaseTests` +
+`AnalyzeCacheTruthTests`), so a neighbour could steal the root between a test's ctor and its
+`EngineRunner`; `ServerTestFactory` restored **null**, aiming stragglers at the real user cache. Fix:
+new `ServerOptions.SnapshotCacheRoot`, injected — plus **loom-guards Rule 7** banning that env write
+from tests, watched going red on demand (`canary-rule7-OUTPUT.txt`).
+**Consequence for the board: `fast-engine` was a coin flip from G3.3 onward, so G5.1's and G1.2's
+`fast-engine:FAIL` annotations are false reds** (G1.2's is s17's harness abort); both checkpoints'
+work is fine, and any single green `fast-engine` in that window proved less than it looked.
+**Still open — bug #16**, a SECOND, rarer red in the same class (`third.Cached` false, 1-in-50). Its
+obvious cause was tested and **refuted**: the cache key really does track the whole working tree
+(`probe-versionkey.ps1`), but churning the tree does not redden the test (0/14). Do not re-derive it.
 **G5.2 is unchanged and still a checklist** — build to `eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`
 §5, do not re-derive §1–§4. Defect 1 (`this.<field>.<M>()` reaching `CallGraphBinder.cs:250`'s
 self-call arm) + join the execute MEMBER (`CliCommandEntryPointBuilder.cs:29-40` drops the detected
-`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Canary safe by
-measurement (878 `this.<field>.` sites in GitVersion, **0** in CleanArchitecture/Hangfire/Polly/
-Serilog). Bug #12 stays OUT of G5.2 — it moves counts on every pole and needs a matrix batch.
-**Budget the cold snapshot:** any Core edit invalidates every MVID-keyed snapshot, which trips bug #1
-(MCP QA false 0/12 on the first battery after a Core change). Expect it; do not chase it.
+`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Bug #12 stays
+OUT of G5.2. **Budget the cold snapshot** (any Core edit trips bug #1's false 0/12), and **write
+verification logs outside the repo** — `eval-results/` is untracked-but-not-ignored, so a growing log
+there is itself a working-tree change the cache keys on.
 ```
