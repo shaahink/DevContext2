@@ -1,0 +1,77 @@
+[profile] T+     0.0s PROFILE-START pid=24908 heartbeat=5s
+[profile] T+     0.0s PIPELINE-START root=C:\code\DevContext2\eval-repos\TodoApi
+[profile] T+     0.0s STAGE-START DiscoveryAndCacheWarmup
+[profile] T+     0.0s EXTRACTOR-START FileTreeExtractor tier=Fast
+[profile] T+     0.1s EXTRACTOR-DONE FileTreeExtractor elapsed=18ms +0t +0d
+[profile] T+     0.1s EXTRACTOR-START SolutionDiscovery tier=Fast
+[profile] T+     0.1s EXTRACTOR-DONE SolutionDiscovery elapsed=19ms +0t +0d
+[profile] T+     0.1s EXTRACTOR-START ProjectStructure tier=Fast
+[profile] T+     0.1s EXTRACTOR-DONE ProjectStructure elapsed=28ms +0t +0d
+[profile] T+     0.1s STAGE-DONE DiscoveryAndCacheWarmup elapsed=90ms
+[profile] T+     0.1s STAGE-START GenericExtraction
+[profile] T+     0.1s EXTRACTOR-START DependencyExtractor tier=Fast
+[profile] T+     0.1s EXTRACTOR-START LayerClassifier tier=Fast
+[profile] T+     0.1s EXTRACTOR-START ProgramCsFlowExtractor tier=Fast
+[profile] T+     0.1s EXTRACTOR-START SyntaxStructureExtractor tier=Fast
+[profile] T+     0.1s EXTRACTOR-START DiRegistrationExtractor tier=Fast
+[profile] T+     0.1s EXTRACTOR-DONE LayerClassifier elapsed=8ms +0t +0d
+[profile] T+     0.1s EXTRACTOR-DONE DependencyExtractor elapsed=17ms +0t +0d
+[profile] T+     0.3s EXTRACTOR-DONE ProgramCsFlowExtractor elapsed=156ms +0t +6d
+[profile] T+     0.3s EXTRACTOR-DONE DiRegistrationExtractor elapsed=157ms +0t +51d
+[profile] T+     0.3s EXTRACTOR-DONE SyntaxStructureExtractor elapsed=208ms +47t +51d
+[profile] T+     0.3s STAGE-DONE GenericExtraction elapsed=211ms
+[profile] T+     0.3s STAGE-START SignalSealing
+[profile] T+     0.3s SIGNALS-SEALED detected=5
+[profile] T+     0.3s STAGE-DONE SignalSealing elapsed=2ms
+[profile] T+     0.4s STAGE-START SpecificExtraction
+[profile] T+     0.4s EXTRACTOR-DONE MediatRExtractor elapsed=0ms skipped=signal gate: needs mediatr
+[profile] T+     0.4s EXTRACTOR-DONE ControllerActionExtractor elapsed=0ms skipped=signal gate: needs controllers
+[profile] T+     0.4s EXTRACTOR-DONE EventBusExtractor elapsed=0ms skipped=signal gate: needs masstransit or nservicebus
+[profile] T+     0.4s EXTRACTOR-DONE AntiPatternDetector elapsed=0ms skipped=gated by ShouldRun
+[profile] T+     0.4s EXTRACTOR-DONE SignalRHubExtractor elapsed=0ms skipped=signal gate: needs signalr
+[profile] T+     0.4s EXTRACTOR-DONE GrpcServiceExtractor elapsed=0ms skipped=signal gate: needs grpc
+[profile] T+     0.4s EXTRACTOR-DONE AzureFunctionsExtractor elapsed=0ms skipped=signal gate: needs azure-functions
+[profile] T+     0.4s EXTRACTOR-DONE GrpcClientExtractor elapsed=0ms skipped=signal gate: needs grpc
+[profile] T+     0.4s EXTRACTOR-DONE RazorPagesExtractor elapsed=0ms skipped=signal gate: needs razor-pages
+[profile] T+     0.4s EXTRACTOR-DONE OrleansGrainExtractor elapsed=0ms skipped=signal gate: needs orleans
+[profile] T+     0.4s EXTRACTOR-DONE RefitInterfaceExtractor elapsed=0ms skipped=signal gate: needs refit
+[profile] T+     0.4s EXTRACTOR-DONE NServiceBusExtractor elapsed=0ms skipped=signal gate: needs nservicebus
+[profile] T+     0.4s EXTRACTOR-DONE WolverineExtractor elapsed=0ms skipped=signal gate: needs wolverine
+[profile] T+     0.4s EXTRACTOR-DONE AwsLambdaExtractor elapsed=0ms skipped=signal gate: needs aws-lambda
+[profile] T+     0.4s EXTRACTOR-DONE GraphQlResolverExtractor elapsed=0ms skipped=signal gate: needs graphql
+[profile] T+     0.4s EXTRACTOR-DONE CliCommandExtractor elapsed=0ms skipped=signal gate: needs cli-commands
+[profile] T+     0.4s EXTRACTOR-DONE DesktopEntryExtractor elapsed=0ms skipped=signal gate: needs desktop-ui or maui
+[profile] T+     0.4s EXTRACTOR-START EndpointExtractor tier=Fast
+[profile] T+     0.4s EXTRACTOR-START EfCoreExtractor tier=Fast
+[profile] T+     0.4s EXTRACTOR-START InMemoryEventBusExtractor tier=Fast
+[profile] T+     0.4s EXTRACTOR-START IndirectWiringDetector tier=Fast
+[profile] T+     0.4s EXTRACTOR-START BlazorEntryExtractor tier=Fast
+[profile] T+     0.4s EXTRACTOR-START AspireExtractor tier=Fast
+[profile] T+     0.4s EXTRACTOR-DONE BlazorEntryExtractor elapsed=9ms +0t +3d
+[profile] T+     0.4s EXTRACTOR-DONE AspireExtractor elapsed=9ms +0t +6d
+[profile] T+     0.4s EXTRACTOR-DONE IndirectWiringDetector elapsed=11ms +0t +6d
+[profile] T+     0.4s EXTRACTOR-DONE InMemoryEventBusExtractor elapsed=18ms +0t +6d
+[profile] T+     0.4s EXTRACTOR-DONE EfCoreExtractor elapsed=33ms +0t +9d
+[profile] T+     0.5s EXTRACTOR-DONE EndpointExtractor elapsed=130ms +0t +20d
+[profile] T+     0.5s EXTRACTOR-START BodyFactsExtractor tier=Deep
+[profile] T+     0.5s EXTRACTOR-START SourceBodyExtractor tier=Deep
+[profile] T+     0.6s EXTRACTOR-DONE BodyFactsExtractor elapsed=68ms +0t +0d
+[profile] T+     0.6s EXTRACTOR-DONE SourceBodyExtractor elapsed=88ms +0t +0d
+[profile] T+     0.6s STAGE-DONE SpecificExtraction elapsed=225ms
+[profile] T+     0.6s STAGE-START SemanticLite
+[profile] T+     1.6s STAGE-DONE SemanticLite elapsed=994ms
+[profile] T+     1.6s STAGE-START GraphAssembly
+[profile] T+     1.7s STAGE-DONE GraphAssembly elapsed=133ms
+[profile] T+     1.7s STAGE-START Insights
+[profile] T+     1.8s STAGE-DONE Insights elapsed=83ms
+[profile] T+     1.8s STAGE-START Compression
+[profile] T+     1.8s COMPRESSION TrivialMemberCompressor 1096->1047tok
+[profile] T+     1.8s COMPRESSION BoilerplateCompressor 940->940tok
+[profile] T+     1.8s COMPRESSION StructuralDeduplicator 996->900tok
+[profile] T+     1.8s COMPRESSION NamespaceGrouper 900->900tok
+[profile] T+     1.8s COMPRESSION LlmFriendlyFormatter 17550->17184tok
+[profile] T+     1.8s STAGE-DONE Compression elapsed=16ms
+[profile] T+     1.8s STAGE-START Snapshot
+[profile] T+     1.8s STAGE-DONE Snapshot elapsed=34ms
+[profile] T+     1.9s PIPELINE-DONE types=47 detections=71
+[profile] T+     1.9s PROFILE-END 

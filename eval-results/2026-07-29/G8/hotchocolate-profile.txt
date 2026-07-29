@@ -1,0 +1,232 @@
+﻿Overview map (no focus).
+DevContext.Cli.exe : [profile] T+     0.0s PROFILE-START pid=15780 heartbeat=10s
+At line:1 char:74
++ ... T_SEC='10'; & 'C:/code/DevContext2/src/DevContext.Cli/bin/Debug/net10 ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([profile] T+   ...0 heartbeat=10s:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[profile] T+     0.0s PIPELINE-START root=C:\code\DevContext2\eval-repos\HotChocolate
+[profile] T+     0.0s STAGE-START DiscoveryAndCacheWarmup
+[profile] T+     0.0s EXTRACTOR-START FileTreeExtractor tier=Fast
+Analyzing project...
+[profile] T+     0.9s EXTRACTOR-DONE FileTreeExtractor elapsed=838ms +0t +0d
+[profile] T+     0.9s EXTRACTOR-START SolutionDiscovery tier=Fast
+[profile] T+     1.1s EXTRACTOR-DONE SolutionDiscovery elapsed=253ms +0t +0d
+[profile] T+     1.1s EXTRACTOR-START ProjectStructure tier=Fast
+[profile] T+     6.3s EXTRACTOR-DONE ProjectStructure elapsed=5147ms +0t +0d
+[profile] T+     6.3s STAGE-DONE DiscoveryAndCacheWarmup elapsed=6256ms
+[profile] T+     6.3s STAGE-START GenericExtraction
+[profile] T+     6.3s EXTRACTOR-START SyntaxStructureExtractor tier=Fast
+[profile] T+     6.3s EXTRACTOR-START DependencyExtractor tier=Fast
+[profile] T+     6.3s EXTRACTOR-START ProgramCsFlowExtractor tier=Fast
+[profile] T+     6.3s EXTRACTOR-START DiRegistrationExtractor tier=Fast
+[profile] T+     6.3s EXTRACTOR-START LayerClassifier tier=Fast
+[profile] T+     6.3s EXTRACTOR-DONE LayerClassifier elapsed=15ms +0t +0d
+[profile] T+     6.5s EXTRACTOR-DONE DependencyExtractor elapsed=243ms +0t +0d
+[profile] T+    10.0s HEARTBEAT stage=GenericExtraction 
+running=3:DiRegistrationExtractor,ProgramCsFlowExtractor,SyntaxStructureExtractor
+[profile] T+    20.0s HEARTBEAT stage=GenericExtraction 
+running=3:DiRegistrationExtractor,ProgramCsFlowExtractor,SyntaxStructureExtractor
+[profile] T+    30.0s HEARTBEAT stage=GenericExtraction 
+running=3:DiRegistrationExtractor,ProgramCsFlowExtractor,SyntaxStructureExtractor
+[profile] T+    38.4s EXTRACTOR-DONE ProgramCsFlowExtractor elapsed=32101ms +0t +54d
+[profile] T+    39.9s EXTRACTOR-DONE DiRegistrationExtractor elapsed=33640ms +0t +2018d
+[profile] T+    40.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+    50.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+    60.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+    70.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+    80.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+    90.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   100.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   110.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   120.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   130.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   140.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   150.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   160.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   170.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   180.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   190.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   200.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   210.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   220.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   230.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   240.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   250.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   260.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   270.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   280.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   290.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   300.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   310.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   320.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   330.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   340.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   350.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   360.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   370.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   380.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   390.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   400.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   410.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   420.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   430.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   440.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   450.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   460.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   470.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   480.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   490.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   500.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   510.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   520.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   530.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   540.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   550.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   560.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   570.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   580.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   590.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   600.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   610.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   620.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   630.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   640.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   650.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   660.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   670.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   680.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   690.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   700.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   710.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   720.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   730.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   740.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   750.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   760.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   770.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   780.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   790.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   800.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   810.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   820.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   830.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   840.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   850.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   860.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   870.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   880.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   890.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   900.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   910.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   920.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   930.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   940.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   950.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   960.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   970.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   980.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+   990.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1000.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1010.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1020.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1030.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1040.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1050.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1060.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1070.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1080.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1090.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1100.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1110.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1120.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1130.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1140.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1150.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1160.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1170.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1180.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1190.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1200.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1210.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1220.0s HEARTBEAT stage=GenericExtraction running=1:SyntaxStructureExtractor
+[profile] T+  1223.3s EXTRACTOR-DONE SyntaxStructureExtractor elapsed=1216998ms +19456t +2018d
+[profile] T+  1223.3s STAGE-DONE GenericExtraction elapsed=1217002ms
+[profile] T+  1223.3s STAGE-START SignalSealing
+[profile] T+  1223.3s SIGNALS-SEALED detected=9
+[profile] T+  1223.3s STAGE-DONE SignalSealing elapsed=1ms
+[profile] T+  1223.4s STAGE-START SpecificExtraction
+[profile] T+  1223.5s EXTRACTOR-DONE ControllerActionExtractor elapsed=0ms skipped=signal gate: needs controllers
+[profile] T+  1223.5s EXTRACTOR-DONE AntiPatternDetector elapsed=0ms skipped=gated by ShouldRun
+[profile] T+  1223.5s EXTRACTOR-DONE SignalRHubExtractor elapsed=0ms skipped=signal gate: needs signalr
+[profile] T+  1223.5s EXTRACTOR-DONE GrpcServiceExtractor elapsed=0ms skipped=signal gate: needs grpc
+[profile] T+  1223.5s EXTRACTOR-DONE GrpcClientExtractor elapsed=0ms skipped=signal gate: needs grpc
+[profile] T+  1223.5s EXTRACTOR-DONE RazorPagesExtractor elapsed=0ms skipped=signal gate: needs razor-pages
+[profile] T+  1223.5s EXTRACTOR-DONE OrleansGrainExtractor elapsed=0ms skipped=signal gate: needs orleans
+[profile] T+  1223.5s EXTRACTOR-DONE RefitInterfaceExtractor elapsed=0ms skipped=signal gate: needs refit
+[profile] T+  1223.5s EXTRACTOR-DONE NServiceBusExtractor elapsed=0ms skipped=signal gate: needs nservicebus
+[profile] T+  1223.5s EXTRACTOR-DONE WolverineExtractor elapsed=0ms skipped=signal gate: needs wolverine
+[profile] T+  1223.5s EXTRACTOR-DONE AwsLambdaExtractor elapsed=0ms skipped=signal gate: needs aws-lambda
+[profile] T+  1223.5s EXTRACTOR-DONE DesktopEntryExtractor elapsed=0ms skipped=signal gate: needs desktop-ui or maui
+[profile] T+  1223.5s EXTRACTOR-START EndpointExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START MediatRExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START EfCoreExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START EventBusExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START InMemoryEventBusExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START IndirectWiringDetector tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START BlazorEntryExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-START AzureFunctionsExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-DONE BlazorEntryExtractor elapsed=24ms +0t +38d
+[profile] T+  1223.5s EXTRACTOR-START AspireExtractor tier=Fast
+[profile] T+  1223.5s EXTRACTOR-DONE AspireExtractor elapsed=23ms +0t +102d
+[profile] T+  1223.5s EXTRACTOR-START GraphQlResolverExtractor tier=Fast
+[profile] T+  1224.4s EXTRACTOR-DONE IndirectWiringDetector elapsed=896ms +0t +1406d
+[profile] T+  1224.4s EXTRACTOR-START CliCommandExtractor tier=Fast
+[profile] T+  1225.3s EXTRACTOR-DONE AzureFunctionsExtractor elapsed=1808ms +0t +1613d
+[profile] T+  1225.4s EXTRACTOR-DONE EfCoreExtractor elapsed=1923ms +0t +1647d
+[profile] T+  1225.4s EXTRACTOR-DONE InMemoryEventBusExtractor elapsed=1925ms +0t +1711d
+[profile] T+  1225.5s EXTRACTOR-DONE GraphQlResolverExtractor elapsed=1972ms +0t +1640d
+[profile] T+  1225.5s EXTRACTOR-DONE MediatRExtractor elapsed=2026ms +0t +1784d
+[profile] T+  1226.0s EXTRACTOR-DONE CliCommandExtractor elapsed=1622ms +0t +387d
+[profile] T+  1227.5s EXTRACTOR-DONE EventBusExtractor elapsed=4035ms +0t +1804d
+[profile] T+  1230.0s HEARTBEAT stage=SpecificExtraction running=1:EndpointExtractor
+[profile] T+  1230.7s EXTRACTOR-DONE EndpointExtractor elapsed=7194ms +0t +1871d
+[profile] T+  1230.7s EXTRACTOR-START BodyFactsExtractor tier=Deep
+[profile] T+  1230.7s EXTRACTOR-START SourceBodyExtractor tier=Deep
+[profile] T+  1232.8s EXTRACTOR-DONE BodyFactsExtractor elapsed=2149ms +0t +0d
+[profile] T+  1234.3s EXTRACTOR-DONE SourceBodyExtractor elapsed=3620ms +0t +0d
+[profile] T+  1234.3s STAGE-DONE SpecificExtraction elapsed=10873ms
+[profile] T+  1234.3s STAGE-START SemanticLite
+[profile] T+  1240.0s HEARTBEAT stage=SemanticLite running=none
+[profile] T+  1250.1s HEARTBEAT stage=SemanticLite running=none
+[profile] T+  1260.0s HEARTBEAT stage=SemanticLite running=none
+[profile] T+  1262.0s STAGE-DONE SemanticLite elapsed=27624ms
+[profile] T+  1262.0s STAGE-START GraphAssembly
+[profile] T+  1269.1s STAGE-DONE GraphAssembly elapsed=7133ms
+[profile] T+  1269.1s STAGE-START Insights
+[profile] T+  1270.0s HEARTBEAT stage=Insights running=none
+[profile] T+  1270.1s STAGE-DONE Insights elapsed=975ms
+[profile] T+  1270.1s STAGE-START Compression
+[profile] T+  1270.2s COMPRESSION TrivialMemberCompressor 1307590->1229530tok
+[profile] T+  1270.2s COMPRESSION BoilerplateCompressor 1030584->1030584tok
+[profile] T+  1270.4s COMPRESSION StructuralDeduplicator 1206624->1005649tok
+[profile] T+  1270.5s COMPRESSION NamespaceGrouper 1005649->1005649tok
+[profile] T+  1271.8s COMPRESSION LlmFriendlyFormatter 11857597->10709198tok
+[profile] T+  1271.8s STAGE-DONE Compression elapsed=1762ms
+[profile] T+  1271.8s STAGE-START Snapshot
+[profile] T+  1272.7s STAGE-DONE Snapshot elapsed=843ms
+[profile] T+  1272.7s PIPELINE-DONE types=19456 detections=3889
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G8\hotchocolate-kernel.json
+analyzed 8658 files · 0 types kept of 19456 · 5540/8000 tokens · 1277.0s stage2 
+x1.1 stage3 x2.7
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │         All          │
+│   Time   │      1279334ms       │
+│  Tokens  │ ~5540 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.375 │
+└──────────┴──────────────────────┘
+[profile] T+  1275.1s PROFILE-END 

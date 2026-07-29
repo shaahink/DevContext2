@@ -210,8 +210,12 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             _ => AnsiConsole.Profile.Capabilities.Interactive,
         };
         var waterfall = useWaterfall && !fromCache ? new WaterfallDiscoveryObserver() : null;
-        var observer = new CompositeDiscoveryObserver(
-            waterfall is not null ? [waterfall, collector] : [new SpectreDiscoveryObserver(), collector]);
+        // G8 — DEVCONTEXT_PROFILE=1 adds a stderr stage/extractor stream with a heartbeat, so an
+        // analysis that never terminates still leaves a per-phase timing log when it is killed.
+        using var profile = ProfileDiscoveryObserver.Enabled ? new ProfileDiscoveryObserver() : null;
+        List<IDiscoveryObserver> observers = waterfall is not null ? [waterfall, collector] : [new SpectreDiscoveryObserver(), collector];
+        if (profile is not null) observers.Add(profile);
+        var observer = new CompositeDiscoveryObserver([.. observers]);
 
         var ctx = new DiscoveryContext
         {

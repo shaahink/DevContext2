@@ -1,0 +1,67 @@
+Thread (0x22AC):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.Monitor.Wait(class System.Object,int32)
+  System.Private.CoreLib.il!System.Threading.ManualResetEventSlim.Wait(int32,value class System.Threading.CancellationToken)
+  System.Private.CoreLib.il!System.Threading.Tasks.Task.SpinThenBlockingWait(int32,value class System.Threading.CancellationToken)
+  System.Private.CoreLib.il!System.Threading.Tasks.Task.InternalWaitCore(int32,value class System.Threading.CancellationToken)
+  System.Private.CoreLib.il!System.Threading.Tasks.Task.InternalWait(int32,value class System.Threading.CancellationToken)
+  System.Private.CoreLib.il!System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(class System.Threading.Tasks.Task,value class System.Threading.Tasks.ConfigureAwaitOptions)
+  System.Private.CoreLib.il!System.Runtime.CompilerServices.TaskAwaiter`1[System.Int32].GetResult()
+  DevContext.Cli!Program.<Main>(class System.String[])
+
+Thread (0x3F94):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.PortableThreadPool+IOCompletionPoller.Poll()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0xA74):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.WaitHandle.WaitOneNoCheck(int32,bool,class System.Object,value class WaitHandleWaitSourceMap)
+  System.Private.CoreLib.il!System.Threading.PortableThreadPool+GateThread.GateThreadStart()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0x7028):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.WaitHandle.WaitOneNoCheck(int32,bool,class System.Object,value class WaitHandleWaitSourceMap)
+  System.Private.CoreLib.il!System.Threading.TimerQueue.TimerThread()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0xA68):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.WaitHandle.WaitOne(value class System.TimeSpan)
+  Spectre.Console!Spectre.Console.ProgressRefreshThread.Run()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0x4F14):
+  CPU_TIME
+  System.Private.CoreLib.il!System.Runtime.CompilerServices.CastHelpers.IsInstanceOfAny(void*,class System.Object)
+  System.Linq.il!System.Linq.Enumerable+OfTypeIterator`1[System.__Canon].MoveNext()
+  System.Linq.il!System.Linq.Enumerable.TryGetFirst(class System.Collections.Generic.IEnumerable`1<!!0>,class System.Func`2<!!0,bool>,bool&)
+  System.Linq.il!System.Linq.Enumerable.FirstOrDefault(class System.Collections.Generic.IEnumerable`1<!!0>,class System.Func`2<!!0,bool>)
+  DevContext.Core!DevContext.Core.Extractors.Generic.SyntaxStructureExtractor.ResolveTypeDeclaration(class Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax)
+  DevContext.Core!DevContext.Core.Extractors.Generic.SyntaxStructureExtractor+<>c.<ExtractInterfaces>b__17_0(class Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax)
+  System.Linq.il!System.Linq.Enumerable+IEnumerableWhereSelectIterator`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon].ToArray()
+  System.Collections.Immutable.il!System.Collections.Immutable.ImmutableArray.CreateRange(class System.Collections.Generic.IEnumerable`1<!!0>)
+  DevContext.Core!DevContext.Core.Extractors.Generic.SyntaxStructureExtractor.ExtractInterfaces(class Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax)
+  DevContext.Core!DevContext.Core.Extractors.Generic.SyntaxStructureExtractor.CreateTypeDiscovery(class Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax,class System.String)
+  DevContext.Core!DevContext.Core.Extractors.Generic.SyntaxStructureExtractor+<>c__DisplayClass11_1+<<ExtractAsync>b__2>d.MoveNext()
+  System.Private.CoreLib.il!System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(class System.Threading.Thread,class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object)
+  System.Private.CoreLib.il!System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,System.__Canon].ExecuteFromThreadPool(class System.Threading.Thread)
+  System.Private.CoreLib.il!System.Threading.ThreadPoolWorkQueue.Dispatch()
+  System.Private.CoreLib.il!System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0x28AC):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.LowLevelLifoSemaphore.WaitForSignal(int32)
+  System.Private.CoreLib.il!System.Threading.LowLevelLifoSemaphore.Wait(int32,bool)
+  System.Private.CoreLib.il!System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+
+Thread (0x59A0):
+  [Native Frames]
+  System.Private.CoreLib.il!System.Threading.LowLevelLifoSemaphore.WaitForSignal(int32)
+  System.Private.CoreLib.il!System.Threading.LowLevelLifoSemaphore.Wait(int32,bool)
+  System.Private.CoreLib.il!System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
+  System.Private.CoreLib.il!System.Threading.Thread.StartCallback()
+

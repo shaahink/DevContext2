@@ -22,6 +22,14 @@ dotnet run -c Debug --no-build --project benchmarks/DevContext.Benchmarks -- rep
 dotnet run -c Debug --no-build --project benchmarks/DevContext.Benchmarks -- repos DntSite TodoApi
 ```
 
+**Profiling a run that does not finish** — the macro runner reports nothing until it completes, so for
+a hang use the CLI's stage stream instead: `DEVCONTEXT_PROFILE=1` makes `analyze` write one stderr
+line per stage/extractor start+completion, plus a `HEARTBEAT` every `DEVCONTEXT_PROFILE_HEARTBEAT_SEC`
+seconds (default 15) naming the stage in flight and the extractors still outstanding. Kill it at any
+point and the log still names the phase. Pair it with `dotnet-stack report --process-id <pid>` to get
+the method. (The other two observers report a hang as SILENCE — see `ProfileDiscoveryObserver`'s
+doc comment for why.)
+
 Publishes `benchmarks/results/PERF-<date>.md` (and seeds `baseline.md` on first run). The standing
 suite: DntSite (representative, 1336 files) · TodoApi (small) · VerticalSlice · eShop.Ordering.API
 (closure) · AutoMapper (library, Map only) · OrchardCore (large, 5146 files). Compare against
