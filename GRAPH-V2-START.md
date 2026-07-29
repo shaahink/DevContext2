@@ -4,20 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**FIX SESSION — the battery's one red was a real G6.1 regression; FULL battery now `GATE: PASS` (`BATTERY-EXIT=0`).**
-Evidence `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md` + `G6.3-battery.log`. Red: dotnet-podcasts
-`maui-present`. G6.1 swapped a PREDICATE (`model.Projects` + a home-grown skip list → `RunnableProjects(scope,…)`)
-and, invisibly, a **POPULATION** — `SolutionScope` keeps only the resolved `.sln`'s csprojs, and podcasts holds
-its two MAUI clients in sibling solutions, so the rollup that was the only surface ever naming them went silent.
-**The lesson is bigger than the bug: G6.1's own 5-pole invariant was blind BY CONSTRUCTION.** "Breakdown rows ==
-Service nodes" now reads BOTH sides from the same narrowed list, so a shared shrink measures as agreement —
-podcasts read 5=5 before AND after; the 5 used to be 7. **Pair every A==B invariant with a content ratchet.**
-Fix NAMES the boundary rather than re-admitting non-services: `outside_scope_apps` (proto 19; MCP `map` + Atlas
-read it) renders under SCOPE as "not analyzed — 2 runnable apps outside this solution". D-4's "service" is
-untouched, and the live DOM probe (`scripts/g63-outside-scope-dom.mts`) proves BOTH halves: block present, and
-0 of its names leaked onto a service card. Still open, filed: **bug #19** — the same page states a FOURTH count
-(STYLE evidence "6 runnable web services" vs 5 rows / 5 boxes); the STACK line still reads every discovered
-project (podcasts prints `net7.0-android` from the out-of-scope csprojs). **Next = G7.1 (C-2).**
+**G7.1 (C-2) DELIVERED @ 55af763.** Evidence `eval-results/2026-07-29/G7/G7.1-EVIDENCE.md`; `pnpm check`
+`CHECK-EXIT=0`. MEASURED: FluentValidation renders 7 Atlas sections, 5 empty — C-2's "five" is exact, and
+Architecture + Cross-cutting FILL on a library (the brief never said which five). Two already said why; the
+other three failed three DIFFERENT ways — an instruction the reader cannot act on ("index flows" at 0 entries),
+an empty set described as a set ("The 0 services…") **plus a second notice under it**, and — the sharp one —
+a "nothing found" over inputs empty BY CONSTRUCTION: Data stores reads only per-service styles + ServiceMap
+cards, so on a library it examined NOTHING and reported "No data-store signals detected". **Nothing was looked
+at is not nothing was found.** Fix = S9's shape generalised, with three non-interchangeable reason classes
+(`archetype`/`none-found`/`not-computed`) rendered as DATA ATTRIBUTES — a text grep passes on a page that
+DELETED the section, which is the defect S9 named. **G7.2 (C-3) reuses `ui/withheld` + the pure-fn shape in
+`atlas-sections.vm.ts` (unit-tested in the battery) + `scripts/g71-atlas-empty-sections.mts` — retarget its
+`h2.section-h` selector.** Filed **bug #20**: AutoMapper (a LIBRARY) reads "1 service (1 drawn)" and cards
+`TestApp`, its demo exe — `ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same
+root cause as G9.1. **Two method rules paid for: run TWO poles of one archetype** (FV has 0 services, AutoMapper
+1 — different branches), and **a structural invariant cannot see a section that fills with the WRONG content**
+(the probe PASSED on AutoMapper before I read the dump). **Next = G7.2 (C-3).**
 
 
 ## Baseline numbers (from run.db)
@@ -76,7 +78,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | DONE | 2fdd4cf | fast-app:OK · guards:OK |
+| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | DONE | 2fdd4cf | eval-results/2026-07-29/G6/G6.3-EVIDENCE.md |
 | G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | DONE | 051386c | fast-app:OK · guards:OK |
 
 ### G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason
