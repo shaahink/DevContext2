@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 19:32 UTC · branch `feat/graph-v2` · HEAD `2fb2cc2`_
+_Updated 2026-07-29 19:43 UTC · branch `feat/graph-v2` · HEAD `5550711`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G8 — R1 scale wall — profile HotChocolate, do not raise the timeout · attempts used 0
 **Checkpoints:** 20/22 done · **Sessions run:** 24 · **Cost:** $332.2524 (agent $331.9346 + gates $0.3179) · **Tokens:** 4,567,564 in / 1,784,100 out
-**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7
-**Pending:** full-battery phase gate for G8
+**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
 
 ## Stage progress
 
@@ -19,7 +18,7 @@ _Updated 2026-07-29 19:32 UTC · branch `feat/graph-v2` · HEAD `2fb2cc2`_
 | G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
-| G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | gating… |
+| G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
@@ -94,8 +93,8 @@ _Updated 2026-07-29 19:32 UTC · branch `feat/graph-v2` · HEAD `2fb2cc2`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | ✅ DONE | - |
-| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | ✅ DONE | - |
+| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | ✅ DONE | [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) |
+| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | ✅ DONE | [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) |
 
 </details>
 
@@ -149,11 +148,6 @@ _Updated 2026-07-29 19:32 UTC · branch `feat/graph-v2` · HEAD `2fb2cc2`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 15:31:45  ▪ gate guards pass [phase]  (41.2s)
-07-29 15:31:45  ▪ gate battery pass [phase]  (9m04s)
-07-29 15:31:45  ▸ stage G5 confirmed  (2h29m31s)
-07-29 15:31:49  ▸ stage G6 entered — D-4 — one vocabulary for "service" on Atlas
-07-29 15:31:49  • session #20 G6 Deliver started (attempt 1/2)
 07-29 16:30:47  ▪ gate fast-app pass [session]  (3m36s)
 07-29 16:30:47  ▪ gate guards pass [session]  (43.2s)
 07-29 16:30:50  • session #20 G6 → Advanced · done G6.1 · 2 commit(s)  (59m00s)
@@ -189,6 +183,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 19:16:55  • session #24 G8 Deliver started (attempt 1/4)
 07-29 20:32:39  ▪ gate fast-engine pass [session]  (1m21s)
 07-29 20:32:39  ▪ gate guards pass [session]  (38.9s)
+07-29 20:32:42  • session #24 G8 → Advanced · done G8.1,G8.2 · 4 commit(s)  (1h15m47s)
+07-29 20:43:06  ▪ gate fast-engine pass [phase]  (1m24s)
+07-29 20:43:06  ▪ gate guards pass [phase]  (39.9s)
+07-29 20:43:06  ▪ gate battery pass [phase]  (8m19s)
+07-29 20:43:06  ▸ stage G8 confirmed  (1h26m11s)
 ```
 
 ## Health
@@ -205,6 +204,7 @@ sessions 24 · retries 9 (38 %) · overall Alert
 ⚠ [context-saturation] session #20: 51,631,186 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #21: 30,558,526 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #23: 32,174,554 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #24: 32,989,754 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -219,7 +219,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+82 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -257,7 +257,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
