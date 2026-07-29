@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 02:27 UTC · branch `feat/graph-v2` · HEAD `27de288`_
+_Updated 2026-07-29 02:27 UTC · branch `feat/graph-v2` · HEAD `ccd8a41`_
 
-**Status:** Idle
+**Status:** Paused
 **Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 1 · working ▸ G1.3
 **Checkpoints:** 2/22 done · **Sessions run:** 2 · **Cost:** $29.2151 (agent $29.1684 + gates $0.0467) · **Tokens:** 402,746 in / 159,252 out
 
@@ -26,7 +26,7 @@ _Updated 2026-07-29 02:27 UTC · branch `feat/graph-v2` · HEAD `27de288`_
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) |
-| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | - |
+| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) |
 | G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ⬜ TODO | - |
 | G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ⬜ TODO | - |
 
@@ -134,6 +134,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 02:29:48  • session #2 G1 Deliver started (attempt 1/6)
 07-29 03:27:42  ▪ gate fast-engine FAIL [session]  (59.4s)
 07-29 03:27:42  ▪ gate guards pass [session]  (1m43s)
+07-29 03:27:47  • session #2 G1 → GatesRed · done G1.2 · 3 commit(s)  (57m58s)
 ```
 
 ## Health
@@ -141,8 +142,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 2 · retries 0 (0 %) · overall Ok
-✓ no health concerns detected
+sessions 2 · retries 0 (0 %) · overall Warn
+⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -151,7 +152,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
