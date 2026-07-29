@@ -4,25 +4,25 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G4.2 + G4.3 CLAIMED — STAGE G4 IS COMPLETE; R4 §2 is run and REPORT.md is written.** Task 2 made a
-real change in Hangfire on MCP orientation alone: six facts committed BEFORE the drive (546fb32),
-**6/6 TOOL-asserted**, and the code compiles (red canary proved the build really compiles it). Task 3
-**corrected two inherited claims**. Commits e954c79 · 8541958. Totals across all three tasks: 81 calls
-· 72,664 tokens · HELPED 55 / NEUTRAL 13 / HURT 13.
-Findings the next owner should not re-derive: (a) `devcontext.json` costs **0 nodes and 0 edges** —
-solution scoping already did that job — so the real **+6 node / +15 edge CLI↔MCP divergence on this
-repo is still unexplained** and is worth a session; (b) **bug #8's lambda cause is REFUTED** (bug #11):
-lambda calls DO bind, and what never binds is a **static call with a type-name receiver** —
-`BodyFactExtractor`, `RazorCodeVirtualizer`, `ExtractorHelpers` all have **0 in-edges**, 80% of our own
-Calls edges are `approx`; (c) three new bugs **#9/#10/#11**, all one family — *a reply shaped like a
-complete answer with nothing on the wire saying it is partial*, which `contract-sweep.ps1` cannot catch.
-Next: **G5.1** (D-3 — why GitVersion's five `ICommand<TSettings>` verbs join no handler).
-Drive traps if you touch MCP again: start the server FIRST (ServerShim.cs:14 skips spawning when
-/health answers, so handles survive driver runs); bare names in `query`, never a nodeId on `trace`;
-`eval-repos/Hangfire` does NOT build (RazorGenerator `packages/` never restored — bypass with
-`-p:MSBuildCurrentFullPath=Z:\nope\MSBuild.exe -p:MSBuild14FullPath=Z:\nope\MSBuild.exe`, do not edit
-the pole); and PowerShell mangles `git commit -m @'...'@` when the message contains double quotes —
-write the message to a file and use `git commit -F`.
+**G5.1 CLAIMED (d21e72b) — D-3 is root-caused per verb, and G5.2 is now a checklist.** Read
+`eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md` §5 and build to it; do not re-derive §1–§4.
+The entry→handler edge is **NOT missing**: all five `Calls[Join]` edges exist and land on the command
+**TYPE**, which is a dead end. 17 invocation sites across the five verbs, **exactly 1 binds**, and it
+points at a framework `ILogger` that `ResolvePrimaryCall` filters out — so joining the execute member
+alone still gives 0/5. **Defect 1:** `this.<field>.<M>()` never binds — `RootIdentifier` walks to the
+`this` token so `ReceiverType` is null, and `CallGraphBinder.cs:250` treats it as a **self-call**,
+never consulting `ReceiverMember`. **Defect 2 (bug #12, OUT OF SCOPE for G5.2):**
+`SemanticLitePopulator.TryBindReceiverType` relocates by LINE SPAN then searches **ancestors**, so a
+one-line statement's invocation is a descendant and is never found — repo-wide, needs a matrix batch.
+**G5.2 = Defect 1 + join the execute MEMBER** (`CliCommandEntryPointBuilder.cs:29-40` drops the
+already-detected `ExecuteMethod`). The DI answer is already in the graph
+(`Resolves[Join] IService→Service`), so this lands `0/5 → 4/5`; `test` genuinely calls nothing and
+must stay honestly unwired. **Canary is safe by measurement**: the `this.<field>.` shape has 878 sites
+in GitVersion and **0 in CleanArchitecture / Hangfire / Polly / Serilog**.
+Traps paid for this session: `analyze --no-cache` then `query` serves the **stale** snapshot as `HIT`
+(bug #13) — analyse a fresh directory; PowerShell has no heredoc, write commit messages to a file and
+use `git commit -F`; a repro fixture belongs OUTSIDE the repo tree (a stray `.csproj` under
+`eval-results/` would be swept), archive its sources as `.txt`.
 
 
 ## Baseline numbers (from run.db)
@@ -31,7 +31,7 @@ write the message to a file and use `git commit -F`.
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 10 |
+| Claimed (unconfirmed) | 12 |
 
 ## Checkpoints
 
@@ -67,8 +67,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | DONE | 254fd36 | fast-engine:OK · guards:OK |
-| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | TODO | - | - |
-| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | TODO | - | - |
+| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | DONE | 546fb32 | fast-engine:OK · guards:OK |
+| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | DONE | 546fb32 | fast-engine:OK · guards:OK |
 
 ### G5 — D-3 — a CLI verb reaches its handler
 
