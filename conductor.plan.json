@@ -170,7 +170,7 @@
   // allowedChatIds MUST be non-empty or every push is a silent no-op — TelegramService
   // returns early on Count == 0. Conductor never auto-learns the id from an incoming message.
   "telegram": {
-    "allowedChatIds": [],
+    "allowedChatIds": ["99205495"],
     "pollIntervalSeconds": 4,
     "enableTwoWay": true
   },
