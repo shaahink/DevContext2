@@ -1,0 +1,19 @@
+{
+  "handle": "6096e3f8a3d5480a997f6ec9c2789a39",
+  "status": "ready",
+  "cached": false,
+  "note": "Analyzed now. A first analysis of a large repo can take minutes; the result is snapshotted, so the same repo+HEAD+solution re-opens in seconds.",
+  "summary": {
+    "label": "TodoApp",
+    "archetype": "App",
+    "isLibrary": false,
+    "projects": 6,
+    "nodes": 129,
+    "edges": 80,
+    "entries": 12,
+    "entriesWithTarget": 12,
+    "elapsedMs": 1709,
+    "explanation": "Overview map (no focus)."
+  },
+  "hint": "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving."
+}

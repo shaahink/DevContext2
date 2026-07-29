@@ -1,0 +1,5 @@
+{
+  "handle": "81b550e2dc794cb891b9aacf3652318f",
+  "status": "ready",
+  "hint": "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving."
+}

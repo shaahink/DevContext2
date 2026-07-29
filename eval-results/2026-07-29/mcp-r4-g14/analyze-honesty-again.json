@@ -1,0 +1,19 @@
+{
+  "handle": "6096e3f8a3d5480a997f6ec9c2789a39",
+  "status": "ready",
+  "cached": true,
+  "note": "Served from cache — no analysis ran, and the numbers below describe the run that produced this session.",
+  "summary": {
+    "label": "TodoApp",
+    "archetype": "App",
+    "isLibrary": false,
+    "projects": 6,
+    "nodes": 129,
+    "edges": 80,
+    "entries": 12,
+    "entriesWithTarget": 12,
+    "elapsedMs": 1709,
+    "explanation": "Overview map (no focus)."
+  },
+  "hint": "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving."
+}

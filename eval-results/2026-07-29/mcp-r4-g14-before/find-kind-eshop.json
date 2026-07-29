@@ -1,0 +1,815 @@
+{
+  "all": {
+    "query": "Order",
+    "cursor": 0,
+    "limit": 100,
+    "count": 100,
+    "total": 120,
+    "hasMore": true,
+    "results": [
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Queries.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Models.Orders.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": [
+          "entity",
+          "aggregate"
+        ]
+      },
+      {
+        "nodeId": "Member:eShop.ClientApp.Models.Orders.Order::Order",
+        "title": "Order",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::Order",
+        "title": "Order",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Infrastructure.OrderingContext",
+        "title": "OrderingContext",
+        "kind": "Type",
+        "tags": [
+          "service"
+        ]
+      },
+      {
+        "nodeId": "Service:Ordering.API",
+        "title": "Ordering.API",
+        "kind": "Service",
+        "tags": [
+          "runnable"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatusNotificationService",
+        "title": "OrderStatusNotificationService",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+        "title": "OrderStatusChangedToAwaitingValidationDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToPaidDomainEvent",
+        "title": "OrderStatusChangedToPaidDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStockRejectedIntegrationEvent",
+        "title": "OrderStockRejectedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderCancelledDomainEvent",
+        "title": "OrderCancelledDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderShippedDomainEvent",
+        "title": "OrderShippedDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderStartedDomainEvent",
+        "title": "OrderStartedDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToStockConfirmedDomainEvent",
+        "title": "OrderStatusChangedToStockConfirmedDomainEvent",
+        "kind": "Type",
+        "tags": [
+          "notification",
+          "domain-event"
+        ]
+      },
+      {
+        "nodeId": "Type:Webhooks.API.IntegrationEvents.OrderStatusChangedToPaidIntegrationEvent",
+        "title": "OrderStatusChangedToPaidIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:Webhooks.API.IntegrationEvents.OrderStatusChangedToShippedIntegrationEvent",
+        "title": "OrderStatusChangedToShippedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Basket.API.IntegrationEvents.EventHandling.Events.OrderStartedIntegrationEvent",
+        "title": "OrderStartedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.Events.OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "title": "OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.Events.OrderStatusChangedToPaidIntegrationEvent",
+        "title": "OrderStatusChangedToPaidIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderPaymentFailedIntegrationEvent",
+        "title": "OrderPaymentFailedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderPaymentSucceededIntegrationEvent",
+        "title": "OrderPaymentSucceededIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStockConfirmedIntegrationEvent",
+        "title": "OrderStockConfirmedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.PaymentProcessor.IntegrationEvents.Events.OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "title": "OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "title": "OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToCancelledIntegrationEvent",
+        "title": "OrderStatusChangedToCancelledIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToPaidIntegrationEvent",
+        "title": "OrderStatusChangedToPaidIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToShippedIntegrationEvent",
+        "title": "OrderStatusChangedToShippedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "title": "OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToSubmittedIntegrationEvent",
+        "title": "OrderStatusChangedToSubmittedIntegrationEvent",
+        "kind": "Type",
+        "tags": [
+          "command",
+          "integration-event",
+          "RabbitMQ"
+        ]
+      },
+      {
+        "nodeId": "Type:global.OrderServices",
+        "title": "OrderServices",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Service:OrderProcessor",
+        "title": "OrderProcessor",
+        "kind": "Service",
+        "tags": [
+          "runnable"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Basket.API.IntegrationEvents.EventHandling.OrderStartedIntegrationEventHandler",
+        "title": "OrderStartedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.EventHandling.OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+        "title": "OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.EventHandling.OrderStatusChangedToPaidIntegrationEventHandler",
+        "title": "OrderStatusChangedToPaidIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Models.Orders.OrderItem",
+        "title": "OrderItem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderCancelledDomainEventHandler",
+        "title": "OrderCancelledDomainEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderShippedDomainEventHandler",
+        "title": "OrderShippedDomainEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToAwaitingValidationDomainEventHandler",
+        "title": "OrderStatusChangedToAwaitingValidationDomainEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToPaidDomainEventHandler",
+        "title": "OrderStatusChangedToPaidDomainEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToStockConfirmedDomainEventHandler",
+        "title": "OrderStatusChangedToStockConfirmedDomainEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.EventHandling.OrderPaymentFailedIntegrationEventHandler",
+        "title": "OrderPaymentFailedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.EventHandling.OrderPaymentSucceededIntegrationEventHandler",
+        "title": "OrderPaymentSucceededIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.EventHandling.OrderStockConfirmedIntegrationEventHandler",
+        "title": "OrderStockConfirmedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.EventHandling.OrderStockRejectedIntegrationEventHandler",
+        "title": "OrderStockRejectedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.OrderItem",
+        "title": "OrderItem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.PaymentProcessor.IntegrationEvents.EventHandling.OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+        "title": "OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToCancelledIntegrationEventHandler",
+        "title": "OrderStatusChangedToCancelledIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToShippedIntegrationEventHandler",
+        "title": "OrderStatusChangedToShippedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToSubmittedIntegrationEventHandler",
+        "title": "OrderStatusChangedToSubmittedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:Webhooks.API.IntegrationEvents.OrderStatusChangedToPaidIntegrationEventHandler",
+        "title": "OrderStatusChangedToPaidIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:Webhooks.API.IntegrationEvents.OrderStatusChangedToShippedIntegrationEventHandler",
+        "title": "OrderStatusChangedToShippedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+        "title": "OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToPaidIntegrationEventHandler",
+        "title": "OrderStatusChangedToPaidIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderStatus.IntegrationEvents.OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+        "title": "OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+        "kind": "Type",
+        "tags": [
+          "handler",
+          "consumer"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderingService",
+        "title": "OrderingService",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.Events.OrderStockConfirmedIntegrationEvent",
+        "title": "OrderStockConfirmedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.Events.OrderStockRejectedIntegrationEvent",
+        "title": "OrderStockRejectedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStartedIntegrationEvent",
+        "title": "OrderStartedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "title": "OrderStatusChangedToAwaitingValidationIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToCancelledIntegrationEvent",
+        "title": "OrderStatusChangedToCancelledIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToPaidIntegrationEvent",
+        "title": "OrderStatusChangedToPaidIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToShippedIntegrationEvent",
+        "title": "OrderStatusChangedToShippedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "title": "OrderStatusChangedToStockConfirmedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStatusChangedToSubmittedIntegrationEvent",
+        "title": "OrderStatusChangedToSubmittedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.OrderingIntegrationEventService",
+        "title": "OrderingIntegrationEventService",
+        "kind": "Type",
+        "tags": [
+          "service"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Queries.OrderQueries",
+        "title": "OrderQueries",
+        "kind": "Type",
+        "tags": [
+          "service"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Queries.Orderitem",
+        "title": "Orderitem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Infrastructure.Repositories.OrderRepository",
+        "title": "OrderRepository",
+        "kind": "Type",
+        "tags": [
+          "service"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.PaymentProcessor.IntegrationEvents.Events.OrderPaymentFailedIntegrationEvent",
+        "title": "OrderPaymentFailedIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.PaymentProcessor.IntegrationEvents.Events.OrderPaymentSucceededIntegrationEvent",
+        "title": "OrderPaymentSucceededIntegrationEvent",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:Webhooks.API.IntegrationEvents.OrderStockItem",
+        "title": "OrderStockItem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Catalog.API.IntegrationEvents.Events.OrderStockItem",
+        "title": "OrderStockItem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Models.Basket.OrderCheckout",
+        "title": "OrderCheckout",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Services.Order.OrderMockService",
+        "title": "OrderMockService",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Services.Order.OrderService",
+        "title": "OrderService",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.ViewModels.OrderDetailViewModel",
+        "title": "OrderDetailViewModel",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Views.OrderDetailView",
+        "title": "OrderDetailView",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Views.Templates.OrderItemTemplate",
+        "title": "OrderItemTemplate",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Views.Templates.OrderTemplate",
+        "title": "OrderTemplate",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Commands.OrderDraftDTO",
+        "title": "OrderDraftDTO",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Commands.OrderItemDTO",
+        "title": "OrderItemDTO",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.IntegrationEvents.Events.OrderStockItem",
+        "title": "OrderStockItem",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Queries.OrderSummary",
+        "title": "OrderSummary",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Extensions.OrderingApiTrace",
+        "title": "OrderingApiTrace",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.API.Infrastructure.OrderingContextSeed",
+        "title": "OrderingContextSeed",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.Exceptions.OrderingDomainException",
+        "title": "OrderingDomainException",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Infrastructure.EntityConfigurations.OrderEntityTypeConfiguration",
+        "title": "OrderEntityTypeConfiguration",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Infrastructure.EntityConfigurations.OrderItemEntityTypeConfiguration",
+        "title": "OrderItemEntityTypeConfiguration",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Components.Pages.User.Orders",
+        "title": "Orders",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Components.Pages.User.OrdersRefreshOnStatusChange",
+        "title": "OrdersRefreshOnStatusChange",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.WebApp.Services.OrderRecord",
+        "title": "OrderRecord",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:global.OrdersApi",
+        "title": "OrdersApi",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:OrderItem",
+        "title": "OrderItem",
+        "kind": "Type",
+        "tags": [
+          "entity"
+        ]
+      },
+      {
+        "nodeId": "Member:global.OrdersApi::CreateOrderAsync",
+        "title": "OrdersApi.CreateOrderAsync",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Member:global.OrdersApi::CancelOrderAsync",
+        "title": "OrdersApi.CancelOrderAsync",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Member:global.OrdersApi::ShipOrderAsync",
+        "title": "OrdersApi.ShipOrderAsync",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Member:global.OrdersApi::CreateOrderDraftAsync",
+        "title": "OrdersApi.CreateOrderDraftAsync",
+        "kind": "Member",
+        "tags": []
+      },
+      {
+        "nodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::SaveEntitiesAsync",
+        "title": "OrderRepository.SaveEntitiesAsync",
+        "kind": "Member",
+        "tags": []
+      }
+    ]
+  },
+  "typed": {
+    "query": "Order",
+    "kind": "Type",
+    "cursor": 0,
+    "limit": 5,
+    "count": 5,
+    "total": 22,
+    "hasMore": true,
+    "results": [
+      {
+        "nodeId": "Type:eShop.Ordering.API.Application.Queries.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.ClientApp.Models.Orders.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": []
+      },
+      {
+        "nodeId": "Type:Order",
+        "title": "Order",
+        "kind": "Type",
+        "tags": [
+          "entity",
+          "aggregate"
+        ]
+      },
+      {
+        "nodeId": "Type:eShop.Ordering.Infrastructure.OrderingContext",
+        "title": "OrderingContext",
+        "kind": "Type",
+        "tags": [
+          "service"
+        ]
+      }
+    ]
+  }
+}
