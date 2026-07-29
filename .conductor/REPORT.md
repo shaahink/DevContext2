@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 19:59 UTC · branch `feat/graph-v2` · HEAD `631a8d0`_
+_Updated 2026-07-29 20:32 UTC · branch `feat/graph-v2` · HEAD `d06755f`_
 
 **Status:** Backoff — advisor: human intervention required
 **Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0 · working ▸ G9.1
-**Checkpoints:** 20/22 done · **Sessions run:** 25 · **Cost:** $334.8297 (agent $334.5119 + gates $0.3179) · **Tokens:** 4,652,610 in / 1,799,093 out
+**Checkpoints:** 20/22 done · **Sessions run:** 26 · **Cost:** $334.8297 (agent $334.5119 + gates $0.3179) · **Tokens:** 4,652,610 in / 1,799,093 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
 
 ## Stage progress
@@ -143,14 +143,13 @@ _Updated 2026-07-29 19:59 UTC · branch `feat/graph-v2` · HEAD `631a8d0`_
 | 23 | G7 | Deliver | 1 | 07-29 17:17 | 0:42 | Advanced | G7.1 G7.2 | 5 | fast-app:OK · guards:OK | $21.2053 | $0.0209 | 245,917/106,260 |
 | 24 | G8 | Deliver | 1 | 07-29 18:16 | 1:13 | Advanced | G8.1 G8.2 | 4 | fast-engine:OK · guards:OK | $22.1017 | $0.0120 | 262,531/119,875 |
 | 25 | G9 | Deliver | 1 | 07-29 19:43 | 0:15 | LimitBackoff |  | 0 |  | $2.5773 |  | 85,046/14,993 |
+| 26 | G9 | Resume | 1 | 07-29 20:29 | 0:03 | LimitBackoff |  | 0 |  | $0.0000 |  |  |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 16:30:50  • session #20 G6 → Advanced · done G6.1 · 2 commit(s)  (59m00s)
-07-29 16:30:50  • session #21 G6 Deliver started (attempt 1/2)
 07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
 07-29 17:17:17  ▪ gate guards pass [session]  (1m00s)
 07-29 17:17:20  • session #21 G6 → Advanced · done G6.2 · 1 commit(s)  (46m29s)
@@ -189,6 +188,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 20:43:06  ▸ stage G8 confirmed  (1h26m11s)
 07-29 20:43:11  ▸ stage G9 entered — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)
 07-29 20:43:11  • session #25 G9 Deliver started (attempt 1/2)
+07-29 20:59:12  • session #25 G9 → LimitBackoff  (16m00s)
+07-29 21:29:10  • session #26 G9 Resume started (attempt 1/2)
 ```
 
 ## Health
@@ -196,7 +197,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 25 · retries 9 (36 %) · overall Alert
+sessions 26 · retries 9 (35 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
