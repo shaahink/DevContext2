@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 13:31 UTC · branch `feat/graph-v2` · HEAD `c1949ef`_
+_Updated 2026-07-29 14:20 UTC · branch `feat/graph-v2` · HEAD `e819b7d`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G5 — D-3 — a CLI verb reaches its handler · attempts used 2 · working ▸ G5.2
-**Checkpoints:** 13/22 done · **Sessions run:** 18 · **Cost:** $204.7229 (agent $204.5109 + gates $0.2120) · **Tokens:** 3,061,742 in / 1,163,762 out
+**Stage:** G5 — D-3 — a CLI verb reaches its handler · attempts used 0
+**Checkpoints:** 14/22 done · **Sessions run:** 19 · **Cost:** $222.7418 (agent $222.5120 + gates $0.2297) · **Tokens:** 3,288,627 in / 1,256,630 out
 **Confirmed phases:** G1, G2, G3, G4
+**Pending:** full-battery phase gate for G5
 
 ## Stage progress
 
@@ -15,7 +16,7 @@ _Updated 2026-07-29 13:31 UTC · branch `feat/graph-v2` · HEAD `c1949ef`_
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
-| G5 | D-3 — a CLI verb reaches its handler | █████░░░░░ 1/2 | **← active** |
+| G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | gating… |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
@@ -62,12 +63,12 @@ _Updated 2026-07-29 13:31 UTC · branch `feat/graph-v2` · HEAD `c1949ef`_
 
 </details>
 
-<details><summary>G5 — D-3 — a CLI verb reaches its handler (1/2)</summary>
+<details> ✅<summary>G5 — D-3 — a CLI verb reaches its handler (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | ✅ DONE | [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) |
-| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ⬜ TODO | - |
+| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ✅ DONE | - |
 
 </details>
 
@@ -136,16 +137,13 @@ _Updated 2026-07-29 13:31 UTC · branch `feat/graph-v2` · HEAD `c1949ef`_
 | 16 | G5 | Deliver | 1 | 07-29 12:02 | 0:25 | GatesRed | G5.1 | 2 | fast-engine:FAIL · guards:OK | $10.9637 | $0.0100 | 198,784/74,494 |
 | 17 | G5 | Fix | 2 | 07-29 12:29 | 0:15 | GatesRed |  | 2 | fast-engine:FAIL · guards:OK | $8.4244 | $0.0089 | 164,208/46,667 |
 | 18 | G5 | Fix | 3 | 07-29 12:46 | 0:42 | Progress |  | 2 | fast-engine:OK · guards:OK | $13.0171 | $0.0110 | 221,201/103,688 |
+| 19 | G5 | Deliver | 3 | 07-29 13:31 | 0:46 | Advanced | G5.2 | 4 | fast-engine:OK · guards:OK | $18.0011 | $0.0177 | 226,885/92,868 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 10:29:32  ▪ gate fast-engine FAIL [session]  (8.2s)
-07-29 10:29:32  ▪ gate guards pass [session]  (1m26s)
-07-29 10:29:36  • session #11 G3 → AgentError  (1m41s)
-07-29 10:29:58  • session #12 G3 Deliver started (attempt 1/4)
 07-29 11:03:24  ▪ gate fast-engine pass [session]  (1m17s)
 07-29 11:03:24  ▪ gate guards pass [session]  (55.5s)
 07-29 11:03:28  • session #12 G3 → Advanced · done G3.2 · 1 commit(s)  (33m29s)
@@ -182,6 +180,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 13:46:49  • session #18 G5 Fix started (attempt 3/4)
 07-29 14:31:07  ▪ gate fast-engine pass [session]  (1m14s)
 07-29 14:31:07  ▪ gate guards pass [session]  (35.6s)
+07-29 14:31:10  • session #18 G5 → Progress · 2 commit(s)  (44m20s)
+07-29 14:31:10  • session #19 G5 Deliver started (attempt 3/4)
+07-29 15:20:37  ▪ gate fast-engine pass [session]  (1m36s)
+07-29 15:20:37  ▪ gate guards pass [session]  (1m20s)
 ```
 
 ## Health
@@ -189,7 +191,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 18 · retries 7 (39 %) · overall Alert
+sessions 19 · retries 8 (42 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -214,8 +216,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s7 (G3 Deliver)** — 1 commit(s):
-  - [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) G3.1: the path between two symbols, and the roll-up that makes it real
 - **s12 (G3 Deliver)** — 1 commit(s):
   - [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) G3.2: who writes this table, and the roll-up that makes it answerable
 - **s13 (G3 Deliver)** — 3 commit(s):
@@ -240,6 +240,11 @@ vs upstream: up to date
 - **s18 (G5 Fix)** — 2 commit(s):
   - [`c1949ef`](https://github.com/shaahink/DevContext2/commit/c1949ef) chore: MCP QA report regenerated by the s18 verification run (12/12, timing line only)
   - [`5b401dd`](https://github.com/shaahink/DevContext2/commit/5b401dd) G5: fast-engine was a coin flip, not a red — five test classes owned one env var
+- **s19 (G5 Deliver)** — 4 commit(s):
+  - [`e819b7d`](https://github.com/shaahink/DevContext2/commit/e819b7d) chore: s19 handoff - G5.2 claimed, G5 complete, blast radius corrected for G9.1
+  - [`5805713`](https://github.com/shaahink/DevContext2/commit/5805713) chore: G5.2 evidence - measurement scripts, before/after dumps, red-then-green logs
+  - [`a637b54`](https://github.com/shaahink/DevContext2/commit/a637b54) G5.2 truth: a quality RATIO cannot see a pole where nothing resolves
+  - [`11ebe20`](https://github.com/shaahink/DevContext2/commit/11ebe20) G5.2: a CLI verb reaches its handler - one call spelled two ways was two facts
 
 ## Last gate run
 
@@ -247,32 +252,30 @@ fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: I fixed the `fast-engine` red at its root — `AnalyzeCacheTruthTests` was failing ~30% of runs because five concurrent xUnit collections each owned one process-wide `DEVCONTEXT_CACHE_ROOT`, so I moved the cache root into `ServerOptions` and inject it per host, added `loom-guards` Rule 7 to ban the env write from tests (verified it fires), and made one opaque `DirectoryNotFoundException` report as "zero snapshots" without changing the bar; verified 0 failures in 25 runs of the full 104-test assembly, `fast-engine` exit 0, `guards` exit 0, build 0w/0e, committed and pushed as 5b401dd + c1949ef. Still red/open: bug #16, a second and much rarer failure in the same class (`third.Ca…
+> SESSION-RESULT: G5.2 delivered and claimed (`conductor task --done G5.2 --evidence eval-results/2026-07-29/G5.2/G5.2-EVIDENCE.md`, board shows DONE), which completes stage G5 — the CLI entry join now lands on the execute member and GitVersion goes 0/5 → 4/5 wired with the CleanArchitecture canary bit-identical, via a root-cause fix in `BodyFactExtractor` (not the locus G5.1 prescribed, which its own fixture disproves) plus a shape-based execute-member join; four commits pushed to `feat/graph-v2` (`565fedb..e819b7d`), working tree clean. Nothing is red that this session caused: the single test failure is bug #1's known cold-snapshot MCP QA race and passes on a warm re-run, and the two graph-t…
 
 ## Tracker handoff
 
 ```
-**s17's `fast-engine` red was a FLAKY TEST, at ~1 run in 3. Root-caused, fixed, verified: both fast
-gates exit 0** (`eval-results/2026-07-29/G5-s18/`, full writeup in `G5-s18-EVIDENCE.md`). Nothing was
-weakened; one gate got stricter. **G5.2 is still the next job and no G5 checkpoint is claimed.**
-Measured: 5 failures / 15 before (`loop-A-repro-multiclass.txt`), **0 / 25** after on the whole
-104-test assembly (`loop-D`). Cause: `DEVCONTEXT_CACHE_ROOT` is process-wide and **five** concurrent
-xUnit collections each wrote it in their ctor (3 × `ServerTestFactory` + `HostReleaseTests` +
-`AnalyzeCacheTruthTests`), so a neighbour could steal the root between a test's ctor and its
-`EngineRunner`; `ServerTestFactory` restored **null**, aiming stragglers at the real user cache. Fix:
-new `ServerOptions.SnapshotCacheRoot`, injected — plus **loom-guards Rule 7** banning that env write
-from tests, watched going red on demand (`canary-rule7-OUTPUT.txt`).
-**Consequence for the board: `fast-engine` was a coin flip from G3.3 onward, so G5.1's and G1.2's
-`fast-engine:FAIL` annotations are false reds** (G1.2's is s17's harness abort); both checkpoints'
-work is fine, and any single green `fast-engine` in that window proved less than it looked.
-**Still open — bug #16**, a SECOND, rarer red in the same class (`third.Cached` false, 1-in-50). Its
-obvious cause was tested and **refuted**: the cache key really does track the whole working tree
-(`probe-versionkey.ps1`), but churning the tree does not redden the test (0/14). Do not re-derive it.
-**G5.2 is unchanged and still a checklist** — build to `eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`
-§5, do not re-derive §1–§4. Defect 1 (`this.<field>.<M>()` reaching `CallGraphBinder.cs:250`'s
-self-call arm) + join the execute MEMBER (`CliCommandEntryPointBuilder.cs:29-40` drops the detected
-`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Bug #12 stays
-OUT of G5.2. **Budget the cold snapshot** (any Core edit trips bug #1's false 0/12), and **write
-verification logs outside the repo** — `eval-results/` is untracked-but-not-ignored, so a growing log
-there is itself a working-tree change the cache keys on.
+**G5.2 CLAIMED — the join lands: gitversion `entriesWithTarget` 0/5 → 4/5, CleanArchitecture canary
+bit-identical** (139 nodes / 64 edges / 7 entries / 5 targets both sides). Writeup + every raw dump:
+`eval-results/2026-07-29/G5.2/G5.2-EVIDENCE.md`. Commits `11ebe20` (fix+tests) · `a637b54` (truth
+ratchet) · `5805713` (evidence). **G5 is now fully claimed; the next session starts G6.1.**
+**G5.1 §5 named the WRONG LOCUS for Defect 1 and its own §3 disproves it** — `HopThroughProperty` is
+properties-only and GitVersion's collaborators are FIELDS (`TypeDiscovery` has no `Fields` at all).
+Real fix was upstream in `BodyFactExtractor` (new `SplitReceiver`): a receiver chain rooted at `this`
+reports the member declared on `this`, so `this.x.M()` and `x.M()` are one fact. `BuildTypeScope`
+already held every field/property/primary-ctor param. Plus the entry builder joins the execute MEMBER,
+by SHAPE (the method taking the detected settings type), not by `ExecuteMethod`'s name list.
+**BLAST RADIUS IS WIDER THAN G5.1 §4b SAID** (it sampled 7 repos): Orleans **1603** sites, GitVersion
+878, PowerToys 440, MahApps.Metro 266, CommunityToolkit.Mvvm 186 (`blast-radius.csv`, all 47 repos).
+All four unmeasured movers were graph-truth'd and diffed vs their 07-28 verdicts — **identical**,
+including the two pre-existing FAILs (Orleans handler-join; MahApps `style`, which IS G9.1's subject).
+**G9.1 and any R1 scale work must RE-MEASURE, not inherit a pre-G5.2 number.**
+Gates at close: build 0w/0e · loom-guards PASS (incl. `Category=Truth`) · contract-sweep PASS ·
+Server 104/104 · Core 713 pass, 1 fail = **bug #1** (cold-snapshot MCP QA race; warm re-run passes).
+**NEW TRAP, may hit the battery:** the MCP QA gate can leave a `DevContext.Server.exe` alive holding
+`DevContext.Core.dll`; the next build then fails MSB3027 with "10 Warning(s)" that are copy retries,
+not code. Read the pid out of the error, stop THAT pid only. Zero were alive at close, verified.
+Still open and untouched: bug #12 (Defect 2), #14 (generic `[Command<Parent>]` sub-commands), #16.
 ```
