@@ -1,19 +1,18 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 06:07 UTC · branch `feat/graph-v2` · HEAD `efe70fb`_
+_Updated 2026-07-29 06:23 UTC · branch `feat/graph-v2` · HEAD `04d14a7`_
 
 **Status:** Idle
 **Stage:** G2 — R4 menu hygiene + one trace default (items 11-12) · attempts used 0
 **Checkpoints:** 6/22 done · **Sessions run:** 6 · **Cost:** $96.4393 (agent $96.3401 + gates $0.0993) · **Tokens:** 1,110,589 in / 487,926 out
-**Confirmed phases:** G1
-**Pending:** full-battery phase gate for G2
+**Confirmed phases:** G1, G2
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
-| G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | gating… |
+| G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
@@ -38,8 +37,8 @@ _Updated 2026-07-29 06:07 UTC · branch `feat/graph-v2` · HEAD `efe70fb`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | ✅ DONE | - |
-| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | ✅ DONE | - |
+| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | ✅ DONE | [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) |
+| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | ✅ DONE | [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) |
 
 </details>
 
@@ -160,6 +159,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 06:11:43  • session #6 G2 Deliver started (attempt 1/2)
 07-29 07:07:33  ▪ gate fast-engine pass [session]  (1m57s)
 07-29 07:07:33  ▪ gate guards pass [session]  (1m45s)
+07-29 07:07:37  • session #6 G2 → Advanced · done G2.1,G2.2 · 4 commit(s)  (55m54s)
 ```
 
 ## Health
@@ -171,6 +171,7 @@ sessions 6 · retries 2 (33 %) · overall Warn
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -179,7 +180,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -209,7 +210,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
