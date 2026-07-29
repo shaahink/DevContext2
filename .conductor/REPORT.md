@@ -1,18 +1,19 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 05:11 UTC · branch `feat/graph-v2` · HEAD `3490ab0`_
+_Updated 2026-07-29 06:07 UTC · branch `feat/graph-v2` · HEAD `efe70fb`_
 
 **Status:** Idle
-**Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 0
-**Checkpoints:** 4/22 done · **Sessions run:** 5 · **Cost:** $71.2224 (agent $71.1455 + gates $0.0770) · **Tokens:** 802,268 in / 357,846 out
+**Stage:** G2 — R4 menu hygiene + one trace default (items 11-12) · attempts used 0
+**Checkpoints:** 6/22 done · **Sessions run:** 6 · **Cost:** $96.4393 (agent $96.3401 + gates $0.0993) · **Tokens:** 1,110,589 in / 487,926 out
 **Confirmed phases:** G1
+**Pending:** full-battery phase gate for G2
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
-| G2 | R4 menu hygiene + one trace default (items 11-12) | ░░░░░░░░░░ 0/2 | todo |
+| G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | gating… |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
@@ -33,12 +34,12 @@ _Updated 2026-07-29 05:11 UTC · branch `feat/graph-v2` · HEAD `3490ab0`_
 
 </details>
 
-<details><summary>G2 — R4 menu hygiene + one trace default (items 11-12) (0/2)</summary>
+<details> ✅<summary>G2 — R4 menu hygiene + one trace default (items 11-12) (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | ⬜ TODO | - |
-| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | ⬜ TODO | - |
+| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | ✅ DONE | - |
+| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | ✅ DONE | - |
 
 </details>
 
@@ -123,6 +124,7 @@ _Updated 2026-07-29 05:11 UTC · branch `feat/graph-v2` · HEAD `3490ab0`_
 | 3 | G1 | Fix | 2 | 07-29 03:04 | 0:06 | Interrupted |  | 0 |  |  |  |  |
 | 4 | G1 | Resume | 2r1 | 07-29 03:12 | 1:13 | Advanced | G1.3 | 4 | fast-engine:OK · guards:OK | $25.4288 | $0.0146 | 173,665/115,497 |
 | 5 | G1 | Deliver | 1 | 07-29 04:28 | 0:24 | Advanced | G1.4 | 3 | fast-engine:OK · guards:OK | $16.5483 | $0.0156 | 225,857/83,097 |
+| 6 | G2 | Deliver | 1 | 07-29 05:11 | 0:52 | Advanced | G2.1 G2.2 | 4 | fast-engine:OK · guards:OK | $25.1946 | $0.0223 | 308,321/130,080 |
 
 ## Timeline
 
@@ -154,6 +156,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 06:11:38  ▪ gate guards pass [phase]  (50.2s)
 07-29 06:11:38  ▪ gate battery pass [phase]  (13m22s)
 07-29 06:11:38  ▸ stage G1 confirmed  (4h43m26s)
+07-29 06:11:43  ▸ stage G2 entered — R4 menu hygiene + one trace default (items 11-12)
+07-29 06:11:43  • session #6 G2 Deliver started (attempt 1/2)
+07-29 07:07:33  ▪ gate fast-engine pass [session]  (1m57s)
+07-29 07:07:33  ▪ gate guards pass [session]  (1m45s)
 ```
 
 ## Health
@@ -161,7 +167,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 5 · retries 2 (40 %) · overall Warn
+sessions 6 · retries 2 (33 %) · overall Warn
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -173,7 +179,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -195,30 +201,39 @@ vs upstream: up to date
   - [`53e79aa`](https://github.com/shaahink/DevContext2/commit/53e79aa) PLAN §2 + handoff: R4 §1 items 1-7 complete, and the vacuous-check lesson recorded
   - [`74a1d73`](https://github.com/shaahink/DevContext2/commit/74a1d73) G1.4 evidence: before/after MCP responses, the tightened driver cases, and the gate logs
   - [`a09c456`](https://github.com/shaahink/DevContext2/commit/a09c456) G1.4: a total that is a fact, and an analyze that says what it just did
+- **s6 (G2 Deliver)** — 4 commit(s):
+  - [`efe70fb`](https://github.com/shaahink/DevContext2/commit/efe70fb) G2 handoff: stage complete, next session opens G3.1
+  - [`7d42c08`](https://github.com/shaahink/DevContext2/commit/7d42c08) G2.2: one trace policy, and the rule that had never run
+  - [`b579030`](https://github.com/shaahink/DevContext2/commit/b579030) G2.1 evidence: the menu in three states, with the red in the middle
+  - [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) G2.1: 24 tools become 21, and the menu stops being told twice
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: G1.4 delivered and claimed via `task_update` with evidence at `eval-results/2026-07-29/G1.4-EVIDENCE.md` — R4 §1 items 6 and 7 landed, which completes items 1–7 and closes stage G1's fix list. `find(kind:)` now filters server-side so `total`/`hasMore` describe the repo instead of the fetch window (eShop `Order`: 120→354, Type 22→174, unfiltered page unmoved), and `analyze` returns the summary it had been discarding plus a measured `cached` flag and a note that changes with it (cold 1.8s `false`, reuse 12ms `true`). Two unnamed defects fell out of re-verifying the refs: `AnalysisSummary.archetype` was never assigned by anything, and the MCP swallowed the streamed `Error` event…
+> SESSION-RESULT: Stage G2 is complete — G2.1 (tool menu folded 24→21, did-you-mean now reads the SDK's real tool collection) and G2.2 (one trace budget/depth policy across MCP/CLI/server, read from `TracePolicy`) are both landed, claimed via `conductor task --done`, and pushed to `feat/graph-v2` (`35eea1e`, `b579030`, `7d42c08`, `efe70fb`); R4 §1 items 1–7 + 11–12 are now all done. Evidence: `eval-results/2026-07-29/G2.1-EVIDENCE.md` and `G2.2-EVIDENCE.md`, each with a before/red/after driver run (new `menu` and `trace-budget` cases in `eval/mcp-qa/drive-r4.js`). Nothing is red: build 0w/0e, Core 672 passed/2 skipped/674, Server 76, contract sweep PASS, loom-guards PASS, app lint + 120 tests …
 
 ## Tracker handoff
 
 ```
-G1.4 CLAIMED @ a09c456 (+ evidence 74a1d73) — `eval-results/2026-07-29/G1.4-EVIDENCE.md`. **G1 §1
-items 1-7 are now all landed.** Next: **G2.1** (fold `flow`→`trace(compact)`, `insights`→`stats`,
-`interesting_points`→`overview`; make did-you-mean reflect the real tool list).
-**VERIFY WITH THE BATTERY'S OWN COMMANDS**, never the bare `--filter "Category!=Eval"` — use
-`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE (gates.ps1:136).
-**A passing test is not named in the log** — the only proof yours ran is the count delta: G1.3 Core
-669 / Server 43 → G1.4 Core 674 / Server 58. Record yours for the next session.
-**Assume your own driver check is vacuous until you have watched it go red.** G1.4's `find-kind`
-case PASSED on the broken before-state (`total >= page` = 22 >= 5); the check that works is the
-INVARIANT — a true total does not move when the page size does. Third time this has bitten.
+**STAGE G2 COMPLETE.** G2.1 @ 35eea1e (+ b579030) · G2.2 @ 7d42c08 — evidence
+`eval-results/2026-07-29/G2.{1,2}-EVIDENCE.md`. R4 §1 items 1-7 + 11-12 all landed. Next: **G3.1**
+(`seam(from,to)` at proto + GraphQuery + tool). Test counts: **Core 674 / Server 76** (G1.4 was
+674/58) — a passing test is NOT named in the log, so the count delta is your only proof.
+**Verify with the battery's OWN commands**, never the bare `--filter "Category!=Eval"`:
+`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"`, then `"Category=McpQa"` ALONE (gates.ps1:136).
+**MIRRORING A CONSTANT DOES NOT KEEP TWO SURFACES TOGETHER — not restating it does.** Both G2 fixes
+are that one lesson: a hand-kept tool list that was CORRECT, and MCP dials that mirrored TracePolicy.
+A C# parameter default is not an unset field — assigning a proto3 `optional` sets its presence bit,
+which had silently disabled `TracePolicy.ElasticDepth` on every request the product ever served.
+G3 opens the proto: fold in `TraceResponse.applied_budget_tokens` (G2.2 §6) while you are there.
+**Watch your driver check go red before you trust it** — 4-for-4 now. G2.1's equality PASSED on the
+before-state (the stale list was still correct); G2.2's budget check would have been theatre (the
+4000 default cuts NOTHING on eShop at any depth — the observable half was the depth rule).
 Traps re-paid: the MCP spawns a DevContext.Server that outlives the driver and locks
 Core/Cli/Contracts.dll — `dotnet build` then reports 6 errors + 30 warnings that read as a code
-break. Kill it BY PID first. And run `pnpm gen:proto` after any proto edit — `pnpm check` neither
-regenerates nor verifies the app's generated TS, so drift there is silent.
+break; kill it BY PID. `InternalsVisibleTo` is unusable for DevContext.Mcp (its top-level `Program`
+collides with the Server's → CS0433). Run `pnpm gen:proto` after any proto edit.
 ```
