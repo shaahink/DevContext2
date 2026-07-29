@@ -75,10 +75,18 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 );
             });
 
+            // G8.2 — build the base-type index ONCE per file. It used to be a full tree walk per
+            // base-list entry (see ResolveTypeDeclaration), which is quadratic INSIDE one file:
+            // HotChocolate's 11 MB generated GraphQL client spent 20 min 17 s of a 21 min 15 s
+            // analysis right here. Empty index when the file declares no types — nothing to resolve.
+            var declIndex = nodes.TypeDeclarations.Length > 0
+                ? BuildDeclarationIndex(await syntaxTree.GetRootAsync(innerCt).ConfigureAwait(false))
+                : EmptyDeclarationIndex;
+
             var list = new List<TypeDiscovery>(nodes.TypeDeclarations.Length);
             foreach (var typeDecl in nodes.TypeDeclarations)
             {
-                var typeDiscovery = CreateTypeDiscovery(typeDecl, filePath);
+                var typeDiscovery = CreateTypeDiscovery(typeDecl, filePath, declIndex);
                 if (typeDiscovery != null) list.Add(typeDiscovery);
             }
             perFile[i] = list;
@@ -158,9 +166,10 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         await foreach (var (razorPath, tree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
         {
             var root = await tree.GetRootAsync(ct).ConfigureAwait(false);
+            var razorIndex = BuildDeclarationIndex(root);
             foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
             {
-                var typeDiscovery = CreateTypeDiscovery(typeDecl, razorPath);
+                var typeDiscovery = CreateTypeDiscovery(typeDecl, razorPath, razorIndex);
                 if (typeDiscovery is null) continue;
                 if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery)
                     && model.Types.TryGetValue(typeDiscovery.Id, out var existing))
@@ -169,7 +178,8 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         }
     }
 
-    private static TypeDiscovery? CreateTypeDiscovery(TypeDeclarationSyntax typeDecl, string filePath)
+    private static TypeDiscovery? CreateTypeDiscovery(TypeDeclarationSyntax typeDecl, string filePath,
+        IReadOnlyDictionary<string, BaseTypeDeclarationSyntax> declIndex)
     {
         var name = typeDecl.Identifier.ValueText;
         if (string.IsNullOrEmpty(name)) return null;
@@ -192,8 +202,8 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
         var methods = ExtractMethods(typeDecl).Concat(ExtractConstructors(typeDecl)).ToImmutableArray();
         var properties = ExtractProperties(typeDecl);
-        var baseTypes = ExtractBaseTypes(typeDecl);
-        var interfaces = ExtractInterfaces(typeDecl);
+        var baseTypes = ExtractBaseTypes(typeDecl, declIndex);
+        var interfaces = ExtractInterfaces(typeDecl, declIndex);
         var attributes = ExtractAttributes(typeDecl);
 
         return new TypeDiscovery
@@ -300,23 +310,25 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         return properties.ToImmutableArray();
     }
 
-    private static ImmutableArray<string> ExtractBaseTypes(TypeDeclarationSyntax typeDecl)
+    private static ImmutableArray<string> ExtractBaseTypes(TypeDeclarationSyntax typeDecl,
+        IReadOnlyDictionary<string, BaseTypeDeclarationSyntax> declIndex)
     {
         if (typeDecl.BaseList == null) return [];
 
         return typeDecl.BaseList.Types
-            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
+            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t, declIndex)))
             .Where(t => IsBaseType(t.Declaration, t.TypeName))
             .Select(t => t.TypeName)
             .ToImmutableArray();
     }
 
-    private static ImmutableArray<string> ExtractInterfaces(TypeDeclarationSyntax typeDecl)
+    private static ImmutableArray<string> ExtractInterfaces(TypeDeclarationSyntax typeDecl,
+        IReadOnlyDictionary<string, BaseTypeDeclarationSyntax> declIndex)
     {
         if (typeDecl.BaseList == null) return [];
 
         return typeDecl.BaseList.Types
-            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
+            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t, declIndex)))
             .Where(t => IsInterface(t.Declaration, t.TypeName))
             .Select(t => t.TypeName)
             .ToImmutableArray();
@@ -338,18 +350,44 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         return typeName.StartsWith("I");
     }
 
-    /// <summary>Resolves a base type syntax to its declaration by walking into namespace members or type declarations.</summary>
-    private static BaseTypeDeclarationSyntax? ResolveTypeDeclaration(BaseTypeSyntax baseType)
+    private static readonly Dictionary<string, BaseTypeDeclarationSyntax> EmptyDeclarationIndex =
+        new(StringComparer.Ordinal);
+
+    /// <summary>G8.2 — every type declared in one file, keyed by its bare identifier, FIRST in
+    /// document order. Built once per file; see <see cref="ResolveTypeDeclaration"/> for why the
+    /// first-in-document-order rule is the one that has to be preserved.</summary>
+    private static Dictionary<string, BaseTypeDeclarationSyntax> BuildDeclarationIndex(SyntaxNode root)
+    {
+        var index = new Dictionary<string, BaseTypeDeclarationSyntax>(StringComparer.Ordinal);
+        foreach (var decl in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
+            index.TryAdd(decl.Identifier.ValueText, decl);
+        return index;
+    }
+
+    /// <summary>Resolves a base type syntax to a declaration in the SAME file, or null when the type
+    /// is declared elsewhere (the callers then fall back to the naming convention).
+    ///
+    /// G8.2 — this used to be
+    /// <c>root.DescendantNodes().OfType&lt;BaseTypeDeclarationSyntax&gt;().FirstOrDefault(t =&gt;
+    /// t.Identifier.ValueText == typeName || typeName.StartsWith(t.Identifier.ValueText + "&lt;"))</c>,
+    /// i.e. a full walk of the whole file per base-list entry — quadratic inside one file, and the
+    /// R1 scale wall (HotChocolate: 20 min 17 s of a 21 min 15 s analysis, all of it here).
+    ///
+    /// The index lookup below is EQUIVALENT, not merely close. A declaration's
+    /// <c>Identifier.ValueText</c> is a single token and can never contain <c>&lt;</c>, so the old
+    /// predicate's two branches are mutually exclusive: when <c>typeName</c> contains <c>&lt;</c>
+    /// only the StartsWith branch can fire, and it fires exactly when the identifier equals
+    /// <c>typeName</c> truncated at the first <c>&lt;</c>; when it does not, only the equality branch
+    /// can fire. So "first node in document order satisfying either" is exactly "the first-declared
+    /// type whose identifier equals that truncated key" — which is what
+    /// <see cref="BuildDeclarationIndex"/> stores.</summary>
+    private static BaseTypeDeclarationSyntax? ResolveTypeDeclaration(BaseTypeSyntax baseType,
+        IReadOnlyDictionary<string, BaseTypeDeclarationSyntax> declIndex)
     {
         var typeName = baseType.Type.ToString();
-        // Search current file for the type declaration
-        var root = baseType.SyntaxTree.GetCompilationUnitRoot();
-        // Look through namespace members and top-level types for a matching declaration
-        var candidate = root.DescendantNodes()
-            .OfType<BaseTypeDeclarationSyntax>()
-            .FirstOrDefault(t => t.Identifier.ValueText == typeName
-                || typeName.StartsWith(t.Identifier.ValueText + "<", StringComparison.Ordinal));
-        return candidate;
+        var generic = typeName.IndexOf('<');
+        var key = generic >= 0 ? typeName[..generic] : typeName;
+        return declIndex.TryGetValue(key, out var candidate) ? candidate : null;
     }
 
     private static ImmutableArray<string> ExtractAttributes(TypeDeclarationSyntax typeDecl)

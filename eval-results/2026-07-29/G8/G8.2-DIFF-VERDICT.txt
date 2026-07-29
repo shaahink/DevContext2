@@ -1,0 +1,17 @@
+﻿IDENTICAL AutoMapper         bytes=95437    sha256=6B974BE6233E6E95
+IDENTICAL CleanArchitecture  bytes=35675    sha256=963927D33B97272A
+IDENTICAL Dapper             bytes=31593    sha256=4DF6019081C88B80
+IDENTICAL eShop              bytes=379188   sha256=D6635B15B9397A16
+IDENTICAL FluentValidation   bytes=73263    sha256=061A99B2A69A6255
+IDENTICAL GitVersion         bytes=194672   sha256=4BD8350DAFC409C7
+IDENTICAL Hangfire           bytes=219227   sha256=99466D5B85C68F56
+IDENTICAL MediatR            bytes=32619    sha256=9DE781062543E0EF
+IDENTICAL Ocelot             bytes=209323   sha256=F3FEDEFAB74363F8
+IDENTICAL Polly              bytes=135726   sha256=0F62D70CED07FD02
+IDENTICAL Serilog            bytes=38926    sha256=C2A0E4D623A7EDD5
+IDENTICAL SignalR            bytes=4773324  sha256=8D379468C80B5F09
+IDENTICAL Spectre.Console    bytes=116414   sha256=742BF3C203A69184
+IDENTICAL TodoApi            bytes=25799    sha256=14800565769A5B6B
+IDENTICAL VerticalSlice      bytes=35675    sha256=963927D33B97272A
+
+DIFF-VERDICT: 15 poles compared, 0 differ

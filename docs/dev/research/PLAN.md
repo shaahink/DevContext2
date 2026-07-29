@@ -720,11 +720,15 @@ Session log (one line each: date · what closed · surprises):
 
 ### Open R1 items S5 leaves on the table (read before declaring R1 done)
 
-- **Scale wall (new class, not in DC1–DC10).** `HotChocolate` (ChilliCream/graphql-platform) produced
-  no dump in 28 minutes and TIMED OUT at the harness's new 600s per-pole budget. Every other pole
-  finishes — including PowerToys (83s) and bitwarden-server (214s) — so this is one repo an order of
-  magnitude past the rest, not a general regression. R1's exit criterion ("no new DC class in the last
-  10 repos") is therefore NOT met; it needs a profile of that repo, not a bigger timeout.
+- ~~**Scale wall (new class, not in DC1–DC10).**~~ **PROFILED + FIXED 2026-07-29 (G8.1 / G8.2)** —
+  `eval-results/2026-07-29/G8/`. It was never "one repo an order of magnitude past the rest":
+  `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole file's syntax tree once per
+  base-list entry, so cost is `baseEntries × nodes` **inside a single file**. HotChocolate carries one
+  11.3 MB generated GraphQL client with 4,598 base lists → **1,216,998 ms of a 1,275 s analysis**.
+  One per-file index later: **11,830 ms**, whole analysis **64.3 s**, `types`/`detections` identical,
+  and 15 poles byte-identical by SHA-256 (`G8.2-DIFF-VERDICT.txt`). The 600s budget was NOT raised.
+  The class to remember is **large AND base-list dense**, not "large": SignalR's 3.0 MB generated file
+  has one base list and never engaged the quadratic.
 - **Archetype loses to an auxiliary executable.** `CLI` (dotnet/command-line-api) reads CliTool and
   `MahApps.Metro` reads Desktop. Both are LIBRARIES whose exe is a demo/sample that isn't under a
   `samples/` path, so it decides the archetype. One root cause, two poles, both pinned RED with the
