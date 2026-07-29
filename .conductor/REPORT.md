@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 11:48 UTC · branch `feat/graph-v2` · HEAD `ebf5b3a`_
+_Updated 2026-07-29 12:02 UTC · branch `feat/graph-v2` · HEAD `235a98d`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G4 — R4 dogfood drive — is the MCP a proper tool? · attempts used 0
 **Checkpoints:** 12/22 done · **Sessions run:** 15 · **Cost:** $172.2879 (agent $172.1057 + gates $0.1822) · **Tokens:** 2,477,549 in / 938,913 out
-**Confirmed phases:** G1, G2, G3
-**Pending:** full-battery phase gate for G4
+**Confirmed phases:** G1, G2, G3, G4
 
 ## Stage progress
 
@@ -15,7 +14,7 @@ _Updated 2026-07-29 11:48 UTC · branch `feat/graph-v2` · HEAD `ebf5b3a`_
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
-| G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | gating… |
+| G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
@@ -58,8 +57,8 @@ _Updated 2026-07-29 11:48 UTC · branch `feat/graph-v2` · HEAD `ebf5b3a`_
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ✅ DONE | [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) |
-| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ✅ DONE | - |
-| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ✅ DONE | - |
+| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ✅ DONE | [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) |
+| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ✅ DONE | [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) |
 
 </details>
 
@@ -140,7 +139,6 @@ _Updated 2026-07-29 11:48 UTC · branch `feat/graph-v2` · HEAD `ebf5b3a`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 07:23:06  ▸ stage G3 entered — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)
 07-29 07:23:06  • session #7 G3 Deliver started (attempt 1/4)
 07-29 07:54:04  ▪ gate fast-engine pass [session]  (1m29s)
 07-29 07:54:04  ▪ gate guards pass [session]  (42.9s)
@@ -180,6 +178,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 12:17:58  • session #15 G4 Deliver started (attempt 1/4)
 07-29 12:48:55  ▪ gate fast-engine pass [session]  (1m47s)
 07-29 12:48:55  ▪ gate guards pass [session]  (47.9s)
+07-29 12:48:58  • session #15 G4 → Advanced · done G4.2,G4.3 · 4 commit(s)  (30m59s)
 ```
 
 ## Health
@@ -206,7 +205,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -246,7 +245,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
