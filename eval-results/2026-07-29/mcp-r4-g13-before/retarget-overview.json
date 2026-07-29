@@ -1,0 +1,5 @@
+{
+  "handle": "bb4f725acc46494c945b72ed2ef0edcc",
+  "tokens": 141,
+  "text": "App: Todo.Api (Web API), TodoApp.AppHost, Todo.Web.Server (Web API)\r\n  129 nodes · 80 edges · 12 entries · 6 projects\r\nTop flows:\r\n  UiEntry: GET / → ExternalProviders.GetProviderNamesAsync\r\n  HttpEndpoint: POST /todos/ → TodoDbContext\r\n  HttpEndpoint: POST /auth/register → AuthClient.CreateUserAsync\r\n  HttpEndpoint: POST /auth/login → AuthClient.GetTokenAsync\r\n  HttpEndpoint: GET /auth/signin/{provider} → AuthClient.GetOrCreateUserAsync\r\nService links:\r\n  Todo.Web.Server → Todo.Api (http-direct)\r\nStart here: MapTodos, TodoDbContext, TodoClient, MapAuth\r\n"
+}

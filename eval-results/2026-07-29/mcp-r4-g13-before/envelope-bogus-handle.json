@@ -1,0 +1,49 @@
+{
+  "status": {
+    "data": {
+      "found": false,
+      "handle": "no-such-handle-1234",
+      "error": "Unknown handle."
+    },
+    "isError": false
+  },
+  "entrypoints": {
+    "data": {
+      "text": "An error occurred invoking 'entrypoints'."
+    },
+    "isError": true
+  },
+  "insights": {
+    "data": {
+      "text": "An error occurred invoking 'insights'."
+    },
+    "isError": true
+  },
+  "close_session": {
+    "data": {
+      "closed": false,
+      "handle": "no-such-handle-1234"
+    },
+    "isError": false
+  },
+  "map": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "map(handle)"
+    },
+    "isError": false
+  },
+  "top_flows": {
+    "data": {
+      "text": "An error occurred invoking 'top_flows'."
+    },
+    "isError": true
+  },
+  "interesting_points": {
+    "data": {
+      "text": "An error occurred invoking 'interesting_points'."
+    },
+    "isError": true
+  }
+}

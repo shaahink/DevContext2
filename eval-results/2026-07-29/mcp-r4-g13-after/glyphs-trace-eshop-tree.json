@@ -1,0 +1,906 @@
+{
+  "found": true,
+  "entry": {
+    "nodeId": "EntryPoint:POST /api/orders/",
+    "title": "POST /api/orders/",
+    "kind": "EntryPoint"
+  },
+  "budgetTokens": 3000,
+  "omitted": 89,
+  "hint": "89 node(s) omitted to fit ~3000 tok. Raise budgetTokens (or 0 for full), or read_source(nodeId)/flow(focus) into a truncated subtree.",
+  "root": {
+    "nodeId": "EntryPoint:POST /api/orders/",
+    "title": "POST /api/orders/",
+    "kind": "EntryPoint",
+    "seam": "Entry",
+    "depth": 0,
+    "resolution": "Join",
+    "truncated": false,
+    "omitted": 0,
+    "tags": [
+      "kind:HttpEndpoint"
+    ],
+    "pipeline": [],
+    "children": [
+      {
+        "nodeId": "Member:global.OrdersApi::CreateOrderAsync",
+        "title": "OrdersApi.CreateOrderAsync",
+        "kind": "Member",
+        "seam": "Call",
+        "depth": 1,
+        "resolution": "Join",
+        "truncated": true,
+        "omitted": 1,
+        "salient": "public static async Task<Results<Ok, BadRequest<string>>> CreateOrderAsync(\n[FromHeader(Name = \"x-requestid\")] Guid requestId,\nCreateOrderRequest request,",
+        "tags": [],
+        "pipeline": [],
+        "children": [
+          {
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.IdentifiedCommand`2",
+            "title": "IdentifiedCommand",
+            "kind": "Type",
+            "seam": "Send",
+            "depth": 2,
+            "resolution": "Semantic",
+            "truncated": false,
+            "omitted": 0,
+            "salient": "public class IdentifiedCommand<T, R> : IRequest<R>\nwhere T : IRequest<R>\npublic T Command { get; }",
+            "tags": [
+              "handler",
+              "command"
+            ],
+            "pipeline": [
+              "LoggingBehavior",
+              "ValidatorBehavior",
+              "TransactionBehavior"
+            ],
+            "children": [
+              {
+                "nodeId": "Type:eShop.Ordering.API.Application.Commands.IdentifiedCommandHandler`2",
+                "title": "IdentifiedCommandHandler",
+                "kind": "Type",
+                "seam": "Handle",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": false,
+                "omitted": 0,
+                "salient": "/// <summary>\n/// Provides a base implementation for handling duplicate request and ensuring idempotent updates, in the cases where\n/// a requestid sent by client is used to detect duplicate requests.",
+                "tags": [
+                  "handler"
+                ],
+                "pipeline": [],
+                "children": [
+                  {
+                    "nodeId": "Service:Basket.API",
+                    "title": "Basket.API",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": false,
+                    "omitted": 0,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Service:Identity.API",
+                        "title": "Identity.API",
+                        "kind": "Service",
+                        "seam": "CrossService",
+                        "depth": 5,
+                        "resolution": "Join",
+                        "truncated": false,
+                        "omitted": 0,
+                        "tags": [
+                          "runnable"
+                        ],
+                        "pipeline": [],
+                        "children": [
+                          {
+                            "nodeId": "Service:Basket.API",
+                            "title": "Basket.API",
+                            "kind": "Service",
+                            "seam": "CrossService",
+                            "depth": 6,
+                            "resolution": "Join",
+                            "truncated": true,
+                            "omitted": 1,
+                            "tags": [
+                              "runnable"
+                            ],
+                            "pipeline": [],
+                            "children": []
+                          },
+                          {
+                            "nodeId": "Service:Ordering.API",
+                            "title": "Ordering.API",
+                            "kind": "Service",
+                            "seam": "CrossService",
+                            "depth": 6,
+                            "resolution": "Join",
+                            "truncated": true,
+                            "omitted": 6,
+                            "tags": [
+                              "runnable"
+                            ],
+                            "pipeline": [],
+                            "children": []
+                          },
+                          {
+                            "nodeId": "Service:WebApp",
+                            "title": "WebApp",
+                            "kind": "Service",
+                            "seam": "CrossService",
+                            "depth": 6,
+                            "resolution": "Join",
+                            "truncated": true,
+                            "omitted": 4,
+                            "tags": [
+                              "runnable"
+                            ],
+                            "pipeline": [],
+                            "children": []
+                          },
+                          {
+                            "nodeId": "Service:Webhooks.API",
+                            "title": "Webhooks.API",
+                            "kind": "Service",
+                            "seam": "CrossService",
+                            "depth": 6,
+                            "resolution": "Join",
+                            "truncated": true,
+                            "omitted": 1,
+                            "tags": [
+                              "runnable"
+                            ],
+                            "pipeline": [],
+                            "children": []
+                          },
+                          {
+                            "nodeId": "Service:WebhookClient",
+                            "title": "WebhookClient",
+                            "kind": "Service",
+                            "seam": "CrossService",
+                            "depth": 6,
+                            "resolution": "Join",
+                            "truncated": true,
+                            "omitted": 2,
+                            "tags": [
+                              "runnable"
+                            ],
+                            "pipeline": [],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "nodeId": "Service:Catalog.API",
+                    "title": "Catalog.API",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": false,
+                    "omitted": 0,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Service:Ordering.API",
+                        "title": "Ordering.API",
+                        "kind": "Service",
+                        "seam": "CrossService",
+                        "depth": 5,
+                        "resolution": "Join",
+                        "truncated": true,
+                        "omitted": 6,
+                        "tags": [
+                          "runnable"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      },
+                      {
+                        "nodeId": "Service:Webhooks.API",
+                        "title": "Webhooks.API",
+                        "kind": "Service",
+                        "seam": "CrossService",
+                        "depth": 5,
+                        "resolution": "Join",
+                        "truncated": true,
+                        "omitted": 1,
+                        "tags": [
+                          "runnable"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "nodeId": "Service:WebApp",
+                    "title": "WebApp",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": true,
+                    "omitted": 4,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": []
+                  },
+                  {
+                    "nodeId": "Service:Webhooks.API",
+                    "title": "Webhooks.API",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": true,
+                    "omitted": 1,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": []
+                  },
+                  {
+                    "nodeId": "Service:PaymentProcessor",
+                    "title": "PaymentProcessor",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": false,
+                    "omitted": 0,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Service:Ordering.API",
+                        "title": "Ordering.API",
+                        "kind": "Service",
+                        "seam": "CrossService",
+                        "depth": 5,
+                        "resolution": "Join",
+                        "truncated": true,
+                        "omitted": 6,
+                        "tags": [
+                          "runnable"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "nodeId": "Service:Identity.API",
+                    "title": "Identity.API",
+                    "kind": "Service",
+                    "seam": "CrossService",
+                    "depth": 4,
+                    "resolution": "Join",
+                    "truncated": true,
+                    "omitted": 5,
+                    "tags": [
+                      "runnable"
+                    ],
+                    "pipeline": [],
+                    "children": []
+                  },
+                  {
+                    "nodeId": "Type:eShop.Ordering.Infrastructure.Idempotency.IRequestManager",
+                    "title": "IRequestManager",
+                    "kind": "Type",
+                    "seam": "Call",
+                    "depth": 4,
+                    "resolution": "Syntactic",
+                    "truncated": false,
+                    "omitted": 0,
+                    "salient": "public interface IRequestManager\nTask<bool> ExistAsync(Guid id);\nTask CreateRequestForCommandAsync<T>(Guid id);",
+                    "tags": [],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Type:eShop.Ordering.Infrastructure.Idempotency.RequestManager",
+                        "title": "RequestManager",
+                        "kind": "Type",
+                        "seam": "Resolve",
+                        "depth": 5,
+                        "resolution": "Join",
+                        "truncated": false,
+                        "omitted": 0,
+                        "salient": "public class RequestManager : IRequestManager\nprivate readonly OrderingContext _context;\npublic RequestManager(OrderingContext context)",
+                        "tags": [
+                          "service"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "nodeId": "Type:Microsoft.Extensions.Logging.ILogger`1",
+                    "title": "ILogger",
+                    "kind": "Type",
+                    "seam": "Call",
+                    "depth": 4,
+                    "resolution": "Semantic",
+                    "truncated": false,
+                    "omitted": 0,
+                    "tags": [],
+                    "pipeline": [],
+                    "children": []
+                  },
+                  {
+                    "nodeId": "Member:eShop.Ordering.Infrastructure.Idempotency.RequestManager::ExistAsync",
+                    "title": "ExistAsync",
+                    "kind": "Member",
+                    "seam": "Call",
+                    "depth": 4,
+                    "resolution": "Syntactic",
+                    "truncated": false,
+                    "omitted": 0,
+                    "salient": "public async Task<bool> ExistAsync(Guid id)\nvar request = await _context.\nFindAsync<ClientRequest>(id);",
+                    "tags": [],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Type:eShop.Ordering.Infrastructure.OrderingContext",
+                        "title": "OrderingContext",
+                        "kind": "Type",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": false,
+                        "omitted": 0,
+                        "salient": "/// <remarks>\n/// Add migrations using the following command inside the 'Ordering.Infrastructure' project directory:\n///",
+                        "tags": [
+                          "service"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      },
+                      {
+                        "nodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+                        "title": "OrderingContext.FindAsync",
+                        "kind": "Member",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": false,
+                        "omitted": 0,
+                        "tags": [],
+                        "pipeline": [],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "nodeId": "Member:eShop.Ordering.API.Application.Commands.IdentifiedCommandHandler`2::CreateResultForDuplicateRequest",
+                    "title": "IdentifiedCommandHandler.CreateResultForDuplicateRequest",
+                    "kind": "Member",
+                    "seam": "Call",
+                    "depth": 4,
+                    "resolution": "Syntactic",
+                    "truncated": false,
+                    "omitted": 0,
+                    "salient": "protected abstract R CreateResultForDuplicateRequest();",
+                    "tags": [],
+                    "pipeline": [],
+                    "children": []
+                  },
+                  {
+                    "nodeId": "Member:eShop.Ordering.Infrastructure.Idempotency.RequestManager::CreateRequestForCommandAsync",
+                    "title": "CreateRequestForCommandAsync",
+                    "kind": "Member",
+                    "seam": "Call",
+                    "depth": 4,
+                    "resolution": "Syntactic",
+                    "truncated": false,
+                    "omitted": 0,
+                    "salient": "public async Task CreateRequestForCommandAsync<T>(Guid id)\nvar exists = await ExistAsync(id);\nvar request = exists ?",
+                    "tags": [],
+                    "pipeline": [],
+                    "children": [
+                      {
+                        "nodeId": "Type:eShop.Ordering.Infrastructure.OrderingContext",
+                        "title": "OrderingContext",
+                        "kind": "Type",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": false,
+                        "omitted": 0,
+                        "salient": "/// <remarks>\n/// Add migrations using the following command inside the 'Ordering.Infrastructure' project directory:\n///",
+                        "tags": [
+                          "service"
+                        ],
+                        "pipeline": [],
+                        "children": []
+                      },
+                      {
+                        "nodeId": "Member:eShop.Ordering.Infrastructure.Idempotency.RequestManager::ExistAsync",
+                        "title": "ExistAsync",
+                        "kind": "Member",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": true,
+                        "omitted": 2,
+                        "salient": "public async Task<bool> ExistAsync(Guid id)\nvar request = await _context.\nFindAsync<ClientRequest>(id);",
+                        "tags": [],
+                        "pipeline": [],
+                        "children": []
+                      },
+                      {
+                        "nodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::Add",
+                        "title": "OrderingContext.Add",
+                        "kind": "Member",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": false,
+                        "omitted": 0,
+                        "tags": [],
+                        "pipeline": [],
+                        "children": []
+                      },
+                      {
+                        "nodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::SaveChangesAsync",
+                        "title": "OrderingContext.SaveChangesAsync",
+                        "kind": "Member",
+                        "seam": "Call",
+                        "depth": 5,
+                        "resolution": "Syntactic",
+                        "truncated": false,
+                        "omitted": 0,
+                        "tags": [],
+                        "pipeline": [],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nodeId": "Service:Basket.API",
+                "title": "Basket.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Catalog.API",
+                "title": "Catalog.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 2,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:WebApp",
+                "title": "WebApp",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 4,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Webhooks.API",
+                "title": "Webhooks.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:PaymentProcessor",
+                "title": "PaymentProcessor",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Identity.API",
+                "title": "Identity.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 5,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "nodeId": "Type:global.OrderServices",
+            "title": "OrderServices",
+            "kind": "Type",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "salient": "public class OrderServices(\nIMediator mediator,\nIOrderQueries queries,",
+            "tags": [],
+            "pipeline": [],
+            "children": [
+              {
+                "nodeId": "Service:Basket.API",
+                "title": "Basket.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Catalog.API",
+                "title": "Catalog.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 2,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:WebApp",
+                "title": "WebApp",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 4,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Webhooks.API",
+                "title": "Webhooks.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:PaymentProcessor",
+                "title": "PaymentProcessor",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Identity.API",
+                "title": "Identity.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 5,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "nodeId": "Type:global.CreateOrderRequest",
+            "title": "CreateOrderRequest",
+            "kind": "Type",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "salient": "public record CreateOrderRequest(\nstring UserId,\nstring UserName,",
+            "tags": [],
+            "pipeline": [],
+            "children": [
+              {
+                "nodeId": "Service:Basket.API",
+                "title": "Basket.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Catalog.API",
+                "title": "Catalog.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 2,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:WebApp",
+                "title": "WebApp",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 4,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Webhooks.API",
+                "title": "Webhooks.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:PaymentProcessor",
+                "title": "PaymentProcessor",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 1,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              },
+              {
+                "nodeId": "Service:Identity.API",
+                "title": "Identity.API",
+                "kind": "Service",
+                "seam": "CrossService",
+                "depth": 3,
+                "resolution": "Join",
+                "truncated": true,
+                "omitted": 5,
+                "tags": [
+                  "runnable"
+                ],
+                "pipeline": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "nodeId": "Type:Microsoft.Extensions.Logging.ILogger`1",
+            "title": "ILogger",
+            "kind": "Type",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Semantic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.IdentifiedCommand`2",
+            "title": "IdentifiedCommand",
+            "kind": "Type",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Semantic",
+            "truncated": true,
+            "omitted": 7,
+            "salient": "public class IdentifiedCommand<T, R> : IRequest<R>\nwhere T : IRequest<R>\npublic T Command { get; }",
+            "tags": [
+              "handler",
+              "command"
+            ],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.OrderServices::LogInformation",
+            "title": "OrderServices.LogInformation",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.CreateOrderRequest::GetGenericTypeName",
+            "title": "CreateOrderRequest.GetGenericTypeName",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.OrderServices::LogWarning",
+            "title": "OrderServices.LogWarning",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.OrderServices::BeginScope",
+            "title": "OrderServices.BeginScope",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.CreateOrderRequest::PadLeft",
+            "title": "CreateOrderRequest.PadLeft",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:global.CreateOrderRequest::Substring",
+            "title": "CreateOrderRequest.Substring",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          },
+          {
+            "nodeId": "Member:eShop.Ordering.API.Application.Commands.IdentifiedCommand`2::GetGenericTypeName",
+            "title": "IdentifiedCommand.GetGenericTypeName",
+            "kind": "Member",
+            "seam": "Call",
+            "depth": 2,
+            "resolution": "Syntactic",
+            "truncated": false,
+            "omitted": 0,
+            "tags": [],
+            "pipeline": [],
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "touchedEntities": [],
+  "emittedEvents": []
+}

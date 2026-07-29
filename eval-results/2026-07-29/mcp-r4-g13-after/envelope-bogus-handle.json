@@ -1,0 +1,59 @@
+{
+  "status": {
+    "data": {
+      "found": false,
+      "handle": "no-such-handle-1234",
+      "error": "Unknown handle."
+    },
+    "isError": false
+  },
+  "entrypoints": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "entrypoints(handle)"
+    },
+    "isError": false
+  },
+  "insights": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "insights(handle)"
+    },
+    "isError": false
+  },
+  "close_session": {
+    "data": {
+      "closed": false,
+      "found": false,
+      "handle": "no-such-handle-1234",
+      "note": "No open session with that handle — nothing to close."
+    },
+    "isError": false
+  },
+  "map": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "map(handle)"
+    },
+    "isError": false
+  },
+  "top_flows": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "top_flows(handle)"
+    },
+    "isError": false
+  },
+  "interesting_points": {
+    "data": {
+      "error": "Unknown session handle: no-such-handle-1234",
+      "hint": "Handle expired or unknown — analyze again or check list_sessions().",
+      "example": "interesting_points(handle)"
+    },
+    "isError": false
+  }
+}
