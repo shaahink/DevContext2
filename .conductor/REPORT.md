@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 19:43 UTC · branch `feat/graph-v2` · HEAD `5550711`_
+_Updated 2026-07-29 19:59 UTC · branch `feat/graph-v2` · HEAD `631a8d0`_
 
-**Status:** Idle — advisor: human intervention required
-**Stage:** G8 — R1 scale wall — profile HotChocolate, do not raise the timeout · attempts used 0
-**Checkpoints:** 20/22 done · **Sessions run:** 24 · **Cost:** $332.2524 (agent $331.9346 + gates $0.3179) · **Tokens:** 4,567,564 in / 1,784,100 out
+**Status:** Backoff — advisor: human intervention required
+**Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0 · working ▸ G9.1
+**Checkpoints:** 20/22 done · **Sessions run:** 25 · **Cost:** $334.8297 (agent $334.5119 + gates $0.3179) · **Tokens:** 4,652,610 in / 1,799,093 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
 
 ## Stage progress
@@ -19,7 +19,7 @@ _Updated 2026-07-29 19:43 UTC · branch `feat/graph-v2` · HEAD `5550711`_
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
-| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
+| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | **← active** |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
 <details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
@@ -102,7 +102,7 @@ _Updated 2026-07-29 19:43 UTC · branch `feat/graph-v2` · HEAD `5550711`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | ⬜ TODO | - |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | 🔄 IN PROGRESS | - |
 
 </details>
 
@@ -142,14 +142,13 @@ _Updated 2026-07-29 19:43 UTC · branch `feat/graph-v2` · HEAD `5550711`_
 | 22 | G6 | Fix | 2 | 07-29 16:30 | 0:34 | Progress |  | 1 | fast-app:OK · guards:OK | $13.7036 | $0.0133 | 209,463/73,225 |
 | 23 | G7 | Deliver | 1 | 07-29 17:17 | 0:42 | Advanced | G7.1 G7.2 | 5 | fast-app:OK · guards:OK | $21.2053 | $0.0209 | 245,917/106,260 |
 | 24 | G8 | Deliver | 1 | 07-29 18:16 | 1:13 | Advanced | G8.1 G8.2 | 4 | fast-engine:OK · guards:OK | $22.1017 | $0.0120 | 262,531/119,875 |
+| 25 | G9 | Deliver | 1 | 07-29 19:43 | 0:15 | LimitBackoff |  | 0 |  | $2.5773 |  | 85,046/14,993 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 16:30:47  ▪ gate fast-app pass [session]  (3m36s)
-07-29 16:30:47  ▪ gate guards pass [session]  (43.2s)
 07-29 16:30:50  • session #20 G6 → Advanced · done G6.1 · 2 commit(s)  (59m00s)
 07-29 16:30:50  • session #21 G6 Deliver started (attempt 1/2)
 07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
@@ -188,6 +187,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 20:43:06  ▪ gate guards pass [phase]  (39.9s)
 07-29 20:43:06  ▪ gate battery pass [phase]  (8m19s)
 07-29 20:43:06  ▸ stage G8 confirmed  (1h26m11s)
+07-29 20:43:11  ▸ stage G9 entered — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)
+07-29 20:43:11  • session #25 G9 Deliver started (attempt 1/2)
 ```
 
 ## Health
@@ -195,7 +196,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 24 · retries 9 (38 %) · overall Alert
+sessions 25 · retries 9 (36 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -219,7 +220,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+82 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+83 more)
 vs upstream: up to date
 ```
 
@@ -261,7 +262,7 @@ fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> SESSION-RESULT: Stage G8 is complete and pushed to `feat/graph-v2` — G8.1 (profile) @ `59b17aa`, G8.2 (fix) @ `d6be215`, handoff @ `73a03c2`, leftover orchestrator state @ `2fb2cc2`; both checkpoints claimed through `conductor task --done` with evidence under `eval-results/2026-07-29/G8/`, and bug #21 filed and closed. R1's scale wall was never repo size: `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole file's syntax tree once per base-list entry, so HotChocolate's single 11.3 MB generated client with 4,598 base lists cost 1,216,998 ms of a 1,275 s run (95.4 %); a per-file index takes the whole analysis to 64.3 s with byte-identical output on 15 poles by SHA-256, proven thr…
+> API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
 
 ## Tracker handoff
 
