@@ -79,6 +79,29 @@ function Write-Fail {
     $script:exitCode = $Step
 }
 
+# EVERY native command whose output this script captures runs through here. Windows PowerShell 5.1
+# wraps each stderr line a native tool writes into a NativeCommandError ErrorRecord, and under
+# $ErrorActionPreference = 'Stop' that record is TERMINATING: `$r = dotnet test ... 2>&1` aborts the
+# whole script the instant the tool writes one line to stderr - BEFORE the $LASTEXITCODE check that
+# decides pass or fail, and before the Write-Host that prints why.
+#
+# Measured 2026-07-29 (G5, evidence in eval-results/2026-07-29/G5/): this killed the battery twice
+# with exit 1 and an empty diagnostic - run.db gates rows 3 (s2) and 39 (s16), both truncated at the
+# "Step 2: Fast unit tests" banner - while the suite underneath was GREEN. The reverse is worse: on a
+# genuinely failing suite the same abort fires before `Write-Host $testResult`, so the failing test
+# names are discarded too. Step 5 already carried this workaround inline for `pnpm check`; the other
+# eleven captures did not.
+#
+# This STRENGTHENS the gate rather than relaxing it: the relaxation is scoped to the native call, it
+# restores the previous preference in a finally, and its whole effect is that the $LASTEXITCODE check
+# now actually runs. A non-zero exit still fails the step, and now keeps its output.
+function Invoke-NativeCapture {
+    param([Parameter(Mandatory)][scriptblock]$Command)
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $Command 2>&1 } finally { $ErrorActionPreference = $oldEap }
+}
+
 # Step 0: Clear orphaned build-locking processes (Tapestry T0.1b).
 # The wrap-up audit lost four builds to leaked DevContext.Server processes holding bin/. Clearing
 # them here makes the gate trustworthy from cold, replacing the manual pre-session kill ritual.
@@ -97,7 +120,7 @@ Write-Pass "Cleared $orphansKilled orphaned process(es)"
 # Step 1: Build
 Write-Step "Step 1: Build solution"
 $sln = Join-Path $repoRoot "DevContext.slnx"
-$buildResult = dotnet build $sln 2>&1
+$buildResult = Invoke-NativeCapture { dotnet build $sln }
 if ($LASTEXITCODE -ne 0) {
     Write-Host $buildResult
     Write-Fail "Build failed" -Step 1
@@ -112,7 +135,7 @@ Write-Pass "Build succeeded"
 # reads. Runs in EVERY scope, before the slow steps: it is not an engine suite, and an app-only
 # change is one of the ways a field loses its last reader.
 Write-Step "Step 1a: Contract sweep (dead proto fields)"
-$sweepResult = & powershell -NoProfile -File (Join-Path $PSScriptRoot "contract-sweep.ps1") 2>&1
+$sweepResult = Invoke-NativeCapture { & powershell -NoProfile -File (Join-Path $PSScriptRoot "contract-sweep.ps1") }
 if ($LASTEXITCODE -ne 0) {
     Write-Host $sweepResult
     Write-Fail "Contract sweep found a field no client reads" -Step 1
@@ -134,7 +157,7 @@ if ($Scope -eq 'app') {
 if ($Scope -ne 'app') {
 Write-Step "Step 2: Fast unit tests"
 $filterArg = "Category!=Eval&Category!=CliSmoke&Category!=McpQa"
-$testResult = dotnet test $sln --filter $filterArg --no-build 2>&1
+$testResult = Invoke-NativeCapture { dotnet test $sln --filter $filterArg --no-build }
 if ($LASTEXITCODE -ne 0) {
     Write-Host $testResult
     Write-Fail "Fast tests failed" -Step 2
@@ -149,7 +172,7 @@ Write-Step "Step 2b: MCP QA gate (serial)"
 if ($SkipMcpQa) {
     Write-Host "  SKIP  -SkipMcpQa (dogfood repo is machine-local; not a pass)" -ForegroundColor Yellow
 } else {
-    $mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
+    $mcpResult = Invoke-NativeCapture { dotnet test $sln --filter "Category=McpQa" --no-build }
     if ($LASTEXITCODE -ne 0) {
         Write-Host $mcpResult
         Write-Fail "MCP QA gate failed" -Step 2
@@ -215,7 +238,7 @@ if ($SkipEval) {
             if ($EvalTier -eq 'quick') {
                 $serialFilter += (($HeavyRepos | ForEach-Object { "&DisplayName!~$_" }) -join '')
             }
-            $evalResult = dotnet test $sln --filter $serialFilter --no-build 2>&1
+            $evalResult = Invoke-NativeCapture { dotnet test $sln --filter $serialFilter --no-build }
             $evalExit = $LASTEXITCODE
             Write-Host $evalResult
         } else {
@@ -248,7 +271,7 @@ if ($SkipEval) {
             }
             if ($bucketB.Count -eq 0) {
                 # Degenerate split (tiny expectation set) — fall back to one host.
-                $evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
+                $evalResult = Invoke-NativeCapture { dotnet test $sln --filter "Category=Eval" --no-build }
                 $evalExit = $LASTEXITCODE
                 Write-Host $evalResult
             } else {
@@ -329,7 +352,7 @@ $cliMatrix = @(
 $cliFailed = 0
 foreach ($entry in $cliMatrix) {
     Write-Host "  Running: $($entry.Name)..."
-    $cliOutput = & dotnet run --no-build --project $cliProject -- $entry.Args 2>&1
+    $cliOutput = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- $entry.Args }
     $cliExit = $LASTEXITCODE
 
     if ($cliExit -eq 0) {
@@ -363,7 +386,7 @@ Write-Pass "CLI matrix: all commands ran successfully"
 Write-Step "Step 4b: CLI query ops (T3.7)"
 $queryFailed = 0
 
-$epJson = & dotnet run --no-build --project $cliProject -- query entrypoints --path $testDir --format json 2>&1 | Out-String
+$epJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query entrypoints --path $testDir --format json } | Out-String
 try { $ep = $epJson | ConvertFrom-Json } catch { $ep = $null }
 if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Properties.Count -gt 0)) {
     Write-Host "    entrypoints: $($ep.count) entries across $($ep.byKind.PSObject.Properties.Count) kind(s)" -ForegroundColor Green
@@ -371,7 +394,7 @@ if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Propertie
     Write-Host "    entrypoints: expected >0 entries with per-kind counts" -ForegroundColor Red; $queryFailed++
 }
 
-$stJson = & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json 2>&1 | Out-String
+$stJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json } | Out-String
 try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
 # K2 (Prism D3.3): stats must carry the analyze-time stage timeline (fresh fixture => never empty).
 if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -gt 0) {
@@ -381,7 +404,7 @@ if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -g
 }
 
 # trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
-& dotnet run --no-build --project $cliProject -- query trace --path $testDir 2>&1 | Out-Null
+Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir } | Out-Null
 if ($LASTEXITCODE -eq 1) {
     Write-Host "    trace (no focus): required-focus guard fired (exit 1)" -ForegroundColor Green
 } else {
@@ -390,7 +413,7 @@ if ($LASTEXITCODE -eq 1) {
 $focus = $null
 if ($ep -and $ep.entries -and $ep.entries.Count -gt 0) { $focus = $ep.entries[0].title }
 if ($focus) {
-    $trJson = & dotnet run --no-build --project $cliProject -- query trace --path $testDir --focus $focus --format json 2>&1 | Out-String
+    $trJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir --focus $focus --format json } | Out-String
     try { $tr = $trJson | ConvertFrom-Json } catch { $tr = $null }
     if ($tr -and $tr.found -eq $true -and $tr.root) {
         Write-Host "    trace('$focus'): found, root=$($tr.root.title)" -ForegroundColor Green
@@ -416,11 +439,10 @@ if ($Scope -eq 'engine') {
     Write-Step "Step 5: App check (pnpm check)"
     Push-Location (Join-Path $repoRoot "src\DevContext.App")
     try {
-        # PS 5.1: native stderr under 2>&1 + EAP=Stop can throw mid-stream — relax around the call.
-        $oldEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        $appResult = & pnpm check 2>&1
+        # This step's inline workaround is where the hazard was first found; it is now the shared
+        # Invoke-NativeCapture every step uses (see its comment for what it costs to leave one out).
+        $appResult = Invoke-NativeCapture { & pnpm check }
         $appExit = $LASTEXITCODE
-        $ErrorActionPreference = $oldEap
     } finally { Pop-Location }
     if ($appExit -ne 0) {
         Write-Host ($appResult | Select-Object -Last 40)

@@ -4,25 +4,27 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G5.1 CLAIMED (d21e72b) — D-3 is root-caused per verb, and G5.2 is now a checklist.** Read
-`eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md` §5 and build to it; do not re-derive §1–§4.
-The entry→handler edge is **NOT missing**: all five `Calls[Join]` edges exist and land on the command
-**TYPE**, which is a dead end. 17 invocation sites across the five verbs, **exactly 1 binds**, and it
-points at a framework `ILogger` that `ResolvePrimaryCall` filters out — so joining the execute member
-alone still gives 0/5. **Defect 1:** `this.<field>.<M>()` never binds — `RootIdentifier` walks to the
-`this` token so `ReceiverType` is null, and `CallGraphBinder.cs:250` treats it as a **self-call**,
-never consulting `ReceiverMember`. **Defect 2 (bug #12, OUT OF SCOPE for G5.2):**
-`SemanticLitePopulator.TryBindReceiverType` relocates by LINE SPAN then searches **ancestors**, so a
-one-line statement's invocation is a descendant and is never found — repo-wide, needs a matrix batch.
-**G5.2 = Defect 1 + join the execute MEMBER** (`CliCommandEntryPointBuilder.cs:29-40` drops the
-already-detected `ExecuteMethod`). The DI answer is already in the graph
-(`Resolves[Join] IService→Service`), so this lands `0/5 → 4/5`; `test` genuinely calls nothing and
-must stay honestly unwired. **Canary is safe by measurement**: the `this.<field>.` shape has 878 sites
-in GitVersion and **0 in CleanArchitecture / Hangfire / Polly / Serilog**.
-Traps paid for this session: `analyze --no-cache` then `query` serves the **stale** snapshot as `HIT`
-(bug #13) — analyse a fresh directory; PowerShell has no heredoc, write commit messages to a file and
-use `git commit -F`; a repro fixture belongs OUTSIDE the repo tree (a stray `.csproj` under
-`eval-results/` would be swept), archive its sources as `.txt`.
+**s16's `fast-engine` red was the GATE SCRIPT DYING, not a test. Fixed at the root; both fast gates
+now exit 0** (`eval-results/2026-07-29/G5/`: `verify-fast-engine.exit.txt`, `verify-guards.exit.txt`).
+No test, expectation, golden or gate bar was touched — **G5.2 is still the next job and src/ is
+untouched.** Proof it was never a red: the identical command passes on the identical tree, and
+`exit 1` is a code only Step 1 can return (it prints the build log first). Mechanism, reproduced in a
+6-line probe: under `$ErrorActionPreference='Stop'`, PS 5.1 turns any stderr line from a native
+command captured as `2>&1` into a **terminating** error, so the script dies *before* the
+`$LASTEXITCODE` check — the suite can be green and the gate still says FAIL, and a real red loses its
+failing test names the same way. `gates.ps1` already carried this workaround inline for `pnpm check`
+and nowhere else; it is now `Invoke-NativeCapture` on all 12 captures + the `loom-guards.ps1` truth
+gate. **Read a gate red this way from now on: no `GATE: FAIL (step N)` line = the script died.**
+Same signature already hit s2 — `run.db` gates row 3 — and the board still shows `fast-engine:FAIL`
+as **G1.2**'s evidence; that annotation is a false red, G1.2's own work is fine.
+**G5.2 is unchanged and still a checklist** — build to `eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`
+§5, do not re-derive §1–§4. Defect 1 (`this.<field>.<M>()` reaching `CallGraphBinder.cs:250`'s
+self-call arm) + join the execute MEMBER (`CliCommandEntryPointBuilder.cs:29-40` drops the detected
+`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Canary safe by
+measurement (878 `this.<field>.` sites in GitVersion, **0** in CleanArchitecture/Hangfire/Polly/
+Serilog). Bug #12 stays OUT of G5.2 — it moves counts on every pole and needs a matrix batch.
+**Budget the cold snapshot:** any Core edit invalidates every MVID-keyed snapshot, which trips bug #1
+(MCP QA false 0/12 on the first battery after a Core change). Expect it; do not chase it.
 
 
 ## Baseline numbers (from run.db)
@@ -31,7 +33,7 @@ use `git commit -F`; a repro fixture belongs OUTSIDE the repo tree (a stray `.cs
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 12 |
+| Claimed (unconfirmed) | 13 |
 
 ## Checkpoints
 
@@ -74,7 +76,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | TODO | - | - |
+| G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | DONE | d21e72b | fast-engine:FAIL · guards:OK |
 | G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | TODO | - | - |
 
 ### G6 — D-4 — one vocabulary for "service" on Atlas

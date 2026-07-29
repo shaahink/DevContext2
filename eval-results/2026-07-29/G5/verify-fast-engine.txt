@@ -1,0 +1,45 @@
+########## GATE 1/2: fast-engine ##########
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests - SKIPPED (-SkipEval; mid-stage fast run) ---
+  the full battery must still run at the stage/push/merge boundary
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 16 nodes, 2 entries, 9 waterfall stages
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check - SKIPPED (-Scope engine) ---
+
+GATE: PASS (ENGINE scope - app check skipped; not a merge gate)
+########## fast-engine EXIT = 0 ##########
+

@@ -242,3 +242,12 @@ during long waits. Related drivers: `visual-gate.mts`, `audit-screenshots.mts`, 
   `-o out.json` and parse the file, not captured stdout.
 - **Don't `Select-Object -First N` a CLI pipe** — the truncated pipe kills `dotnet` early and reports
   a bogus non-zero exit code.
+- **Never capture a native command as `$x = <cmd> 2>&1` under `$ErrorActionPreference = 'Stop'`** —
+  PS 5.1 wraps each stderr line in a `NativeCommandError` record, `Stop` makes it *terminating*, and
+  the script dies **at that statement** with exit 1: no `$LASTEXITCODE` check, no diagnostic. Measured
+  2026-07-29 (`eval-results/2026-07-29/G5/`): it failed the battery twice over a green suite, and it
+  discards a real failure's output the same way. Gate scripts route every native capture through
+  `Invoke-NativeCapture` (`eval/gates.ps1`); do the same in any new script.
+  **Reading a gate red:** `GATE: FAIL (step N)` is the script's verdict. Output that stops mid-step
+  with no verdict line is the script *dying*, not the step failing — check the exit code against what
+  that step can actually return before you go hunting for a regression.

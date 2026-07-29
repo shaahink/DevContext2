@@ -1,0 +1,6 @@
+$ErrorActionPreference = "Stop"
+Write-Host "--- Step 2: Fast unit tests ---"
+$r = cmd /c "echo stdout-line& echo stderr-line 1>&2& exit 0" 2>&1
+Write-Host "REACHED THE EXITCODE CHECK - LASTEXITCODE=$LASTEXITCODE"
+Write-Host "  PASS  Fast tests passed"
+exit 0

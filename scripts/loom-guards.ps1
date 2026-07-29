@@ -99,7 +99,14 @@ if (-not $Quiet -and ($nodeIdCount -gt 0 -or $fqns0Count -gt 0)) {
 # D5 (L0.4): Truth gate — runs Category=Truth tests; failures are banned, skips are ratchets.
 Write-Host "== truth gate -- dotnet test Category=Truth ==" -ForegroundColor Gray
 $testProject = Join-Path $repoRoot 'tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj'
-$truthOutput = & dotnet test $testProject --filter "Category=Truth" --no-build --verbosity normal 2>&1
+# Same hazard as eval/gates.ps1's Invoke-NativeCapture (measured 2026-07-29, G5): under
+# $ErrorActionPreference = 'Stop', PS 5.1 turns any stderr line this native call writes into a
+# TERMINATING NativeCommandError, killing the script with exit 1 before $truthExit is ever read -
+# so a green truth suite reads as a dead gate, and a red one loses its failing test names. One
+# capture here, so the relaxation is scoped inline rather than via a duplicated helper.
+$oldEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+try { $truthOutput = & dotnet test $testProject --filter "Category=Truth" --no-build --verbosity normal 2>&1 }
+finally { $ErrorActionPreference = $oldEap }
 $truthExit = $LASTEXITCODE
 
 # Parse: count actual Failures (not skips). Skipped tests are the pending ratchet.

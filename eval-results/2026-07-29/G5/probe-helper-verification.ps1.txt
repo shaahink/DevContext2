@@ -1,0 +1,23 @@
+$ErrorActionPreference = "Stop"
+
+function Invoke-NativeCapture {
+    param([Parameter(Mandatory)][scriptblock]$Command)
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $Command 2>&1 } finally { $ErrorActionPreference = $oldEap }
+}
+
+Write-Host "--- probe A: stderr + exit 0 (the false-red case) ---"
+$a = Invoke-NativeCapture { cmd /c "echo A-stdout& echo A-stderr 1>&2& exit 0" }
+Write-Host "  reached check; LASTEXITCODE=$LASTEXITCODE; captured=[$($a -join ' / ')]"
+
+Write-Host "--- probe B: stderr + exit 2 (the real-red case must still fail) ---"
+$b = Invoke-NativeCapture { cmd /c "echo B-failure-detail& echo B-stderr 1>&2& exit 2" }
+Write-Host "  reached check; LASTEXITCODE=$LASTEXITCODE; captured=[$($b -join ' / ')]"
+if ($LASTEXITCODE -ne 0) { Write-Host "  CORRECTLY DETECTED FAILURE, output preserved" }
+
+Write-Host "--- probe C: EAP restored to Stop afterwards? ---"
+Write-Host "  ErrorActionPreference=$ErrorActionPreference"
+try { Get-Content "C:\definitely\missing\file.txt" | Out-Null; Write-Host "  BAD: cmdlet error was NOT terminating" }
+catch { Write-Host "  GOOD: cmdlet error still terminating under EAP=Stop" }
+exit 0
