@@ -4,19 +4,20 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-G1.2 CLAIMED @ 7c6eb5e — evidence `eval-results/2026-07-29/G1.2-EVIDENCE.md`. Next: **G1.3**.
-RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js glyphs|retarget|envelope <outDir>` — the
-driver already has a case per remaining G1 checkpoint and each measures the before-state.
-**Re-verify every [audit] ref before editing.** Item 1's was wider than written; item 2's was partly
-STALE (type roots already resolved — "libraries get nothing" was false). Assume item 3-7's are too.
-Make the evidence print the IDENTITY a tool resolved, not just PASS/FAIL — that is the only reason
-G1.2 caught its second defect. And a negative assertion needs a positive precondition: G1.2's canary
-first passed on a pack with ZERO sections.
-Traps paid for: the MCP SPAWNS a DevContext.Server that outlives the driver and locks Core/Cli/
-Contracts DLLs — kill it BY PID before any build (`start-dev-bg.ps1 -Kill` does not know it), and
-pin `DEVCONTEXT_SERVER` to the fresh exe or an installed copy shadows your build.
-RED, not mine and not new: `McpQaGateTests` fails 0/12 on the FIRST run after any Core edit
-(open bug #1, MVID snapshot invalidation). Warm re-run = 12/12. Do not weaken it. Bug #2 also filed.
+G1.3 CLAIMED @ 75704f2 (+ evidence 2d27a6c) — `eval-results/2026-07-29/G1.3-EVIDENCE.md`. Next: **G1.4**.
+RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js find-kind|analyze-honesty <outDir>`.
+**VERIFY WITH THE BATTERY'S OWN COMMANDS.** `--filter "Category!=Eval"` is NOT gates.ps1 Step 2 — it
+drags the 3-minute MCP QA drive into a 674-test parallel run where the server the MCP spawns exits
+before binding, and you get `FATAL: Timeout: initialize` that reads as an engine collapse. Use
+`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE. That is the
+whole McpQaGateTests mystery three sessions have chased; bug #1 should be re-read in that light.
+**Re-verify every [audit] ref before editing** — item 5's named 5 tools and the real set was 8, found
+by sweeping all 24, not by reading the ref. Tighten your own driver too: the glyphs case PASSED on
+the broken before-state (one non-Call glyph satisfied it) — assert the ZERO, not the some.
+Traps paid for: the MCP spawns a DevContext.Server that outlives the driver and locks the DLLs —
+kill it BY PID before any build; pin `DEVCONTEXT_SERVER`; and never raise a timeout in a node
+harness without clearing the timer, or the timeout becomes the process's minimum lifetime.
+
 
 ## Baseline numbers (from run.db)
 
@@ -24,7 +25,7 @@ RED, not mine and not new: `McpQaGateTests` fails 0/12 on the FIRST run after an
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -36,7 +37,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | DONE | cf1a822 | fast-engine:OK · guards:OK |
-| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | TODO | - | - |
+| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | DONE | 79743b0 | fast-engine:FAIL · guards:OK |
 | G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | TODO | - | - |
 | G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | TODO | - | - |
 
