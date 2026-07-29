@@ -99,8 +99,15 @@ export class DevContextApi {
     return this.client.listEntryPoints({ handle });
   }
 
+  /**
+   * G2.2 (R4 item 12): budgetTokens 0 is stated, not left absent. An absent budget now resolves to
+   * the server's trace policy default (~4000 tokens), which is right for an agent paying for every
+   * token and wrong for a desktop that renders the tree into a scrollable pane. Saying 0 keeps the
+   * full tree AND makes the choice visible here, instead of resting on an absent-means-unlimited
+   * rule that this checkpoint changes.
+   */
   getTrace(handle: string, focus: string, depth: number, detail: string, signal?: AbortSignal): Promise<TraceResponse> {
-    return this.client.getTrace({ handle, focus, depth, detail }, { signal });
+    return this.client.getTrace({ handle, focus, depth, detail, budgetTokens: 0 }, { signal });
   }
 
   getNode(handle: string, nodeId: string, signal?: AbortSignal): Promise<NodeResponse> {

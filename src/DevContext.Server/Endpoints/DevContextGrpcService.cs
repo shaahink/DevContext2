@@ -146,7 +146,14 @@ public sealed class DevContextGrpcService(
             // the tree the app drew and the document it copied could disagree about what was omitted.
             var depth = request.HasDepth ? request.Depth : Core.Graph.TracePolicy.DefaultDepth;
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
-            var budgetTokens = request.HasBudgetTokens ? request.BudgetTokens : 0; // T3.3 — 0 = unlimited
+            // G2.2 (R4 §1 item 12) — an ABSENT budget is now the policy's default, not "unlimited".
+            // A caller that names 0 still gets the full tree; what changed is that saying nothing
+            // resolves in ONE place instead of once per client. The MCP used to send its own 4000
+            // literal on every call, so the server's default was unreachable and the CLI's
+            // no-dials trace was a different size from the MCP's for the same focus.
+            var budgetTokens = request.HasBudgetTokens
+                ? request.BudgetTokens                          // explicit, including 0 = full tree
+                : Core.Graph.TracePolicy.DefaultBudgetTokens;
 
             var entry = Core.Graph.EntryPointResolver.Resolve(session.Snapshot.Entries, session.Query.Graph, request.Focus);
             if (entry is null)

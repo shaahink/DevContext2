@@ -1,0 +1,44 @@
+{
+  "focus": "POST /api/orders/",
+  "probe": [
+    {
+      "depth": 6,
+      "full": 59,
+      "shaped4000": 59
+    },
+    {
+      "depth": 9,
+      "full": 72,
+      "shaped4000": 72
+    },
+    {
+      "depth": 12,
+      "full": 72,
+      "shaped4000": 72
+    }
+  ],
+  "mcpNoDials": {
+    "steps": 59,
+    "budgetSource": "server trace policy",
+    "omitted": 89,
+    "hint": "89 node(s) omitted to fit the server's default trace budget. Pass budgetTokens (0 for the full tree), or read_source(nodeId) into a truncated subtree."
+  },
+  "mcpDepth6": {
+    "steps": 59
+  },
+  "mcpBudget300": {
+    "steps": 6,
+    "budgetSource": "caller"
+  },
+  "mcpFull": {
+    "steps": 59
+  },
+  "cliNoDials": {
+    "steps": 59,
+    "found": true
+  },
+  "elastic": {
+    "roomyNoDepth": 72,
+    "roomyDepth6": 59
+  }
+}

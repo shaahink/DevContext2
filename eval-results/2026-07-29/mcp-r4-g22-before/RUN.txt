@@ -1,0 +1,9 @@
+case: trace-budget
+  PASS  analyze eShop — 0.1s
+  budget-bite probe: d6 full=59 @4000=59 · d9 full=72 @4000=72 · d12 full=72 @4000=72
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g22-before\trace-budget-eshop.json
+  steps — mcp(no dials)=59 · mcp(depth:6)=59 · mcp(budget:300)=6 · mcp(full)=59 · cli(no dials)=59
+  PASS  a budget can cut this trace at all — budget300=6 full=59
+  FAIL  an unspecified depth lets the policy deepen the walk — noDials=59 depth6=59
+  PASS  MCP and CLI agree when neither names a dial — mcp=59 cli=59
+  FAIL  the reply names the source of the budget it was shaped by — noDials=undefined stated=undefined

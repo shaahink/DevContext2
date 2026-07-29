@@ -78,7 +78,8 @@ path or put the directory on `PATH`):
   `query`. Ambiguity is honest: a query matching several nodes returns the candidates — no tool
   ever silently picks one.
 - Budgeted tools (`trace`, `get_context`) take `budgetTokens` and name what they cut
-  ("N omitted") instead of truncating silently.
+  ("N omitted") instead of truncating silently. A dial you do not name is left UNSET on the wire, so
+  the server's one trace policy applies it — the MCP no longer carries its own copy of the defaults.
 
 ## Tool catalog (21)
 
@@ -116,7 +117,7 @@ path or put the directory on `PATH`):
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
-| `trace` | Call spine from one entry. `format: compact` is the small flow summary (~150 tokens: `steps`/`touches`/`emits`, each step prefixed with a seam glyph, plus a `legend` keying the ones it used); `format: default` is the full tree. Budgeted: cut subtrees are named ("N omitted"); `budgetTokens: 0` = full tree. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
+| `trace` | Call spine from one entry. `format: compact` is the small flow summary (~150 tokens: `steps`/`touches`/`emits`, each step prefixed with a seam glyph, plus a `legend` keying the ones it used); `format: default` is the full tree. **Omit `depth`/`budgetTokens` and the server's trace policy decides** — and only then can it deepen a walk that hit the limit with budget to spare. Naming a dial gets exactly that dial; `budgetTokens: 0` = full tree. Cut subtrees are named ("N omitted"), and `budgetSource` says whether the budget was yours or the policy's. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
 | `tests_for` | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
 | `config` | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |

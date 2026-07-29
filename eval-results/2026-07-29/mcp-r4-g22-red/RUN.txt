@@ -1,0 +1,17 @@
+G2.2 ISOLATED RED — server + CLI + TracePolicy fixes IN PLACE, only src/DevContext.Mcp/DevContextTools.cs
+reverted to the previous commit (git stash push of that one file, then dotnet build src/DevContext.Mcp).
+
+case: trace-budget
+  PASS  analyze eShop - 7.3s
+  budget-bite probe: d6 full=59 @4000=59 . d9 full=72 @4000=72 . d12 full=72 @4000=72
+  steps - mcp(no dials)=59 . mcp(depth:6)=59 . mcp(budget:300)=6 . mcp(full)=59 . cli(no dials)=59
+  elastic - budget20000 no depth=59 . budget20000 depth:6=59
+  PASS  a budget can cut this trace at all - budget300=6 full=59
+  FAIL  an unspecified depth lets the policy deepen the walk - noDepth=59 depth6=59
+  PASS  a STATED depth is still honoured exactly - roomy@6=59 default@6=59
+  PASS  MCP and CLI agree when neither names a dial - mcp=59 cli=59
+  FAIL  the reply names the source of the budget it was shaped by - noDials=undefined stated=undefined
+
+The two FAILs are the checkpoint. With the file restored and the MCP rebuilt, the same run reads
+noDepth=72 depth6=59 and budgetSource=server trace policy / caller. That isolates the cause to the
+MCP restating the policy's dials as its own literals - not to any of the other three edits.

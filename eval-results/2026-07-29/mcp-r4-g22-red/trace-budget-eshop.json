@@ -1,0 +1,43 @@
+{
+  "focus": "POST /api/orders/",
+  "probe": [
+    {
+      "depth": 6,
+      "full": 59,
+      "shaped4000": 59
+    },
+    {
+      "depth": 9,
+      "full": 72,
+      "shaped4000": 72
+    },
+    {
+      "depth": 12,
+      "full": 72,
+      "shaped4000": 72
+    }
+  ],
+  "mcpNoDials": {
+    "steps": 59,
+    "budgetTokens": 4000,
+    "omitted": 89,
+    "hint": "89 node(s) omitted to fit ~4000 tok. Raise budgetTokens (or 0 for full), or read_source(nodeId) into a truncated subtree."
+  },
+  "mcpDepth6": {
+    "steps": 59
+  },
+  "mcpBudget300": {
+    "steps": 6
+  },
+  "mcpFull": {
+    "steps": 59
+  },
+  "cliNoDials": {
+    "steps": 59,
+    "found": true
+  },
+  "elastic": {
+    "roomyNoDepth": 59,
+    "roomyDepth6": 59
+  }
+}

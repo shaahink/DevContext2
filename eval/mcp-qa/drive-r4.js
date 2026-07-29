@@ -1,7 +1,7 @@
 // R4 (G1) evidence driver — real MCP calls, raw responses dumped to eval-results.
 // Usage: node eval/mcp-qa/drive-r4.js <case> [outDir]
 // Cases: map-library | map-multisln | getctx-library | glyphs | retarget | envelope
-//        | find-kind | analyze-honesty
+//        | find-kind | analyze-honesty | menu | trace-budget
 // Each case prints PASS/FAIL lines and writes the RAW tool responses (the evidence a
 // checkpoint claim needs — a real MCP call showing the response shape, not a diff).
 
@@ -434,6 +434,108 @@ const CASES = {
     check("no reply points at a folded tool",
       !/\bflow\(|\binsights\(|\binteresting_points\(/.test(blob),
       (blob.match(/\b(flow|insights|interesting_points)\(/g) ?? []).join(",") || "clean");
+  },
+  // G2.2 (R4 §1 item 12) — ONE trace budget default across MCP / CLI / server.
+  //
+  // The discriminating check is CROSS-SURFACE: the same focus, traced with NO dials on either
+  // side, must come back the same size. Before the fix the MCP shaped to its own 4000-token
+  // literal while `query --op trace` ran unbudgeted, so the two surfaces answered the same
+  // question with different trees. A per-surface check ("did I get a trace?") passes on both.
+  //
+  // The second check is the anti-vacuity guard, and it matters more than it looks: the cheap way
+  // to make two surfaces agree is to stop budgeting altogether. So the full tree must still be
+  // BIGGER than the defaulted one — the default has to actually cut something for this pole to
+  // be a test of a budget rather than a test of its absence.
+  async "trace-budget"(client) {
+    const repo = join(REPOS, "eShop");
+    const focus = "POST /api/orders/";
+    const { handle, elapsedMs } = await analyzeRepo(client, repo);
+    check("analyze eShop", !!handle, `${(elapsedMs / 1000).toFixed(1)}s`);
+    if (!handle) return;
+
+    const steps = (n) => { let c = 0; (function walk(x) { if (!x) return; (x.children ?? []).forEach((ch) => { c++; walk(ch); }); })(n); return c; };
+    const mcp = async (args) => (await tool(client, "trace", { handle, focus, ...args }, 120000)).data;
+
+    const { execFileSync } = require("child_process");
+    const CLI = join(__dirname, "..", "..", "src", "DevContext.Cli", "bin", "Debug", "net10.0", "DevContext.Cli.exe");
+    const cliTrace = (extra) => {
+      try {
+        const out = execFileSync(CLI, ["query", "trace", "--path", repo, "--focus", focus, ...extra],
+          { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 900000 });
+        return JSON.parse(out.slice(out.indexOf("{")));
+      } catch (e) {
+        console.log(`  CLI trace failed: ${String(e.message).slice(0, 200)}`);
+        return null;
+      }
+    };
+
+    // MEASURED FIRST, and it moved the checks: on eShop's order entry the 4000-token default cuts
+    // NOTHING at any depth the walker reaches — budgetTokens 0 and 4000 return the identical tree
+    // at depth 6 (59 steps), 9 and 12 (72). So "the budget bit" is not observable on this pole and
+    // asserting it would be theatre. What IS observable here is the other half of the same defect:
+    // the MCP restated the policy's DEPTH as its own literal on every call, so the server never saw
+    // an unspecified depth and TracePolicy.ElasticDepth — which fires only when the caller left the
+    // depth to the server — has never run on any request the product has served.
+    const probe = [];
+    for (const d of [6, 9, 12]) {
+      const f = await mcp({ depth: d, budgetTokens: 0 });
+      const shaped = await mcp({ depth: d, budgetTokens: 4000 });
+      probe.push({ depth: d, full: steps(f?.root), shaped4000: steps(shaped?.root) });
+    }
+    console.log(`  budget-bite probe: ${probe.map((p) => `d${p.depth} full=${p.full} @4000=${p.shaped4000}`).join(" · ")}`);
+
+    const dflt = await mcp({});                              // NO dials — the policy decides both
+    const atPolicyDepth = await mcp({ depth: 6 });           // the depth MCP used to hard-code
+    const tiny = await mcp({ budgetTokens: 300 });           // a budget small enough to bite
+    const fullTree = await mcp({ budgetTokens: 0 });         // 0 = the whole thing, every surface
+    const cli = cliTrace([]);                                // other transport, no dials either
+    // The elastic rule needs BOTH halves of its condition: the walk hit the depth limit AND the
+    // result left budget to spare. At the policy budget this pole fails the second half (the tree
+    // already spends most of 4000), so the rule correctly declines — which is why the pair below
+    // states a roomy budget and leaves only the DEPTH unspecified. That is the dial whose absence
+    // could never reach the engine before.
+    const roomyElastic = await mcp({ budgetTokens: 20000 });
+    const roomyFixed = await mcp({ budgetTokens: 20000, depth: 6 });
+
+    const sDflt = steps(dflt?.root), sAt6 = steps(atPolicyDepth?.root);
+    const sTiny = steps(tiny?.root), sFull = steps(fullTree?.root), sCli = steps(cli?.root);
+    const sElastic = steps(roomyElastic?.root), sFixed = steps(roomyFixed?.root);
+    dump("trace-budget-eshop.json", {
+      focus, probe,
+      mcpNoDials: { steps: sDflt, budgetTokens: dflt?.budgetTokens, budgetSource: dflt?.budgetSource, omitted: dflt?.omitted, hint: dflt?.hint },
+      mcpDepth6: { steps: sAt6 },
+      mcpBudget300: { steps: sTiny, budgetSource: tiny?.budgetSource },
+      mcpFull: { steps: sFull },
+      cliNoDials: { steps: sCli, found: cli?.found },
+      elastic: { roomyNoDepth: sElastic, roomyDepth6: sFixed },
+    });
+    console.log(`  steps — mcp(no dials)=${sDflt} · mcp(depth:6)=${sAt6} · mcp(budget:300)=${sTiny} · mcp(full)=${sFull} · cli(no dials)=${sCli}`);
+    console.log(`  elastic — budget20000 no depth=${sElastic} · budget20000 depth:6=${sFixed}`);
+
+    // 1. Anti-vacuity: shaping must be capable of cutting, or every check below is about nothing.
+    check("a budget can cut this trace at all", sTiny < sFull, `budget300=${sTiny} full=${sFull}`);
+    // 2. THE revival. TracePolicy.ElasticDepth deepens a walk the caller did not pin — and until
+    //    this checkpoint it could not run at all, because the MCP assigned `depth` on every call and
+    //    a set proto3 optional is a stated dial. With the depth left alone and room in the budget it
+    //    now reaches past 6. A stated depth still gets exactly 6: an explicit dial is not a
+    //    suggestion (Batch E's rule), and that half is the canary.
+    check("an unspecified depth lets the policy deepen the walk", sElastic > sFixed,
+      `noDepth=${sElastic} depth6=${sFixed}`);
+    check("a STATED depth is still honoured exactly", sFixed === sAt6,
+      `roomy@6=${sFixed} default@6=${sAt6}`);
+    // 3. Cross-surface: two transports, neither naming a dial, one answer. This is what fails if
+    //    only one side is fixed.
+    check("MCP and CLI agree when neither names a dial", sDflt === sCli,
+      `mcp=${sDflt} cli=${sCli}`);
+    // 4. The reply says WHOSE budget shaped it instead of quoting a number it never sent.
+    check("the reply names the source of the budget it was shaped by",
+      dflt?.budgetSource === "server trace policy" && tiny?.budgetSource === "caller",
+      `noDials=${dflt?.budgetSource} stated=${tiny?.budgetSource}`);
+    // Evidence line, not a check: at the POLICY budget this pole does not deepen, because the tree
+    // already spends most of it. Printed so the next reader sees the rule declining rather than
+    // wondering whether it ran.
+    console.log(`  elastic at the policy budget: no dials=${sDflt} vs depth:6=${sAt6}`
+      + ` (equal is correct here — the tree already uses most of the default budget)`);
   },
 };
 

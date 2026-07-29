@@ -122,10 +122,10 @@ public sealed class GraphQuery
     /// the budget rule all come from <see cref="TracePolicy"/>, so a focus traced through the CLI, the
     /// gRPC surface or MCP produces the same steps.</para></summary>
     public Trace? Trace(string focus, int depth = TracePolicy.DefaultDepth,
-        int maxFanOut = TracePolicy.DefaultFanOut, int budgetTokens = 0)
+        int maxFanOut = TracePolicy.DefaultFanOut, int budgetTokens = 0, bool explicitDepth = true)
     {
         var entry = ResolveEntry(focus);
-        return entry is null ? null : Trace(entry, depth, maxFanOut, budgetTokens);
+        return entry is null ? null : Trace(entry, depth, maxFanOut, budgetTokens, explicitDepth);
     }
 
     /// <summary>The entry a focus resolves to, or null. Exposed (G1.2) so a caller that needs the ROOT

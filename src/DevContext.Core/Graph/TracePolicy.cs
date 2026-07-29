@@ -23,6 +23,16 @@ public static class TracePolicy
     /// <summary>Children expanded per node when the caller doesn't say.</summary>
     public const int DefaultFanOut = 12;
 
+    /// <summary>The document budget a trace is shaped to when the caller names none. 0 means the
+    /// caller asked for the full tree, and is honoured; this is only what "unspecified" resolves to.
+    /// <para>R4 §1 item 12 — before this constant existed, "unspecified" meant three different
+    /// things: the MCP tool hard-coded 4000, <c>query --op trace</c> ran unbudgeted, and the gRPC
+    /// server treated an absent field as unlimited. Same focus, same engine, three sizes of answer.
+    /// The value is 4000 because that is the only trace-SPECIFIC default the product has ever
+    /// shipped — the CLI's 8000 is a whole-DOCUMENT budget (<c>RenderRequest.MaxTokens</c>) a caller
+    /// passes explicitly, out of which <see cref="TreeBudget"/> already carves the tree's share.</para></summary>
+    public const int DefaultBudgetTokens = 4000;
+
     /// <summary>Ceiling for budget-elastic deepening (see <see cref="ElasticDepth"/>). A trace deeper
     /// than this stops being a story and becomes a dump, whatever the budget allows.</summary>
     public const int MaxElasticDepth = 12;

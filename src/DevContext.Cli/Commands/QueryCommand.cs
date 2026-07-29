@@ -169,7 +169,10 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "entrypoints" => EntrypointsOp(query),
                 "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus, snapshot.Report),
                 // Batch E: the default comes from TracePolicy, not from a literal repeated per surface.
-                "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? DevContext.Core.Graph.TracePolicy.DefaultDepth),
+                // G2.2: the nullable Depth is passed through, not collapsed here — "the user named a
+                // depth" and "the user said nothing" have to stay distinguishable all the way to the
+                // engine, or the budget-elastic rule can never fire (it fires only on the second).
+                "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth),
                 "graphdump" => GraphDumpOp(snapshot.Graph),
                 _ => null
             };
@@ -359,10 +362,17 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
 
     // T3.7 — trace: GraphQuery.Trace(focus, depth) as a JSON tree. Honors --focus/--depth (the render
     // fallback ignored both). Returns null on empty focus so the shared "--focus required" path fires.
-    private static object? TraceOp(DevContext.Core.Graph.GraphQuery query, string focus, int depth)
+    //
+    // G2.2 (R4 §1 item 12): the budget comes from TracePolicy, like the depth above it. This op ran
+    // UNBUDGETED while the MCP shaped the same focus to its own 4000-token literal, so the two
+    // surfaces answered the same question with different trees. One rule, read from one place.
+    private static object? TraceOp(DevContext.Core.Graph.GraphQuery query, string focus, int? depth)
     {
         if (string.IsNullOrWhiteSpace(focus)) return null;
-        var trace = query.Trace(focus, depth);
+        var trace = query.Trace(focus,
+            depth ?? DevContext.Core.Graph.TracePolicy.DefaultDepth,
+            budgetTokens: DevContext.Core.Graph.TracePolicy.DefaultBudgetTokens,
+            explicitDepth: depth is not null);
         if (trace is null) return new { found = false, focus, error = $"No entry or node matched '{focus}'" };
         return new
         {

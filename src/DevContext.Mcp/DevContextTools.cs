@@ -821,11 +821,17 @@ public sealed class DevContextTools
     }
 
     // T3.3 — when the budget cut nodes, teach the agent how to get the rest without re-tracing.
-    private static string? BudgetHint(TraceNode? node, int budgetTokens)
+    // G2.2: `budgetTokens` is null when the caller named none, and the hint then says so instead of
+    // quoting a number. This client no longer knows the figure — that is the point of item 12: the
+    // budget rule lives in TracePolicy on the server, and restating it here is what let the two
+    // drift. Naming a number it did not send would be an invention, which is the class of defect
+    // this strand exists to remove.
+    private static string? BudgetHint(TraceNode? node, int? budgetTokens)
     {
         var omitted = OmittedNodes(node);
         if (omitted == 0) return null;
-        return $"{omitted} node(s) omitted to fit ~{budgetTokens} tok. Raise budgetTokens (or 0 for full), or read_source(nodeId) into a truncated subtree.";
+        var fit = budgetTokens is { } b ? $"~{b} tok" : "the server's default trace budget";
+        return $"{omitted} node(s) omitted to fit {fit}. Pass budgetTokens (0 for the full tree), or read_source(nodeId) into a truncated subtree.";
     }
 
     // G2.1 (R4 §1 item 11) — `interesting_points` is FOLDED into overview(). Overview already made
@@ -833,12 +839,18 @@ public sealed class DevContextTools
     // threw the nodeId away, so the one thing that made a starting point ADDRESSABLE was the thing
     // it dropped. The points now ride overview's envelope in full.
 
-    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = the call spine from ONE entry; format:"compact" is the small flow summary (what it touches/emits, ~150 tok) and format:"default" the full tree. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
+    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = the call spine from ONE entry; format:"compact" is the small flow summary (what it touches/emits, ~150 tok) and format:"default" the full tree. Omit depth/budgetTokens for the server's trace policy (depth 6, ~4000 tok); cut subtrees are named ("N omitted"); budgetTokens:0 gives the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
-    // depth 6 mirrors TracePolicy.DefaultDepth. It is a literal because this project is a gRPC CLIENT
-    // and deliberately does not reference DevContext.Core — the server, which does, is where the
-    // contract lives; sending the same number keeps MCP on it.
-    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default", string? query = null, int budgetTokens = 4000)
+    // G2.2 (R4 §1 item 12) — depth and budgetTokens are NULLABLE, and that is the whole fix.
+    //
+    // They used to be `int depth = 6, int budgetTokens = 4000`: literals mirroring TracePolicy,
+    // written here because this project is a gRPC CLIENT that deliberately does not reference
+    // DevContext.Core. But a C# default is not the same as an unset field — the tool assigned both
+    // on EVERY call, so a proto3 optional's presence bit was always set, the server's own defaults
+    // were unreachable, and TracePolicy.ElasticDepth (which fires only when the caller left the
+    // depth to the server) could never run at all. Mirroring a constant does not keep two surfaces
+    // together; not restating it does. The server, which owns TracePolicy, decides.
+    public async Task<string> Trace(string? handle = null, string? focus = null, int? depth = null, string format = "default", string? query = null, int? budgetTokens = null)
     {
         focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
@@ -849,13 +861,14 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "trace", "analyze(path) then trace(focus:\"POST /basket/checkout\")"); }
         try
         {
-            var resp = await _client.GetTraceAsync(new TraceRequest
-            {
-                Handle = handle,
-                Focus = focus,
-                Depth = depth,
-                BudgetTokens = budgetTokens, // T3.3 — server shapes the tree to this budget
-            });
+            var req = new TraceRequest { Handle = handle, Focus = focus };
+            // Only SEND a dial the caller named. Assigning a proto3 optional sets its presence bit
+            // even when the value equals the default, which is what made the server's policy
+            // unreachable from here.
+            if (depth is { } d) req.Depth = d;
+            if (budgetTokens is { } b) req.BudgetTokens = b;
+
+            var resp = await _client.GetTraceAsync(req);
             if (!resp.Found)
             {
                 // L5.2 — brittle focus resolution now teaches: suggest real entries/nodes.
@@ -895,6 +908,7 @@ public sealed class DevContextTools
                     emits = resp.EmittedEvents.Count,
                     tokens,
                     budgetTokens,
+                    budgetSource = budgetTokens is null ? "server trace policy" : "caller",
                     omitted = OmittedNodes(resp.Root),
                     hint = BudgetHint(resp.Root, budgetTokens),
                     legend = SeamLegend(compact),
@@ -912,6 +926,7 @@ public sealed class DevContextTools
                     kind = resp.Root.Kind,
                 } : null,
                 budgetTokens,
+                budgetSource = budgetTokens is null ? "server trace policy" : "caller",
                 omitted = OmittedNodes(resp.Root),
                 hint = BudgetHint(resp.Root, budgetTokens),
                 root = resp.Root is not null ? SerializeTraceNode(resp.Root) : null,
