@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 16:30 UTC · branch `feat/graph-v2` · HEAD `8bbef5b`_
+_Updated 2026-07-29 17:07 UTC · branch `feat/graph-v2` · HEAD `7c65b3e`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 1
-**Checkpoints:** 16/22 done · **Sessions run:** 21 · **Cost:** $275.1956 (agent $274.9239 + gates $0.2717) · **Tokens:** 3,849,653 in / 1,484,740 out
+**Checkpoints:** 16/22 done · **Sessions run:** 22 · **Cost:** $288.9126 (agent $288.6276 + gates $0.2850) · **Tokens:** 4,059,116 in / 1,557,965 out
 **Confirmed phases:** G1, G2, G3, G4, G5
+**Pending:** full-battery phase gate for G6
 
 ## Stage progress
 
@@ -139,18 +140,13 @@ _Updated 2026-07-29 16:30 UTC · branch `feat/graph-v2` · HEAD `8bbef5b`_
 | 19 | G5 | Deliver | 3 | 07-29 13:31 | 0:46 | Advanced | G5.2 | 4 | fast-engine:OK · guards:OK | $18.0011 | $0.0177 | 226,885/92,868 |
 | 20 | G6 | Deliver | 1 | 07-29 14:31 | 0:54 | Advanced | G6.1 | 2 | fast-app:OK · guards:OK | $31.7807 | $0.0260 | 303,408/117,180 |
 | 21 | G6 | Deliver | 1 | 07-29 15:30 | 0:43 | Advanced | G6.2 | 1 | fast-app:OK · guards:OK | $20.6312 | $0.0160 | 257,618/110,930 |
+| 22 | G6 | Fix | 2 | 07-29 16:30 | 0:34 | Progress |  | 1 | fast-app:OK · guards:OK | $13.7036 | $0.0133 | 209,463/73,225 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 12:17:55  ▪ gate guards pass [session]  (1m16s)
-07-29 12:17:58  • session #14 G4 → Advanced · done G4.1 · 3 commit(s)  (31m02s)
-07-29 12:17:58  • session #15 G4 Deliver started (attempt 1/4)
-07-29 12:48:55  ▪ gate fast-engine pass [session]  (1m47s)
-07-29 12:48:55  ▪ gate guards pass [session]  (47.9s)
-07-29 12:48:58  • session #15 G4 → Advanced · done G4.2,G4.3 · 4 commit(s)  (30m59s)
 07-29 13:02:10  ▪ gate fast-engine pass [phase]  (1m32s)
 07-29 13:02:10  ▪ gate guards pass [phase]  (38.6s)
 07-29 13:02:10  ▪ gate battery pass [phase]  (11m01s)
@@ -185,6 +181,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
 07-29 17:17:17  ▪ gate guards pass [session]  (1m00s)
 07-29 17:17:20  • session #21 G6 → Advanced · done G6.2 · 1 commit(s)  (46m29s)
+07-29 17:30:44  ▪ gate fast-app pass [phase]  (1m26s)
+07-29 17:30:44  ▪ gate guards pass [phase]  (44.1s)
+07-29 17:30:44  ▪ gate battery FAIL [phase]  (11m12s)
+07-29 17:30:47  • session #22 G6 Fix started (attempt 2/2)
+07-29 18:07:15  ▪ gate fast-app pass [session]  (1m27s)
+07-29 18:07:15  ▪ gate guards pass [session]  (45.3s)
 ```
 
 ## Health
@@ -192,7 +194,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 21 · retries 8 (38 %) · overall Alert
+sessions 22 · retries 9 (41 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -214,16 +216,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
+working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s14 (G4 Deliver)** — 3 commit(s):
-  - [`fa8ce07`](https://github.com/shaahink/DevContext2/commit/fa8ce07) G4.1: PLAN status + handoff for the next session
-  - [`55e7cec`](https://github.com/shaahink/DevContext2/commit/55e7cec) G4.1: the R4 dogfood drive - 43 MCP calls on Hangfire, every one graded
-  - [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) G4.1: ten dogfood questions, committed BEFORE the drive
 - **s15 (G4 Deliver)** — 4 commit(s):
   - [`ebf5b3a`](https://github.com/shaahink/DevContext2/commit/ebf5b3a) G4 close: PLAN status + handoff for the next session
   - [`8541958`](https://github.com/shaahink/DevContext2/commit/8541958) G4.3: the R4 dogfood REPORT - 81 calls graded, judged against the success bar
@@ -248,78 +246,32 @@ vs upstream: up to date
   - [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) G6.1 (R3 D-4): one vocabulary for "service" on Atlas
 - **s21 (G6 Deliver)** — 1 commit(s):
   - [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) G6.2 (R3 D-4): a metadata arity marker is identity, never a name
+- **s22 (G6 Fix)** — 1 commit(s):
+  - [`7c65b3e`](https://github.com/shaahink/DevContext2/commit/7c65b3e) G6.3 (R3 D-4): the scope boundary names what it drops
 
 ## Last gate run
 
-fast-app:OK · guards:OK · battery:FAIL
-
-<details><summary>battery — exit 3</summary>
-
-```
-Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
-
-Passed!  - Failed:     0, Passed:    57, Skipped:     2, Total:    59, Duration: 6 m 36 s - DevContext.Core.Tests.dll (net10.0)
-Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
-Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
-A total of 1 test files matched the specified pattern.
-A total of 1 test files matched the specified pattern.
-No test matches the given testcase filter `Category=Eval&(DisplayName~bitwarden-server|DisplayName~dntsite|DisplayName~wolverine|DisplayName~dotnet-podcasts|DisplayName~eshop|DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~blazor-surface|DisplayName~cli-app|DisplayName~company-fun...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
-
-[xUnit.net 00:00:00.98]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
-  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
-  Failed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dotnet-podcasts", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dotnet-"A�A�A�) [9 s]
-  Error Message:
-   Assert.Empty() Failure: Collection was not empty
-Collection: ["maui-present: 'MAUI' not found in output"]
-  Stack Trace:
-     at DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(String repoName, String expectationFile) in C:\code\DevContext2\tests\DevContext.Core.Tests\EvalExpectationTests.cs:line 103
---- End of stack trace from previous location ---
-  Standard Output Messages:
- Running analysis on dotnet-podcasts (C:\code\DevContext2\eval-repos\dotnet-podcasts)...
-   [pass] archetype-app
-   [pass] style-cleanarchitecture
-   [pass] hub-entry
-   [FAIL] maui-present �?" 'MAUI' not found in output
-   [pass] grouped-route-shows
-   [pass] grouped-route-feeds
-   [pass] no-bare-slash-routes
-   [pass] no-mediatr-branding
-   [pass] cqrs-hand-rolled
-   [pass] no-interface-target
-   [pass] target-checklink-is-true
-   [pass] analysis-time
-
-
-
-Failed!  - Failed:     1, Passed:    26, Skipped:     1, Total:    28, Duration: 10 m 6 s - DevContext.Core.Tests.dll (net10.0)
-  host exit codes: A=0 B=1
-  FAIL  Eval tests failed
-
-GATE: FAIL (step 3 - eval)
-```
-</details>
+fast-app:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: G6.2 delivered and claimed (`conductor task --done G6.2 --evidence eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`, board confirms DONE, commit 051386c pushed) — D-4 is now closed on both halves. The engine was measured clean (0 titles / 248 ids with arity across 5 poles) and the leak located entirely in the app: eight id→label derivation sites, replaced by one rule (`nodeIdLabel` in `core/format.ts`) plus title-threading (`TraceStore.titleFor`), and gated as loom-guards rule 8 (RED 8 → GREEN 0, watched). Nothing is red: build 0w/0e, loom-guards + truth gate PASS, `pnpm check` EXIT=0 with 138 tests (+8 new), and the live app measures 0 arity in every text node and every `title=`…
+> SESSION-RESULT: The battery's one red (dotnet-podcasts `maui-present`) is fixed at root and the FULL `eval/gates.ps1` is now `GATE: PASS` / `BATTERY-EXIT=0` — build 0w/0e, contract sweep 0 new dead fields, fast tests, MCP QA, eval over 24 repos on both hosts (A=0 B=0), CLI matrix, `pnpm check` — committed as `7c65b3e` and pushed to `feat/graph-v2`, with G6.1 re-claimed against `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md`; the cause was G6.1 silently swapping a *population* (`model.Projects` → the analysed `.sln`'s projects) inside what read as a *predicate* change, so podcasts' two MAUI clients — which live in sibling solutions — lost the only surface that had ever named them, and the fix n…
 
 ## Tracker handoff
 
 ```
-**G6.2 CLAIMED** — evidence `eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`. **D-4 is now closed, both halves.**
-The engine was already clean and I MEASURED that rather than trusting SymbolCanon's doc comment: 0 node
-titles carry arity across 5 poles, 248 node IDS do (correct). **The leak was the client — 8 sites, 8 rules**,
-one of them `shortNodeTitle` in workbench-page.ts, i.e. the SAME function G6.1 deleted from the hub radar,
-alive in a second file. Rule now: never derive a name from an id — thread the graph's title
-(`TraceStore.titleFor`) — and where there truly is none, ONE fallback, `nodeIdLabel` in core/format.ts.
-This is not taste: `label-mirror-fidelity.ps1` measured that a derivation CANNOT reproduce engine titles
-(Member titles are 343 owner-qualified vs **627 bare** — filed as bug #17; bug #18 = Type nodes whose title
-is a 20-line lambda body). Enforced as **loom-guards rule 8** (3 shapes, 1 allow-listed matcher), watched
-RED 8 → GREEN 0. Gates: build 0w/0e · guards+truth PASS · `pnpm check` EXIT=0 (138 tests). **Next = G7.1 (C-2).**
-Reusable: `scripts/g62-arity-dom.mts` greps text nodes AND `title=` attributes (2 leaks lived in tooltips);
-its GAP, stated in the evidence: it does not reach the stage's node-altitude branch. A LIBRARY POLE CANNOT
-exercise interactive surfaces (FluentValidation: densest arity ids, but no trace → no trail/peek). New traps:
-a .ps1 must be ASCII (a UTF-8 em dash inside a "string" makes PS 5.1 fail to PARSE); `git stash pop` in a
-script must be gated on stash@{0} being YOURS (this repo carries 3 old stashes from other branches);
-`Get-ChildItem -Include` leaks DIRECTORIES into Select-String and kills a guard silently under -EA Stop.
+**FIX SESSION — the battery's one red was a real G6.1 regression; FULL battery now `GATE: PASS` (`BATTERY-EXIT=0`).**
+Evidence `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md` + `G6.3-battery.log`. Red: dotnet-podcasts
+`maui-present`. G6.1 swapped a PREDICATE (`model.Projects` + a home-grown skip list → `RunnableProjects(scope,…)`)
+and, invisibly, a **POPULATION** — `SolutionScope` keeps only the resolved `.sln`'s csprojs, and podcasts holds
+its two MAUI clients in sibling solutions, so the rollup that was the only surface ever naming them went silent.
+**The lesson is bigger than the bug: G6.1's own 5-pole invariant was blind BY CONSTRUCTION.** "Breakdown rows ==
+Service nodes" now reads BOTH sides from the same narrowed list, so a shared shrink measures as agreement —
+podcasts read 5=5 before AND after; the 5 used to be 7. **Pair every A==B invariant with a content ratchet.**
+Fix NAMES the boundary rather than re-admitting non-services: `outside_scope_apps` (proto 19; MCP `map` + Atlas
+read it) renders under SCOPE as "not analyzed — 2 runnable apps outside this solution". D-4's "service" is
+untouched, and the live DOM probe (`scripts/g63-outside-scope-dom.mts`) proves BOTH halves: block present, and
+0 of its names leaked onto a service card. Still open, filed: **bug #19** — the same page states a FOURTH count
+(STYLE evidence "6 runnable web services" vs 5 rows / 5 boxes); the STACK line still reads every discovered
+project (podcasts prints `net7.0-android` from the out-of-scope csprojs). **Next = G7.1 (C-2).**
 ```
