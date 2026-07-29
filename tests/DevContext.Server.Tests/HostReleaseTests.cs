@@ -11,32 +11,26 @@ namespace DevContext.Server.Tests;
 /// cured it because restart was the only host eviction).</summary>
 public sealed class HostReleaseTests : IDisposable
 {
+    // Same J2 redirect as ServerTestFactory: never touch (or serve from) the user's real snapshot
+    // cache. G5 s18 — handed to the runner rather than written to DEVCONTEXT_CACHE_ROOT; the
+    // save-and-restore form could not survive a concurrent collection doing the same thing.
     private readonly string _cacheRoot = Path.Combine(
         Path.GetTempPath(), "devcontext-server-tests-cache", Guid.NewGuid().ToString("N"));
-    private readonly string? _priorCacheRoot;
-
-    public HostReleaseTests()
-    {
-        // Same J2 redirect as ServerTestFactory: never touch (or serve from) the user's real
-        // snapshot cache. Restored on dispose so parallel fixtures keep their own redirect.
-        _priorCacheRoot = Environment.GetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT");
-        Environment.SetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT", _cacheRoot);
-    }
 
     public void Dispose()
     {
-        Environment.SetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT", _priorCacheRoot);
         try { if (Directory.Exists(_cacheRoot)) Directory.Delete(_cacheRoot, true); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
     }
 
-    private static (AnalysisSessionManager Manager, EngineHostCache Hosts) CreateManager(int capacity)
+    private (AnalysisSessionManager Manager, EngineHostCache Hosts) CreateManager(int capacity)
     {
         var loggerFactory = LoggerFactory.Create(_ => { });
         var hosts = new EngineHostCache(loggerFactory);
-        var runner = new EngineRunner(loggerFactory, hosts, new CloneRegistry());
-        var manager = new AnalysisSessionManager(runner, hosts, new ServerOptions { SessionCapacity = capacity });
+        var options = new ServerOptions { SessionCapacity = capacity, SnapshotCacheRoot = _cacheRoot };
+        var runner = new EngineRunner(loggerFactory, hosts, new CloneRegistry(), options);
+        var manager = new AnalysisSessionManager(runner, hosts, options);
         return (manager, hosts);
     }
 

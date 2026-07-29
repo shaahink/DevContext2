@@ -1,0 +1,13 @@
+CLI exists: True  |  cache root: C:\Users\shahi\AppData\Local\Temp\g5s18-keyprobe-aab02d17
+--- analyze #1 ---
+exit=0
+snapshots after #1: 1
+d53218b4b2c0d33e2c734bfcd403d04e81e1dc64-dirty-FC670061FC38EC7B-opt-372C9FDCC0AB.snap.json.gz
+--- touching an untracked repo file (nothing to do with the fixture) ---
+git sees it: ?? eval-results/2026-07-29/G5-s18/keyprobe-churn.tmp
+--- analyze #2 ---
+exit=0
+snapshots after #2: 2
+d53218b4b2c0d33e2c734bfcd403d04e81e1dc64-dirty-F8AA6627EFE09FE5-opt-372C9FDCC0AB.snap.json.gz
+d53218b4b2c0d33e2c734bfcd403d04e81e1dc64-dirty-FC670061FC38EC7B-opt-372C9FDCC0AB.snap.json.gz
+VERDICT: KEY MOVED - an unrelated repo write invalidates the fixture snapshot

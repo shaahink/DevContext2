@@ -1,0 +1,23 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:19.02
+BUILD EXIT: 0
+ITER 1 EXIT 0 pass
+ITER 2 EXIT 0 pass
+ITER 3 EXIT 0 pass
+ITER 4 EXIT 0 pass
+ITER 5 EXIT 1 FAIL -> C:\code\DevContext2\eval-results\2026-07-29\G5-s18\run-5.txt
+ITER 6 EXIT 0 pass
+ITER 7 EXIT 0 pass
+ITER 8 EXIT 1 FAIL -> C:\code\DevContext2\eval-results\2026-07-29\G5-s18\run-8.txt
+ITER 9 EXIT 1 FAIL -> C:\code\DevContext2\eval-results\2026-07-29\G5-s18\run-9.txt
+ITER 10 EXIT 0 pass
+ITER 11 EXIT 1 FAIL -> C:\code\DevContext2\eval-results\2026-07-29\G5-s18\run-11.txt
+ITER 12 EXIT 0 pass
+ITER 13 EXIT 1 FAIL -> C:\code\DevContext2\eval-results\2026-07-29\G5-s18\run-13.txt
+ITER 14 EXIT 0 pass
+ITER 15 EXIT 0 pass
+TOTAL FAILURES: 5 / 15

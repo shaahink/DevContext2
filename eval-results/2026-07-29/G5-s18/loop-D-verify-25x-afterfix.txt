@@ -1,0 +1,378 @@
+LOG DIR (outside the repo): C:\Users\shahi\AppData\Local\Temp\g5s18-verify-efedd88d
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 1 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 2 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 3 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 4 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 5 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 6 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 7 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 8 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 9 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 10 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 11 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 12 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 13 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 14 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 15 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 16 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 17 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 18 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 19 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 20 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 21 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 22 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 23 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 24 EXIT 0 tree  ->  stable
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+Method invocation failed because [System.Convert] does not contain a method named 'ToHexString'.
+At C:\code\DevContext2\eval-results\2026-07-29\G5-s18\verify-after-fix.ps1:37 char:12
++     return [Convert]::ToHexString($md5.ComputeHash([Text.Encoding]::U ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
+ 
+VERIFY ITER 25 EXIT 0 tree  ->  stable
+VERIFY TOTAL FAILURES: 0 / 25
+TREE MOVED DURING A TEST RUN: 0 / 25

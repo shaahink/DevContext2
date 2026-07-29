@@ -1,0 +1,20 @@
+########## ARM: canary planted at tests/_rule7canary.cs ##########
+== loom-guards -- L2.3 ban check ==
+  BANNED: test writes the process-wide DEVCONTEXT_CACHE_ROOT in tests\_rule7canary.cs:6 (use ServerOptions.SnapshotCacheRoot)
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== FAILED: 1 banned patterns found ==
+########## guards WITH canary EXIT = 1  (must be non-zero) ##########
+
+########## DISARM: canary removed ##########
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+########## guards WITHOUT canary EXIT = 0  (must be 0) ##########
+
+########## RULE 7 CANARY: armed=1 clean=0 -> THE GUARD REALLY FIRES ##########

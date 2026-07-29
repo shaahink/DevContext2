@@ -22,33 +22,33 @@ namespace DevContext.Server.Tests;
 /// The cache root is redirected to a fresh temp directory (same reason as HostReleaseTests), which
 /// is what makes "cold" here actually cold: against the developer's real cache the first call would
 /// already be a hit and the false case would never be exercised.
+///
+/// G5 s18 — that redirect is HANDED to the runner, never written to DEVCONTEXT_CACHE_ROOT. The env
+/// form made this class the loudest victim of a process-wide variable five concurrent xUnit
+/// collections all wanted: a neighbour's write could land between this constructor and the
+/// EngineRunner below, the analysis would persist into the neighbour's root, and
+/// BackdatePersistedSnapshot would then look into a directory that was never created. Measured at
+/// 5 failures in 15 runs before the fix.
 /// </summary>
 public sealed class AnalyzeCacheTruthTests : IDisposable
 {
     private readonly string _cacheRoot = Path.Combine(
         Path.GetTempPath(), "devcontext-cachetruth-tests", Guid.NewGuid().ToString("N"));
-    private readonly string? _priorCacheRoot;
-
-    public AnalyzeCacheTruthTests()
-    {
-        _priorCacheRoot = Environment.GetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT");
-        Environment.SetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT", _cacheRoot);
-    }
 
     public void Dispose()
     {
-        Environment.SetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT", _priorCacheRoot);
         try { if (Directory.Exists(_cacheRoot)) Directory.Delete(_cacheRoot, true); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
     }
 
-    private static AnalysisSessionManager CreateManager()
+    private AnalysisSessionManager CreateManager()
     {
         var loggerFactory = LoggerFactory.Create(_ => { });
         var hosts = new EngineHostCache(loggerFactory);
-        var runner = new EngineRunner(loggerFactory, hosts, new CloneRegistry());
-        return new AnalysisSessionManager(runner, hosts, new ServerOptions { SessionCapacity = 5 });
+        var options = new ServerOptions { SessionCapacity = 5, SnapshotCacheRoot = _cacheRoot };
+        var runner = new EngineRunner(loggerFactory, hosts, new CloneRegistry(), options);
+        return new AnalysisSessionManager(runner, hosts, options);
     }
 
     private static AnalyzeSpec Spec(string fixture) => new(
@@ -194,7 +194,13 @@ public sealed class AnalyzeCacheTruthTests : IDisposable
     /// keeps the test independent of how the runner happens to build ExtractionOptions.</summary>
     private void BackdatePersistedSnapshot(DateTime instant)
     {
-        var files = Directory.GetFiles(_cacheRoot, "*.snap.json.gz", SearchOption.AllDirectories);
+        // "No root" and "no snapshot in the root" are the same verdict — the analysis above did not
+        // persist. Say that, instead of throwing DirectoryNotFoundException out of GetFiles: the bar
+        // is unchanged (Assert.Single still demands exactly one file) but the failure names what is
+        // wrong. The opaque form cost two sessions of diagnosis.
+        var files = Directory.Exists(_cacheRoot)
+            ? Directory.GetFiles(_cacheRoot, "*.snap.json.gz", SearchOption.AllDirectories)
+            : [];
         var file = Assert.Single(files);
 
         string json;

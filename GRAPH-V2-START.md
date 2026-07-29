@@ -4,27 +4,29 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**s16's `fast-engine` red was the GATE SCRIPT DYING, not a test. Fixed at the root; both fast gates
-now exit 0** (`eval-results/2026-07-29/G5/`: `verify-fast-engine.exit.txt`, `verify-guards.exit.txt`).
-No test, expectation, golden or gate bar was touched — **G5.2 is still the next job and src/ is
-untouched.** Proof it was never a red: the identical command passes on the identical tree, and
-`exit 1` is a code only Step 1 can return (it prints the build log first). Mechanism, reproduced in a
-6-line probe: under `$ErrorActionPreference='Stop'`, PS 5.1 turns any stderr line from a native
-command captured as `2>&1` into a **terminating** error, so the script dies *before* the
-`$LASTEXITCODE` check — the suite can be green and the gate still says FAIL, and a real red loses its
-failing test names the same way. `gates.ps1` already carried this workaround inline for `pnpm check`
-and nowhere else; it is now `Invoke-NativeCapture` on all 12 captures + the `loom-guards.ps1` truth
-gate. **Read a gate red this way from now on: no `GATE: FAIL (step N)` line = the script died.**
-Same signature already hit s2 — `run.db` gates row 3 — and the board still shows `fast-engine:FAIL`
-as **G1.2**'s evidence; that annotation is a false red, G1.2's own work is fine.
+**s17's `fast-engine` red was a FLAKY TEST, at ~1 run in 3. Root-caused, fixed, verified: both fast
+gates exit 0** (`eval-results/2026-07-29/G5-s18/`, full writeup in `G5-s18-EVIDENCE.md`). Nothing was
+weakened; one gate got stricter. **G5.2 is still the next job and no G5 checkpoint is claimed.**
+Measured: 5 failures / 15 before (`loop-A-repro-multiclass.txt`), **0 / 25** after on the whole
+104-test assembly (`loop-D`). Cause: `DEVCONTEXT_CACHE_ROOT` is process-wide and **five** concurrent
+xUnit collections each wrote it in their ctor (3 × `ServerTestFactory` + `HostReleaseTests` +
+`AnalyzeCacheTruthTests`), so a neighbour could steal the root between a test's ctor and its
+`EngineRunner`; `ServerTestFactory` restored **null**, aiming stragglers at the real user cache. Fix:
+new `ServerOptions.SnapshotCacheRoot`, injected — plus **loom-guards Rule 7** banning that env write
+from tests, watched going red on demand (`canary-rule7-OUTPUT.txt`).
+**Consequence for the board: `fast-engine` was a coin flip from G3.3 onward, so G5.1's and G1.2's
+`fast-engine:FAIL` annotations are false reds** (G1.2's is s17's harness abort); both checkpoints'
+work is fine, and any single green `fast-engine` in that window proved less than it looked.
+**Still open — bug #16**, a SECOND, rarer red in the same class (`third.Cached` false, 1-in-50). Its
+obvious cause was tested and **refuted**: the cache key really does track the whole working tree
+(`probe-versionkey.ps1`), but churning the tree does not redden the test (0/14). Do not re-derive it.
 **G5.2 is unchanged and still a checklist** — build to `eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`
 §5, do not re-derive §1–§4. Defect 1 (`this.<field>.<M>()` reaching `CallGraphBinder.cs:250`'s
 self-call arm) + join the execute MEMBER (`CliCommandEntryPointBuilder.cs:29-40` drops the detected
-`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Canary safe by
-measurement (878 `this.<field>.` sites in GitVersion, **0** in CleanArchitecture/Hangfire/Polly/
-Serilog). Bug #12 stays OUT of G5.2 — it moves counts on every pole and needs a matrix batch.
-**Budget the cold snapshot:** any Core edit invalidates every MVID-keyed snapshot, which trips bug #1
-(MCP QA false 0/12 on the first battery after a Core change). Expect it; do not chase it.
+`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Bug #12 stays
+OUT of G5.2. **Budget the cold snapshot** (any Core edit trips bug #1's false 0/12), and **write
+verification logs outside the repo** — `eval-results/` is untracked-but-not-ignored, so a growing log
+there is itself a working-tree change the cache keys on.
 
 
 ## Baseline numbers (from run.db)

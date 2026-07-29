@@ -19,6 +19,9 @@
 #      Existing swallows are grandfathered per-file below until Prism D2 (silent-failure
 #      amnesty) converts them to catch-log-count and drives every allowance to 0.
 #      The table is a MAX per file: adding one anywhere fails the gate.
+# graph-v2 G5 s18 rule:
+#   7. No test writes the process-wide DEVCONTEXT_CACHE_ROOT (a shared variable cannot isolate
+#      concurrent xUnit collections — pass ServerOptions.SnapshotCacheRoot instead).
 
 param(
     [switch]$Quiet
@@ -86,6 +89,25 @@ foreach ($f in $coreFiles) {
         $extra = $count - $allowed
         if (-not $Quiet) { Write-Host "  BANNED: $extra new bare catch in src/DevContext.Core/${relCore} ($count found, $allowed grandfathered until D2)" }
         $script:failures += $extra
+    }
+}
+
+# Rule 7 (graph-v2 G5 s18): no test may redirect the snapshot cache by writing the process-wide
+# DEVCONTEXT_CACHE_ROOT. The variable is process-scoped and the server test assembly runs five xUnit
+# collections concurrently, so five owners of one variable meant whoever constructed last decided
+# where everyone's snapshots went — measured as a 5-in-15 red on AnalyzeCacheTruthTests, and a gate
+# that is a coin flip is worse than a gate that is missing. Hand the root to the host instead:
+# `new ServerOptions { SnapshotCacheRoot = <dir> }`. The census after the fix is ZERO, so this is a
+# flat ban with no allowance. (Reading the variable is fine; only writing it from a test is banned,
+# and separate PROCESSES — eval/mcp-qa/drive-r4.js — are unaffected.)
+$testFiles = Get-ChildItem -LiteralPath $testsDir -Recurse -Filter *.cs -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch '\\obj\\' -and $_.FullName -notmatch '\\bin\\' }
+foreach ($f in $testFiles) {
+    $hits = Select-String -LiteralPath $f.FullName -Pattern 'SetEnvironmentVariable("DEVCONTEXT_CACHE_ROOT"' -SimpleMatch -CaseSensitive 2>$null
+    foreach ($m in $hits) {
+        $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
+        if (-not $Quiet) { Write-Host "  BANNED: test writes the process-wide DEVCONTEXT_CACHE_ROOT in ${rel}:$($m.LineNumber) (use ServerOptions.SnapshotCacheRoot)" }
+        $script:failures++
     }
 }
 

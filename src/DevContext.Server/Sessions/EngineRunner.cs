@@ -5,10 +5,14 @@ using DevContext.Core.Services;
 
 namespace DevContext.Server.Sessions;
 
-public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache hostCache, CloneRegistry cloneRegistry) : IEngineRunner
+public sealed class EngineRunner(
+    ILoggerFactory loggerFactory, EngineHostCache hostCache, CloneRegistry cloneRegistry, ServerOptions options)
+    : IEngineRunner
 {
     private readonly RealFileSystem _fs = new();
-    private readonly SnapshotCacheService _snapCache = new();
+    // The cache root is HANDED to this runner (see ServerOptions.SnapshotCacheRoot) instead of read
+    // from the ambient environment, so two runners in one process can hold two different roots.
+    private readonly SnapshotCacheService _snapCache = new(options.SnapshotCacheRoot);
 
     public async Task<EngineResult> AnalyzeAsync(AnalyzeSpec spec, IProgress<AnalysisProgress>? progress, CancellationToken ct)
     {

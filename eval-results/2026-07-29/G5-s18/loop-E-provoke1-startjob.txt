@@ -1,0 +1,10 @@
+CHURN JOB 1 rewriting C:\code\DevContext2\eval-results\2026-07-29\G5-s18\churn.tmp every 250ms
+PROVOKE ITER 1 EXIT 0 pass
+PROVOKE ITER 2 EXIT 0 pass
+PROVOKE ITER 3 EXIT 0 pass
+PROVOKE ITER 4 EXIT 0 pass
+PROVOKE ITER 5 EXIT 0 pass
+PROVOKE ITER 6 EXIT 0 pass
+PROVOKE ITER 7 EXIT 0 pass
+PROVOKE ITER 8 EXIT 0 pass
+PROVOKE TOTAL FAILURES: 0 / 8   (logs: C:\Users\shahi\AppData\Local\Temp\g5s18-provoke-72b1476c)

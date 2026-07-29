@@ -1,0 +1,10 @@
+CHURN PROCESS PID 18884
+churn file exists after 2s: True  (content: 4
+)
+P2 ITER 1 EXIT 0 churned=True pass
+P2 ITER 2 EXIT 0 churned=True pass
+P2 ITER 3 EXIT 0 churned=True pass
+P2 ITER 4 EXIT 0 churned=True pass
+P2 ITER 5 EXIT 0 churned=True pass
+P2 ITER 6 EXIT 0 churned=True pass
+P2 TOTAL FAILURES: 0 / 6  (logs: C:\Users\shahi\AppData\Local\Temp\g5s18-provoke2-57a70c03)
