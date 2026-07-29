@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "overview", "args": { "handle": "$HANDLE" }, "preview": 2600, "why": "standard second move: what is this repo and where do I start" },
+    { "tool": "map", "args": { "handle": "$HANDLE" }, "preview": 4000, "previewPath": "markdown", "why": "the orientation surface for a Library archetype (entries=0, so no flow to lead with)" }
+  ]
+}

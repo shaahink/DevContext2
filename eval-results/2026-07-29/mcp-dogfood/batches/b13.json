@@ -1,0 +1,9 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "RouteCollection", "direction": "out" }, "preview": 1200, "why": "Q5: how the dashboard route table dispatches" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "InvocationData", "limit": 5 }, "preview": 800, "why": "Q9: the serialised representation of a method call" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "IWriteOnlyTransaction", "direction": "in" }, "preview": 900, "why": "Q10: who uses the transaction abstraction" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "query": "SqlServerStorage", "budgetTokens": 2500 }, "preview": 2000, "previewPath": "content", "why": "Q4: does a pack name what a storage provider must derive from" }
+  ]
+}

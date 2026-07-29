@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "resolve", "args": { "handle": "$HANDLE", "query": "Enqueue" }, "preview": 1600, "why": "Q1: does the graph know the verb an application calls" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "BackgroundJobClient.Create", "format": "compact" }, "preview": 2200, "why": "Q1: the chain from the client call down to the storage write" }
+  ]
+}

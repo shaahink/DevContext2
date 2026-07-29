@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "focus": "Member:Hangfire.BackgroundJobClient::Create", "format": "compact" }, "preview": 2000, "why": "Q1: does trace follow a MEMBER when it would not follow the type" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "BackgroundJobClient", "format": "compact" }, "preview": 1200, "why": "Q1: the name form an agent reaches for first" }
+  ]
+}

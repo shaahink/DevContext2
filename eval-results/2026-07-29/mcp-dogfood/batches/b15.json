@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "usages", "args": { "handle": "$HANDLE", "query": "IServerFilter" }, "preview": 900, "why": "Q7: where the server-filter pipeline consumes filters" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "IFetchedJob", "direction": "in" }, "preview": 900, "why": "Q2: the fetch step - who takes a job off the queue" },
+    { "tool": "tests_for", "args": { "handle": "$HANDLE", "query": "Worker" }, "preview": 700, "why": "a real maintenance question: where are this component's tests" }
+  ]
+}

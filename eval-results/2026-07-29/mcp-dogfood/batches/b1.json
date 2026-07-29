@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "tools/list", "args": {}, "preview": 400, "why": "the menu an agent is handed on connect - logged for its token cost" },
+    { "tool": "analyze", "args": { "path": "C:/code/DevContext2/eval-repos/Hangfire" }, "timeoutMs": 900000, "preview": 3000, "why": "first move of any drive: get a handle on the unseen repo" }
+  ]
+}

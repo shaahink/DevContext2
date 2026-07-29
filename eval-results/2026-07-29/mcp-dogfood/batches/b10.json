@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "Type:Hangfire.JobStorage", "format": "compact" }, "preview": 400, "why": "decisive: a DIFFERENT Type nodeId - same phantom means the resolver matched the prefix token, not the id" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "Type:ZzzNoSuchSymbolAnywhere", "format": "compact" }, "preview": 400, "why": "decisive: a nodeId whose tail cannot resolve - phantom here proves the tail is ignored entirely" },
+    { "tool": "usages", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.StackTraceHtmlFragments::Type(1)" }, "preview": 700, "why": "what are the 26 in-edges of the garbage node - is it a real member wearing a Type id" }
+  ]
+}

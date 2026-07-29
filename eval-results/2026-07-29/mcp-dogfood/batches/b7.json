@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "BackgroundJobFactory", "format": "compact" }, "preview": 1800, "why": "Q1: the next hop down - who turns a Create into a storage write" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "BackgroundJobStateChanger", "format": "compact" }, "preview": 1800, "why": "Q3: who applies a state transition" },
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "IStorageConnection", "direction": "in" }, "preview": 1600, "why": "Q4/Q10: who implements or uses the storage connection abstraction" }
+  ]
+}

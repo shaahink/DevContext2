@@ -1,0 +1,52 @@
+# G4.1 - the call log, graded
+
+Generated from call-log.jsonl (written by the driver) + grades.json. Raw response for call N is at raw/NNN-<tool>.json.
+
+| # | tool | args | ms | tokens | grade | why |
+|---|---|---|---|---|---|---|
+| 1 | `tools/list` | `{}` | 19 | 3468 | **HURT** | 3,468 tokens at connect for 22 tool names whose description field is the empty string on every one. Paid the full schema price for zero semantic content. Bug #5. |
+| 2 | `analyze` | `{"path":"C:/code/DevContext2/eval-repos/Hangfire"}` | 10870 | 170 | **HELPED** | handle + an honest summary: archetype Library, 946 nodes / 615 edges / 0 entries / 5 projects, cached:false, analyzedAt, gitHead. Set the whole frame for the drive. |
+| 3 | `overview` | `{}` | 150 | 458 | **HELPED** | startHere named SqlServerStorage, ILog, IStorageConnection, JobStorage in 458 tokens - the storage vocabulary Q4/Q10 needed, before I knew any name. |
+| 4 | `map` | `{}` | 32 | 17105 | **HELPED** | gave Q8 outright (AutomaticRetryAttribute's summary + its three OnState members), Q7's abstractions (IServerFilter, JobFilterAttribute, IElectStateFilter) and Q5's (IDashboardDispatcher, RazorPage). But 17,105 tokens - 38% of the whole drive in one un-narrowable call. |
+| 5 | `resolve` | `{"query":"Enqueue"}` | 86 | 717 | **HELPED** | found BackgroundJobClientExtensions::Enqueue and SqlServerJobQueue::Enqueue with file:line - Q1's first rung. |
+| 6 | `trace` | `{"query":"BackgroundJobClient.Create","format":"compact"}` | 21 | 185 | **NEUTRAL** | the dotted Type.Member form does not resolve; the envelope came back with five real candidates, so nothing was lost but a round trip. |
+| 7 | `neighbors` | `{"nodeId":"Type:Hangfire.BackgroundJobClient","direction":"out"}` | 66 | 316 | **HELPED** | the four Calls edges of BackgroundJobClient with provenance (Create -> JobStorage @:153, Create -> IBackgroundJobFactory @:156, ChangeState -> IBackgroundJobStateChanger @:177). Q1's chain starts here. |
+| 8 | `trace` | `{"focus":"Type:Hangfire.BackgroundJobClient","format":"compact"}` | 40 | 62 | **HURT** | found:true, steps 0, text 'Entry: Type: Type'. A confident empty trace about an unrelated node, for a nodeId that call #7 had just proved has four edges. Bug #6. |
+| 9 | `trace` | `{"focus":"Member:Hangfire.BackgroundJobClient::Create","format":"compact"}` | 76 | 189 | **NEUTRAL** | honest no-match - but every candidate it offered back is a Type nodeId, i.e. the envelope routes the agent straight into #8's trap. |
+| 10 | `trace` | `{"query":"BackgroundJobClient","format":"compact"}` | 48 | 543 | **HELPED** | the bare NAME works where the nodeId does not: 6 steps, the real tree, both members and both targets with provenance. |
+| 11 | `trace` | `{"query":"Type:Hangfire.BackgroundJobClient","format":"compact"}` | 95 | 62 | **HURT** | identical phantom to #8 through the other parameter - which is what proved the defect is in focus RESOLUTION, not in one argument's plumbing. |
+| 12 | `get_context` | `{"focus":"Type:Hangfire.BackgroundJobClient","budgetTokens":3000}` | 91 | 942 | **HELPED** | the same nodeId #8 could not use resolves correctly here: 4 sections, 942 tokens, identity/trace/signatures/usage. This is the call that made #8 a bug rather than a bad nodeId. |
+| 13 | `trace` | `{"query":"BackgroundJobFactory","format":"compact"}` | 75 | 821 | **HELPED** | Q7's client half: InvokeClientFilter/GetFilters/InvokeNextClientFilter -> IJobFilterProvider, CreatingContext, CreatedContext. |
+| 14 | `trace` | `{"query":"BackgroundJobStateChanger","format":"compact"}` | 12 | 1042 | **HELPED** | Q3 in one call: ChangeState -> IStorageConnection (di-> JobStorageConnection), IWriteOnlyTransaction (di-> JobStorageTransaction), StateChangeContext, JobData. |
+| 15 | `neighbors` | `{"query":"IStorageConnection","direction":"in"}` | 34 | 2215 | **HELPED** | Q10's demand side: 28 in-edges on IStorageConnection, each with a caller and a file:line. 2,215 tokens for it. |
+| 16 | `stats` | `{}` | 64 | 374 | **HELPED** | the structural fact of the drive: the edge vocabulary here is Calls 596 + Resolves 19 and NOTHING else. Also surfaced the wiring hub named 'Type', which turned into bug #7. |
+| 17 | `entrypoints` | `{}` | 15 | 12 | **NEUTRAL** | a truthful zero for a library, at 12 tokens. But a bare {count:0,byKind:{},entries:[]} with no next step - R4 section 3 bullet 3 says a dead end must name one that works. |
+| 18 | `trace` | `{"query":"RecurringJobScheduler","format":"compact"}` | 30 | 2303 | **HELPED** | Q6 outright: RecurringJobScheduler's eight members, the storage connection, the distributed lock, IBackgroundJobFactory and IStateMachine, 30 steps. |
+| 19 | `resolve` | `{"query":"Type","limit":5}` | 64 | 335 | **HELPED** | diagnostic: found the node literally titled 'Type' that stats had listed as a hub. |
+| 20 | `node` | `{"query":"Type"}` | 10 | 39 | **HELPED** | diagnostic: nodeId Type:Hangfire.StackTraceHtmlFragments::Type(1), kind Type, filePath EMPTY, outDegree 0, inDegree 26. A member wearing a type's identity. |
+| 21 | `trace` | `{"query":"Type:Hangfire.JobStorage","format":"compact"}` | 69 | 59 | **HELPED** | diagnostic: a different Type nodeId, same phantom - the tail of the id is not read. |
+| 22 | `trace` | `{"query":"Type:ZzzNoSuchSymbolAnywhere","format":"compact"}` | 5 | 60 | **HELPED** | the decisive one: Type:ZzzNoSuchSymbolAnywhere returns the SAME confident answer as a real id. Prefix-token resolution, proved. |
+| 23 | `usages` | `{"nodeId":"Type:Hangfire.StackTraceHtmlFragments::Type(1)"}` | 27 | 1611 | **HELPED** | diagnostic: the 26 in-edges named. None of them calls a stack-trace formatter; they reference System.Type. Bug #7's evidence. |
+| 24 | `trace` | `{"query":"Worker","format":"compact"}` | 73 | 993 | **HELPED** | Q2's spine: Worker.Execute -> storage/IState/ILog, PerformJob -> IStorageConnection + IBackgroundJobPerformer, Requeue -> IFetchedJob, TryChangeState -> IBackgroundJobStateChanger. |
+| 25 | `trace` | `{"query":"BackgroundJobPerformer","format":"compact"}` | 9 | 1585 | **HELPED** | Q7's server half with the exact invocation locus: InvokeServerFilter at BackgroundJobPerformer.cs:137. |
+| 26 | `trace` | `{"query":"AutomaticRetryAttribute","format":"compact"}` | 10 | 1216 | **HELPED** | Q8: ScheduleAgainLater -> ElectStateContext, plus OnStateApplied/OnStateUnapplied. State election is where retry hooks in. |
+| 27 | `trace` | `{"query":"CoreBackgroundJobFactory","format":"compact"}` | 70 | 510 | **HURT** | the type that PERFORMS the storage write returns a tidy 5-step tree with no write in it, no omitted count and no caveat. The write is at CoreBackgroundJobFactory.cs:89, inside a lambda. Bug #8. |
+| 28 | `trace` | `{"query":"CoreBackgroundJobPerformer","format":"compact"}` | 9 | 875 | **HELPED** | Q9's execution half: Perform -> JobActivator, SubstituteArguments, InvokeOnTaskPump. |
+| 29 | `trace` | `{"query":"AspNetCoreDashboardMiddleware","format":"compact"}` | 6 | 322 | **HELPED** | Q5's first hop: AspNetCoreDashboardMiddleware.Invoke -> RouteCollection. |
+| 30 | `find` | `{"query":"SqlServer","kind":"Type","limit":30}` | 31 | 897 | **HELPED** | Q4's answer shape: 51 SqlServer* types, of which Storage/Connection/WriteOnlyTransaction/JobQueue/MonitoringApi/DistributedLock are the set a new provider mirrors. |
+| 31 | `neighbors` | `{"query":"RouteCollection","direction":"out"}` | 95 | 31 | **NEUTRAL** | a true zero (RouteCollection carries no out-edges) in 31 tokens, but bare: no note, no next step. Same class as #17. The dead-end machinery G3.2 built fires only on the kind-filtered path. |
+| 32 | `find` | `{"query":"InvocationData","limit":5}` | 11 | 179 | **HELPED** | Q9's representation half: InvocationData plus JobPayload and the method serializer/deserializer cache keys. |
+| 33 | `neighbors` | `{"query":"IWriteOnlyTransaction","direction":"in"}` | 14 | 1282 | **HELPED** | Q10: 17 callers of IWriteOnlyTransaction with provenance, including AutomaticRetryAttribute's two state hooks. |
+| 34 | `get_context` | `{"query":"SqlServerStorage","budgetTokens":2500}` | 58 | 2656 | **HELPED** | a real pack: rooted-on-symbol line, analyzed-at + HEAD, call tree, a usage section, per-node file:line. It never names the base class, though - see the report. |
+| 35 | `neighbors` | `{"query":"InvocationData","direction":"in"}` | 79 | 113 | **HURT** | count:1. The source has at least four callers of InvocationData's serialize/deserialize in Core alone. A wrong number delivered as a complete answer, with no caveat. |
+| 36 | `seam` | `{"from":"Type:Hangfire.BackgroundJobClient","to":"Type:Hangfire.Storage.IStorageConnection"}` | 28 | 109 | **HURT** | 'BackgroundJobClient and IStorageConnection are unconnected' - stated about two symbols that are connected on every enqueue. The walk stopped at an interface; the sentence blames the code. |
+| 37 | `seam` | `{"from":"BackgroundJobClient","to":"IStorageConnection"}` | 3 | 109 | **HURT** | same verdict through the name form. Worth recording that seam DOES accept both names and nodeIds - the argument shape trace lacks. |
+| 38 | `usages` | `{"query":"IServerFilter"}` | 98 | 105 | **NEUTRAL** | an exemplary envelope in shape (says what it resolved to, that it has 0 usages, and to verify) - but the retry it names is executed at #41 and returns the same zero. |
+| 39 | `neighbors` | `{"query":"IFetchedJob","direction":"in"}` | 23 | 255 | **HELPED** | Q2's requeue path: Worker::Requeue and both RemoveFromQueue implementations. |
+| 40 | `tests_for` | `{"query":"Worker"}` | 21 | 62 | **NEUTRAL** | 0 tests with an honest method note ('walked in-edges <=6 hops ... not proof of no coverage'). It does not say the real reason: no test project is in the analysed scope at all. |
+| 41 | `usages` | `{"nodeId":"Type:Hangfire.Server.IServerFilter"}` | 74 | 18 | **HURT** | the retry #38 recommended returns {count:0,usages:[]} - a bare zero with no hint, no method note, no candidates. Following the tool's own advice returned STRICTLY LESS than ignoring it. |
+| 42 | `config` | `{}` | 235 | 50 | **NEUTRAL** | 0 config keys, correct for a library, with a method note that says how it looked. |
+| 43 | `neighbors` | `{"query":"CoreBackgroundJobFactory","direction":"out"}` | 59 | 257 | **HELPED** | the confirmation for bug #8: three out-edges over the whole type, none of them the storage write at line 89. |
+
+**43 calls · 44712 response tokens · 13005 ms of tool wall time**  
+HELPED 28 · NEUTRAL 7 · HURT 8

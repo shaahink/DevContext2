@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "Type:Hangfire.BackgroundJobClient", "format": "compact" }, "preview": 700, "why": "diagnostic: does the OTHER parameter accept a nodeId" },
+    { "tool": "get_context", "args": { "handle": "$HANDLE", "focus": "Type:Hangfire.BackgroundJobClient", "budgetTokens": 3000 }, "preview": 900, "previewPath": "sections", "why": "diagnostic: does focus-by-nodeId go phantom on the other focus-taking tool too" }
+  ]
+}

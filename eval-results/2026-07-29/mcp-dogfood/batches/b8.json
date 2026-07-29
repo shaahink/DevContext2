@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "stats", "args": { "handle": "$HANDLE" }, "preview": 2000, "why": "what edge vocabulary does this graph have at all - needed before any kind-filtered question" },
+    { "tool": "entrypoints", "args": { "handle": "$HANDLE" }, "preview": 900, "why": "Q5: the dashboard is HTTP - does the entry surface know it (repo reported 0 entries)" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "RecurringJobScheduler", "format": "compact" }, "preview": 1500, "why": "Q6: who fires a recurring job when it comes due" }
+  ]
+}

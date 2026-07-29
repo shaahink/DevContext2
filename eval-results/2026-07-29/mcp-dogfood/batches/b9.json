@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "resolve", "args": { "handle": "$HANDLE", "query": "Type", "limit": 5 }, "preview": 1400, "why": "stats lists a wiring hub literally titled 'Type' - is that a real node or the phantom trace rendered" },
+    { "tool": "node", "args": { "handle": "$HANDLE", "query": "Type" }, "preview": 1200, "why": "same: what IS this node" }
+  ]
+}

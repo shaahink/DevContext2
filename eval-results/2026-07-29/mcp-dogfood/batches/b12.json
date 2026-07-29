@@ -1,0 +1,9 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "CoreBackgroundJobFactory", "format": "compact" }, "preview": 200, "why": "Q1: the last hop - who performs the storage write for a new job" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "CoreBackgroundJobPerformer", "format": "compact" }, "preview": 200, "why": "Q9: where the serialised method becomes a real invocation" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "AspNetCoreDashboardMiddleware", "format": "compact" }, "preview": 200, "why": "Q5: how an HTTP request reaches a dashboard page" },
+    { "tool": "find", "args": { "handle": "$HANDLE", "query": "SqlServer", "kind": "Type", "limit": 30 }, "preview": 200, "why": "Q4/Q10: what the one existing storage provider consists of" }
+  ]
+}

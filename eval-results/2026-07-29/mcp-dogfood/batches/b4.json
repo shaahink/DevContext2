@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.BackgroundJobClient", "direction": "out" }, "preview": 2400, "why": "Q1: what does the enqueue client actually call" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "focus": "Type:Hangfire.BackgroundJobClient", "format": "compact" }, "preview": 2400, "why": "Q1: the chain, as a flow rather than one hop" }
+  ]
+}

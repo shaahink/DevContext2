@@ -1,0 +1,7 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "usages", "args": { "handle": "$HANDLE", "nodeId": "Type:Hangfire.Server.IServerFilter" }, "preview": 500, "why": "R4 section 3 bullet 3, executed: RUN the retry the previous reply named" },
+    { "tool": "config", "args": { "handle": "$HANDLE" }, "preview": 900, "why": "tests_for found nothing - is a test project even in the analysed scope" }
+  ]
+}

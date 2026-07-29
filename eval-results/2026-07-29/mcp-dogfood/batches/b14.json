@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "InvocationData", "direction": "in" }, "preview": 900, "why": "Q9: who serialises and who deserialises the invocation" },
+    { "tool": "seam", "args": { "handle": "$HANDLE", "from": "Type:Hangfire.BackgroundJobClient", "to": "Type:Hangfire.Storage.IStorageConnection" }, "preview": 1500, "why": "Q1: the path-between primitive on the exact question 'how does an enqueue reach storage'" },
+    { "tool": "seam", "args": { "handle": "$HANDLE", "from": "BackgroundJobClient", "to": "IStorageConnection" }, "preview": 900, "why": "Q1: the same seam by NAME - does seam take the same argument shape as everything else" }
+  ]
+}

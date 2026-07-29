@@ -1,0 +1,8 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "Worker", "format": "compact" }, "preview": 1300, "why": "Q2: what takes a job off storage and runs it" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "BackgroundJobPerformer", "format": "compact" }, "preview": 1300, "why": "Q7/Q9: the filter pipeline around execution, and the invocation itself" },
+    { "tool": "trace", "args": { "handle": "$HANDLE", "query": "AutomaticRetryAttribute", "format": "compact" }, "preview": 1100, "why": "Q8: what retry hooks into" }
+  ]
+}

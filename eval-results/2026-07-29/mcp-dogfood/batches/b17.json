@@ -1,0 +1,6 @@
+{
+  "outDir": "C:/code/DevContext2/eval-results/2026-07-29/mcp-dogfood",
+  "calls": [
+    { "tool": "neighbors", "args": { "handle": "$HANDLE", "query": "CoreBackgroundJobFactory", "direction": "out" }, "preview": 1400, "why": "Q1 last hop: source says CoreBackgroundJobFactory.cs:89 calls Connection.CreateExpiredJob - is there an edge for it" }
+  ]
+}
