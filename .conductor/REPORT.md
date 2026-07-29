@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 16:17 UTC · branch `feat/graph-v2` · HEAD `051386c`_
+_Updated 2026-07-29 16:30 UTC · branch `feat/graph-v2` · HEAD `8bbef5b`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 0
+**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 1
 **Checkpoints:** 16/22 done · **Sessions run:** 21 · **Cost:** $275.1956 (agent $274.9239 + gates $0.2717) · **Tokens:** 3,849,653 in / 1,484,740 out
 **Confirmed phases:** G1, G2, G3, G4, G5
-**Pending:** full-battery phase gate for G6
 
 ## Stage progress
 
@@ -77,7 +76,7 @@ _Updated 2026-07-29 16:17 UTC · branch `feat/graph-v2` · HEAD `051386c`_
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | ✅ DONE | [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) |
-| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | ✅ DONE | - |
+| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | ✅ DONE | [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) |
 
 </details>
 
@@ -146,7 +145,6 @@ _Updated 2026-07-29 16:17 UTC · branch `feat/graph-v2` · HEAD `051386c`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 12:17:55  ▪ gate fast-engine pass [session]  (1m36s)
 07-29 12:17:55  ▪ gate guards pass [session]  (1m16s)
 07-29 12:17:58  • session #14 G4 → Advanced · done G4.1 · 3 commit(s)  (31m02s)
 07-29 12:17:58  • session #15 G4 Deliver started (attempt 1/4)
@@ -186,6 +184,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 16:30:50  • session #21 G6 Deliver started (attempt 1/2)
 07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
 07-29 17:17:17  ▪ gate guards pass [session]  (1m00s)
+07-29 17:17:20  • session #21 G6 → Advanced · done G6.2 · 1 commit(s)  (46m29s)
 ```
 
 ## Health
@@ -200,6 +199,7 @@ sessions 21 · retries 8 (38 %) · overall Alert
 ⚠ [context-saturation] session #13: 20,653,481 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #19: 26,816,442 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #20: 51,631,186 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #21: 30,558,526 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -214,7 +214,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
+working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -251,7 +251,53 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:FAIL
+
+<details><summary>battery — exit 3</summary>
+
+```
+Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Passed!  - Failed:     0, Passed:    57, Skipped:     2, Total:    59, Duration: 6 m 36 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~bitwarden-server|DisplayName~dntsite|DisplayName~wolverine|DisplayName~dotnet-podcasts|DisplayName~eshop|DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~blazor-surface|DisplayName~cli-app|DisplayName~company-fun...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:00:00.98]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+  Failed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dotnet-podcasts", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dotnet-"A�A�A�) [9 s]
+  Error Message:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["maui-present: 'MAUI' not found in output"]
+  Stack Trace:
+     at DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(String repoName, String expectationFile) in C:\code\DevContext2\tests\DevContext.Core.Tests\EvalExpectationTests.cs:line 103
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Running analysis on dotnet-podcasts (C:\code\DevContext2\eval-repos\dotnet-podcasts)...
+   [pass] archetype-app
+   [pass] style-cleanarchitecture
+   [pass] hub-entry
+   [FAIL] maui-present �?" 'MAUI' not found in output
+   [pass] grouped-route-shows
+   [pass] grouped-route-feeds
+   [pass] no-bare-slash-routes
+   [pass] no-mediatr-branding
+   [pass] cqrs-hand-rolled
+   [pass] no-interface-target
+   [pass] target-checklink-is-true
+   [pass] analysis-time
+
+
+
+Failed!  - Failed:     1, Passed:    26, Skipped:     1, Total:    28, Duration: 10 m 6 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=0 B=1
+  FAIL  Eval tests failed
+
+GATE: FAIL (step 3 - eval)
+```
+</details>
 
 ## Last session result
 
