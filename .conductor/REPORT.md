@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 14:20 UTC · branch `feat/graph-v2` · HEAD `e819b7d`_
+_Updated 2026-07-29 14:31 UTC · branch `feat/graph-v2` · HEAD `db23de9`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G5 — D-3 — a CLI verb reaches its handler · attempts used 0
 **Checkpoints:** 14/22 done · **Sessions run:** 19 · **Cost:** $222.7418 (agent $222.5120 + gates $0.2297) · **Tokens:** 3,288,627 in / 1,256,630 out
-**Confirmed phases:** G1, G2, G3, G4
-**Pending:** full-battery phase gate for G5
+**Confirmed phases:** G1, G2, G3, G4, G5
 
 ## Stage progress
 
@@ -16,7 +15,7 @@ _Updated 2026-07-29 14:20 UTC · branch `feat/graph-v2` · HEAD `e819b7d`_
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
-| G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | gating… |
+| G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
@@ -68,7 +67,7 @@ _Updated 2026-07-29 14:20 UTC · branch `feat/graph-v2` · HEAD `e819b7d`_
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | ✅ DONE | [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) |
-| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ✅ DONE | - |
+| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ✅ DONE | [`11ebe20`](https://github.com/shaahink/DevContext2/commit/11ebe20) |
 
 </details>
 
@@ -144,11 +143,6 @@ _Updated 2026-07-29 14:20 UTC · branch `feat/graph-v2` · HEAD `e819b7d`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 11:03:24  ▪ gate fast-engine pass [session]  (1m17s)
-07-29 11:03:24  ▪ gate guards pass [session]  (55.5s)
-07-29 11:03:28  • session #12 G3 → Advanced · done G3.2 · 1 commit(s)  (33m29s)
-07-29 11:03:28  • session #13 G3 Deliver started (attempt 1/4)
-07-29 11:35:08  ▪ gate fast-engine pass [session]  (1m40s)
 07-29 11:35:08  ▪ gate guards pass [session]  (39.7s)
 07-29 11:35:11  • session #13 G3 → Advanced · done G3.3 · 3 commit(s)  (31m42s)
 07-29 11:46:50  ▪ gate fast-engine pass [phase]  (1m26s)
@@ -184,6 +178,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 14:31:10  • session #19 G5 Deliver started (attempt 3/4)
 07-29 15:20:37  ▪ gate fast-engine pass [session]  (1m36s)
 07-29 15:20:37  ▪ gate guards pass [session]  (1m20s)
+07-29 15:20:40  • session #19 G5 → Advanced · done G5.2 · 4 commit(s)  (49m30s)
+07-29 15:31:45  ▪ gate fast-engine pass [phase]  (1m18s)
+07-29 15:31:45  ▪ gate guards pass [phase]  (41.2s)
+07-29 15:31:45  ▪ gate battery pass [phase]  (9m04s)
+07-29 15:31:45  ▸ stage G5 confirmed  (2h29m31s)
 ```
 
 ## Health
@@ -196,6 +195,7 @@ sessions 19 · retries 8 (42 %) · overall Alert
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #13: 20,653,481 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #19: 26,816,442 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -210,7 +210,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -248,7 +248,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
