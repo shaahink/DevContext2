@@ -592,6 +592,115 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Cli_command_entry_joins_its_execute_member_and_resolves_the_collaborator()
+    {
+        // D-3 (G5.1 §2A): the CLI entry builder set HandlerNode to the command TYPE, and the Type arm of
+        // ResolveEntryTarget reads only Sends edges — so a verb whose execute method calls a collaborator
+        // resolved to nothing, and the owning-type fallback was blanked as self-evident (the entry title
+        // already says "output (OutputCommand)"). GitVersion's whole CLI read 0 of 5 wired.
+        // The join must land on the execute MEMBER, which is where the call edges hang.
+        var model = CliCommandModel();
+        model.CallEdges.Add(new CallEdge(
+            "Gv.Commands.OutputCommand", "InvokeAsync",
+            "Gv.Service", "Call",
+            @"C:/repo/src/Gv.Output/OutputCommand.cs:14"));
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var output = entries.Single(e => e.Title.StartsWith("output ", StringComparison.Ordinal));
+        Assert.Equal(NodeId.ForMember("Gv.Commands.OutputCommand", "InvokeAsync"), output.HandlerNode);
+        Assert.Equal("Service.Call", output.Target);
+    }
+
+    [Fact]
+    public void Cli_command_that_calls_nothing_is_left_honestly_unwired()
+    {
+        // The other half of the same rule, and the one that makes the first half worth trusting.
+        // GitVersion's `test` verb body is Console.WriteLine + Task.FromResult — it has no collaborator,
+        // so its honest target is nothing. Joining the execute member must not manufacture one.
+        var model = CliCommandModel();   // no CallEdges at all
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var output = entries.Single(e => e.Title.StartsWith("output ", StringComparison.Ordinal));
+        Assert.Null(output.Target);
+    }
+
+    [Fact]
+    public void Cli_command_without_a_settings_shaped_member_keeps_the_type_join()
+    {
+        // The shape rule's negative: the execute member is identified as "the declared method that takes
+        // the detected settings type", not by a name list. A command type that declares no such method
+        // has no structurally identifiable execute member, so the join stays on the type — unchanged
+        // behaviour, never a guess at which method is the interesting one.
+        var model = CliCommandModel(withExecuteMethod: false);
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var output = entries.Single(e => e.Title.StartsWith("output ", StringComparison.Ordinal));
+        Assert.Equal(NodeId.ForType("Gv.Commands.OutputCommand"), output.HandlerNode);
+    }
+
+    /// <summary>GitVersion's `output` verb, reduced: an attribute-declared command whose execute member is
+    /// identified by its SETTINGS parameter, plus the interface it calls and that interface's
+    /// implementation. Mirrors eval-repos/GitVersion/new-cli/GitVersion.Output/OutputCommand.cs.</summary>
+    private static DiscoveryModel CliCommandModel(bool withExecuteMethod = true)
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Gv.Output", @"C:/repo/src/Gv.Output/Gv.Output.csproj", "C#", ["net10.0"], [], [])],
+        };
+        TypeDiscovery T(string id, string name, string ns, string file, TypeKind kind = TypeKind.Class) => new()
+        {
+            Id = id, Name = name, Namespace = ns, FilePath = file, Kind = kind,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        };
+
+        var command = T("Gv.Commands.OutputCommand", "OutputCommand", "Gv.Commands",
+            @"C:/repo/src/Gv.Output/OutputCommand.cs");
+        if (withExecuteMethod)
+            command.Methods =
+            [
+                new MethodSignature("InvokeAsync", "Task<int>",
+                    ["OutputSettings", "CancellationToken"], ["settings", "cancellationToken"],
+                    Microsoft.CodeAnalysis.Accessibility.Public, false, false),
+            ];
+        else
+            command.Methods =
+            [
+                new MethodSignature("Run", "Task<int>", ["CancellationToken"], ["cancellationToken"],
+                    Microsoft.CodeAnalysis.Accessibility.Public, false, false),
+            ];
+        model.Types.TryAdd(command.Id, command);
+        model.Types.TryAdd("Gv.Commands.OutputSettings",
+            T("Gv.Commands.OutputSettings", "OutputSettings", "Gv.Commands",
+                @"C:/repo/src/Gv.Output/OutputSettings.cs"));
+        model.Types.TryAdd("Gv.Service",
+            T("Gv.Service", "Service", "Gv", @"C:/repo/src/Gv.Output/Service.cs"));
+
+        model.Detections.Add(new CliCommandDetection("OutputCommand", "OutputSettings", "InvokeAsync", "output")
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:/repo/src/Gv.Output/OutputCommand.cs",
+            LineNumber = 7,
+        });
+        return model;
+    }
+
+    [Fact]
     public void Entry_target_never_points_at_a_raw_data_access_call()
     {
         // E6: eShop's GetItemPictureById does nothing but `context.CatalogItems.FindAsync(id)` — the

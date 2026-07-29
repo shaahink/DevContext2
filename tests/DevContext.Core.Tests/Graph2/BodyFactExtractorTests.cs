@@ -266,4 +266,78 @@ public sealed class BodyFactExtractorTests
         Assert.Equal("x", log.ReceiverText);
         Assert.Equal("ILogger", log.ReceiverType?.Text);
     }
+
+    // ── D-3 / G5.2: a `this.`-qualified receiver is the same call as the unqualified one ──────────
+
+    [Fact]
+    public void This_qualified_field_receiver_resolves_like_the_unqualified_spelling()
+    {
+        // D-3 (G5.1 Defect 1): GitVersion's five verbs write every collaborator call as
+        // `this.service.Call()`. RootIdentifier walked the member access down to the `this` TOKEN, so
+        // ReceiverText was "this", which matches no entry in the type scope — 16 of 17 invocation
+        // sites across those verbs produced no receiver type at all and the CLI joined no handler.
+        // The unqualified spelling of the SAME call resolves fine, so the two must agree.
+        const string code = """
+            namespace N;
+            class C
+            {
+                private readonly IWidget widget;
+                void Qualified() { this.widget.Do(); }
+                void Bare() { widget.Do(); }
+            }
+            """;
+        var qualified = Member(code, "Qualified").Ops.OfType<InvocationOp>().Single();
+        var bare = Member(code, "Bare").Ops.OfType<InvocationOp>().Single();
+
+        Assert.Equal(bare.ReceiverText, qualified.ReceiverText);
+        Assert.Equal("widget", qualified.ReceiverText);
+        Assert.Equal("IWidget", qualified.ReceiverType?.Text);
+        // The member is already named by ReceiverText — a chain segment would double-count it and
+        // send the binder hunting for a property called "widget" on IWidget.
+        Assert.Null(qualified.ReceiverMember);
+    }
+
+    [Fact]
+    public void This_qualified_chain_keeps_its_trailing_segment()
+    {
+        // The chain case: `this.services.Mediator.Send(c)` must read exactly like
+        // `services.Mediator.Send(c)` — root "services" for the scope lookup, trailing "Mediator" for
+        // the receiver-chain hop and for dispatch detection.
+        const string code = """
+            namespace N;
+            class C
+            {
+                private readonly OrderServices services;
+                void M(object c) { this.services.Mediator.Send(c); }
+            }
+            """;
+        var send = Member(code, "M").Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Send");
+        Assert.Equal("services", send.ReceiverText);
+        Assert.Equal("OrderServices", send.ReceiverType?.Text);
+        Assert.Equal("Mediator", send.ReceiverMember);
+    }
+
+    [Fact]
+    public void Bare_this_self_call_still_reports_this()
+    {
+        // The guard on the normalisation above: `this.Helper()` has no member to unwrap, and the call
+        // binder's self-call arm depends on seeing "this" (it joins the caller type only when the type
+        // DECLARES the method). Reporting "Helper" here would make a self-call look like a field call.
+        const string code = "namespace N; class C { void M() { this.Helper(); } void Helper() { } }";
+        var call = Member(code, "M").Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Helper");
+        Assert.Equal("this", call.ReceiverText);
+        Assert.Null(call.ReceiverMember);
+    }
+
+    [Fact]
+    public void This_rooted_chain_through_a_call_is_left_alone()
+    {
+        // Second guard: `this.Make().Do()` bottoms out at `this` too, but the segment before the call is
+        // the RESULT of a call, not a declared member — nothing the type scope can resolve. The
+        // normalisation must only fire when the walk to `this` is pure member access.
+        const string code = "namespace N; class C { void M() { this.Make().Do(); } }";
+        var call = Member(code, "M").Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Do");
+        Assert.Equal("this", call.ReceiverText);
+        Assert.Null(call.ReceiverType);
+    }
 }

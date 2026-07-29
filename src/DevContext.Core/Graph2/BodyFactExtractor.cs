@@ -143,12 +143,7 @@ public static class BodyFactExtractor
         {
             case MemberAccessExpressionSyntax ma:
                 (methodName, genericArgs) = SplitName(ma.Name, inv, filePath, project);
-                receiverText = RootIdentifier(ma.Expression);
-                // When the receiver is itself a member access (services.Mediator), keep its trailing
-                // segment so dispatch detection sees "Mediator", not just the root "services".
-                receiverMember = ma.Expression is MemberAccessExpressionSyntax innerMa
-                    ? innerMa.Name.Identifier.ValueText
-                    : null;
+                (receiverText, receiverMember) = SplitReceiver(ma.Expression);
                 break;
             case GenericNameSyntax gn:
                 (methodName, genericArgs) = SplitName(gn, inv, filePath, project);
@@ -332,6 +327,48 @@ public static class BodyFactExtractor
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Splits a receiver expression into the identifier its TYPE resolves from and the trailing segment
+    /// before the call. Two spelling normalisations, both so that one call produces one fact:
+    /// <list type="bullet">
+    /// <item>A receiver chain keeps its trailing segment — <c>services.Mediator.Send(c)</c> resolves
+    /// through root "services" and reports "Mediator", so dispatch detection and the binder's
+    /// receiver-chain hop see the member, not just the root.</item>
+    /// <item>An explicit <c>this.</c> is dropped. D-3: <c>this.service.Call()</c> and
+    /// <c>service.Call()</c> are the same call, but <see cref="RootIdentifier"/> bottoms out at the
+    /// <c>this</c> TOKEN, and "this" matches no entry in the type scope — so the qualified spelling lost
+    /// its receiver type entirely while the bare one resolved. That cost GitVersion's CLI every one of
+    /// its handler joins (16 of 17 invocation sites across five verbs produced no receiver type at all).
+    /// The member directly on <c>this</c> IS a scope entry: <see cref="BuildTypeScope"/> already holds
+    /// every field, property and primary-constructor parameter with its declared type.</item>
+    /// </list>
+    /// Two structural conditions, no name list: the walk must reach <c>this</c> through member accesses
+    /// ONLY (so <c>this.Make().Do()</c> — whose segment is a call result, not a declared member — is left
+    /// alone), and there must be a segment to unwrap (so a bare <c>this.Helper()</c> self-call still
+    /// reports "this" and still reaches the call binder's declares-the-method self-call arm).
+    /// </summary>
+    private static (string? Text, string? Member) SplitReceiver(ExpressionSyntax receiver)
+    {
+        var member = receiver is MemberAccessExpressionSyntax ma ? ma.Name.Identifier.ValueText : null;
+        var text = RootIdentifier(receiver);
+        if (text is not "this") return (text, member);
+
+        var expr = receiver;
+        string? memberOnThis = null;
+        var segments = 0;
+        while (expr is MemberAccessExpressionSyntax hop)
+        {
+            memberOnThis = hop.Name.Identifier.ValueText;
+            expr = hop.Expression;
+            segments++;
+        }
+        if (expr is not ThisExpressionSyntax || segments == 0) return (text, member);
+
+        // `this.x.M()` → the receiver IS x, and naming it twice would send the chain hop looking for a
+        // property "x" on x's own type. `this.x.y.M()` → root x, trailing y, exactly like `x.y.M()`.
+        return segments == 1 ? (memberOnThis, null) : (memberOnThis, member);
     }
 
     private static string? RootIdentifier(ExpressionSyntax expr)

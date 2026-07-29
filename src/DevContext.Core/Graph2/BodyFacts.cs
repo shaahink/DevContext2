@@ -20,8 +20,11 @@ public abstract record BodyOp(int Line);
 
 /// <summary>A method invocation. <paramref name="ReceiverText"/> is the root identifier of the receiver
 /// (e.g. <c>sender</c> in <c>sender.Send(cmd)</c>); <paramref name="ReceiverType"/> is its declared type
-/// when resolvable from the member's local scope (fields, params, locals). Generic args and argument
-/// facts are captured verbatim — no regex, no string-literal scanning.</summary>
+/// when resolvable from the member's local scope (fields, params, locals). An explicit <c>this.</c> is
+/// NOT the root — <c>this.sender.Send(cmd)</c> reports <c>sender</c>, the same as the unqualified
+/// spelling, because "this" resolves against no scope entry (D-3). A bare <c>this.Helper()</c> self-call
+/// still reports <c>this</c>. Generic args and argument facts are captured verbatim — no regex, no
+/// string-literal scanning.</summary>
 public sealed record InvocationOp(
     int Line,
     string? ReceiverText,
