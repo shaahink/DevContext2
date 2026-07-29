@@ -1,17 +1,17 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 04:55 UTC · branch `feat/graph-v2` · HEAD `53e79aa`_
+_Updated 2026-07-29 05:11 UTC · branch `feat/graph-v2` · HEAD `3490ab0`_
 
 **Status:** Idle
 **Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 0
 **Checkpoints:** 4/22 done · **Sessions run:** 5 · **Cost:** $71.2224 (agent $71.1455 + gates $0.0770) · **Tokens:** 802,268 in / 357,846 out
-**Pending:** full-battery phase gate for G1
+**Confirmed phases:** G1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | gating… |
+| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ░░░░░░░░░░ 0/2 | todo |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
@@ -29,7 +29,7 @@ _Updated 2026-07-29 04:55 UTC · branch `feat/graph-v2` · HEAD `53e79aa`_
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) |
 | G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) |
 | G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ✅ DONE | [`75704f2`](https://github.com/shaahink/DevContext2/commit/75704f2) |
-| G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ✅ DONE | - |
+| G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ✅ DONE | [`a09c456`](https://github.com/shaahink/DevContext2/commit/a09c456) |
 
 </details>
 
@@ -149,6 +149,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 05:28:32  • session #5 G1 Deliver started (attempt 1/6)
 07-29 05:55:31  ▪ gate fast-engine pass [session]  (1m46s)
 07-29 05:55:31  ▪ gate guards pass [session]  (49.7s)
+07-29 05:55:34  • session #5 G1 → Advanced · done G1.4 · 3 commit(s)  (27m02s)
+07-29 06:11:38  ▪ gate fast-engine pass [phase]  (1m50s)
+07-29 06:11:38  ▪ gate guards pass [phase]  (50.2s)
+07-29 06:11:38  ▪ gate battery pass [phase]  (13m22s)
+07-29 06:11:38  ▸ stage G1 confirmed  (4h43m26s)
 ```
 
 ## Health
@@ -159,6 +164,7 @@ _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)
 sessions 5 · retries 2 (40 %) · overall Warn
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -167,7 +173,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -192,7 +198,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
