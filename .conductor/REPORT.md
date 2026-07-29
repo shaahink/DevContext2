@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 15:30 UTC · branch `feat/graph-v2` · HEAD `850d7c4`_
+_Updated 2026-07-29 16:17 UTC · branch `feat/graph-v2` · HEAD `051386c`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 0 · working ▸ G6.2
-**Checkpoints:** 15/22 done · **Sessions run:** 20 · **Cost:** $254.5485 (agent $254.2927 + gates $0.2557) · **Tokens:** 3,592,035 in / 1,373,810 out
+**Stage:** G6 — D-4 — one vocabulary for "service" on Atlas · attempts used 0
+**Checkpoints:** 16/22 done · **Sessions run:** 21 · **Cost:** $275.1956 (agent $274.9239 + gates $0.2717) · **Tokens:** 3,849,653 in / 1,484,740 out
 **Confirmed phases:** G1, G2, G3, G4, G5
+**Pending:** full-battery phase gate for G6
 
 ## Stage progress
 
@@ -16,7 +17,7 @@ _Updated 2026-07-29 15:30 UTC · branch `feat/graph-v2` · HEAD `850d7c4`_
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
 | G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
-| G6 | D-4 — one vocabulary for "service" on Atlas | █████░░░░░ 1/2 | **← active** |
+| G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | gating… |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
@@ -71,12 +72,12 @@ _Updated 2026-07-29 15:30 UTC · branch `feat/graph-v2` · HEAD `850d7c4`_
 
 </details>
 
-<details><summary>G6 — D-4 — one vocabulary for "service" on Atlas (1/2)</summary>
+<details> ✅<summary>G6 — D-4 — one vocabulary for "service" on Atlas (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | ✅ DONE | - |
-| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | ⬜ TODO | - |
+| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | ✅ DONE | [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) |
+| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | ✅ DONE | - |
 
 </details>
 
@@ -138,16 +139,13 @@ _Updated 2026-07-29 15:30 UTC · branch `feat/graph-v2` · HEAD `850d7c4`_
 | 18 | G5 | Fix | 3 | 07-29 12:46 | 0:42 | Progress |  | 2 | fast-engine:OK · guards:OK | $13.0171 | $0.0110 | 221,201/103,688 |
 | 19 | G5 | Deliver | 3 | 07-29 13:31 | 0:46 | Advanced | G5.2 | 4 | fast-engine:OK · guards:OK | $18.0011 | $0.0177 | 226,885/92,868 |
 | 20 | G6 | Deliver | 1 | 07-29 14:31 | 0:54 | Advanced | G6.1 | 2 | fast-app:OK · guards:OK | $31.7807 | $0.0260 | 303,408/117,180 |
+| 21 | G6 | Deliver | 1 | 07-29 15:30 | 0:43 | Advanced | G6.2 | 1 | fast-app:OK · guards:OK | $20.6312 | $0.0160 | 257,618/110,930 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 11:46:50  ▪ gate battery pass [phase]  (9m30s)
-07-29 11:46:50  ▸ stage G3 confirmed  (4h23m43s)
-07-29 11:46:55  ▸ stage G4 entered — R4 dogfood drive — is the MCP a proper tool?
-07-29 11:46:55  • session #14 G4 Deliver started (attempt 1/4)
 07-29 12:17:55  ▪ gate fast-engine pass [session]  (1m36s)
 07-29 12:17:55  ▪ gate guards pass [session]  (1m16s)
 07-29 12:17:58  • session #14 G4 → Advanced · done G4.1 · 3 commit(s)  (31m02s)
@@ -184,6 +182,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 15:31:49  • session #20 G6 Deliver started (attempt 1/2)
 07-29 16:30:47  ▪ gate fast-app pass [session]  (3m36s)
 07-29 16:30:47  ▪ gate guards pass [session]  (43.2s)
+07-29 16:30:50  • session #20 G6 → Advanced · done G6.1 · 2 commit(s)  (59m00s)
+07-29 16:30:50  • session #21 G6 Deliver started (attempt 1/2)
+07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
+07-29 17:17:17  ▪ gate guards pass [session]  (1m00s)
 ```
 
 ## Health
@@ -191,12 +193,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 20 · retries 8 (40 %) · overall Alert
+sessions 21 · retries 8 (38 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #13: 20,653,481 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #19: 26,816,442 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #20: 51,631,186 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -217,10 +220,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s13 (G3 Deliver)** — 3 commit(s):
-  - [`1b3f7b4`](https://github.com/shaahink/DevContext2/commit/1b3f7b4) chore: mcp-qa report timing, rewritten by the McpQa gate run
-  - [`9beb733`](https://github.com/shaahink/DevContext2/commit/9beb733) chore(G3.3): handoff for the next session
-  - [`cf0fa62`](https://github.com/shaahink/DevContext2/commit/cf0fa62) G3.3: how old is this answer, and which commit is it about
 - **s14 (G4 Deliver)** — 3 commit(s):
   - [`fa8ce07`](https://github.com/shaahink/DevContext2/commit/fa8ce07) G4.1: PLAN status + handoff for the next session
   - [`55e7cec`](https://github.com/shaahink/DevContext2/commit/55e7cec) G4.1: the R4 dogfood drive - 43 MCP calls on Hangfire, every one graded
@@ -247,6 +246,8 @@ vs upstream: up to date
 - **s20 (G6 Deliver)** — 2 commit(s):
   - [`850d7c4`](https://github.com/shaahink/DevContext2/commit/850d7c4) chore(conductor): G6.1 handoff for session #21
   - [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) G6.1 (R3 D-4): one vocabulary for "service" on Atlas
+- **s21 (G6 Deliver)** — 1 commit(s):
+  - [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) G6.2 (R3 D-4): a metadata arity marker is identity, never a name
 
 ## Last gate run
 
@@ -254,32 +255,25 @@ fast-app:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** G6.1 is landed, claimed and pushed (`2fdd4cf` + handoff `850d7c4`) with evidence at `eval-results/2026-07-29/G6/G6.1-EVIDENCE.md` — one membership predicate engine-side (`RunnableProjects`), the `SamplesAreTheProduct` ordering bug fixed, hub rows now carrying the graph's own title/kind/project/flowCount instead of id-carving, and the Atlas canvas caption + per-service cards reconciled through one shared `classifyServiceRoles`; the real-repo invariant "breakdown rows == graph Service nodes" is 5/5 SAME SET (aspire-samples went 0→2, every other pole unmoved) and eShop's set is unmoved at 12. Nothing is red that was green: build 0w/0e, contract-sweep PASS, loom-guards PASS, Se…
+> SESSION-RESULT: G6.2 delivered and claimed (`conductor task --done G6.2 --evidence eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`, board confirms DONE, commit 051386c pushed) — D-4 is now closed on both halves. The engine was measured clean (0 titles / 248 ids with arity across 5 poles) and the leak located entirely in the app: eight id→label derivation sites, replaced by one rule (`nodeIdLabel` in `core/format.ts`) plus title-threading (`TraceStore.titleFor`), and gated as loom-guards rule 8 (RED 8 → GREEN 0, watched). Nothing is red: build 0w/0e, loom-guards + truth gate PASS, `pnpm check` EXIT=0 with 138 tests (+8 new), and the live app measures 0 arity in every text node and every `title=`…
 
 ## Tracker handoff
 
 ```
-**G6.1 CLAIMED** — commit `2fdd4cf`, evidence `eval-results/2026-07-29/G6/G6.1-EVIDENCE.md`.
-Definition adopted: *a service is a RUNNABLE PRODUCTION project* (`RunnableProjects` →
-`NodeKind.Service`). **MEASURE THE PAGE, NOT THE PROJECTION**: new probe
-`src/DevContext.App/scripts/g6-atlas-vocabulary.mts` reads the DRAWN cytoscape nodes via the
-container's `_cyreg` — canvas labels are pixels, not DOM. It also greps the page for arity, which is
-**G6.2's measurement for free**. DECISIONS.md D-H was WRONG on one point: canvas and breakdown were
-set-identical on eShop (9 boxes + 1 frame + 2 TRAYED = 12 = 12 cards) — the canvas trays
-ClientApp/HybridApp, it does not exclude them. But the divergence was real and latent: two membership
-predicates, the breakdown's keyed on the project NAME containing "shared"/"common" — red proof: 5
-runnable projects, it returned 2. Sweep then found a **fourth instance of the same class**:
-`model.SamplesAreTheProduct` was assigned only at graph-assembly time, AFTER the rollup reads it, so
-the rollup read `false` on **every repo ever analysed** (aspire-samples: 2 Service nodes, 0 rows;
-proven pre-existing by measuring both binaries). Hub radar: **7 of 10 rows were Service nodes**,
-titled by splitting the node id on `[./:]` — `Service:WebApp` printed "Service.WebApp".
-Invariant now 5/5 SAME SET across eShop/aspire-samples/CleanArchitecture/podcasts/bitwarden.
-Gates: build 0w/0e · sweep PASS · guards PASS · Server 104/104 · Core 717 pass/2 skip/**1 fail =
-bug #1** (warm re-run 2/2) · `pnpm check` PASS (130 tests). **Next = G6.2 (arity).** Do NOT patch display
-strings — find where arity survives in a node **Title**, and probe a generic-heavy library pole
-(FluentValidation / AutoMapper), not just eShop. **A gRPC driver importing `devcontext_pb.ts` cannot
-run under `node --experimental-strip-types`** (a TS `enum` in the generated file) — drive via
-Playwright. Traps unchanged, plus: `Copy-Item` PRESERVES LastWriteTime, so a red/green swap script
-restores a source file MSBuild thinks is up to date and the "green" leg silently re-runs the old
-binary — use `git stash push -- <file>` or reset the timestamp, and read the elapsed time.
+**G6.2 CLAIMED** — evidence `eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`. **D-4 is now closed, both halves.**
+The engine was already clean and I MEASURED that rather than trusting SymbolCanon's doc comment: 0 node
+titles carry arity across 5 poles, 248 node IDS do (correct). **The leak was the client — 8 sites, 8 rules**,
+one of them `shortNodeTitle` in workbench-page.ts, i.e. the SAME function G6.1 deleted from the hub radar,
+alive in a second file. Rule now: never derive a name from an id — thread the graph's title
+(`TraceStore.titleFor`) — and where there truly is none, ONE fallback, `nodeIdLabel` in core/format.ts.
+This is not taste: `label-mirror-fidelity.ps1` measured that a derivation CANNOT reproduce engine titles
+(Member titles are 343 owner-qualified vs **627 bare** — filed as bug #17; bug #18 = Type nodes whose title
+is a 20-line lambda body). Enforced as **loom-guards rule 8** (3 shapes, 1 allow-listed matcher), watched
+RED 8 → GREEN 0. Gates: build 0w/0e · guards+truth PASS · `pnpm check` EXIT=0 (138 tests). **Next = G7.1 (C-2).**
+Reusable: `scripts/g62-arity-dom.mts` greps text nodes AND `title=` attributes (2 leaks lived in tooltips);
+its GAP, stated in the evidence: it does not reach the stage's node-altitude branch. A LIBRARY POLE CANNOT
+exercise interactive surfaces (FluentValidation: densest arity ids, but no trace → no trail/peek). New traps:
+a .ps1 must be ASCII (a UTF-8 em dash inside a "string" makes PS 5.1 fail to PARSE); `git stash pop` in a
+script must be gated on stash@{0} being YOURS (this repo carries 3 old stashes from other branches);
+`Get-ChildItem -Include` leaks DIRECTORIES into Select-String and kills a guard silently under -EA Stop.
 ```
