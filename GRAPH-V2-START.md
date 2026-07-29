@@ -10,11 +10,19 @@ Studio design call), D-H. Those are owner-interactive briefs. Conductor never re
 only park it; they stay with the owner in an interactive session.
 
 ## Handoff  (overwrite this block, ≤12 lines, no history)
-last: (none) — first conductor session on this program. S1–S10 closed by hand; see PLAN.md §2.
-stage: **G1 NOT STARTED**.
-gate: not yet run this program-under-conductor; S10 closed on GATE: PASS unqualified
-  (`eval-results/2026-07-28/gates-s10-close.txt`, exit 0, all 8 steps).
-next: **G1.1** — `map` returns the structured Map surface instead of 7 scalars + markdown.
+last: a first session ran 15 min on **G1.1** and was **ABORTED mid-flight** by the owner — it never
+  reached gates, never committed, and claimed nothing. **Its work is still in the working tree,
+  uncommitted**: `src/DevContext.Mcp/DevContextTools.cs` (the G1.1 target),
+  `Core/Rendering/MapRenderer.cs`, `Core/Rendering/LibrarySurfaceRenderer.cs`,
+  `Core/Models/DiscoveryModel.cs`, six files under `tests/goldens/`, and a new untracked
+  `eval/mcp-qa/drive-r4.js` (an evidence driver it wrote). **You are continuing that work, not
+  restarting it.** Read the diff FIRST (`git diff`, `git status`), keep what is right, correct what
+  is not. Treat the six golden edits as UNVERIFIED — that session called them a legitimate
+  fresh-run ratchet move but died before any gate agreed. Verify or revert them; do not inherit them.
+stage: **G1 IN PROGRESS** (attempt 1).
+gate: not run since those edits. S10 closed green — `eval-results/2026-07-28/gates-s10-close.txt`.
+next: **G1.1** — `map` returns the structured Map surface, not 7 scalars + markdown that advertises
+  CLI flags the MCP does not have.
 trap: rebuild `src/DevContext.Cli` after ANY Core edit; `analyze` takes a POSITIONAL path.
 
 ## Checkpoints

@@ -13,17 +13,23 @@
   "branchPattern": "^feat/graph-v2$",
   "pauseOnBlocked": true,
 
-  // Conductor runs the gate battery itself after every session, so the agent's own
-  // pre-session ritual is redundant. Saves 30-50% of output tokens.
-  "batteryCollapse": true,
+  // false on purpose: the collapse note tells the agent not to run build or test commands at all,
+  // which in this repo means editing Core and driving a stale CLI. templates/session.md states the
+  // real cadence instead — fast loop mid-session, Conductor owns the full battery.
+  "batteryCollapse": false,
 
+  // NOTE: `model` below only takes effect because `{model}` appears in the arg templates.
+  // AgentSession.ResolveArgs substitutes it there and NOWHERE else — set `model` without the
+  // token and it is silently dropped, and every session quietly runs on the CLI default.
   "agent": {
     "command": "claude",
+    "model": "claude-opus-5",
     "args": [
       "-p", "{prompt}",
       "--output-format", "stream-json",
       "--verbose",
       "--dangerously-skip-permissions",
+      "--model", "{model}",
       "--session-id", "{sessionId}"
     ],
     "resumeArgs": [
@@ -31,10 +37,31 @@
       "--output-format", "stream-json",
       "--verbose",
       "--dangerously-skip-permissions",
+      "--model", "{model}",
       "--resume", "{claudeSessionId}"
     ],
     "output": "stream-json"
   },
+
+  // The built-in "deliver-verify" workflow spawns a SEPARATE verification session after every
+  // deliver — a whole extra paid session whose brief is to re-audit the previous one and re-run
+  // its gates. This program has never worked that way: Conductor's own battery is the independent
+  // check, and it already runs after every session. One step, repeating, plus a fix step that only
+  // fires when the battery came back red.
+  "defaultWorkflow": "deliver",
+  "workflows": {
+    "deliver": {
+      "name": "deliver",
+      "description": "Deliver until the stage's checkpoints are confirmed. Conductor's battery is the QA; no separate verify session.",
+      "repeat": true,
+      "steps": [
+        { "id": "deliver", "kind": "Deliver", "deliver": true },
+        { "id": "fix-if-red", "kind": "Fix", "deliver": true, "runIf": "!gatesGreen" }
+      ]
+    }
+  },
+
+  "templatesDir": "templates",
 
   // Each stage names its ONE strand doc (PLAN.md §5's token rule) and the acceptance that
   // decides it. Without this the agent has the checkpoint title but not the specification.
@@ -130,10 +157,11 @@
     "maxResumesPerSession": 2,
     "stageSlackFactor": 2,
     "backoffMinutes": 30,
-    "maxBackoffs": 10,
-    // Parks at AwaitingOwner when hit — resumable, nothing is lost. Raise it live with
-    // `conductor plan set limits.maxRunCostUsd <n>`; it is a safety rail, not a forecast.
-    "maxRunCostUsd": 40
+    "maxBackoffs": 10
+    // No cost cap, deliberately. The run is already bounded deterministically: 17 planned
+    // sessions x stageSlackFactor 2 = 34 attempts maximum, then stages park on their own.
+    // A dollar cap on top of that would park mid-stage on a number nobody can predict.
+    // Add one live if it ever looks wrong: `conductor plan set limits.maxRunCostUsd <n>`.
   },
 
   "report": { "commit": true, "push": true },
@@ -145,5 +173,5 @@
     "docs/dev/research/PLAN.md"
   ],
 
-  "promptExtra": "BATTERY-COLLAPSE CARVE-OUT — read this before you take \"do not run build or test commands\" literally. It means do not re-run the GATE BATTERY; Conductor runs it independently and its verdict is the only one that counts. It does NOT mean work blind. You MUST still build and drive whatever you need to EXERCISE your own change and produce the evidence artifact a checkpoint claim requires. In this repo that is not optional: `src/DevContext.Cli` carries its OWN copy of DevContext.Core.dll, so a Core edit that is not followed by `dotnet build src/DevContext.Cli` leaves you driving a STALE CLI — and evidence produced from a stale binary is worse than no evidence, because it looks like proof. Build what you need, exercise the surface you changed, then let Conductor judge.\n\nTRAPS THIS PROGRAM HAS ALREADY PAID FOR — do not rediscover them:\n1. A backtick inside an HTML comment TERMINATES an Angular template literal. This has fired three times. Worse, `pnpm ng build` piped through grep for error markers looks CLEAN because esbuild emits ANSI colour codes before the failure marker. CHECK $?, never the filtered output. Write field names in comments without backticks.\n2. Every `node scripts/...` command needs an absolute `cd` in the SAME command — a drifted working directory has cost this program two sessions.\n3. `analyze` takes a POSITIONAL path; `query` takes `--path`. `analyze --path <repo>` silently analyses the working directory instead.\n4. Rebuild src/DevContext.Cli after ANY Core edit — the CLI carries its own DevContext.Core.dll (stale-dll trap).\n5. CLI paths must be ABSOLUTE — a relative path is parsed as a GitHub repo and cloned.\n6. Restart src/DevContext.App/scripts/start-dev-bg.ps1 before any Playwright capture that follows a build; a stale vite-error-overlay silently eats clicks.\n7. MEASURE a verdict, do not read it off a doc comment. Three times in this program the doc comment was stale and the code was right. Checking what a field CONTAINS is the highest-value habit here.\n8. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no softened gate. If a bar is genuinely wrong, put a HUMAN: line in the tracker handoff and stop.\n9. Never merge to develop. That is an owner-signed event."
+  "promptExtra": "TRAPS THIS PROGRAM HAS ALREADY PAID FOR — do not rediscover them:\n1. A backtick inside an HTML comment TERMINATES an Angular template literal. This has fired three times. Worse, `pnpm ng build` piped through grep for error markers looks CLEAN because esbuild emits ANSI colour codes before the failure marker. CHECK $?, never the filtered output. Write field names in comments without backticks.\n2. Every `node scripts/...` command needs an absolute `cd` in the SAME command — a drifted working directory has cost this program two sessions.\n3. `analyze` takes a POSITIONAL path; `query` takes `--path`. `analyze --path <repo>` silently analyses the working directory instead.\n4. Rebuild src/DevContext.Cli after ANY Core edit — the CLI carries its own DevContext.Core.dll (stale-dll trap).\n5. CLI paths must be ABSOLUTE — a relative path is parsed as a GitHub repo and cloned.\n6. Restart src/DevContext.App/scripts/start-dev-bg.ps1 before any Playwright capture that follows a build; a stale vite-error-overlay silently eats clicks.\n7. MEASURE a verdict, do not read it off a doc comment. Three times in this program the doc comment was stale and the code was right. Checking what a field CONTAINS is the highest-value habit here.\n8. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no softened gate. If a bar is genuinely wrong, put a HUMAN: line in the tracker handoff and stop.\n9. Never merge to develop. That is an owner-signed event."
 }
