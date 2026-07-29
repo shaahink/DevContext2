@@ -1,0 +1,223 @@
+{
+  "meta": "style=NotApplicable archetype=CliTool projects=11",
+  "solutionName": "GitVersion",
+  "archetype": "CliTool",
+  "isLibrary": false,
+  "style": "NotApplicable",
+  "styleConfidence": 0,
+  "styleEvidence": "not applicable to a clitool",
+  "projectCount": 11,
+  "solutionScope": {
+    "analyzedRelPath": "src/GitVersion.slnx",
+    "analyzedName": "GitVersion",
+    "totalOnDisk": 3,
+    "otherPaths": [
+      "build/CI.slnx",
+      "new-cli/GitVersion.slnx"
+    ],
+    "wasRequested": false
+  },
+  "topology": [
+    {
+      "name": "GitVersion.App",
+      "dependsOn": [
+        "GitVersion.BuildAgents",
+        "GitVersion.Configuration",
+        "GitVersion.Core",
+        "GitVersion.LibGit2Sharp",
+        "GitVersion.Output"
+      ],
+      "layer": "Infrastructure",
+      "feature": "GitVersion"
+    },
+    {
+      "name": "GitVersion.BuildAgents",
+      "dependsOn": [
+        "GitVersion.Core"
+      ],
+      "feature": "GitVersion"
+    },
+    {
+      "name": "GitVersion.Configuration (new-cli)",
+      "dependsOn": [],
+      "layer": "Infrastructure",
+      "feature": "Attributes"
+    },
+    {
+      "name": "GitVersion.Configuration (src)",
+      "dependsOn": [
+        "GitVersion.Core"
+      ],
+      "layer": "Infrastructure",
+      "feature": "Attributes"
+    },
+    {
+      "name": "GitVersion.Core (new-cli)",
+      "dependsOn": [],
+      "layer": "Infrastructure",
+      "feature": "GitVersion"
+    },
+    {
+      "name": "GitVersion.Core (src)",
+      "dependsOn": [],
+      "layer": "Infrastructure",
+      "feature": "GitVersion"
+    },
+    {
+      "name": "GitVersion.LibGit2Sharp",
+      "dependsOn": [
+        "GitVersion.Core"
+      ],
+      "layer": "Infrastructure",
+      "feature": "GitVersion"
+    },
+    {
+      "name": "GitVersion.MsBuild",
+      "dependsOn": [
+        "GitVersion.BuildAgents",
+        "GitVersion.Configuration",
+        "GitVersion.Core",
+        "GitVersion.Output"
+      ],
+      "layer": "Presentation",
+      "feature": "Tasks"
+    },
+    {
+      "name": "GitVersion.Output (new-cli)",
+      "dependsOn": [],
+      "layer": "Infrastructure",
+      "feature": "AssemblyInfo"
+    },
+    {
+      "name": "GitVersion.Output (src)",
+      "dependsOn": [
+        "GitVersion.Core"
+      ],
+      "layer": "Infrastructure",
+      "feature": "AssemblyInfo"
+    },
+    {
+      "name": "GitVersion.Schema",
+      "dependsOn": [
+        "GitVersion.Configuration",
+        "GitVersion.Core",
+        "GitVersion.Output"
+      ],
+      "layer": "Application"
+    }
+  ],
+  "serviceStyles": [
+    {
+      "projectName": "GitVersion.Cli",
+      "style": "CLI",
+      "stack": [
+        "CLI"
+      ]
+    },
+    {
+      "projectName": "GitVersion.Core.Tester",
+      "style": "Unknown",
+      "stack": []
+    },
+    {
+      "projectName": "GitVersion.App",
+      "style": "Unknown",
+      "stack": []
+    },
+    {
+      "projectName": "GitVersion.Schema",
+      "style": "Unknown",
+      "stack": []
+    }
+  ],
+  "packages": [
+    {
+      "label": "Logging",
+      "packages": [
+        "Serilog.Extensions.Logging 10.0.0",
+        "Serilog.Sinks.Console 6.1.1",
+        "Serilog.Sinks.File 7.0.0",
+        "Serilog.Sinks.Map 2.0.0"
+      ]
+    },
+    {
+      "label": "Testing",
+      "packages": [
+        "Cake.Coverlet 6.0.1",
+        "NUnit 4.6.1",
+        "NUnit.Analyzers 4.14.0",
+        "NUnit3TestAdapter 6.2.0",
+        "Shouldly 4.3.0",
+        "xunit.assert 2.9.3"
+      ]
+    },
+    {
+      "label": "Utilities",
+      "packages": [
+        "Polly 8.7.0"
+      ]
+    },
+    {
+      "label": "Other",
+      "packages": [
+        "Buildalyzer 8.0.0",
+        "Cake.Codecov 6.0.0",
+        "Cake.Frosting.Git 5.0.1",
+        "Cake.Http 5.1.0",
+        "Cake.Json 7.0.1",
+        "Cake.Npx 1.7.0",
+        "Cake.Wyam 2.2.14",
+        "JsonSchema.Net.Generation 7.3.10",
+        "LibGit2Sharp 0.31.0",
+        "MSBuild.ProjectCreation 17.0.1",
+        "Microsoft.Build",
+        "Microsoft.Build.Tasks.Core",
+        "Microsoft.Build.Utilities.Core",
+        "Microsoft.CSharp 4.7.0",
+        "Microsoft.CodeAnalysis.Analyzers",
+        "Microsoft.CodeAnalysis.CSharp",
+        "Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing 1.1.4",
+        "Microsoft.CodeAnalysis.CSharp.Workspaces",
+        "Microsoft.CodeAnalysis.Common",
+        "Microsoft.CodeAnalysis.VisualBasic",
+        "Microsoft.Extensions.Configuration.CommandLine 10.0.10",
+        "Microsoft.Extensions.DependencyInjection 10.0.10",
+        "Microsoft.Extensions.DependencyInjection.Abstractions 10.0.10",
+        "Microsoft.Extensions.FileSystemGlobbing 10.0.10",
+        "Microsoft.Extensions.Hosting 10.0.10",
+        "Microsoft.Extensions.Logging.Abstractions 10.0.10",
+        "Microsoft.Extensions.Options 10.0.10",
+        "Microsoft.IO.Redist 6.1.3",
+        "Microsoft.NET.Test.Sdk 18.8.1",
+        "Microsoft.Win32.Registry 6.0.0-preview.5.21301.5",
+        "PolySharp 1.16.0",
+        "Scriban 7.2.5",
+        "SharpYaml 3.13.0",
+        "System.Collections.Immutable 10.0.10",
+        "System.CommandLine 2.0.10",
+        "System.IO.Abstractions 22.2.0",
+        "System.Reflection.Metadata 10.0.10",
+        "System.Text.Json 10.0.10"
+      ]
+    }
+  ],
+  "archetypeView": {
+    "archetype": "CliTool",
+    "sectionLabel": "COMMAND SURFACE",
+    "groups": [
+      {
+        "project": "GitVersion.App",
+        "layer": "Infrastructure",
+        "entries": [
+          {
+            "kind": "CliCommand",
+            "title": "GitVersion.App (Main)",
+            "depth": 1,
+            "hops": 0
+          }
+        ]
+      }
+    ]
+  },
+  "markdown": "CLI TOOL  GitVersion     (11 projects)\r\nSCOPE  analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo; analyze another by naming its solution — style/topology are local to this slice, not the whole system\r\n\r\nSTACK  net10.0, net9.0 +2 more TFMs\r\n\r\nSTYLE  NotApplicable  (confidence low)\r\n       evidence: not applicable to a clitool\r\n\r\n       per service:\r\n         GitVersion.Cli: CLI [CLI]\r\n         GitVersion.Core.Tester: Unknown\r\n         GitVersion.App: Unknown\r\n         GitVersion.Schema: Unknown\r\n\r\nCOMMAND SURFACE\r\n   GitVersion.App [Infrastructure] (1)\r\n      GitVersion.App (Main)\r\n\r\nTOPOLOGY (depends-on)\r\n   GitVersion.BuildAgents ── GitVersion.Core\r\n   GitVersion.LibGit2Sharp ── GitVersion.Core\r\n   GitVersion.App ── GitVersion.BuildAgents, GitVersion.Configuration, GitVersion.Core, GitVersion.LibGit2Sharp, GitVersion.Output\r\n   GitVersion.Configuration (new-cli)\r\n   GitVersion.Configuration (src) ── GitVersion.Core\r\n   GitVersion.Core (new-cli)\r\n   GitVersion.Core (src)\r\n   GitVersion.MsBuild ── GitVersion.BuildAgents, GitVersion.Configuration, GitVersion.Core, GitVersion.Output\r\n   GitVersion.Output (new-cli)\r\n   GitVersion.Output (src) ── GitVersion.Core\r\n   GitVersion.Schema ── GitVersion.Configuration, GitVersion.Core, GitVersion.Output\r\n\r\nENTRY POINTS\r\n   CLI (1)\r\n      GitVersion.App (Main)  (src/GitVersion.App/Program.cs:3)\r\n\r\nPACKAGES\r\n   Logging:  Serilog.Extensions.Logging 10.0.0, Serilog.Sinks.Console 6.1.1, Serilog.Sinks.File 7.0.0, Serilog.Sinks.Map 2.0.0\r\n   Testing:  Cake.Coverlet 6.0.1, NUnit 4.6.1, NUnit.Analyzers 4.14.0, NUnit3TestAdapter 6.2.0, Shouldly 4.3.0, xunit.assert 2.9.3\r\n   Utilities:  Polly 8.7.0\r\n   Other:  Buildalyzer 8.0.0, Cake.Codecov 6.0.0, Cake.Frosting.Git 5.0.1, Cake.Http 5.1.0, Cake.Json 7.0.1, Cake.Npx 1.7.0, Cake.Wyam 2.2.14, JsonSchema.Net.Generation 7.3.10 … (38 total)\r\n\r\n→ drill in:  trace a focused entry   (e.g. trace \"GitVersion.App (Main)\")\r\n"
+}

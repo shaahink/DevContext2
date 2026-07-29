@@ -91,7 +91,15 @@
       remain open**, with their evidence captured (owner: implement Home first).
 - [ ] S11 — R3 continued: D-F · D-G · D-H · C-2/C-3 + D-3/D-4 · render kernel built AFTER the
       decisions it serves · re-point `screenshot-gate.mts` as pages land
-- [ ] R4 (parallel lane) — fixes landed · dogfood run · REPORT.md graded
+- [~] R4 (parallel lane) — now driven by conductor as stage **G1** (`GRAPH-V2-START.md`).
+      **§1 item 1 LANDED 2026-07-29**: `map` returns the structured surface (it was dropping the
+      library surface, packages, aggregates, service styles and the archetype view *after* the server
+      had computed them), and no shared-render markdown names a CLI-only flag. The leak was wider
+      than the [audit] ref — it lives in the **Core renderers all three surfaces share**, so it is
+      found by sweeping Core, not by reading the MCP tool: `LibrarySurfaceRenderer.cs:122,125` were
+      missed on the first pass. `MarkdownRenderer`'s `--around` is correctly left alone (CLI-only
+      registration). Evidence: `eval-results/2026-07-29/G1.1-EVIDENCE.md`. Items 2-7 + 11-12 open;
+      dogfood + REPORT.md ungraded.
 
 Session log (one line each: date · what closed · surprises):
 - 2026-07-27 · S1 steps 1-2 done ahead of session: Prism merge signed+landed (develop 8dbb510,

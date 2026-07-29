@@ -1,0 +1,1200 @@
+{
+  "meta": "style=NotApplicable archetype=Library projects=2",
+  "solutionName": "FluentValidation",
+  "archetype": "Library",
+  "isLibrary": true,
+  "style": "NotApplicable",
+  "styleConfidence": 0,
+  "styleEvidence": "not applicable to a library",
+  "projectCount": 2,
+  "topology": [
+    {
+      "name": "FluentValidation",
+      "dependsOn": [],
+      "layer": "Infrastructure",
+      "feature": "Resources"
+    },
+    {
+      "name": "FluentValidation.DependencyInjectionExtensions",
+      "dependsOn": [
+        "FluentValidation"
+      ],
+      "layer": "Infrastructure"
+    }
+  ],
+  "packages": [
+    {
+      "label": "Testing",
+      "packages": [
+        "Bogus 30.0.2",
+        "xunit 2.2.0",
+        "xunit.runner.visualstudio 2.2.0"
+      ]
+    },
+    {
+      "label": "Utilities",
+      "packages": [
+        "Newtonsoft.Json 13.0.3"
+      ]
+    },
+    {
+      "label": "Other",
+      "packages": [
+        "BenchmarkDotNet 0.12.1",
+        "Microsoft.Extensions.DependencyInjection 8.0.0",
+        "Microsoft.Extensions.DependencyInjection.Abstractions 2.1.0",
+        "Microsoft.NET.Test.Sdk 16.0.1",
+        "Microsoft.NETFramework.ReferenceAssemblies 1.0.3",
+        "Microsoft.TestPlatform.TestHost 16.0.1",
+        "System.ComponentModel.Annotations 4.4.1",
+        "System.Threading.Tasks.Extensions 4.5.4",
+        "Zomp.SyncMethodGenerator 1.3.8-beta"
+      ]
+    }
+  ],
+  "surface": {
+    "entryApi": [
+      {
+        "title": "ServiceCollectionExtensions.AddValidatorsFromAssemblies",
+        "kind": "register",
+        "doc": "Adds all validators in specified assemblies",
+        "location": "ServiceCollectionExtensions.cs"
+      },
+      {
+        "title": "ServiceCollectionExtensions.AddValidatorsFromAssembly",
+        "kind": "register",
+        "doc": "Adds all validators in specified assembly",
+        "location": "ServiceCollectionExtensions.cs"
+      },
+      {
+        "title": "ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining",
+        "kind": "register",
+        "doc": "Adds all validators in the assembly of the specified type",
+        "location": "ServiceCollectionExtensions.cs"
+      },
+      {
+        "title": "AbstractValidator",
+        "kind": "derive",
+        "doc": "Base class for object validators.",
+        "location": "AbstractValidator.cs"
+      },
+      {
+        "title": "IPropertyValidator",
+        "kind": "implement",
+        "doc": "A custom property validator.",
+        "location": "IPropertyValidator.cs"
+      },
+      {
+        "title": "InlineValidator",
+        "kind": "derive",
+        "doc": "Validator implementation that allows rules to be defined without inheriting from AbstractValidator.",
+        "location": "InlineValidator.cs"
+      },
+      {
+        "title": "PropertyValidator",
+        "kind": "derive",
+        "location": "PropertyValidator.cs"
+      },
+      {
+        "title": "DefaultValidatorExtensions",
+        "kind": "extend",
+        "doc": "Extension methods that provide the default set of validators.",
+        "location": "DefaultValidatorExtensions.cs"
+      },
+      {
+        "title": "DefaultValidatorOptions",
+        "kind": "extend",
+        "doc": "Default options that can be used to configure a validator.",
+        "location": "DefaultValidatorOptions.cs"
+      },
+      {
+        "title": "ValidationTestExtension",
+        "kind": "extend",
+        "location": "ValidatorTestExtensions.cs"
+      }
+    ],
+    "abstractions": [
+      {
+        "name": "AbstractValidator",
+        "kind": "class",
+        "implementorCount": 56
+      },
+      {
+        "name": "PropertyValidator",
+        "kind": "class",
+        "implementorCount": 20
+      },
+      {
+        "name": "IPropertyValidator",
+        "kind": "interface",
+        "implementorCount": 12
+      },
+      {
+        "name": "InlineValidator",
+        "kind": "class",
+        "implementorCount": 8
+      },
+      {
+        "name": "IValidationRule",
+        "kind": "interface",
+        "implementorCount": 6
+      },
+      {
+        "name": "IComparisonValidator",
+        "kind": "interface",
+        "implementorCount": 5
+      },
+      {
+        "name": "AbstractComparisonValidator",
+        "kind": "class",
+        "implementorCount": 4
+      },
+      {
+        "name": "ILengthValidator",
+        "kind": "interface",
+        "implementorCount": 4
+      },
+      {
+        "name": "IRuleBuilder",
+        "kind": "interface",
+        "implementorCount": 4
+      },
+      {
+        "name": "IAsyncPropertyValidator",
+        "kind": "interface",
+        "implementorCount": 3
+      }
+    ],
+    "groups": [
+      {
+        "ns": "FluentValidation",
+        "types": [
+          {
+            "name": "AbstractValidator",
+            "kind": "Class",
+            "members": [
+              "CanValidateInstancesOfType",
+              "CreateDescriptor",
+              "GetEnumerator",
+              "Include",
+              "RuleFor",
+              "RuleForEach",
+              "RuleSet",
+              "Unless",
+              "UnlessAsync",
+              "Validate",
+              "ValidateAsync",
+              "When",
+              "WhenAsync"
+            ],
+            "doc": "Base class for object validators."
+          },
+          {
+            "name": "AssemblyScanResult",
+            "kind": "Class",
+            "members": [
+              "AssemblyScanResult"
+            ],
+            "doc": "Result of performing a scan."
+          },
+          {
+            "name": "AssemblyScanner",
+            "kind": "Class",
+            "members": [
+              "AssemblyScanner",
+              "FindValidatorsInAssemblies",
+              "FindValidatorsInAssembly",
+              "FindValidatorsInAssemblyContaining",
+              "ForEach",
+              "GetEnumerator"
+            ],
+            "doc": "Class that can be used to find all the validators from a collection of types."
+          },
+          {
+            "name": "AsyncValidatorInvokedSynchronouslyException",
+            "kind": "Class",
+            "doc": "This exception is thrown when an asynchronous validator is executed synchronously."
+          },
+          {
+            "name": "DefaultValidatorExtensions",
+            "kind": "Class",
+            "members": [
+              "ChildRules",
+              "CreditCard",
+              "Custom",
+              "CustomAsync",
+              "EmailAddress",
+              "Empty",
+              "Equal",
+              "ExclusiveBetween",
+              "ForEach",
+              "GreaterThan",
+              "GreaterThanOrEqualTo",
+              "InclusiveBetween",
+              "IsEnumName",
+              "IsInEnum",
+              "Length"
+            ],
+            "doc": "Extension methods that provide the default set of validators."
+          },
+          {
+            "name": "DefaultValidatorOptions",
+            "kind": "Class",
+            "members": [
+              "Cascade",
+              "Configurable",
+              "Configure",
+              "OverrideIndexer",
+              "OverridePropertyName",
+              "Unless",
+              "UnlessAsync",
+              "When",
+              "WhenAsync",
+              "Where",
+              "WhereAsync",
+              "WithErrorCode",
+              "WithMessage",
+              "WithName",
+              "WithSeverity"
+            ],
+            "doc": "Default options that can be used to configure a validator."
+          },
+          {
+            "name": "ICollectionRule",
+            "kind": "Interface",
+            "doc": "Represents a rule defined against a collection with RuleForEach."
+          },
+          {
+            "name": "IConditionBuilder",
+            "kind": "Interface",
+            "members": [
+              "Otherwise"
+            ],
+            "doc": "Fluent interface for conditions (When/Unless/WhenAsync/UnlessAsync)"
+          },
+          {
+            "name": "IRuleBuilder",
+            "kind": "Interface",
+            "members": [
+              "SetAsyncValidator",
+              "SetValidator"
+            ],
+            "doc": "Rule builder"
+          },
+          {
+            "name": "IRuleBuilderInitial",
+            "kind": "Interface",
+            "doc": "Rule builder that starts the chain"
+          },
+          {
+            "name": "IRuleBuilderInitialCollection",
+            "kind": "Interface",
+            "doc": "Rule builder that starts the chain for a child collection"
+          },
+          {
+            "name": "IRuleBuilderOptions",
+            "kind": "Interface",
+            "members": [
+              "DependentRules"
+            ],
+            "doc": "Rule builder"
+          },
+          {
+            "name": "IRuleBuilderOptionsConditions",
+            "kind": "Interface",
+            "members": [
+              "DependentRules"
+            ],
+            "doc": "Rule builder (for validators that only support conditions, but no other options)"
+          },
+          {
+            "name": "IValidationContext",
+            "kind": "Interface"
+          },
+          {
+            "name": "IValidationRule",
+            "kind": "Interface",
+            "members": [
+              "GetDisplayName",
+              "SetDisplayName"
+            ],
+            "doc": "Defines a rule associated with a property which can have multiple validators."
+          },
+          {
+            "name": "IValidationRule",
+            "kind": "Interface",
+            "members": [
+              "ApplyAsyncCondition",
+              "ApplyCondition",
+              "ApplySharedAsyncCondition",
+              "ApplySharedCondition",
+              "GetPropertyValue",
+              "TryGetPropertyValue"
+            ]
+          },
+          {
+            "name": "IValidationRule",
+            "kind": "Interface",
+            "members": [
+              "AddAsyncValidator",
+              "AddValidator",
+              "SetDisplayName"
+            ]
+          },
+          {
+            "name": "IValidator",
+            "kind": "Interface",
+            "members": [
+              "CanValidateInstancesOfType",
+              "CreateDescriptor",
+              "Validate",
+              "ValidateAsync"
+            ],
+            "doc": "Defines a validator for a particular type."
+          },
+          {
+            "name": "IValidator",
+            "kind": "Interface",
+            "members": [
+              "Validate",
+              "ValidateAsync"
+            ],
+            "doc": "Defines a validator for a particular type."
+          },
+          {
+            "name": "IValidatorDescriptor",
+            "kind": "Interface",
+            "members": [
+              "GetMembersWithValidators",
+              "GetName",
+              "GetRulesForMember",
+              "GetValidatorsForMember"
+            ],
+            "doc": "Provides metadata about a validator."
+          },
+          {
+            "name": "IValidatorFactory",
+            "kind": "Interface",
+            "members": [
+              "GetValidator"
+            ],
+            "doc": "Gets validators for a particular type."
+          },
+          {
+            "name": "InlineValidator",
+            "kind": "Class",
+            "members": [
+              "Add"
+            ],
+            "doc": "Validator implementation that allows rules to be defined without inheriting from AbstractValidator."
+          },
+          {
+            "name": "RulesetMetadata",
+            "kind": "Class",
+            "members": [
+              "RulesetMetadata"
+            ],
+            "doc": "Information about rulesets"
+          },
+          {
+            "name": "ServiceCollectionExtensions",
+            "kind": "Class",
+            "members": [
+              "AddValidatorsFromAssemblies",
+              "AddValidatorsFromAssembly",
+              "AddValidatorsFromAssemblyContaining"
+            ]
+          },
+          {
+            "name": "ServiceProviderValidatorFactory",
+            "kind": "Class",
+            "members": [
+              "CreateInstance",
+              "ServiceProviderValidatorFactory"
+            ],
+            "doc": "Validator factory implementation that uses the asp.net service provider to construct validators."
+          },
+          {
+            "name": "ValidationContext",
+            "kind": "Class",
+            "members": [
+              "AddFailure",
+              "CloneForChildValidator",
+              "CreateWithOptions",
+              "GetFromNonGenericContext",
+              "ValidationContext"
+            ],
+            "doc": "Validation context"
+          },
+          {
+            "name": "ValidationException",
+            "kind": "Class",
+            "members": [
+              "GetObjectData",
+              "ValidationException"
+            ],
+            "doc": "An exception that represents failed validation"
+          },
+          {
+            "name": "ValidatorConfiguration",
+            "kind": "Class",
+            "members": [
+              "DefaultDisplayNameResolver",
+              "DefaultErrorCodeResolver",
+              "DefaultPropertyNameResolver"
+            ],
+            "doc": "Configuration options for validators."
+          },
+          {
+            "name": "ValidatorDescriptor",
+            "kind": "Class",
+            "members": [
+              "GetMembersWithValidators",
+              "GetName",
+              "GetRulesByRuleset",
+              "GetRulesForMember",
+              "GetValidatorsForMember",
+              "ValidatorDescriptor"
+            ],
+            "doc": "Used for providing metadata about a validator."
+          },
+          {
+            "name": "ValidatorFactoryBase",
+            "kind": "Class",
+            "members": [
+              "CreateInstance",
+              "GetValidator"
+            ],
+            "doc": "Factory for creating validators"
+          },
+          {
+            "name": "ValidatorOptions",
+            "kind": "Class",
+            "doc": "Validator runtime options"
+          },
+          {
+            "name": "ValidatorSelectorOptions",
+            "kind": "Class",
+            "doc": "ValidatorSelector options"
+          }
+        ]
+      },
+      {
+        "ns": "FluentValidation.Resources",
+        "types": [
+          {
+            "name": "ILanguageManager",
+            "kind": "Interface",
+            "members": [
+              "GetString"
+            ],
+            "doc": "Allows the default error message translations to be managed."
+          },
+          {
+            "name": "LanguageManager",
+            "kind": "Class",
+            "members": [
+              "AddTranslation",
+              "Clear",
+              "GetString"
+            ],
+            "doc": "Allows the default error message translations to be managed."
+          }
+        ]
+      },
+      {
+        "ns": "FluentValidation.Results",
+        "types": [
+          {
+            "name": "ValidationFailure",
+            "kind": "Class",
+            "members": [
+              "ToString",
+              "ValidationFailure"
+            ],
+            "doc": "Defines a validation failure"
+          },
+          {
+            "name": "ValidationResult",
+            "kind": "Class",
+            "members": [
+              "ToDictionary",
+              "ToString",
+              "ValidationResult"
+            ],
+            "doc": "The result of running a validator"
+          }
+        ]
+      },
+      {
+        "ns": "FluentValidation.TestHelper",
+        "types": [
+          {
+            "name": "ITestValidationContinuation",
+            "kind": "Interface"
+          },
+          {
+            "name": "ITestValidationWith",
+            "kind": "Interface"
+          },
+          {
+            "name": "TestValidationResult",
+            "kind": "Class",
+            "members": [
+              "ShouldHaveValidationErrorFor",
+              "ShouldHaveValidationErrors",
+              "ShouldNotHaveAnyValidationErrors",
+              "ShouldNotHaveValidationErrorFor",
+              "TestValidationResult"
+            ]
+          },
+          {
+            "name": "ValidationTestException",
+            "kind": "Class",
+            "members": [
+              "ValidationTestException"
+            ]
+          },
+          {
+            "name": "ValidationTestExtension",
+            "kind": "Class",
+            "members": [
+              "Only",
+              "ShouldHaveChildValidator",
+              "TestValidate",
+              "TestValidateAsync",
+              "When",
+              "WhenAll",
+              "WithCustomState",
+              "WithErrorCode",
+              "WithErrorMessage",
+              "WithMessageArgument",
+              "WithSeverity",
+              "WithoutCustomState",
+              "WithoutErrorCode",
+              "WithoutErrorMessage",
+              "WithoutSeverity"
+            ]
+          }
+        ]
+      },
+      {
+        "ns": "FluentValidation.Validators",
+        "types": [
+          {
+            "name": "AbstractComparisonValidator",
+            "kind": "Class",
+            "members": [
+              "GetComparisonValue",
+              "IsValid"
+            ],
+            "doc": "Base class for all comparison validators"
+          },
+          {
+            "name": "AspNetCoreCompatibleEmailValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "AsyncPredicateValidator",
+            "kind": "Class",
+            "members": [
+              "AsyncPredicateValidator",
+              "IsValidAsync"
+            ],
+            "doc": "Asynchronous custom validator"
+          },
+          {
+            "name": "AsyncPropertyValidator",
+            "kind": "Class",
+            "members": [
+              "GetDefaultMessageTemplate",
+              "IsValidAsync"
+            ]
+          },
+          {
+            "name": "ChildValidatorAdaptor",
+            "kind": "Class",
+            "members": [
+              "ChildValidatorAdaptor",
+              "GetValidator",
+              "IsValid",
+              "IsValidAsync"
+            ]
+          },
+          {
+            "name": "CreditCardValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ],
+            "doc": "Ensures that the property value is a valid credit card number."
+          },
+          {
+            "name": "EmailValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "EmptyValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "EnumValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "EqualValidator",
+            "kind": "Class",
+            "members": [
+              "EqualValidator",
+              "IsValid"
+            ]
+          },
+          {
+            "name": "ExactLengthValidator",
+            "kind": "Class",
+            "members": [
+              "ExactLengthValidator"
+            ]
+          },
+          {
+            "name": "ExclusiveBetweenValidator",
+            "kind": "Class",
+            "members": [
+              "ExclusiveBetweenValidator"
+            ],
+            "doc": "Performs range validation where the property value must be between the two specified values (exclusive)."
+          },
+          {
+            "name": "GreaterThanOrEqualValidator",
+            "kind": "Class",
+            "members": [
+              "GreaterThanOrEqualValidator",
+              "IsValid"
+            ]
+          },
+          {
+            "name": "GreaterThanValidator",
+            "kind": "Class",
+            "members": [
+              "GreaterThanValidator",
+              "IsValid"
+            ]
+          },
+          {
+            "name": "IAsyncPropertyValidator",
+            "kind": "Interface",
+            "members": [
+              "IsValidAsync"
+            ]
+          },
+          {
+            "name": "IBetweenValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IChildValidatorAdaptor",
+            "kind": "Interface",
+            "doc": "Indicates that this validator wraps another validator."
+          },
+          {
+            "name": "IComparisonValidator",
+            "kind": "Interface",
+            "doc": "Defines a comparison validator"
+          },
+          {
+            "name": "ICreditCardValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IEmailValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IEnumValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IEqualValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IExactLengthValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IGreaterThanOrEqualValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IInclusiveBetweenValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "ILengthValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "ILessThanOrEqualValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IMaximumLengthValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IMinimumLengthValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "INotEmptyValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "INotNullValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "INullValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IPredicateValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "IPropertyValidator",
+            "kind": "Interface",
+            "members": [
+              "GetDefaultMessageTemplate"
+            ],
+            "doc": "A custom property validator."
+          },
+          {
+            "name": "IPropertyValidator",
+            "kind": "Interface",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "IRegularExpressionValidator",
+            "kind": "Interface"
+          },
+          {
+            "name": "InclusiveBetweenValidator",
+            "kind": "Class",
+            "members": [
+              "InclusiveBetweenValidator"
+            ],
+            "doc": "Performs range validation where the property value must be between the two specified values (inclusive)."
+          },
+          {
+            "name": "LengthValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "LengthValidator"
+            ]
+          },
+          {
+            "name": "LessThanOrEqualValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "LessThanOrEqualValidator"
+            ]
+          },
+          {
+            "name": "LessThanValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "LessThanValidator"
+            ]
+          },
+          {
+            "name": "MaximumLengthValidator",
+            "kind": "Class",
+            "members": [
+              "MaximumLengthValidator"
+            ]
+          },
+          {
+            "name": "MinimumLengthValidator",
+            "kind": "Class",
+            "members": [
+              "MinimumLengthValidator"
+            ]
+          },
+          {
+            "name": "NoopPropertyValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "NotEmptyValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "NotEqualValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "NotEqualValidator"
+            ]
+          },
+          {
+            "name": "NotNullValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "NullValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid"
+            ]
+          },
+          {
+            "name": "PolymorphicValidator",
+            "kind": "Class",
+            "members": [
+              "Add",
+              "GetValidator",
+              "PolymorphicValidator"
+            ],
+            "doc": "Performs runtime checking of the value being validated, and passes validation off to a subclass validator."
+          },
+          {
+            "name": "PrecisionScaleValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "PrecisionScaleValidator"
+            ],
+            "doc": "Allows a decimal to be validated for scale and precision."
+          },
+          {
+            "name": "PredicateValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "PredicateValidator"
+            ]
+          },
+          {
+            "name": "PropertyValidator",
+            "kind": "Class",
+            "members": [
+              "GetDefaultMessageTemplate",
+              "IsValid"
+            ]
+          },
+          {
+            "name": "RangeValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "RangeValidator"
+            ],
+            "doc": "Base class for range validation."
+          },
+          {
+            "name": "RangeValidatorFactory",
+            "kind": "Class",
+            "members": [
+              "CreateExclusiveBetween",
+              "CreateInclusiveBetween"
+            ]
+          },
+          {
+            "name": "RegularExpressionValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "RegularExpressionValidator"
+            ]
+          },
+          {
+            "name": "StringEnumValidator",
+            "kind": "Class",
+            "members": [
+              "IsValid",
+              "StringEnumValidator"
+            ]
+          }
+        ]
+      }
+    ],
+    "internals": [
+      {
+        "ns": "FluentValidation.Internal",
+        "types": [
+          {
+            "name": "AccessorCache",
+            "kind": "Class",
+            "members": [
+              "Clear",
+              "GetCachedAccessor"
+            ],
+            "doc": "Member accessor cache."
+          },
+          {
+            "name": "DefaultValidatorSelector",
+            "kind": "Class",
+            "members": [
+              "CanExecute"
+            ],
+            "doc": "Default validator selector that will execute all rules that do not belong to a RuleSet."
+          },
+          {
+            "name": "EventDisposable",
+            "kind": "Class",
+            "members": [
+              "Dispose",
+              "EventDisposable"
+            ]
+          },
+          {
+            "name": "Extensions",
+            "kind": "Class",
+            "members": [
+              "GetMember"
+            ],
+            "doc": "Useful extensions"
+          },
+          {
+            "name": "IIncludeRule",
+            "kind": "Interface",
+            "doc": "Marker interface indicating an include rule."
+          },
+          {
+            "name": "IMessageBuilderContext",
+            "kind": "Interface",
+            "members": [
+              "GetDefaultMessage"
+            ]
+          },
+          {
+            "name": "IRuleComponent",
+            "kind": "Interface",
+            "members": [
+              "GetUnformattedErrorMessage"
+            ],
+            "doc": "An individual component within a rule with a validator attached."
+          },
+          {
+            "name": "IRuleComponent",
+            "kind": "Interface",
+            "members": [
+              "ApplyAsyncCondition",
+              "ApplyCondition",
+              "SetErrorMessage"
+            ],
+            "doc": "An individual component within a rule with a validator attached."
+          },
+          {
+            "name": "IValidatorSelector",
+            "kind": "Interface",
+            "members": [
+              "CanExecute"
+            ],
+            "doc": "Determines whether or not a rule should execute."
+          },
+          {
+            "name": "MemberNameValidatorSelector",
+            "kind": "Class",
+            "members": [
+              "CanExecute",
+              "MemberNameValidatorSelector",
+              "MemberNamesFromExpressions"
+            ],
+            "doc": "Selects validators that are associated with a particular property."
+          },
+          {
+            "name": "MessageBuilderContext",
+            "kind": "Class",
+            "members": [
+              "GetDefaultMessage",
+              "MessageBuilderContext"
+            ]
+          },
+          {
+            "name": "MessageFormatter",
+            "kind": "Class",
+            "members": [
+              "AppendArgument",
+              "AppendPropertyName",
+              "AppendPropertyValue",
+              "BuildMessage"
+            ],
+            "doc": "Assists in the construction of validation messages."
+          },
+          {
+            "name": "PropertyChain",
+            "kind": "Class",
+            "members": [
+              "Add",
+              "AddIndexer",
+              "BuildPropertyName",
+              "BuildPropertyPath",
+              "FromExpression",
+              "GetParentChain",
+              "IsChildChainOf",
+              "PropertyChain",
+              "ToString"
+            ],
+            "doc": "Represents a chain of properties"
+          },
+          {
+            "name": "RuleComponent",
+            "kind": "Class",
+            "members": [
+              "ApplyAsyncCondition",
+              "ApplyCondition",
+              "GetErrorMessage",
+              "GetUnformattedErrorMessage",
+              "SetErrorMessage"
+            ],
+            "doc": "An individual component within a rule."
+          },
+          {
+            "name": "RulesetValidatorSelector",
+            "kind": "Class",
+            "members": [
+              "CanExecute",
+              "RulesetValidatorSelector"
+            ],
+            "doc": "Selects validators that belong to the specified rulesets."
+          },
+          {
+            "name": "ValidationStrategy",
+            "kind": "Class",
+            "members": [
+              "IncludeAllRuleSets",
+              "IncludeProperties",
+              "IncludeRuleSets",
+              "IncludeRulesNotInRuleSet",
+              "ThrowOnFailures",
+              "UseCustomSelector"
+            ]
+          }
+        ]
+      }
+    ],
+    "extensionPoints": [
+      "DefaultValidatorExtensions.ChildRules",
+      "DefaultValidatorExtensions.CreditCard",
+      "DefaultValidatorExtensions.Custom",
+      "DefaultValidatorExtensions.CustomAsync",
+      "DefaultValidatorExtensions.EmailAddress",
+      "DefaultValidatorExtensions.Empty",
+      "DefaultValidatorExtensions.Equal",
+      "DefaultValidatorExtensions.ExclusiveBetween",
+      "DefaultValidatorExtensions.ForEach",
+      "DefaultValidatorExtensions.GreaterThan",
+      "DefaultValidatorExtensions.GreaterThanOrEqualTo",
+      "DefaultValidatorExtensions.InclusiveBetween",
+      "DefaultValidatorExtensions.IsEnumName",
+      "DefaultValidatorExtensions.IsInEnum",
+      "DefaultValidatorExtensions.Length",
+      "DefaultValidatorExtensions.LessThan",
+      "DefaultValidatorExtensions.LessThanOrEqualTo",
+      "DefaultValidatorExtensions.Matches",
+      "DefaultValidatorExtensions.MaximumLength",
+      "DefaultValidatorExtensions.MinimumLength",
+      "DefaultValidatorExtensions.Must",
+      "DefaultValidatorExtensions.MustAsync",
+      "DefaultValidatorExtensions.NotEmpty",
+      "DefaultValidatorExtensions.NotEqual",
+      "DefaultValidatorExtensions.NotNull",
+      "DefaultValidatorExtensions.Null",
+      "DefaultValidatorExtensions.PrecisionScale",
+      "DefaultValidatorExtensions.SetAsyncValidator",
+      "DefaultValidatorExtensions.SetInheritanceValidator",
+      "DefaultValidatorExtensions.SetValidator",
+      "DefaultValidatorExtensions.Validate",
+      "DefaultValidatorExtensions.ValidateAndThrow",
+      "DefaultValidatorExtensions.ValidateAndThrowAsync",
+      "DefaultValidatorExtensions.ValidateAsync",
+      "DefaultValidatorOptions.Cascade",
+      "DefaultValidatorOptions.Configure",
+      "DefaultValidatorOptions.OverrideIndexer",
+      "DefaultValidatorOptions.OverridePropertyName",
+      "DefaultValidatorOptions.Unless",
+      "DefaultValidatorOptions.UnlessAsync",
+      "DefaultValidatorOptions.When",
+      "DefaultValidatorOptions.WhenAsync",
+      "DefaultValidatorOptions.Where",
+      "DefaultValidatorOptions.WhereAsync",
+      "DefaultValidatorOptions.WithErrorCode",
+      "DefaultValidatorOptions.WithMessage",
+      "DefaultValidatorOptions.WithName",
+      "DefaultValidatorOptions.WithSeverity",
+      "DefaultValidatorOptions.WithState",
+      "Extensions.GetMember",
+      "ServiceCollectionExtensions.AddValidatorsFromAssemblies",
+      "ServiceCollectionExtensions.AddValidatorsFromAssembly",
+      "ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining",
+      "ValidationTestExtension.Only",
+      "ValidationTestExtension.ShouldHaveChildValidator",
+      "ValidationTestExtension.TestValidate",
+      "ValidationTestExtension.TestValidateAsync",
+      "ValidationTestExtension.When",
+      "ValidationTestExtension.WhenAll",
+      "ValidationTestExtension.WithCustomState",
+      "ValidationTestExtension.WithErrorCode",
+      "ValidationTestExtension.WithErrorMessage",
+      "ValidationTestExtension.WithMessageArgument",
+      "ValidationTestExtension.WithSeverity",
+      "ValidationTestExtension.WithoutCustomState",
+      "ValidationTestExtension.WithoutErrorCode",
+      "ValidationTestExtension.WithoutErrorMessage",
+      "ValidationTestExtension.WithoutSeverity"
+    ],
+    "consumerPaths": [
+      "wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssemblies(...)",
+      "wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssembly(...)",
+      "wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining(...)",
+      "extend  →  derive AbstractValidator",
+      "contract  →  implement IPropertyValidator",
+      "extend  →  derive InlineValidator"
+    ],
+    "packages": [
+      {
+        "label": "Other",
+        "packages": [
+          "Microsoft.Extensions.DependencyInjection.Abstractions 2.1.0",
+          "Microsoft.NETFramework.ReferenceAssemblies 1.0.3",
+          "System.Threading.Tasks.Extensions 4.5.4",
+          "Zomp.SyncMethodGenerator 1.3.8-beta"
+        ]
+      }
+    ]
+  },
+  "archetypeView": {
+    "archetype": "Library",
+    "sectionLabel": "PUBLIC SURFACE",
+    "groups": []
+  },
+  "markdown": "LIBRARY  FluentValidation     (96 public types)\r\n\r\nENTRY API\r\n   register  ServiceCollectionExtensions.AddValidatorsFromAssemblies   (ServiceCollectionExtensions.cs)\r\n      Adds all validators in specified assemblies\r\n   register  ServiceCollectionExtensions.AddValidatorsFromAssembly   (ServiceCollectionExtensions.cs)\r\n      Adds all validators in specified assembly\r\n   register  ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining   (ServiceCollectionExtensions.cs)\r\n      Adds all validators in the assembly of the specified type\r\n   derive    AbstractValidator   (AbstractValidator.cs)\r\n      Base class for object validators.\r\n   implement IPropertyValidator   (IPropertyValidator.cs)\r\n      A custom property validator.\r\n   derive    InlineValidator   (InlineValidator.cs)\r\n      Validator implementation that allows rules to be defined without inheriting from AbstractValidator.\r\n   derive    PropertyValidator   (PropertyValidator.cs)\r\n   extend    DefaultValidatorExtensions   (DefaultValidatorExtensions.cs)\r\n      Extension methods that provide the default set of validators.\r\n   extend    DefaultValidatorOptions   (DefaultValidatorOptions.cs)\r\n      Default options that can be used to configure a validator.\r\n   extend    ValidationTestExtension   (ValidatorTestExtensions.cs)\r\n\r\nABSTRACTIONS\r\n   AbstractValidator (class)  — 56 implementors\r\n   PropertyValidator (class)  — 20 implementors\r\n   IPropertyValidator (interface)  — 12 implementors\r\n   InlineValidator (class)  — 8 implementors\r\n   IValidationRule (interface)  — 6 implementors\r\n   IComparisonValidator (interface)  — 5 implementors\r\n   AbstractComparisonValidator (class)  — 4 implementors\r\n   ILengthValidator (interface)  — 4 implementors\r\n   IRuleBuilder (interface)  — 4 implementors\r\n   IAsyncPropertyValidator (interface)  — 3 implementors\r\n\r\nPUBLIC SURFACE\r\n   FluentValidation\r\n      AbstractValidator (class):  CanValidateInstancesOfType, CreateDescriptor, GetEnumerator, Include, RuleFor, RuleForEach, RuleSet, Unless, UnlessAsync, Validate, ValidateAsync, When, WhenAsync\r\n         Base class for object validators.\r\n      AssemblyScanResult (class):  AssemblyScanResult\r\n         Result of performing a scan.\r\n      AssemblyScanner (class):  AssemblyScanner, FindValidatorsInAssemblies, FindValidatorsInAssembly, FindValidatorsInAssemblyContaining, ForEach, GetEnumerator\r\n         Class that can be used to find all the validators from a collection of types.\r\n      AsyncValidatorInvokedSynchronouslyException (class)\r\n         This exception is thrown when an asynchronous validator is executed synchronously.\r\n      DefaultValidatorExtensions (class):  ChildRules, CreditCard, Custom, CustomAsync, EmailAddress, Empty, Equal, ExclusiveBetween, ForEach, GreaterThan, GreaterThanOrEqualTo, InclusiveBetween, IsEnumName, IsInEnum, Length\r\n         Extension methods that provide the default set of validators.\r\n      DefaultValidatorOptions (class):  Cascade, Configurable, Configure, OverrideIndexer, OverridePropertyName, Unless, UnlessAsync, When, WhenAsync, Where, WhereAsync, WithErrorCode, WithMessage, WithName, WithSeverity\r\n         Default options that can be used to configure a validator.\r\n      ICollectionRule (interface)\r\n         Represents a rule defined against a collection with RuleForEach.\r\n      IConditionBuilder (interface):  Otherwise\r\n         Fluent interface for conditions (When/Unless/WhenAsync/UnlessAsync)\r\n      IRuleBuilder (interface):  SetAsyncValidator, SetValidator\r\n         Rule builder\r\n      IRuleBuilderInitial (interface)\r\n         Rule builder that starts the chain\r\n      IRuleBuilderInitialCollection (interface)\r\n         Rule builder that starts the chain for a child collection\r\n      IRuleBuilderOptions (interface):  DependentRules\r\n         Rule builder\r\n      … and 20 more (the structured surface lists them all)\r\n   FluentValidation.Resources\r\n      ILanguageManager (interface):  GetString\r\n         Allows the default error message translations to be managed.\r\n      LanguageManager (class):  AddTranslation, Clear, GetString\r\n         Allows the default error message translations to be managed.\r\n   FluentValidation.Results\r\n      ValidationFailure (class):  ToString, ValidationFailure\r\n         Defines a validation failure\r\n      ValidationResult (class):  ToDictionary, ToString, ValidationResult\r\n         The result of running a validator\r\n   FluentValidation.TestHelper\r\n      ITestValidationContinuation (interface)\r\n      ITestValidationWith (interface)\r\n      TestValidationResult (class):  ShouldHaveValidationErrorFor, ShouldHaveValidationErrors, ShouldNotHaveAnyValidationErrors, ShouldNotHaveValidationErrorFor, TestValidationResult\r\n      ValidationTestException (class):  ValidationTestException\r\n      ValidationTestExtension (class):  Only, ShouldHaveChildValidator, TestValidate, TestValidateAsync, When, WhenAll, WithCustomState, WithErrorCode, WithErrorMessage, WithMessageArgument, WithSeverity, WithoutCustomState, WithoutErrorCode, WithoutErrorMessage, WithoutSeverity\r\n   FluentValidation.Validators\r\n      AbstractComparisonValidator (class):  GetComparisonValue, IsValid\r\n         Base class for all comparison validators\r\n      AspNetCoreCompatibleEmailValidator (class):  IsValid\r\n      AsyncPredicateValidator (class):  AsyncPredicateValidator, IsValidAsync\r\n         Asynchronous custom validator\r\n      AsyncPropertyValidator (class):  GetDefaultMessageTemplate, IsValidAsync\r\n      ChildValidatorAdaptor (class):  ChildValidatorAdaptor, GetValidator, IsValid, IsValidAsync\r\n      CreditCardValidator (class):  IsValid\r\n         Ensures that the property value is a valid credit card number.\r\n      EmailValidator (class):  IsValid\r\n      EmptyValidator (class):  IsValid\r\n      EnumValidator (class):  IsValid\r\n      EqualValidator (class):  EqualValidator, IsValid\r\n      ExactLengthValidator (class):  ExactLengthValidator\r\n      ExclusiveBetweenValidator (class):  ExclusiveBetweenValidator\r\n         Performs range validation where the property value must be between the two specified values (exclusive).\r\n      … and 43 more (the structured surface lists them all)\r\n   INTERNAL  (16 types in *.Internal — available on request)\r\n\r\nCONSUMER PATHS\r\n   wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssemblies(...)\r\n   wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssembly(...)\r\n   wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining(...)\r\n   extend  →  derive AbstractValidator\r\n   contract  →  implement IPropertyValidator\r\n   extend  →  derive InlineValidator\r\n\r\nPACKAGES\r\n   Other:  Microsoft.Extensions.DependencyInjection.Abstractions 2.1.0, Microsoft.NETFramework.ReferenceAssemblies 1.0.3, System.Threading.Tasks.Extensions 4.5.4, Zomp.SyncMethodGenerator 1.3.8-beta\r\n\r\n→ drill in:  trace a focused type   (e.g. trace ServiceCollectionExtensions)\r\n"
+}

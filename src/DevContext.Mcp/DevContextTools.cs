@@ -167,11 +167,12 @@ public sealed class DevContextTools
             "Pass the exact nodeId (from resolve(query)).", example, multi));
     }
 
-    /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD returns existing handle. Example: analyze("C:/repos/MyApp")</summary>
+    /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. In a multi-solution repo, sln picks which solution to analyze (name, file name, or repo-relative path). Example: analyze("C:/repos/MyApp"), analyze("C:/repos/GitVersion", sln:"GitVersion.slnx")</summary>
     [McpServerTool]
-    public async Task<string> Analyze(string path)
+    public async Task<string> Analyze(string path, string? sln = null)
     {
         var req = new AnalyzeRequest { Path = path };
+        if (sln is { Length: > 0 }) req.Sln = sln;
         var call = _client.Analyze(req);
         string? handle = null;
 
@@ -535,27 +536,125 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>The full architecture map (rendered markdown: entries/surface, seams, topology) + structured style/archetype/topology. Example: map("abc123")</summary>
+    /// <summary>The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface, archetype view, solution scope) + rendered markdown. Example: map("abc123")</summary>
     [McpServerTool]
     public async Task<string> Map(string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "map", "analyze(path) then map()"); }
-        var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
-        // D1.5a — the rendered map IS the product; meta alone made a 1400-node library read as
-        // a ~60-token dead map over MCP while the CLI rendered 2000+ (octet DoD, audit A5/G).
-        return JsonSerializer.Serialize(new
+        try
         {
-            meta = $"style={resp.Style} archetype={resp.Archetype} projects={resp.ProjectCount}",
-            solutionName = resp.HasSolutionName ? resp.SolutionName : null,
-            archetype = resp.Archetype,
-            style = resp.Style,
-            styleConfidence = resp.StyleConfidence,
-            projectCount = resp.ProjectCount,
-            topology = resp.Topology.Select(t => new { name = t.Name, dependsOn = t.DependsOn.ToArray() }).ToArray(),
-            markdown = resp.Markdown,
-        }, JsonOpts);
+            var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
+            // D1.5a — the rendered map IS the product; meta alone made a 1400-node library read as
+            // a ~60-token dead map over MCP while the CLI rendered 2000+ (octet DoD, audit A5/G).
+            // R4 §1 item 1 — the STRUCTURED surface rides beside it: MapResponse carried packages,
+            // aggregates, service styles, the library surface and the archetype view, and this tool
+            // dropped every one of them, so the map's own markdown ("… and N more") pointed at a
+            // fuller answer no MCP caller could reach. Empty collections serialize as null
+            // (WhenWritingNull), so an App-archetype map is no wordier than it was.
+            var surface = resp.Surface;
+            return JsonSerializer.Serialize(new
+            {
+                meta = $"style={resp.Style} archetype={resp.Archetype} projects={resp.ProjectCount}",
+                solutionName = resp.HasSolutionName ? resp.SolutionName : null,
+                archetype = resp.Archetype,
+                isLibrary = resp.IsLibrary,
+                style = resp.Style,
+                styleConfidence = resp.StyleConfidence,
+                styleEvidence = resp.HasStyleEvidence ? resp.StyleEvidence : null,
+                projectCount = resp.ProjectCount,
+                // R3 D-D scope facts: which solution this analysis covered, and what else is on disk.
+                // The facts, not the CLI's sentence — an agent switches solutions with analyze(sln:).
+                solutionScope = resp.SolutionScope is { } scope ? new
+                {
+                    analyzedRelPath = scope.AnalyzedRelPath,
+                    analyzedName = scope.AnalyzedName,
+                    totalOnDisk = scope.TotalOnDisk,
+                    otherPaths = scope.OtherPaths.ToArray(),
+                    wasRequested = scope.WasRequested,
+                } : null,
+                topology = resp.Topology.Select(t => new
+                {
+                    name = t.Name,
+                    dependsOn = t.DependsOn.ToArray(),
+                    layer = t.HasLayer ? t.Layer : null,
+                    feature = t.HasFeature ? t.Feature : null,
+                }).ToArray(),
+                serviceStyles = resp.ServiceStyles.Count > 0
+                    ? resp.ServiceStyles.Select(s => new { projectName = s.ProjectName, style = s.Style, stack = s.Stack.ToArray() }).ToArray()
+                    : null,
+                packages = resp.Packages.Count > 0
+                    ? resp.Packages.Select(p => new { label = p.Label, packages = p.Packages.ToArray() }).ToArray()
+                    : null,
+                aggregates = resp.Aggregates.Count > 0 ? resp.Aggregates.ToArray() : null,
+                pipelineBehaviors = resp.PipelineBehaviors.Count > 0 ? resp.PipelineBehaviors.ToArray() : null,
+                stack = resp.Stack.Count > 0 ? resp.Stack.ToArray() : null,
+                surface = surface is not null && (surface.Groups.Count > 0 || surface.EntryApi.Count > 0
+                    || surface.Abstractions.Count > 0 || surface.ExtensionPoints.Count > 0) ? new
+                {
+                    entryApi = surface.EntryApi.Count > 0
+                        ? surface.EntryApi.Select(e => new
+                        {
+                            title = e.Title,
+                            kind = e.Kind,
+                            doc = e.HasDoc ? e.Doc : null,
+                            location = e.HasLocation ? e.Location : null,
+                        }).ToArray()
+                        : null,
+                    abstractions = surface.Abstractions.Count > 0
+                        ? surface.Abstractions.Select(a => new { name = a.Name, kind = a.Kind, implementorCount = a.ImplementorCount }).ToArray()
+                        : null,
+                    groups = surface.Groups.Count > 0 ? SurfaceGroups(surface.Groups) : null,
+                    // The markdown demotes *.Internal namespaces out of the surface and shows only a
+                    // count; the structured field is where "available on request" is actually served.
+                    internals = surface.Internals.Count > 0 ? SurfaceGroups(surface.Internals) : null,
+                    extensionPoints = surface.ExtensionPoints.Count > 0 ? surface.ExtensionPoints.ToArray() : null,
+                    consumerPaths = surface.ConsumerPaths.Count > 0 ? surface.ConsumerPaths.ToArray() : null,
+                    generators = surface.Generators.Count > 0
+                        ? surface.Generators.Select(g => new { name = g.Name, kind = g.Kind, doc = g.HasDoc ? g.Doc : null }).ToArray()
+                        : null,
+                    packages = surface.Packages.Count > 0
+                        ? surface.Packages.Select(p => new { label = p.Label, packages = p.Packages.ToArray() }).ToArray()
+                        : null,
+                } : null,
+                archetypeView = resp.ArchetypeView is { } av ? new
+                {
+                    archetype = av.Archetype,
+                    sectionLabel = av.SectionLabel,
+                    groups = av.Groups.Select(g => new
+                    {
+                        project = g.Project,
+                        layer = g.HasLayer ? g.Layer : null,
+                        entries = g.Entries.Select(e => new
+                        {
+                            kind = e.Kind,
+                            title = e.Title,
+                            route = e.HasRoute ? e.Route : null,
+                            target = e.HasTarget ? e.Target : null,
+                            depth = e.Depth,
+                            hops = e.Hops,
+                        }).ToArray(),
+                    }).ToArray(),
+                } : null,
+                markdown = resp.Markdown,
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "map", "map(handle)"); }
     }
+
+    /// <summary>Shared shape for the library surface's public and internal namespace groups.</summary>
+    private static object[] SurfaceGroups(IEnumerable<SurfaceGroup> groups) =>
+        groups.Select(object (g) => new
+        {
+            ns = g.Namespace,
+            types = g.Types_.Select(t => new
+            {
+                name = t.Name,
+                kind = t.Kind,
+                members = t.Members.Count > 0 ? t.Members.ToArray() : null,
+                doc = t.HasDoc ? t.Doc : null,
+            }).ToArray(),
+        }).ToArray();
 
     /// <summary>Top 20 entry points ranked by importance score. Example: top_flows("abc123")</summary>
     [McpServerTool]

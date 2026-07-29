@@ -59,7 +59,10 @@ path or put the directory on `PATH`):
 ## Session model
 
 - `analyze(path)` starts (or reuses) an analysis and returns a **handle**. It is idempotent: the
-  same repo at the same git HEAD returns the existing handle.
+  same repo at the same git HEAD and the same solution returns the existing handle.
+- A repo with several solutions analyses one of them. `map` says which in `solutionScope` and lists
+  the alternatives; `analyze(path, sln:)` switches to one of them by name, file name, or
+  repo-relative path.
 - Every other tool takes `handle` **optionally** — omitted, it uses the most recent session.
 - Symbols are addressed two ways: a precise `nodeId` (`Kind:Key`, from `resolve`/`find`) or a fuzzy
   `query`. Ambiguity is honest: a query matching several nodes returns the candidates — no tool
@@ -73,7 +76,7 @@ path or put the directory on `PATH`):
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
-| `analyze` | Start analysis of a .NET repo; returns the session handle. Idempotent per repo+HEAD. | `path` |
+| `analyze` | Start analysis of a .NET repo; returns the session handle. Idempotent per repo+HEAD+solution. | `path`, `sln` |
 | `status` | Check whether a session handle is still valid. | `handle` |
 | `list_sessions` | List all active analysis sessions on the server. | — |
 | `close_session` | Release a session's resources (engine + any clone). Idempotent. | `handle` |
@@ -83,7 +86,7 @@ path or put the directory on `PATH`):
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
 | `overview` | One-call repo brief: identity, services, ServiceLinks, top flows, where to start (~600 tokens). | `handle` |
-| `map` | Architecture map: style, archetype, topology, project dependencies. | `handle` |
+| `map` | Architecture map, structured **and** rendered: style, archetype, topology, packages, aggregates, pipeline behaviours, per-service styles, the library surface (entry API, abstractions, namespace groups, internals, extension points, consumer paths, generators), the archetype view, the solution scope — plus the markdown. | `handle` |
 | `stats` | Full analysis stats: node/edge counts, seam breakdown, insights, warnings. | `handle` |
 | `entrypoints` | Entry points (HTTP routes, bus consumers, gRPC services). Summary by default; `kind` filters, `full:true` lists every entry. | `kind`, `top`, `full` |
 | `top_flows` | Top 20 entry points ranked by importance score. | `handle` |

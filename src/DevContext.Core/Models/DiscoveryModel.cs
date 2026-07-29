@@ -174,10 +174,12 @@ public sealed record SolutionScopeNote(
     /// <summary>True when a choice was made among several — the only case worth telling the user about.</summary>
     public bool IsPartial => TotalOnDisk > 1;
 
-    /// <summary>One line, the same words on every surface. Names the pick, the count, and the way out.</summary>
+    /// <summary>One line, the same words on every surface. Names the pick, the count, and the way out.
+    /// Surface-neutral phrasing (T6.3): every surface can name a solution when analyzing (CLI --sln,
+    /// desktop picker, MCP analyze(sln:)) — naming one surface's flag here misdirects the other two.</summary>
     public string Text => IsPartial
         ? $"analyzed {AnalyzedRelPath} — 1 of {TotalOnDisk} solutions in this repo"
-            + (WasRequested ? "" : "; analyze another with --sln <name>")
+            + (WasRequested ? "" : "; analyze another by naming its solution")
         : $"analyzed {AnalyzedName}";
 }
 

@@ -101,7 +101,9 @@ public static class MapRenderer
         sb.AppendLine("CONSOLE VIEW");
         foreach (var exe in consoleExes)
             sb.AppendLine($"   {exe.Name}  ({exe.OutputType})");
-        sb.AppendLine("   NOTE: no entry points detected — trace from a type with --focus \"<TypeName>\"");
+        // Surface-neutral phrasing (T6.3): this markdown renders on CLI, desktop AND MCP —
+        // "trace" is the verb every surface has; a flag name is only true on one of them.
+        sb.AppendLine("   NOTE: no entry points detected — trace a focused type (e.g. trace \"<TypeName>\")");
         sb.AppendLine();
     }
 
@@ -295,7 +297,7 @@ public static class MapRenderer
             }
         }
         if (omitted > 0)
-            sb.AppendLine($"   … and {omitted} more projects (use --focus for a scoped slice)");
+            sb.AppendLine($"   … and {omitted} more projects (trace a focused entry for a scoped slice)");
         sb.AppendLine();
     }
 
@@ -424,7 +426,7 @@ public static class MapRenderer
             foreach (var ep in shown)
                 sb.AppendLine($"      {ep.Title}{Target(ep)}{Where(ep, basePath)}");
             if (omitted > 0)
-                sb.AppendLine($"      … and {omitted} more ({GroupLabel(group.Key).ToLowerInvariant()} entries — use --focus for a drill-in)");
+                sb.AppendLine($"      … and {omitted} more ({GroupLabel(group.Key).ToLowerInvariant()} entries — trace one for a drill-in)");
         }
         sb.AppendLine();
     }
@@ -499,7 +501,8 @@ public static class MapRenderer
                 .OrderByDescending(e => e.Score)
                 .Select(e => e.Route is not null && e.HttpMethod is not null ? $"{e.HttpMethod} {e.Route}" : e.Title)
                 .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t)) ?? "<TypeName>";
-        sb.AppendLine($"→ drill in:  --focus \"<entry>\"   (e.g. --focus \"{example}\")");
+        // Surface-neutral phrasing (T6.3): the same footer ships over CLI, desktop and MCP.
+        sb.AppendLine($"→ drill in:  trace a focused entry   (e.g. trace \"{example}\")");
     }
 
     internal static string GroupLabelForKind(EntryPointKind kind) => GroupLabel(kind);

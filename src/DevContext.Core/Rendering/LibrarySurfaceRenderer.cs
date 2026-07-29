@@ -38,7 +38,8 @@ public static class LibrarySurfaceRenderer
         Add(sections, "Entry points", sb => AppendLibraryEntryPoints(sb, ctx));
         Add(sections, "Packages", sb => AppendPackages(sb, surface));
         Add(sections, "Footer", sb =>
-            sb.AppendLine($"→ drill in:  --focus \"<TypeName>\"   (e.g. --focus {ExampleFocus(surface)})"));
+            // Surface-neutral phrasing (T6.3): this footer renders over CLI, desktop and MCP.
+            sb.AppendLine($"→ drill in:  trace a focused type   (e.g. trace {ExampleFocus(surface)})"));
 
         return new ValueTask<RenderedContext>(NarrativeSections.ToRenderedContext(sections));
     }
@@ -117,11 +118,14 @@ public static class LibrarySurfaceRenderer
                 if (!string.IsNullOrEmpty(type.Doc))
                     sb.AppendLine($"         {type.Doc}");
             }
+            // Surface-neutral phrasing (R4 §1 item 1): this block renders over CLI, desktop AND MCP.
+            // Only the markdown truncates — every surface's STRUCTURED surface carries the full set,
+            // so point at that instead of at one surface's flag.
             if (group.Types.Length > MaxTypesPerNamespace)
-                sb.AppendLine($"      … and {group.Types.Length - MaxTypesPerNamespace} more (use --format json for the full surface)");
+                sb.AppendLine($"      … and {group.Types.Length - MaxTypesPerNamespace} more (the structured surface lists them all)");
         }
         if (surface.Groups.Length > MaxNamespaces)
-            sb.AppendLine($"   … and {surface.Groups.Length - MaxNamespaces} more namespaces (use --format json for the full surface)");
+            sb.AppendLine($"   … and {surface.Groups.Length - MaxNamespaces} more namespaces (the structured surface lists them all)");
         if (!surface.Internals.IsDefaultOrEmpty)
         {
             var n = surface.Internals.Sum(g => g.Types.Length);

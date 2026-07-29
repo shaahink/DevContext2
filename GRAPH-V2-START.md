@@ -10,20 +10,23 @@ Studio design call), D-H. Those are owner-interactive briefs. Conductor never re
 only park it; they stay with the owner in an interactive session.
 
 ## Handoff  (overwrite this block, ≤12 lines, no history)
-last: a first session ran 15 min on **G1.1** and was **ABORTED mid-flight** by the owner — it never
-  reached gates, never committed, and claimed nothing. **Its work is still in the working tree,
-  uncommitted**: `src/DevContext.Mcp/DevContextTools.cs` (the G1.1 target),
-  `Core/Rendering/MapRenderer.cs`, `Core/Rendering/LibrarySurfaceRenderer.cs`,
-  `Core/Models/DiscoveryModel.cs`, six files under `tests/goldens/`, and a new untracked
-  `eval/mcp-qa/drive-r4.js` (an evidence driver it wrote). **You are continuing that work, not
-  restarting it.** Read the diff FIRST (`git diff`, `git status`), keep what is right, correct what
-  is not. Treat the six golden edits as UNVERIFIED — that session called them a legitimate
-  fresh-run ratchet move but died before any gate agreed. Verify or revert them; do not inherit them.
-stage: **G1 IN PROGRESS** (attempt 1).
-gate: not run since those edits. S10 closed green — `eval-results/2026-07-28/gates-s10-close.txt`.
-next: **G1.1** — `map` returns the structured Map surface, not 7 scalars + markdown that advertises
-  CLI flags the MCP does not have.
-trap: rebuild `src/DevContext.Cli` after ANY Core edit; `analyze` takes a POSITIONAL path.
+last: **G1.1 CLAIMED** — `map` now returns the structured surface (FluentValidation: entryApi 10 ·
+  abstractions 10 · groups 5 · internals 1 · extensionPoints 68 · consumerPaths 6 · surface packages)
+  and no shared-render markdown names a CLI flag. Evidence = real MCP calls, not a diff:
+  `eval-results/2026-07-29/G1.1-EVIDENCE.md`. The aborted session's tree was kept where right and
+  corrected where not: it MISSED `LibrarySurfaceRenderer.cs:122,125` ("use --format json"), which fire
+  on exactly the library archetype item 1 is about. Its six goldens were reverted and REGENERATED from
+  a fresh run — the diff came back byte-identical (footer line only), so they were right, just unproven.
+stage: **G1 IN PROGRESS** — G1.1 done, G1.2 next.
+gate: build 0w/0e · contract-sweep PASS (0 new) · loom-guards PASS · slnx `Category!=Eval` = 689 pass,
+  0 fail after the one red was run down. **READ THIS BEFORE PANICKING AT THE BATTERY:** `McpQaGateTests`
+  scores a false **0/12** on the first run after ANY Core edit — MVID-keyed snapshots invalidate, the
+  harness takes a session before its graph exists. Cold 0/12 -> warm 12/12, same binaries. Tracked bug #1.
+next: **G1.2** — `get_context` accepts type/symbol roots so a library gets a pack instead of nothing.
+  `drive-r4.js getctx-library` already exists and MEASURES the before-state — run it first.
+trap: the MCP driver leaves a spawned DevContext.Server holding bin DLL locks — kill it by PID before
+  any build, `start-dev-bg.ps1 -Kill` does NOT get it. Pin `DEVCONTEXT_SERVER` or a stale/installed
+  server serves your "evidence". Find flag leaks by sweeping Core renderers, not by reading the [audit] line.
 
 ## Checkpoints
 
