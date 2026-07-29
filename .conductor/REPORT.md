@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 10:35 UTC · branch `feat/graph-v2` · HEAD `1b3f7b4`_
+_Updated 2026-07-29 10:46 UTC · branch `feat/graph-v2` · HEAD `fcbf67a`_
 
 **Status:** Idle — advisor: human intervention required
 **Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0
 **Checkpoints:** 9/22 done · **Sessions run:** 13 · **Cost:** $144.8592 (agent $144.7099 + gates $0.1493) · **Tokens:** 1,823,902 in / 744,758 out
-**Confirmed phases:** G1, G2
-**Pending:** full-battery phase gate for G3
+**Confirmed phases:** G1, G2, G3
 
 ## Stage progress
 
@@ -14,7 +13,7 @@ _Updated 2026-07-29 10:35 UTC · branch `feat/graph-v2` · HEAD `1b3f7b4`_
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
-| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | gating… |
+| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
@@ -49,7 +48,7 @@ _Updated 2026-07-29 10:35 UTC · branch `feat/graph-v2` · HEAD `1b3f7b4`_
 |---|---|---|---|
 | G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) |
 | G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ✅ DONE | [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) |
-| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ✅ DONE | - |
+| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ✅ DONE | [`cf0fa62`](https://github.com/shaahink/DevContext2/commit/cf0fa62) |
 
 </details>
 
@@ -138,11 +137,6 @@ _Updated 2026-07-29 10:35 UTC · branch `feat/graph-v2` · HEAD `1b3f7b4`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 06:11:38  ▪ gate fast-engine pass [phase]  (1m50s)
-07-29 06:11:38  ▪ gate guards pass [phase]  (50.2s)
-07-29 06:11:38  ▪ gate battery pass [phase]  (13m22s)
-07-29 06:11:38  ▸ stage G1 confirmed  (4h43m26s)
-07-29 06:11:43  ▸ stage G2 entered — R4 menu hygiene + one trace default (items 11-12)
 07-29 06:11:43  • session #6 G2 Deliver started (attempt 1/2)
 07-29 07:07:33  ▪ gate fast-engine pass [session]  (1m57s)
 07-29 07:07:33  ▪ gate guards pass [session]  (1m45s)
@@ -178,6 +172,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 11:03:28  • session #13 G3 Deliver started (attempt 1/4)
 07-29 11:35:08  ▪ gate fast-engine pass [session]  (1m40s)
 07-29 11:35:08  ▪ gate guards pass [session]  (39.7s)
+07-29 11:35:11  • session #13 G3 → Advanced · done G3.3 · 3 commit(s)  (31m42s)
+07-29 11:46:50  ▪ gate fast-engine pass [phase]  (1m26s)
+07-29 11:46:50  ▪ gate guards pass [phase]  (41.0s)
+07-29 11:46:50  ▪ gate battery pass [phase]  (9m30s)
+07-29 11:46:50  ▸ stage G3 confirmed  (4h23m43s)
 ```
 
 ## Health
@@ -189,6 +188,7 @@ sessions 13 · retries 5 (38 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #13: 20,653,481 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -203,7 +203,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
 vs upstream: up to date
 ```
 
@@ -241,7 +241,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
