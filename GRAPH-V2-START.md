@@ -4,29 +4,27 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**s17's `fast-engine` red was a FLAKY TEST, at ~1 run in 3. Root-caused, fixed, verified: both fast
-gates exit 0** (`eval-results/2026-07-29/G5-s18/`, full writeup in `G5-s18-EVIDENCE.md`). Nothing was
-weakened; one gate got stricter. **G5.2 is still the next job and no G5 checkpoint is claimed.**
-Measured: 5 failures / 15 before (`loop-A-repro-multiclass.txt`), **0 / 25** after on the whole
-104-test assembly (`loop-D`). Cause: `DEVCONTEXT_CACHE_ROOT` is process-wide and **five** concurrent
-xUnit collections each wrote it in their ctor (3 × `ServerTestFactory` + `HostReleaseTests` +
-`AnalyzeCacheTruthTests`), so a neighbour could steal the root between a test's ctor and its
-`EngineRunner`; `ServerTestFactory` restored **null**, aiming stragglers at the real user cache. Fix:
-new `ServerOptions.SnapshotCacheRoot`, injected — plus **loom-guards Rule 7** banning that env write
-from tests, watched going red on demand (`canary-rule7-OUTPUT.txt`).
-**Consequence for the board: `fast-engine` was a coin flip from G3.3 onward, so G5.1's and G1.2's
-`fast-engine:FAIL` annotations are false reds** (G1.2's is s17's harness abort); both checkpoints'
-work is fine, and any single green `fast-engine` in that window proved less than it looked.
-**Still open — bug #16**, a SECOND, rarer red in the same class (`third.Cached` false, 1-in-50). Its
-obvious cause was tested and **refuted**: the cache key really does track the whole working tree
-(`probe-versionkey.ps1`), but churning the tree does not redden the test (0/14). Do not re-derive it.
-**G5.2 is unchanged and still a checklist** — build to `eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`
-§5, do not re-derive §1–§4. Defect 1 (`this.<field>.<M>()` reaching `CallGraphBinder.cs:250`'s
-self-call arm) + join the execute MEMBER (`CliCommandEntryPointBuilder.cs:29-40` drops the detected
-`ExecuteMethod`) → `0/5 → 4/5`; `test` calls nothing and must stay honestly unwired. Bug #12 stays
-OUT of G5.2. **Budget the cold snapshot** (any Core edit trips bug #1's false 0/12), and **write
-verification logs outside the repo** — `eval-results/` is untracked-but-not-ignored, so a growing log
-there is itself a working-tree change the cache keys on.
+**G5.2 CLAIMED — the join lands: gitversion `entriesWithTarget` 0/5 → 4/5, CleanArchitecture canary
+bit-identical** (139 nodes / 64 edges / 7 entries / 5 targets both sides). Writeup + every raw dump:
+`eval-results/2026-07-29/G5.2/G5.2-EVIDENCE.md`. Commits `11ebe20` (fix+tests) · `a637b54` (truth
+ratchet) · `5805713` (evidence). **G5 is now fully claimed; the next session starts G6.1.**
+**G5.1 §5 named the WRONG LOCUS for Defect 1 and its own §3 disproves it** — `HopThroughProperty` is
+properties-only and GitVersion's collaborators are FIELDS (`TypeDiscovery` has no `Fields` at all).
+Real fix was upstream in `BodyFactExtractor` (new `SplitReceiver`): a receiver chain rooted at `this`
+reports the member declared on `this`, so `this.x.M()` and `x.M()` are one fact. `BuildTypeScope`
+already held every field/property/primary-ctor param. Plus the entry builder joins the execute MEMBER,
+by SHAPE (the method taking the detected settings type), not by `ExecuteMethod`'s name list.
+**BLAST RADIUS IS WIDER THAN G5.1 §4b SAID** (it sampled 7 repos): Orleans **1603** sites, GitVersion
+878, PowerToys 440, MahApps.Metro 266, CommunityToolkit.Mvvm 186 (`blast-radius.csv`, all 47 repos).
+All four unmeasured movers were graph-truth'd and diffed vs their 07-28 verdicts — **identical**,
+including the two pre-existing FAILs (Orleans handler-join; MahApps `style`, which IS G9.1's subject).
+**G9.1 and any R1 scale work must RE-MEASURE, not inherit a pre-G5.2 number.**
+Gates at close: build 0w/0e · loom-guards PASS (incl. `Category=Truth`) · contract-sweep PASS ·
+Server 104/104 · Core 713 pass, 1 fail = **bug #1** (cold-snapshot MCP QA race; warm re-run passes).
+**NEW TRAP, may hit the battery:** the MCP QA gate can leave a `DevContext.Server.exe` alive holding
+`DevContext.Core.dll`; the next build then fails MSB3027 with "10 Warning(s)" that are copy retries,
+not code. Read the pid out of the error, stop THAT pid only. Zero were alive at close, verified.
+Still open and untouched: bug #12 (Defect 2), #14 (generic `[Command<Parent>]` sub-commands), #16.
 
 
 ## Baseline numbers (from run.db)
