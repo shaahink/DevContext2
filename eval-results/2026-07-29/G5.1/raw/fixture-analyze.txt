@@ -1,0 +1,36 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+CLI TOOL  unknown     (1 project)
+
+STACK  net10.0
+
+STYLE  NotApplicable  (confidence low)
+       evidence: not applicable to a clitool
+
+       per service:
+         Fx: Unknown
+
+COMMAND SURFACE
+   Fx (1)
+      Fx (Main)
+
+TOPOLOGY (depends-on)
+   Fx
+
+ENTRY POINTS
+   CLI (1)
+      Fx (Main)  (Program.cs:51)
+
+→ drill in:  trace a focused entry   (e.g. trace "Fx (Main)")
+
+analyzed 1 files · 15 nodes · 13 edges · 1 entries · ~98 tokens · 1.2s stage2 
+×2.7
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │        g51fx2        │
+│   Time   │        1560ms        │
+│  Tokens  │  ~98 (budget 8000)   │
+│ Version  │ v1.0.5-preview.0.341 │
+╰──────────┴──────────────────────╯

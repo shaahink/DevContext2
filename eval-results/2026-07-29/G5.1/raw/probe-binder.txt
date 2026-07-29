@@ -1,0 +1,22 @@
+FILE|CalculateCommand.cs|bodies=1|invocations=6
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L18|call=Call|recvText=this|recvMember=service|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L21|call=DiscoverRepository|recvText=this|recvMember=repository|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L22|call=ToList|recvText=this|recvMember=Branches|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L23|call=LogInformation|recvText=this|recvMember=logger|recvTypeText=ILogger|recvTypeTier=Semantic|recvTypeResolved=Microsoft.Extensions.Logging.ILogger|tableTier=Semantic|tableSym=Microsoft.Extensions.Logging.ILogger|tableKind=Type|declaresSelf=False|OUT=Microsoft.Extensions.Logging.ILogger [Semantic]
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L25|call=LogInformation|recvText=this|recvMember=logger|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|CalculateCommand.cs|GitVersion.Commands.CalculateCommand::InvokeAsync|L28|call=FromResult|recvText=Task|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL
+FILE|TestCommand.cs|bodies=1|invocations=2
+OP|TestCommand.cs|GitVersion.Commands.Test.TestCommand::InvokeAsync|L10|call=WriteLine|recvText=Console|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL
+OP|TestCommand.cs|GitVersion.Commands.Test.TestCommand::InvokeAsync|L11|call=FromResult|recvText=Task|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL
+FILE|ConfigCommand.cs|bodies=1|invocations=3
+OP|ConfigCommand.cs|GitVersion.Commands.ConfigCommand::InvokeAsync|L16|call=Call|recvText=this|recvMember=service|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|ConfigCommand.cs|GitVersion.Commands.ConfigCommand::InvokeAsync|L17|call=LogInformation|recvText=this|recvMember=logger|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|ConfigCommand.cs|GitVersion.Commands.ConfigCommand::InvokeAsync|L18|call=FromResult|recvText=Task|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL
+FILE|NormalizeCommand.cs|bodies=1|invocations=3
+OP|NormalizeCommand.cs|GitVersion.Commands.NormalizeCommand::InvokeAsync|L16|call=Call|recvText=this|recvMember=service|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|NormalizeCommand.cs|GitVersion.Commands.NormalizeCommand::InvokeAsync|L17|call=LogInformation|recvText=this|recvMember=logger|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|NormalizeCommand.cs|GitVersion.Commands.NormalizeCommand::InvokeAsync|L18|call=FromResult|recvText=Task|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL
+FILE|OutputCommand.cs|bodies=1|invocations=3
+OP|OutputCommand.cs|GitVersion.Commands.OutputCommand::InvokeAsync|L14|call=Call|recvText=this|recvMember=service|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|OutputCommand.cs|GitVersion.Commands.OutputCommand::InvokeAsync|L15|call=LogInformation|recvText=this|recvMember=logger|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=False|OUT=NULL
+OP|OutputCommand.cs|GitVersion.Commands.OutputCommand::InvokeAsync|L16|call=FromResult|recvText=Task|recvMember=-|recvTypeText=(null)|recvTypeTier=-|recvTypeResolved=-|tableTier=-|tableSym=-|tableKind=-|declaresSelf=-|OUT=NULL

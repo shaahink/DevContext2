@@ -1,0 +1,93 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+CLI TOOL  GitVersion     (14 projects)
+SCOPE  analyzed new-cli/GitVersion.slnx — 1 of 3 solutions in this repo — 
+style/topology are local to this slice, not the whole system
+
+STACK  net10.0, net9.0 +2 more TFMs
+
+STYLE  NotApplicable  (confidence low)
+       evidence: not applicable to a clitool
+
+       per service:
+         GitVersion.Cli: CLI [CLI]
+         GitVersion.Core.Tester: Unknown
+         GitVersion.App: Unknown
+         GitVersion.Schema: Unknown
+
+COMMAND SURFACE
+   GitVersion.Calculation [Contracts] (1)
+      calculate (CalculateCommand)
+   GitVersion.Cli [Infrastructure] (1)
+      test (TestCommand)
+   GitVersion.Configuration [Contracts] (1)
+      config (ConfigCommand)
+   GitVersion.Normalization [Contracts] (1)
+      normalize (NormalizeCommand)
+   GitVersion.Output [Contracts] (1)
+      output (OutputCommand)
+
+TOPOLOGY (depends-on)
+   GitVersion.Common.Command ── GitVersion.Common
+   GitVersion.Common
+   GitVersion.Core.Libgit2Sharp ── GitVersion.Common
+   GitVersion.Calculation ── GitVersion.Common.Command
+   GitVersion.Cli.Generator
+   GitVersion.Normalization ── GitVersion.Common.Command
+   GitVersion.Cli ── GitVersion.Calculation, GitVersion.Cli.Generator, 
+GitVersion.Configuration, GitVersion.Core, GitVersion.Core.Libgit2Sharp, 
+GitVersion.Normalization, GitVersion.Output
+   GitVersion.Configuration (new-cli) ── GitVersion.Common.Command
+   GitVersion.Configuration (src) ── GitVersion.Core
+   GitVersion.Core (new-cli) ── GitVersion.Common
+   GitVersion.Core (src)
+   GitVersion.Core.Tester ── GitVersion.Core, GitVersion.Core.Libgit2Sharp
+   GitVersion.Output (new-cli) ── GitVersion.Common.Command
+   GitVersion.Output (src) ── GitVersion.Core
+
+ENTRY POINTS
+   CLI (5)
+      calculate (CalculateCommand)  
+(new-cli/GitVersion.Calculation/CalculateCommand.cs:9)
+      config (ConfigCommand)  
+(new-cli/GitVersion.Configuration/ConfigCommand.cs:8)
+      normalize (NormalizeCommand)  
+(new-cli/GitVersion.Normalization/NormalizeCommand.cs:8)
+      output (OutputCommand)  (new-cli/GitVersion.Output/OutputCommand.cs:6)
+      test (TestCommand)  (new-cli/GitVersion.Cli/TestCommand.cs:5)
+
+PACKAGES
+   Logging:  Serilog.Extensions.Logging 10.0.0, Serilog.Sinks.Console 6.1.1, 
+Serilog.Sinks.File 7.0.0, Serilog.Sinks.Map 2.0.0
+   Testing:  Cake.Coverlet 6.0.1, NUnit 4.6.1, NUnit.Analyzers 4.14.0, 
+NUnit3TestAdapter 6.2.0, Shouldly 4.3.0, xunit.assert 2.9.3
+   Utilities:  Polly 8.7.0
+   Other:  Buildalyzer 8.0.0, Cake.Codecov 6.0.0, Cake.Frosting.Git 5.0.1, 
+Cake.Http 5.1.0, Cake.Json 7.0.1, Cake.Npx 1.7.0, Cake.Wyam 2.2.14, 
+JsonSchema.Net.Generation 7.3.10 … (38 total)
+
+→ drill in:  trace a focused entry   (e.g. trace "calculate (CalculateCommand)")
+
+
+DIAGNOSTICS
+  GraphAssembly: graph: 67 nodes, 15 edges, 5 entry points (scope: GitVersion)
+  CallGraphBinder: Built call graph: 1 edges at depth ≤ 3 (1 semantic) from 
+BodyFacts through SymbolTable in 25ms.
+  CallGraphBinder: Entry-scoped call graph: bound 5 of 471 files from the 
+handler seed.
+  SemanticLitePopulator: tier routing — A (syntax): 36 project(s), B 
+(semantic-lite): 0 project(s); compilation=True trees=657 refs=0; timing 
+populate=3110ms (fw=60 nuget=3 trees=2 create=14 bind=3026); upgraded 2314 
+var-decl + 1093 receiver + 1 creation + 3 generic-arg + 0 arg-type
+
+analyzed 657 files · 67 nodes · 15 edges · 5 entries · ~832 tokens · 5.8s stage2
+×3.0 stage3 ×2.0
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      GitVersion      │
+│   Time   │        5918ms        │
+│  Tokens  │  ~832 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.341 │
+╰──────────┴──────────────────────╯

@@ -1,0 +1,61 @@
+namespace Fx;
+
+public interface IWidget { int Do(); }
+
+public sealed class Widget : IWidget { public int Do() => 1; }
+
+/// Case A: field call WITHOUT the this. prefix, single line.
+public sealed class WithoutThis
+{
+    private readonly IWidget widget;
+    public WithoutThis(IWidget w) { widget = w; }
+    public int Run() { var v = widget.Do(); return v; }
+}
+
+/// Case B: field call WITH the this. prefix, single line.
+public sealed class WithThis
+{
+    private readonly IWidget widget;
+    public WithThis(IWidget w) { widget = w; }
+    public int Run() { var v = this.widget.Do(); return v; }
+}
+
+/// Case C: field call WITH the this. prefix, statement spanning two lines.
+public sealed class WithThisMultiLine
+{
+    private readonly IWidget widget;
+    public WithThisMultiLine(IWidget w) { widget = w; }
+    public int Run()
+    {
+        var v = this.widget.Do(
+            );
+        return v;
+    }
+}
+
+/// Case D: field call WITH the this. prefix, as an expression statement that itself spans
+/// two lines (the exact shape of GitVersion CalculateCommand.cs:23-24).
+public sealed class WithThisStatementSpans
+{
+    private readonly IWidget widget;
+    public WithThisStatementSpans(IWidget w) { widget = w; }
+    public void Run()
+    {
+        this.widget.Do(
+            );
+    }
+}
+
+public static class Program
+{
+    public static int Main(string[] args)
+    {
+        var w = new Widget();
+        var a = new WithoutThis(w);
+        var b = new WithThis(w);
+        var c = new WithThisMultiLine(w);
+        var d = new WithThisStatementSpans(w);
+        d.Run();
+        return a.Run() + b.Run() + c.Run();
+    }
+}
