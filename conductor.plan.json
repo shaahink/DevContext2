@@ -166,6 +166,15 @@
 
   "report": { "commit": true, "push": true },
 
+  // Token lives in .conductor/ via SecretsStore (gitignored), never in this file.
+  // allowedChatIds MUST be non-empty or every push is a silent no-op — TelegramService
+  // returns early on Count == 0. Conductor never auto-learns the id from an incoming message.
+  "telegram": {
+    "allowedChatIds": [],
+    "pollIntervalSeconds": 4,
+    "enableTwoWay": true
+  },
+
   // PLAN.md §5 rule 1: this PLAN plus the ONE strand doc the session needs. The strand doc is
   // named in each stage's notes rather than read by every session regardless of relevance.
   "readOrder": [

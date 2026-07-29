@@ -26,9 +26,15 @@ the surface you changed, then let Conductor judge.
 
 ## Do, in order
 
-1. **ORIENT.** Read the `## Handoff` block in `{tracker}`, run `conductor task --list` for your stage's
-   rows, and read the ONE strand doc named in the stage notes below. `{planDoc}` §2 STATUS is the
-   program's state. Nothing else — §5's token rules are load-bearing here.
+1. **ORIENT, then say what you are taking.** Read the `## Handoff` block in `{tracker}`, run
+   `conductor task --list` for your stage's rows, and read the ONE strand doc named in the stage notes
+   below. `{planDoc}` §2 STATUS is the program's state. Nothing else — §5's token rules are load-bearing.
+   Then mark the checkpoint you are about to work on:
+
+       conductor task --in-progress <id>
+
+   Do this BEFORE you start editing. It is what makes the board show work in flight instead of a wall
+   of TODO, and it is how a human watching knows you are alive and on the right item.
 2. **DECLARE ACCEPTANCE, in writing, before you edit anything.** One line per checkpoint: what must be
    true for it to be done, and what artifact will show it. `conductor note` it. This program has found
    repeatedly that a declared acceptance turns verification into a checklist diff instead of an
@@ -36,9 +42,19 @@ the surface you changed, then let Conductor judge.
 3. **DELIVER the next incomplete checkpoint of stage {stage} only.** One checkpoint landed with proof
    beats three claimed. Do not start another stage's work. If a checkpoint turns out to be bigger than
    one session, land the part that stands on its own and say so in the handoff.
-4. **CLOSE.** Produce the evidence artifact under `eval-results/<date>/`. Claim each delivered
-   checkpoint with `conductor task --done <id> --evidence <path>`. Overwrite the `## Handoff` block in
-   `{tracker}` for the next session (≤12 lines, no history). Commit per checkpoint, and push.
+4. **CLOSE.** Produce the evidence artifact under `eval-results/<date>/`, then:
+
+       conductor task --done <id> --evidence <path>
+
+   **This command is the claim. Nothing else is.** Writing "CLAIMED" or "DONE" in the handoff block,
+   filling the checkpoint table, or describing the work in your SESSION-RESULT does NOT move a
+   checkpoint — those are prose, and the board is built from `run.db`. A session that did the work
+   and skipped this command scores as *no checkpoint delivered*, and the next session is told the
+   item is still open. **Run it before you write the handoff**, so that if you run out of room the
+   claim is already in. If the tool is not loaded in your harness, load it (`task_update`) or shell
+   out to the CLI — do not substitute prose for it.
+   Then overwrite the `## Handoff` block in `{tracker}` for the next session (≤12 lines, no history),
+   commit per checkpoint, and push.
 
 ## Rules
 
