@@ -1,0 +1,23 @@
+{
+  "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+  "direction": "out",
+  "kind": "writes",
+  "note": "Unknown edge kind 'writes' — nothing was filtered and nothing is returned. Valid kinds: Calls, Sends, Handles, Raises, Consumes, ReadsWrites, Resolves, WrappedBy, EntityRelation, ServiceLink, Exposes, DependsOn.",
+  "count": 0,
+  "totalEdges": 9,
+  "kindsPresent": [
+    {
+      "kind": "Raises",
+      "count": 6
+    },
+    {
+      "kind": "ReadsWrites",
+      "count": 2
+    },
+    {
+      "kind": "EntityRelation",
+      "count": 1
+    }
+  ],
+  "edges": []
+}

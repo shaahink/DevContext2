@@ -1,7 +1,7 @@
 // R4 (G1) evidence driver — real MCP calls, raw responses dumped to eval-results.
 // Usage: node eval/mcp-qa/drive-r4.js <case> [outDir]
 // Cases: map-library | map-multisln | getctx-library | glyphs | retarget | envelope
-//        | find-kind | analyze-honesty | menu | trace-budget
+//        | find-kind | analyze-honesty | menu | trace-budget | seam | neighborkind
 // Each case prints PASS/FAIL lines and writes the RAW tool responses (the evidence a
 // checkpoint claim needs — a real MCP call showing the response shape, not a diff).
 
@@ -643,6 +643,132 @@ const CASES = {
     check("an unresolved end says so instead of denying the path",
       typeof bogus?.error === "string" && /did not resolve/.test(bogus.error),
       bogus?.error ?? JSON.stringify(bogus)?.slice(0, 160));
+  },
+
+  // G3.2 (R4 §1 item 9) — kind-filtered neighbours: "who WRITES this table", "who SENDS this
+  // command".
+  //
+  // The vacuous check is "the filtered list only contains that kind" — which an implementation that
+  // filters the WRONG SET passes just as happily, and which says nothing about the two things that
+  // actually go wrong with a filter. What is checked instead:
+  //   (a) the filter ran ABOVE the C3 roll-up, proved on real data by requiring that the answer for
+  //       a TYPE node includes edges whose source is one of its MEMBERS — a direct-edge filter
+  //       returns an empty list there, confidently;
+  //   (b) a dead end names a next step that WORKS — and the retry is then EXECUTED, because a
+  //       suggestion nobody ran is a claim, not a next step.
+  async neighborkind(client) {
+    const { handle, elapsedMs } = await analyzeRepo(client, join(REPOS, "eShop"));
+    check("analyze eShop", !!handle, `${(elapsedMs / 1000).toFixed(1)}s`);
+    if (!handle) return;
+
+    // Pick the subject from `stats`, not from a hard-coded name: the case then keeps testing the
+    // filter rather than turning into a golden of eShop's entity list.
+    const stats = (await tool(client, "stats", { handle })).data;
+    // The tool renames the wire's `seam`/`count` to `kind`/`total` on the way out (DevContextTools
+    // :534). Read the shape the AGENT is handed, not the one the proto has — reading the wire's
+    // names here would have made this line quietly undefined, which is how it first went out.
+    const seams = Object.fromEntries((stats?.seams ?? []).map((s) => [s.kind, s.total]));
+    check("eShop carries the kinds this item is named after",
+      (seams.ReadsWrites ?? 0) > 0 && (seams.Sends ?? 0) > 0,
+      Object.entries(seams).map(([k, v]) => `${k}:${v}`).join(" "));
+
+    // A TYPE node with a kind-filtered answer that hangs off its members — the roll-up subject.
+    const found = (await tool(client, "find", { handle, query: "Order", limit: 25 })).data;
+    let subject = null, unfiltered = null;
+    for (const cand of found?.results ?? found?.nodes ?? []) {
+      if (!String(cand.nodeId).startsWith("Type:")) continue;
+      const nb = (await tool(client, "neighbors", { handle, nodeId: cand.nodeId, direction: "out" })).data;
+      const kinds = nb?.kindsPresent ?? [];
+      if ((nb?.totalEdges ?? 0) > 0 && kinds.length >= 2) { subject = cand; unfiltered = nb; break; }
+    }
+    check("found a Type node with a mixed edge set", !!subject,
+      subject ? `${subject.nodeId} total=${unfiltered.totalEdges}` : "none of the Order candidates had 2+ kinds");
+    if (!subject) return;
+
+    const target = unfiltered.kindsPresent[0];
+    console.log(`  subject: ${subject.nodeId}  total=${unfiltered.totalEdges}`
+      + `  kinds=${unfiltered.kindsPresent.map((k) => k.kind + ":" + k.count).join(" ")}`);
+
+    const { data: filtered } = await tool(client, "neighbors",
+      { handle, nodeId: subject.nodeId, direction: "out", kind: target.kind });
+    dump("neighborkind-eshop.json", { subject: subject.nodeId, unfiltered, filtered });
+
+    // The rows narrow to exactly the asked-for kind — and to exactly the count the unfiltered
+    // answer predicted, which is what makes kindsPresent a usable index rather than decoration.
+    check("the filter returns that kind and only that kind",
+      (filtered?.edges ?? []).length > 0 && filtered.edges.every((e) => e.kind === target.kind),
+      `${filtered?.count} rows, kinds=${[...new Set((filtered?.edges ?? []).map((e) => e.kind))].join(",")}`);
+    check("the filtered count is the count kindsPresent promised",
+      filtered?.count === target.count, `${filtered?.count} vs ${target.count}`);
+
+    // THE HONESTY PAIR: the numbers describe the UNFILTERED set, so they must not move with the
+    // filter. If they shrank with the rows they could not name a retry.
+    check("totalEdges does not move with the filter",
+      filtered?.totalEdges === unfiltered.totalEdges, `${filtered?.totalEdges} vs ${unfiltered.totalEdges}`);
+    check("kindsPresent does not move with the filter",
+      JSON.stringify(filtered?.kindsPresent) === JSON.stringify(unfiltered.kindsPresent),
+      `${filtered?.kindsPresent?.length} vs ${unfiltered.kindsPresent.length} entries`);
+
+    // THE ROLL-UP, on real data. A Type node carries almost no edges of its own after Batch A, so a
+    // filter applied to `_graph.OutEdges(type, kind)` answers "nothing here" about wiring that runs
+    // on every request. The proof is that the answer's own rows come from the type's MEMBERS.
+    const viaMembers = (filtered?.edges ?? []).filter((e) => String(e.from).startsWith("Member:"));
+    check("the filtered answer includes edges carried by the type's MEMBERS (the C3 roll-up)",
+      viaMembers.length > 0,
+      `${viaMembers.length}/${filtered?.edges?.length ?? 0} rows come from members`);
+
+    // Dead end 1: a valid kind that matched nothing. The rows go empty; everything needed to retry
+    // stays. Pick a kind that is real and genuinely absent here.
+    const absent = ["EntityRelation", "WrappedBy", "Consumes", "ServiceLink", "Sends"]
+      .find((k) => !unfiltered.kindsPresent.some((p) => p.kind === k));
+    const { data: nomatch } = await tool(client, "neighbors",
+      { handle, nodeId: subject.nodeId, direction: "out", kind: absent });
+    dump("neighborkind-eshop-nomatch.json", nomatch);
+    check("a kind that matched nothing keeps the unfiltered facts",
+      nomatch?.count === 0 && nomatch?.totalEdges === unfiltered.totalEdges,
+      `count=${nomatch?.count} total=${nomatch?.totalEdges}`);
+    check("...and names what IS here", /No '.*' edges here/.test(nomatch?.note ?? ""),
+      nomatch?.note ?? "(no note)");
+
+    // R4 §3's bar, executed rather than asserted: take the retry the note names and RUN it.
+    const suggested = /This node has \d+ in this direction: (\w+)/.exec(nomatch?.note ?? "")?.[1];
+    const { data: retried } = suggested
+      ? await tool(client, "neighbors", { handle, nodeId: subject.nodeId, direction: "out", kind: suggested })
+      : { data: null };
+    check("the next step the reply names actually WORKS",
+      !!suggested && (retried?.count ?? 0) > 0,
+      suggested ? `retried kind:"${suggested}" -> ${retried?.count} edges` : "the note named no retry");
+
+    // Dead end 2: a kind that is not a kind. It must NOT come back as the unfiltered list wearing
+    // the caller's filter name — the one failure mode that leaves an agent believing a wrong answer.
+    const { data: unknown } = await tool(client, "neighbors",
+      { handle, nodeId: subject.nodeId, direction: "out", kind: "writes" });
+    dump("neighborkind-eshop-unknown.json", unknown);
+    check("an unknown kind returns NO rows (never the unfiltered list)",
+      unknown?.count === 0 && unknown?.totalEdges === unfiltered.totalEdges,
+      `count=${unknown?.count} total=${unknown?.totalEdges}`);
+    check("...and says so, with the vocabulary that would have worked",
+      /Unknown edge kind 'writes'/.test(unknown?.note ?? "") && /ReadsWrites/.test(unknown?.note ?? ""),
+      unknown?.note ?? "(no note)");
+    // The two dead ends must not read alike — one word for both is the defect item 9 removes.
+    check("the two dead ends do not read alike",
+      (unknown?.note ?? "") !== (nomatch?.note ?? ""), "distinct notes");
+
+    // usages IS the in-direction, so the kind must land the same way on both spellings.
+    const inbound = (await tool(client, "neighbors", { handle, nodeId: subject.nodeId, direction: "in" })).data;
+    if ((inbound?.kindsPresent?.length ?? 0) > 0) {
+      const k = inbound.kindsPresent[0].kind;
+      const asIn = (await tool(client, "neighbors", { handle, nodeId: subject.nodeId, direction: "in", kind: k })).data;
+      const asUsages = (await tool(client, "neighbors", { handle, nodeId: subject.nodeId, direction: "usages", kind: k })).data;
+      check("usages honours the kind exactly as direction:in does",
+        asIn?.count === asUsages?.count && asIn?.totalEdges === asUsages?.totalEdges && (asIn?.count ?? 0) > 0,
+        `in=${asIn?.count}/${asIn?.totalEdges} usages=${asUsages?.count}/${asUsages?.totalEdges}`);
+    }
+
+    // An unfiltered call is byte-identical to what it returned before this checkpoint.
+    check("an unfiltered call still returns the whole set",
+      unfiltered.count === unfiltered.totalEdges && !unfiltered.note,
+      `count=${unfiltered.count} total=${unfiltered.totalEdges} note=${unfiltered.note ?? "(none)"}`);
   },
 };
 

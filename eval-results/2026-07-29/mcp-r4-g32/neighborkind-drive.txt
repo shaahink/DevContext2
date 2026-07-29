@@ -1,0 +1,21 @@
+case: neighborkind
+  PASS  analyze eShop — 0.1s
+  PASS  eShop carries the kinds this item is named after — Calls:713 Sends:9 Handles:36 Raises:21 Consumes:25 ReadsWrites:57 Resolves:74 WrappedBy:108 EntityRelation:10 ServiceLink:23 DependsOn:22
+  PASS  found a Type node with a mixed edge set — Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order total=9
+  subject: Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order  total=9  kinds=Raises:6 ReadsWrites:2 EntityRelation:1
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g32\neighborkind-eshop.json
+  PASS  the filter returns that kind and only that kind — 6 rows, kinds=Raises
+  PASS  the filtered count is the count kindsPresent promised — 6 vs 6
+  PASS  totalEdges does not move with the filter — 9 vs 9
+  PASS  kindsPresent does not move with the filter — 3 vs 3 entries
+  PASS  the filtered answer includes edges carried by the type's MEMBERS (the C3 roll-up) — 6/6 rows come from members
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g32\neighborkind-eshop-nomatch.json
+  PASS  a kind that matched nothing keeps the unfiltered facts — count=0 total=9
+  PASS  ...and names what IS here — No 'WrappedBy' edges here. This node has 9 in this direction: Raises 6, ReadsWrites 2, EntityRelation 1. Retry with one of those kinds, or drop kind for all of them.
+  PASS  the next step the reply names actually WORKS — retried kind:"Raises" -> 6 edges
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g32\neighborkind-eshop-unknown.json
+  PASS  an unknown kind returns NO rows (never the unfiltered list) — count=0 total=9
+  PASS  ...and says so, with the vocabulary that would have worked — Unknown edge kind 'writes' — nothing was filtered and nothing is returned. Valid kinds: Calls, Sends, Handles, Raises, Consumes, ReadsWrites, Resolves, WrappedBy, EntityRelation, ServiceLink, Exposes, DependsOn.
+  PASS  the two dead ends do not read alike — distinct notes
+  PASS  usages honours the kind exactly as direction:in does — in=3/4 usages=3/4
+  PASS  an unfiltered call still returns the whole set — count=9 total=9 note=(none)

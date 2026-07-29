@@ -1,0 +1,430 @@
+﻿{
+  "node": "eShop.Catalog.API.CatalogApi",
+  "direction": "out",
+  "count": 51,
+  "totalEdges": 51,
+  "kindsPresent": [
+    {
+      "kind": "Calls",
+      "count": 46
+    },
+    {
+      "kind": "ReadsWrites",
+      "count": 4
+    },
+    {
+      "kind": "Raises",
+      "count": 1
+    }
+  ],
+  "edges": [
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetAllItems",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:134"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsByIds",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:166"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsByIds",
+      "to": "global.CatalogServices::ToListAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.ToListAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:166"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsByIds",
+      "to": "global.CatalogServices::Where",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Where",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:166"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemById",
+      "to": "eShop.Catalog.API.Model.CatalogBrand",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogBrand",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:183"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemById",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:183"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemById",
+      "to": "global.CatalogServices::Include",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Include",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:183"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemById",
+      "to": "global.CatalogServices::SingleOrDefaultAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.SingleOrDefaultAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:183"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemPictureById",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:210"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemPictureById",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::FindAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.FindAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:210"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:263"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "eShop.Catalog.API.Services.ICatalogAI",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "ICatalogAI",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:251"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:259"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "eShop.Catalog.API.Services.CatalogAI::GetEmbeddingAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogAI.GetEmbeddingAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:251"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::LongCountAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.LongCountAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:259"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::IsEnabled",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.IsEnabled",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:264"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::OrderBy",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.OrderBy",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::Select",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Select",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::Skip",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Skip",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::Take",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Take",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::ToListAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.ToListAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::Where",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Where",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:266"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "global.CatalogServices::LogDebug",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.LogDebug",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:274"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::\u003Clambda\u003E GET /api/catalog/catalogtypes",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:2"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::\u003Clambda\u003E GET /api/catalog/catalogbrands",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:2"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.IntegrationEvents.Events.ProductPriceChangedIntegrationEvent",
+      "kind": "Raises",
+      "resolution": "Syntactic",
+      "otherTitle": "ProductPriceChangedIntegrationEvent",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:350"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:330"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:340"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.Services.ICatalogAI",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "ICatalogAI",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:343"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.IntegrationEvents.ICatalogIntegrationEventService",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "ICatalogIntegrationEventService",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:353"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "global.CatalogServices::SingleOrDefaultAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.SingleOrDefaultAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:330"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::Entry",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.Entry",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:340"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.Services.CatalogAI::GetEmbeddingAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogAI.GetEmbeddingAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:343"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.IntegrationEvents.CatalogIntegrationEventService::SaveEventAndCatalogContextChangesAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "SaveEventAndCatalogContextChangesAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:353"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.IntegrationEvents.CatalogIntegrationEventService::PublishThroughEventBusAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "PublishThroughEventBusAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:356"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::UpdateItem",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::SaveChangesAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.SaveChangesAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:360"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Semantic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:370"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Services.ICatalogAI",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "ICatalogAI",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:382"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:384"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:385"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Services.CatalogAI::GetEmbeddingAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogAI.GetEmbeddingAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:382"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "global.CatalogServices::Add",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Add",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:384"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::SaveChangesAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.SaveChangesAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:385"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::DeleteItemById",
+      "to": "global.CatalogServices",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:394"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::DeleteItemById",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:402"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::DeleteItemById",
+      "to": "global.CatalogServices::SingleOrDefault",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.SingleOrDefault",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:394"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::DeleteItemById",
+      "to": "global.CatalogServices::Remove",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogServices.Remove",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:401"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::DeleteItemById",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::SaveChangesAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.SaveChangesAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:402"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::MapCatalogApi",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:79"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::MapCatalogApi",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::OrderBy",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.OrderBy",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:79"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::MapCatalogApi",
+      "to": "eShop.Catalog.API.Infrastructure.CatalogContext::ToListAsync",
+      "kind": "Calls",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogContext.ToListAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:79"
+    }
+  ]
+}

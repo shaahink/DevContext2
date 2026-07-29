@@ -1,0 +1,55 @@
+﻿{
+  "node": "eShop.Catalog.API.CatalogApi",
+  "direction": "out",
+  "kind": "ReadsWrites",
+  "count": 4,
+  "totalEdges": 51,
+  "kindsPresent": [
+    {
+      "kind": "Calls",
+      "count": 46
+    },
+    {
+      "kind": "ReadsWrites",
+      "count": 4
+    },
+    {
+      "kind": "Raises",
+      "count": 1
+    }
+  ],
+  "edges": [
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetAllItems",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:134"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemById",
+      "to": "eShop.Catalog.API.Model.CatalogBrand",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogBrand",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:183"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::GetItemsBySemanticRelevance",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:263"
+    },
+    {
+      "from": "eShop.Catalog.API.CatalogApi::CreateItem",
+      "to": "eShop.Catalog.API.Model.CatalogItem",
+      "kind": "ReadsWrites",
+      "resolution": "Semantic",
+      "otherTitle": "CatalogItem",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs:370"
+    }
+  ]
+}

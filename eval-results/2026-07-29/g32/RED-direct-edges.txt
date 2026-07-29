@@ -1,0 +1,43 @@
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.40]     DevContext.Core.Tests.GraphNeighborKindTests.The_kind_filter_sees_the_edges_that_hang_off_the_members [FAIL]
+  Failed DevContext.Core.Tests.GraphNeighborKindTests.The_kind_filter_sees_the_edges_that_hang_off_the_members [41 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 2
+Actual:   0
+  Stack Trace:
+     at DevContext.Core.Tests.GraphNeighborKindTests.The_kind_filter_sees_the_edges_that_hang_off_the_members() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphNeighborKindTests.cs:line 87
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.44]     DevContext.Core.Tests.GraphNeighborKindTests.An_intra_type_call_is_not_a_neighbour_even_when_its_kind_is_asked_for [FAIL]
+[xUnit.net 00:00:00.44]     DevContext.Core.Tests.GraphNeighborKindTests.Kinds_present_counts_the_unfiltered_set_busiest_first [FAIL]
+  Failed DevContext.Core.Tests.GraphNeighborKindTests.An_intra_type_call_is_not_a_neighbour_even_when_its_kind_is_asked_for [1 ms]
+  Error Message:
+   Assert.Single() Failure: The collection was empty
+  Stack Trace:
+     at DevContext.Core.Tests.GraphNeighborKindTests.An_intra_type_call_is_not_a_neighbour_even_when_its_kind_is_asked_for() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphNeighborKindTests.cs:line 120
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.GraphNeighborKindTests.Kinds_present_counts_the_unfiltered_set_busiest_first [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: 5
+Actual:   1
+  Stack Trace:
+     at DevContext.Core.Tests.GraphNeighborKindTests.Kinds_present_counts_the_unfiltered_set_busiest_first() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphNeighborKindTests.cs:line 166
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.44]     DevContext.Core.Tests.GraphNeighborKindTests.Filtering_above_the_roll_up_equals_filtering_inside_it [FAIL]
+  Failed DevContext.Core.Tests.GraphNeighborKindTests.Filtering_above_the_roll_up_equals_filtering_inside_it [11 ms]
+  Error Message:
+   Assert.Equal() Failure: Collections differ
+           ↓ (pos 0)
+Expected: [Tuple (Member:Ns.OrderService::Place, Member:Ns.Shipping::Ship, Calls)]
+Actual:   []
+  Stack Trace:
+     at DevContext.Core.Tests.GraphNeighborKindTests.Filtering_above_the_roll_up_equals_filtering_inside_it() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphNeighborKindTests.cs:line 236
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     4, Passed:    16, Skipped:     0, Total:    20, Duration: 108 ms - DevContext.Core.Tests.dll (net10.0)

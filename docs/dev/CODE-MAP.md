@@ -120,8 +120,14 @@ The post-Loom "regex funeral": structured facts + a resolver replace body-scan r
 ## 6. Query layer — `Graph/GraphQuery.cs` (640 LOC)
 
 The read API over a frozen graph (what the server/MCP/renderers call):
-`EntryPoints`, `Map`, `Stats`, `Trace(focus, depth, maxFanOut)`, `Node`, `Neighbors`, `FindUsages`,
-`ResolveNodeId`, `GetInterestingPoints`, `Impact` / `ImpactFromFiles` / `BlastRadius`, `Search`, `Find`.
+`EntryPoints`, `Map`, `Stats`, `Trace(focus, depth, maxFanOut)`, `Node`, `Neighbors` / `NeighborsView`,
+`FindUsages`, `Seam(from, to)`, `ResolveNodeId`, `GetInterestingPoints`, `Impact` / `ImpactFromFiles` /
+`BlastRadius`, `Search`, `Find`.
+`NeighborsView` (G3.2) is the one implementation behind the kind filter: it walks the rolled edges
+ONCE, then filters, so `TotalEdges`/`KindsPresent` always describe the unfiltered set in that
+direction and cannot drift from the rows. `Neighbors(id, dir, kind?)` is its `Edges`. The filter sits
+ABOVE the C3 roll-up on purpose — a Type node carries almost no edges of its own, so filtering
+`_graph.OutEdges(type, kind)` reports a type that writes a table on every request as writing nothing.
 The trace itself is built by `Graph/TraceBuilder.cs` (656 LOC); context packs by
 `Graph/ContextPackBuilder.cs` (908 LOC — T4: identity header, spine-first budget fill, real
 contracts/config/tests sections, per-section provenance); pack staleness by

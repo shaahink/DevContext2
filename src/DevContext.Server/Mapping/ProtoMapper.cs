@@ -225,6 +225,51 @@ internal static class ProtoMapper
         return edge;
     }
 
+    /// <summary>G3.2 (R4 item 9) — kind-filtered neighbours, with the facts the filter would otherwise
+    /// destroy.
+    ///
+    /// <para><paramref name="unknownKind"/> means the caller named something that is not an
+    /// <c>EdgeKind</c>. The rows are then deliberately EMPTY even though <paramref name="view"/> holds
+    /// the unfiltered set: a filter that silently does not filter is the one failure mode that leaves
+    /// the caller believing a wrong answer, and it costs nothing to be told instead.</para>
+    ///
+    /// <para>The note is built here, once, for the same reason the seam note is: an empty list cannot
+    /// say whether the kind was wrong, the seam is absent, or the node is a leaf — and all three want
+    /// a different next call.</para></summary>
+    public static Proto.NeighborsResponse ToNeighborsResponse(
+        NeighborView view, string? requestedKind, bool unknownKind)
+    {
+        var resp = new Proto.NeighborsResponse { TotalEdges = view.TotalEdges };
+
+        if (!unknownKind)
+            foreach (var e in view.Edges) resp.Edges.Add(ToProto(e));
+
+        foreach (var kc in view.KindsPresent)
+            resp.KindsPresent.Add(new Proto.EdgeKindCount { Kind = kc.Kind.ToString(), Count = kc.Count });
+
+        var note = NeighborsNote(view, requestedKind, unknownKind, resp.Edges.Count);
+        if (note is not null) resp.Note = note;
+        return resp;
+    }
+
+    private static string? NeighborsNote(NeighborView view, string? requestedKind, bool unknownKind, int shown)
+    {
+        if (unknownKind)
+            return $"Unknown edge kind '{requestedKind}' — nothing was filtered and nothing is returned. "
+                 + $"Valid kinds: {string.Join(", ", GraphQuery.EdgeKindNames)}.";
+
+        // A kind that matched nothing on a node that HAS edges is the reply an agent most often
+        // misreads as "there is no such wiring". Name what is actually here so the retry works.
+        if (requestedKind is not null && shown == 0 && view.TotalEdges > 0)
+        {
+            var present = string.Join(", ", view.KindsPresent.Select(k => $"{k.Kind} {k.Count}"));
+            return $"No '{requestedKind}' edges here. This node has {view.TotalEdges} in this direction: "
+                 + $"{present}. Retry with one of those kinds, or drop kind for all of them.";
+        }
+
+        return null;
+    }
+
     public static Proto.SearchResponse ToSearchResponse(
         IReadOnlyList<(string Id, string Title, string Kind, ImmutableArray<string> Tags)> nodes,
         int totalMatches)

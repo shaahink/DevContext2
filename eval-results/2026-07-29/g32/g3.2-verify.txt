@@ -1,0 +1,48 @@
+=== build ===
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:09.55
+BUILD EXIT=0
+=== step 2: unit + integration (battery filter) ===
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:04.45]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+[xUnit.net 00:00:04.63]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+
+Passed!  - Failed:     0, Passed:   701, Skipped:     2, Total:   703, Duration: 5 s - DevContext.Core.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:   100, Skipped:     0, Total:   100, Duration: 6 s - DevContext.Server.Tests.dll (net10.0)
+STEP2 EXIT=0
+=== step 2b: MCP QA drive, ALONE ===
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=McpQa` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 10 s - DevContext.Core.Tests.dll (net10.0)
+STEP2B EXIT=0
+=== guards ===
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+GUARDS EXIT=0
+=== contract sweep ===
+[sweep] reading consumers...
+
+[sweep] messages 107 - fields 494
+[sweep] unread by every client: 10 (10 allow-listed, 0 NEW)
+
+GATE: PASS - every response field is read by a client or allow-listed with a reason.
+SWEEP EXIT=0

@@ -1064,9 +1064,9 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "node", "node(handle, nodeId:\"OrderService\")"); }
     }
 
-    /// <summary>Outgoing/incoming edges of a node. Address with 'nodeId' (precise) or 'query' (fuzzy). direction: out|in|usages. Example: neighbors("abc123", query:"OrderService", direction:"out")</summary>
+    /// <summary>Outgoing/incoming edges of a node. Address with 'nodeId' (precise) or 'query' (fuzzy). direction: out|in|usages. Optional 'kind' filters to one seam, which is how you ask a pointed question: who WRITES this table (direction:"in", kind:"ReadsWrites"), who SENDS this command (direction:"in", kind:"Sends"), who CONSUMES this event (kind:"Consumes"). The reply always names every kind this node does have, so a miss tells you what to ask instead. Example: neighbors("abc123", query:"Order", direction:"in", kind:"ReadsWrites")</summary>
     [McpServerTool]
-    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out", string? query = null)
+    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out", string? query = null, string? kind = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
             return Envelope("Missing 'nodeId' or 'query'.",
@@ -1082,13 +1082,18 @@ public sealed class DevContextTools
         }
         try
         {
-            var resp = await _client.GetNeighborsAsync(new NeighborsRequest
-            {
-                Handle = handle,
-                NodeId = nodeId,
-                Direction = direction,
-            });
-            if (resp.Edges.Count == 0 && !await NodeExistsAsync(handle, nodeId))
+            var req = new NeighborsRequest { Handle = handle, NodeId = nodeId, Direction = direction };
+            if (!string.IsNullOrWhiteSpace(kind)) req.Kind = kind;
+            var resp = await _client.GetNeighborsAsync(req);
+
+            var kindsPresent = resp.KindsPresent
+                .Select(k => (object)new { kind = k.Kind, count = k.Count })
+                .ToArray();
+
+            // G3.2 — a filter that matched nothing is NOT a missing node, and the server already
+            // told us which it is: an unfiltered count above zero proves the node is there, so the
+            // not-found probe is only spent when there is genuinely nothing to describe.
+            if (resp.Edges.Count == 0 && resp.TotalEdges == 0 && !await NodeExistsAsync(handle, nodeId))
             {
                 var suggestions = await SuggestAsync(handle, nodeId);
                 return Envelope($"Node '{nodeId}' not found.",
@@ -1096,11 +1101,22 @@ public sealed class DevContextTools
                     "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")",
                     suggestions.Length > 0 ? suggestions : null);
             }
+
+            // Note before rows, deliberately. Nothing-matched and unknown-kind both arrive as an
+            // empty list, and the reader stops at `count` — so the sentence that says which one it
+            // is, and what to ask instead, is placed where it is read first. (It is dropped entirely
+            // when there is nothing to say: WhenWritingNull, and a clean answer carries no note.)
             return JsonSerializer.Serialize(new
             {
                 nodeId,
                 direction,
+                kind,
+                note = resp.HasNote ? resp.Note : null,
                 count = resp.Edges.Count,
+                // The unfiltered edge count in this direction, and every kind that makes it up: what
+                // `count` alone cannot say once a filter is on.
+                totalEdges = resp.TotalEdges,
+                kindsPresent,
                 edges = resp.Edges.Select(e => new
                 {
                     from = e.From,

@@ -1,0 +1,23 @@
+{
+  "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+  "direction": "out",
+  "kind": "WrappedBy",
+  "note": "No 'WrappedBy' edges here. This node has 9 in this direction: Raises 6, ReadsWrites 2, EntityRelation 1. Retry with one of those kinds, or drop kind for all of them.",
+  "count": 0,
+  "totalEdges": 9,
+  "kindsPresent": [
+    {
+      "kind": "Raises",
+      "count": 6
+    },
+    {
+      "kind": "ReadsWrites",
+      "count": 2
+    },
+    {
+      "kind": "EntityRelation",
+      "count": 1
+    }
+  ],
+  "edges": []
+}

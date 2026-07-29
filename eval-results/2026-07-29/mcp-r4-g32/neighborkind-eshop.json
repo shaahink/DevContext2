@@ -1,0 +1,168 @@
+{
+  "subject": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+  "unfiltered": {
+    "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+    "direction": "out",
+    "count": 9,
+    "totalEdges": 9,
+    "kindsPresent": [
+      {
+        "kind": "Raises",
+        "count": 6
+      },
+      {
+        "kind": "ReadsWrites",
+        "count": 2
+      },
+      {
+        "kind": "EntityRelation",
+        "count": 1
+      }
+    ],
+    "edges": [
+      {
+        "from": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+        "to": "Type:eShop.Ordering.Domain.AggregatesModel.BuyerAggregate.Buyer",
+        "kind": "EntityRelation",
+        "resolution": "Syntactic",
+        "otherTitle": "Buyer",
+        "provenance": ""
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::Order",
+        "to": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.OrderItem",
+        "kind": "ReadsWrites",
+        "resolution": "Syntactic",
+        "otherTitle": "OrderItem",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:48"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::AddOrderItem",
+        "to": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.OrderItem",
+        "kind": "ReadsWrites",
+        "resolution": "Semantic",
+        "otherTitle": "OrderItem",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:88"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetAwaitingValidationStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToAwaitingValidationDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:103"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetStockConfirmedStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToStockConfirmedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToStockConfirmedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:112"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetPaidStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToPaidDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToPaidDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:123"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetShippedStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderShippedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderShippedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:139"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetCancelledStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderCancelledDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderCancelledDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:152"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::AddOrderStartedDomainEvent",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStartedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStartedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:177"
+      }
+    ]
+  },
+  "filtered": {
+    "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+    "direction": "out",
+    "kind": "Raises",
+    "count": 6,
+    "totalEdges": 9,
+    "kindsPresent": [
+      {
+        "kind": "Raises",
+        "count": 6
+      },
+      {
+        "kind": "ReadsWrites",
+        "count": 2
+      },
+      {
+        "kind": "EntityRelation",
+        "count": 1
+      }
+    ],
+    "edges": [
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetAwaitingValidationStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToAwaitingValidationDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:103"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetStockConfirmedStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToStockConfirmedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToStockConfirmedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:112"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetPaidStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToPaidDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStatusChangedToPaidDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:123"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetShippedStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderShippedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderShippedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:139"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetCancelledStatus",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderCancelledDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderCancelledDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:152"
+      },
+      {
+        "from": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::AddOrderStartedDomainEvent",
+        "to": "Type:eShop.Ordering.Domain.Events.OrderStartedDomainEvent",
+        "kind": "Raises",
+        "resolution": "Semantic",
+        "otherTitle": "OrderStartedDomainEvent",
+        "provenance": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:177"
+      }
+    ]
+  }
+}

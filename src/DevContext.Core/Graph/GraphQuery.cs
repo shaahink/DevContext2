@@ -26,6 +26,17 @@ public sealed record EdgeRef(
     string? Provenance,
     string OtherTitle);
 
+/// <summary>G3.2 — one edge kind and how many edges carry it, in one direction from one node.</summary>
+public sealed record EdgeKindCount(EdgeKind Kind, int Count);
+
+/// <summary>A kind-filtered neighbour answer that still knows what it filtered out:
+/// <paramref name="Edges"/> is the filtered list, while <paramref name="TotalEdges"/> and
+/// <paramref name="KindsPresent"/> describe the UNFILTERED edges in the same direction.</summary>
+public sealed record NeighborView(
+    ImmutableArray<EdgeRef> Edges,
+    int TotalEdges,
+    ImmutableArray<EdgeKindCount> KindsPresent);
+
 /// <summary>
 /// The kernel's query layer — *analyze once, query many* (PRODUCT-DIRECTION.md §6). A thin, face-agnostic,
 /// JSON-friendly facade over one immutable <see cref="CodeGraph"/> + its entry inventory + Map. The CLI,
@@ -183,17 +194,62 @@ public sealed class GraphQuery
     /// edges roll up, and each EdgeRef keeps the true member endpoints — the answer shows WHICH member
     /// carries the collaboration.</summary>
     public ImmutableArray<EdgeRef> Neighbors(NodeId id, EdgeDirection direction, EdgeKind? kind = null)
+        => NeighborsView(id, direction, kind).Edges;
+
+    /// <summary>
+    /// G3.2 (R4 item 9) — the same answer, plus the two facts a filter destroys.
+    /// <para><see cref="NeighborView.Edges"/> is filtered; <see cref="NeighborView.TotalEdges"/> and
+    /// <see cref="NeighborView.KindsPresent"/> describe the UNFILTERED edges in the same direction.
+    /// Without them "nothing writes this table" and "this node has no edges at all" arrive identical,
+    /// and a caller whose kind guess missed has nothing to retry with.</para>
+    /// <para>One walk, then the filter, so the list and the numbers that describe what it left out
+    /// can never be about different sets. Filtering after the roll-up equals filtering inside it: the
+    /// dedup key in <see cref="RolledEdges"/> includes the kind, and its intra-type skip does not
+    /// depend on the kind.</para>
+    /// </summary>
+    public NeighborView NeighborsView(NodeId id, EdgeDirection direction, EdgeKind? kind = null)
     {
-        var edges = RolledEdges(id, direction, kind);
-        var b = ImmutableArray.CreateBuilder<EdgeRef>(edges.Length);
-        foreach (var e in edges)
+        var all = RolledEdges(id, direction);
+
+        var counts = new Dictionary<EdgeKind, int>();
+        var b = ImmutableArray.CreateBuilder<EdgeRef>();
+        foreach (var e in all)
         {
+            counts[e.Kind] = counts.GetValueOrDefault(e.Kind) + 1;
+            if (kind is { } k && e.Kind != k) continue;
             var otherId = direction == EdgeDirection.Out ? e.To : e.From;
             var otherTitle = _graph.Node(otherId)?.Title ?? otherId.Key;
             b.Add(new EdgeRef(e.From, e.To, e.Kind, e.Resolution, e.Provenance, otherTitle));
         }
-        return b.ToImmutable();
+
+        // Busiest kind first, ties broken by the enum's own order: a stable list whose head is the
+        // kind a caller who guessed wrong most likely wanted.
+        var kinds = counts.OrderByDescending(p => p.Value).ThenBy(p => (int)p.Key)
+            .Select(p => new EdgeKindCount(p.Key, p.Value))
+            .ToImmutableArray();
+
+        return new NeighborView(b.ToImmutable(), all.Length, kinds);
     }
+
+    /// <summary>G3.2 — parse a caller's kind name against <see cref="EdgeKind"/> ITSELF, so no surface
+    /// keeps a second copy of the list (the drift class G2.1 took out of the tool menu). Case-insensitive.
+    /// Rejects the underlying number, which <see cref="Enum.TryParse{TEnum}(string, bool, out TEnum)"/>
+    /// accepts and no caller means.</summary>
+    public static bool TryParseEdgeKind(string? name, out EdgeKind kind)
+    {
+        kind = default;
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        foreach (var n in Enum.GetNames<EdgeKind>())
+        {
+            if (!string.Equals(n, name, StringComparison.OrdinalIgnoreCase)) continue;
+            kind = Enum.Parse<EdgeKind>(n);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>G3.2 — every edge kind a caller may ask for, in enum order. The one list.</summary>
+    public static ImmutableArray<string> EdgeKindNames { get; } = [.. Enum.GetNames<EdgeKind>()];
 
     /// <summary>find_usages(id) — who references this node (the inverse query): its in-edges.</summary>
     public ImmutableArray<EdgeRef> FindUsages(NodeId id) => Neighbors(id, EdgeDirection.In);

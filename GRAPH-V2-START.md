@@ -4,22 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G3.1 CLAIMED** — `seam(from,to)` at `GraphQuery` + proto (`GetSeam`, RPC 26) + tool (menu 21→**22**).
-Evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`. Test counts **Core 683 / Server 85** (was
-674/76, **+9 each**) — a passing test is not named in the log, so the delta is your only proof.
-Verify with `eval-results/2026-07-29/g3.1-verify.ps1`: the battery's OWN Step 2 filter
-(`Category!=Eval&Category!=CliSmoke&Category!=McpQa`) then `Category=McpQa` **alone** — never the
-bare `Category!=Eval`. Next: **G3.2** — and it is smaller than it looks: `GraphQuery.Neighbors`
-ALREADY takes an `EdgeKind?`; only `NeighborsRequest` and the tool don't expose it. The real work is
-the honesty half — what a kind matching nothing says, and whether the roll-up drops it. Then G3.3.
-**THE ROLL-UP IS WHAT A NEW TRAVERSAL GETS WRONG, and it is invisible until you test for it**: after
-Batch A a Type node carries almost no edges of its own, so anything written against
-`_graph.OutEdges` reports two types that collaborate every request as UNCONNECTED. Watched red
-3-of-9 — and **6 of the 9 passed on that broken state**, so a suite of the wrong 6 ships it.
-Traps re-paid: the MCP leaves a `DevContext.Server` alive that locks Core/Cli/Contracts.dll — kill it
-BY PID before the next build. `pnpm gen:proto` after any proto edit. My driver's ground truth was
-wrong once more (seam-vs-impact hop equality is a wrong premise on a Type target) — measure, 4-for-4.
-Still open from G2.2 §6: fold `TraceResponse.applied_budget_tokens` in on the next proto edit.
+**G3.2 CLAIMED** — kind-filtered `neighbors` at `GraphQuery.NeighborsView` + proto (5 fields +
+`EdgeKindCount`) + tool + CLI `--kind`. Evidence `eval-results/2026-07-29/G3.2-EVIDENCE.md`.
+Counts **Core 703 / Server 100** (was 683/85, **+20/+15**) — the delta is your only proof a new
+file ran. Verify: `eval-results/2026-07-29/g32/g3.2-verify.ps1` (battery's OWN Step 2 filter, then
+`Category=McpQa` ALONE — never bare `Category!=Eval`). All green + sweep PASS 494 fields 0 NEW.
+**I INHERITED SESSION #11's UNCOMMITTED TREE AND IT DID NOT COMPILE** — it had the whole
+implementation and not one test. Check `git diff` before assuming a dead session left nothing.
+Next: **G3.3** (cache truth; `AnalyzeCacheTruthTests` already exists from G1.4 — extend, don't add).
+**MEASURE THE SUBJECT BEFORE BLAMING THE QUERY**: my first eShop drive got totalEdges=0 everywhere
+and it was MY node choice (OrderingContext is a DbContext, outDegree 0/inDegree 43). `query node
+--focus X` shows degrees in one call. Traps re-paid: `Assert.Equal` on two `ImmutableArray<T>` binds
+the STRUCT overload (reference equality) and prints two IDENTICAL lines on failure — `.ToArray()`
+both sides. `dotnet test 2>&1 | Tee-Object` in PS 5.1 destroys the assertion text; capture via Bash.
+`query` OP is POSITIONAL (`query neighbors`, never `--op`). In an MCP driver read the field names the
+AGENT is handed, not the wire's (`stats.seams` is `{seam,count}` on the wire, `{kind,total}` in the
+tool). Still open from G2.2 §6: `TraceResponse.applied_budget_tokens` on the next proto edit.
 
 
 ## Baseline numbers (from run.db)
@@ -28,7 +28,7 @@ Still open from G2.2 §6: fold `TraceResponse.applied_budget_tokens` in on the n
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 6 |
+| Claimed (unconfirmed) | 7 |
 
 ## Checkpoints
 
@@ -55,8 +55,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | TODO | - | - |
-| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | TODO | - | - |
+| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | DONE | baa5ffd | fast-engine:OK · guards:OK |
+| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | IN PROGRESS | - | - |
 | G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | TODO | - | - |
 
 ### G4 — R4 dogfood drive — is the MCP a proper tool?

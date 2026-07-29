@@ -109,7 +109,7 @@ path or put the directory on `PATH`):
 | `resolve` | Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks. | `query`, `limit` |
 | `find` | Free-text search across graph nodes, paginated. `kind` filters server-side, so `total` and `hasMore` count every match, not the page. | `query`, `kind`, `limit`, `cursor` |
 | `node` | Detail card for a node: title, kind, file path, degrees. | `nodeId` or `query` |
-| `neighbors` | Outgoing/incoming edges of a node. | `nodeId`/`query`, `direction: out\|in\|usages` |
+| `neighbors` | Outgoing/incoming edges of a node. `kind` narrows to one seam server-side, which is how you ask a pointed question: who **writes** this table (`direction: in, kind: ReadsWrites`), who **sends** this command (`kind: Sends`), who **consumes** this event (`kind: Consumes`). The reply always carries `totalEdges` and `kindsPresent` for the **unfiltered** set in that direction, so a filter that matched nothing names what to ask instead — and an unknown kind returns nothing plus the valid list, never the unfiltered edges wearing your filter's name. On a type, the members' edges roll up, so the answer names *which member* carries the seam. | `nodeId`/`query`, `direction: out\|in\|usages`, `kind` |
 | `usages` | All usages (in-edges) of a node across the codebase. | `nodeId` or `query` |
 | `read_source` | Read source for a node: `window` (N lines around) or `member` (full declaration body). | `nodeId`/`query`, `mode`, `windowLines` |
 

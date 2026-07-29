@@ -181,19 +181,23 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.NeighborsResponse> GetNeighbors(Proto.NeighborsRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {
-            var resp = new Proto.NeighborsResponse();
-            if (ResolveNode(session, request.NodeId) is { } nid)
-            {
-                var edges = request.Direction switch
-                {
-                    "in" => session.Query.Neighbors(nid, EdgeDirection.In),
-                    "usages" => session.Query.FindUsages(nid),
-                    _ => session.Query.Neighbors(nid, EdgeDirection.Out),
-                };
-                foreach (var edge in edges)
-                    resp.Edges.Add(ProtoMapper.ToProto(edge));
-            }
-            return resp;
+            if (ResolveNode(session, request.NodeId) is not { } nid)
+                return new Proto.NeighborsResponse();
+
+            // "usages" IS the in-direction (GraphQuery.FindUsages is Neighbors(In) verbatim); reading
+            // it as one avoids a second arm that could accept the kind filter differently.
+            var direction = request.Direction is "in" or "usages" ? EdgeDirection.In : EdgeDirection.Out;
+
+            // G3.2 — an unparseable kind must not fall through as "no filter", which would return
+            // every edge under the caller's filter name. Parse against the enum itself, and when it
+            // fails ask for the unfiltered view so the counts stay true while the rows stay empty.
+            var requestedKind = request.HasKind && !string.IsNullOrWhiteSpace(request.Kind)
+                ? request.Kind.Trim() : null;
+            var parsed = Core.Graph.GraphQuery.TryParseEdgeKind(requestedKind, out var edgeKind);
+            var unknownKind = requestedKind is not null && !parsed;
+
+            var view = session.Query.NeighborsView(nid, direction, parsed ? edgeKind : null);
+            return ProtoMapper.ToNeighborsResponse(view, requestedKind, unknownKind);
         });
 
     public override Task<Proto.SearchResponse> SearchNodes(Proto.SearchRequest request, ServerCallContext context)

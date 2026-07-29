@@ -1,0 +1,89 @@
+﻿{
+  "node": "eShop.ClientApp.Models.Orders.Order",
+  "direction": "in",
+  "count": 9,
+  "totalEdges": 9,
+  "kindsPresent": [
+    {
+      "kind": "ReadsWrites",
+      "count": 8
+    },
+    {
+      "kind": "EntityRelation",
+      "count": 1
+    }
+  ],
+  "edges": [
+    {
+      "from": "eShop.ClientApp.Models.Orders.OrderItem",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "EntityRelation",
+      "resolution": "Syntactic",
+      "otherTitle": "OrderItem"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.CheckoutViewModel::InitializeAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "InitializeAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CheckoutViewModel.cs:70"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.CheckoutViewModel::CheckoutAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "CheckoutViewModel.CheckoutAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CheckoutViewModel.cs:109"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.OrderDetailViewModel::InitializeAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "InitializeAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\OrderDetailViewModel.cs:37"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.OrderDetailViewModel::ToggleCancelOrderAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "OrderDetailViewModel.ToggleCancelOrderAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\OrderDetailViewModel.cs:46"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.ProfileViewModel::ProfileViewModel",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "ProfileViewModel",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\ProfileViewModel.cs:25"
+    },
+    {
+      "from": "eShop.ClientApp.ViewModels.ProfileViewModel::OrderDetailAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "ProfileViewModel.OrderDetailAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\ProfileViewModel.cs:76"
+    },
+    {
+      "from": "eShop.ClientApp.Services.Order.OrderService::GetOrdersAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "GetOrdersAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\Services\\Order\\OrderService.cs:48"
+    },
+    {
+      "from": "eShop.ClientApp.Services.Order.OrderService::GetOrderAsync",
+      "to": "eShop.ClientApp.Models.Orders.Order",
+      "kind": "ReadsWrites",
+      "resolution": "Syntactic",
+      "otherTitle": "GetOrderAsync",
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\Services\\Order\\OrderService.cs:65"
+    }
+  ]
+}

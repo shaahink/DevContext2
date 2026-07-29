@@ -164,7 +164,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             {
                 "search" => Search(query, settings.Focus ?? ""),
                 "node" => NodeOp(query, settings.Focus ?? ""),
-                "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
+                "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out", settings.Kind),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
                 "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus, snapshot.Report),
@@ -228,7 +228,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         };
     }
 
-    private static object? NeighborsOp(DevContext.Core.Graph.GraphQuery query, string focus, string direction)
+    private static object? NeighborsOp(DevContext.Core.Graph.GraphQuery query, string focus, string direction,
+        string? kindFilter)
     {
         if (string.IsNullOrWhiteSpace(focus)) return null;
 
@@ -239,13 +240,35 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             ? DevContext.Core.Graph.EdgeDirection.In
             : DevContext.Core.Graph.EdgeDirection.Out;
 
-        var edges = query.Neighbors(id.Value, dir);
+        // G3.2 — an unknown kind is refused, never treated as "no filter": the alternative is
+        // handing back every edge under the name of a filter that never ran. The valid set comes
+        // from the enum, so this message cannot drift away from what the engine accepts.
+        var requested = string.IsNullOrWhiteSpace(kindFilter) ? null : kindFilter.Trim();
+        DevContext.Core.Graph.EdgeKind? kind = null;
+        if (requested is not null)
+        {
+            if (!DevContext.Core.Graph.GraphQuery.TryParseEdgeKind(requested, out var parsed))
+            {
+                return new
+                {
+                    error = $"Unknown edge kind '{requested}'",
+                    validKinds = DevContext.Core.Graph.GraphQuery.EdgeKindNames.ToArray(),
+                };
+            }
+            kind = parsed;
+        }
+
+        var view = query.NeighborsView(id.Value, dir, kind);
         return new
         {
             node = id.Value.Key,
             direction = dir.ToString().ToLowerInvariant(),
-            count = edges.Length,
-            edges = edges.Select(e => new
+            kind = requested,
+            count = view.Edges.Length,
+            // The unfiltered facts, so a filtered count is readable as a share of something.
+            totalEdges = view.TotalEdges,
+            kindsPresent = view.KindsPresent.Select(k => new { kind = k.Kind.ToString(), count = k.Count }).ToArray(),
+            edges = view.Edges.Select(e => new
             {
                 from = e.From.Key,
                 to = e.To.Key,

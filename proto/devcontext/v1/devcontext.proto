@@ -398,10 +398,32 @@ message NeighborsRequest {
   string handle = 1;
   string node_id = 2;
   string direction = 3;        // "out" | "in" | "usages"
+  // G3.2 (R4 item 9) — seam-kind filter, so "who WRITES this table" and "who SENDS this command"
+  // are one call instead of a client-side scan of everything. Applied ABOVE the C3 roll-up: on a
+  // Type node the members' cross-type edges are filtered too, which is where the answer actually
+  // lives. Unset = every kind. An EdgeKind name (Calls, Sends, Handles, Raises, Consumes,
+  // ReadsWrites, Resolves, WrappedBy, EntityRelation, ServiceLink, Exposes, DependsOn).
+  optional string kind = 4;
 }
 
 message NeighborsResponse {
   repeated Edge edges = 1;
+  // G3.2 — the honesty half of a filter. Once edges is filtered it can no longer say what was
+  // filtered OUT, so "nothing writes this table" and "this graph does not model that seam here"
+  // arrive identical. total_edges is the UNFILTERED count in the same direction and
+  // kinds_present names every kind that IS there, so a zero-match answer carries the next call
+  // that works (R4 section 3). Both describe the unfiltered set even when kind is set.
+  int32 total_edges = 2;
+  repeated EdgeKindCount kinds_present = 3;
+  // Why there is nothing, or what the filter did: an unparseable kind, or a valid kind that
+  // matched none of the edges this node does have. Absent when the rows say it all.
+  optional string note = 4;
+}
+
+// G3.2 — one kind and how many edges carry it, in one direction from one node.
+message EdgeKindCount {
+  string kind = 1;
+  int32 count = 2;
 }
 
 message Edge {

@@ -1,0 +1,17 @@
+﻿{
+  "error": "Unknown edge kind \u0027writes\u0027",
+  "validKinds": [
+    "Calls",
+    "Sends",
+    "Handles",
+    "Raises",
+    "Consumes",
+    "ReadsWrites",
+    "Resolves",
+    "WrappedBy",
+    "EntityRelation",
+    "ServiceLink",
+    "Exposes",
+    "DependsOn"
+  ]
+}
