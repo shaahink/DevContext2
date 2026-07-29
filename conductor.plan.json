@@ -1,186 +1,255 @@
-{
-  // Conductor plan for the AUTONOMOUS remainder of the graph-v2 program.
-  // The authority is docs/dev/research/PLAN.md — this file only says where things are
-  // and how sessions are spawned and verified. Conductor never re-plans.
-  //
-  // DELIBERATELY OUT OF SCOPE: R3's remaining decisions (D-F insight dedup policy,
-  // D-G Studio design call, D-H). Those are owner-interactive briefs; conductor
-  // cannot decide them, so including them would only park the run.
-  "name": "DevContext graph-v2 — autonomous remainder",
+﻿{
+  "version": "1.0",
+  "planVersion": 2,
+  "name": "DevContext graph-v2 \u2014 autonomous remainder",
   "repo": "C:/code/DevContext2",
   "tracker": "GRAPH-V2-START.md",
   "planDoc": "docs/dev/research/PLAN.md",
   "branchPattern": "^feat/graph-v2$",
   "pauseOnBlocked": true,
-
-  // false on purpose: the collapse note tells the agent not to run build or test commands at all,
-  // which in this repo means editing Core and driving a stale CLI. templates/session.md states the
-  // real cadence instead — fast loop mid-session, Conductor owns the full battery.
-  "batteryCollapse": false,
-
-  // NOTE: `model` below only takes effect because `{model}` appears in the arg templates.
-  // AgentSession.ResolveArgs substitutes it there and NOWHERE else — set `model` without the
-  // token and it is silently dropped, and every session quietly runs on the CLI default.
   "agent": {
     "command": "claude",
-    "model": "claude-opus-5",
     "args": [
-      "-p", "{prompt}",
-      "--output-format", "stream-json",
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
       "--verbose",
       "--dangerously-skip-permissions",
-      "--model", "{model}",
-      "--session-id", "{sessionId}"
+      "--model",
+      "{model}",
+      "--session-id",
+      "{sessionId}"
     ],
     "resumeArgs": [
-      "-p", "{prompt}",
-      "--output-format", "stream-json",
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
       "--verbose",
       "--dangerously-skip-permissions",
-      "--model", "{model}",
-      "--resume", "{claudeSessionId}"
+      "--model",
+      "{model}",
+      "--resume",
+      "{claudeSessionId}"
     ],
-    "output": "stream-json"
+    "output": "stream-json",
+    "model": "claude-opus-5"
   },
-
-  // The built-in "deliver-verify" workflow spawns a SEPARATE verification session after every
-  // deliver — a whole extra paid session whose brief is to re-audit the previous one and re-run
-  // its gates. This program has never worked that way: Conductor's own battery is the independent
-  // check, and it already runs after every session. One step, repeating, plus a fix step that only
-  // fires when the battery came back red.
-  "defaultWorkflow": "deliver",
-  "workflows": {
-    "deliver": {
-      "name": "deliver",
-      "description": "Deliver until the stage's checkpoints are confirmed. Conductor's battery is the QA; no separate verify session.",
-      "repeat": true,
-      "steps": [
-        { "id": "deliver", "kind": "Deliver", "deliver": true },
-        { "id": "fix-if-red", "kind": "Fix", "deliver": true, "runIf": "!gatesGreen" }
+  "progress": {
+    "kind": "markdown-table"
+  },
+  "conventions": {
+    "stageIdPattern": "(?\u003Cstage\u003E[A-Za-z]\u002B\\d\u002B)(?:\\.\\d\u002B)?[a-z]?",
+    "handoffMarker": "## Handoff",
+    "humanToken": "HUMAN:",
+    "status": {
+      "done": [
+        "DONE"
+      ],
+      "blocked": [
+        "BLOCKED"
+      ],
+      "inProgress": [
+        "IN PROGRESS"
+      ],
+      "todo": [
+        "TODO"
       ]
     }
   },
-
-  "templatesDir": "templates",
-
-  // Each stage names its ONE strand doc (PLAN.md §5's token rule) and the acceptance that
-  // decides it. Without this the agent has the checkpoint title but not the specification.
   "stages": [
-    // --- R4 lane first: mechanically specified with [audit] file:line refs, and it touches
-    //     Mcp/Server/Core rather than the App — so it does not collide with owner-interactive
-    //     R3 decision work happening in the same tree.
     {
-      "id": "G1", "title": "R4 MCP correctness + honesty fixes (R4 §1 items 1-7)", "sessions": 3,
-      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md §1 — items 1-7 are the whole specification, each with an [audit] file:line ref. RE-VERIFY every [audit] ref before editing (PLAN.md §5 rule 2): they were taken on 2026-07-27 and Batches A-E have moved code since. Most live in src/DevContext.Mcp/DevContextTools.cs. Evidence for a claim is a real MCP call showing the new response shape, not a diff."
+      "id": "G1",
+      "title": "R4 MCP correctness \u002B honesty fixes (R4 \u00A71 items 1-7)",
+      "sessions": 3,
+      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md \u00A71 \u2014 items 1-7 are the whole specification, each with an [audit] file:line ref. RE-VERIFY every [audit] ref before editing (PLAN.md \u00A75 rule 2): they were taken on 2026-07-27 and Batches A-E have moved code since. Most live in src/DevContext.Mcp/DevContextTools.cs. Evidence for a claim is a real MCP call showing the new response shape, not a diff.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G2", "title": "R4 menu hygiene + one trace default (items 11-12)", "sessions": 1,
-      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md §1 items 11-12. Item 12 is now mostly done upstream: Batch E made TracePolicy the single seam order + budget rule (PLAN.md §2 S5), so this is aligning the MCP's 4000-token default to it, not inventing a policy. Item 11's trap is the SECOND hard-coded tool list behind the did-you-mean handler — it drifts from the real one; make it read the reflected list."
+      "id": "G2",
+      "title": "R4 menu hygiene \u002B one trace default (items 11-12)",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md \u00A71 items 11-12. Item 12 is now mostly done upstream: Batch E made TracePolicy the single seam order \u002B budget rule (PLAN.md \u00A72 S5), so this is aligning the MCP\u0027s 4000-token default to it, not inventing a policy. Item 11\u0027s trap is the SECOND hard-coded tool list behind the did-you-mean handler \u2014 it drifts from the real one; make it read the reflected list.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G3", "title": "R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)", "sessions": 2,
-      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md §1 items 8-10. These touch proto + GraphQuery, so a proto change means rebuilding DevContext.Contracts AND `pnpm gen:proto`, wiring server + app in lockstep. GraphQuery already supports kind-filtered neighbours — only proto/tools do not expose it (3 fields). seam(from,to) is the highest-value new primitive and exists at no layer today."
+      "id": "G3",
+      "title": "R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md \u00A71 items 8-10. These touch proto \u002B GraphQuery, so a proto change means rebuilding DevContext.Contracts AND \u0060pnpm gen:proto\u0060, wiring server \u002B app in lockstep. GraphQuery already supports kind-filtered neighbours \u2014 only proto/tools do not expose it (3 fields). seam(from,to) is the highest-value new primitive and exists at no layer today.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G4", "title": "R4 dogfood drive — is the MCP a proper tool?", "sessions": 2,
-      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md §2 (protocol) and §3 (the success bar this is graded against). This stage RUNS the tool rather than editing it — the battery-collapse rule does not apply to driving the MCP, that IS the deliverable. Grade honestly: a HURT verdict is a finding, not a failure. Judge against §3's bar (>=8/10 answered without grep fallback). If the answer is 'it did not help', say so and say why — that is the useful result."
-    },
-
-    // --- Engine items R3 left open that need no decision.
-    {
-      "id": "G5", "title": "D-3 — a CLI verb reaches its handler", "sessions": 2,
-      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md (D-D, and the S8 surprise 3 that corrected the brief). This is real engine work. GitVersion's five verbs are ICommand<TSettings> classes whose execute member never joined. Note the precedent from Batch E's CleanArchitecture case: a shape-based fallback needs TWO structural facts and NO name list — do not pattern-match on names. ROOT-CAUSE PER VERB FROM THE RAW DUMPS BEFORE ANY CODE MOVES (that ordering is what made Batch E work)."
+      "id": "G4",
+      "title": "R4 dogfood drive \u2014 is the MCP a proper tool?",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/R4-MCP-PROPER-TOOL.md \u00A72 (protocol) and \u00A73 (the success bar this is graded against). This stage RUNS the tool rather than editing it \u2014 the battery-collapse rule does not apply to driving the MCP, that IS the deliverable. Grade honestly: a HURT verdict is a finding, not a failure. Judge against \u00A73\u0027s bar (\u003E=8/10 answered without grep fallback). If the answer is \u0027it did not help\u0027, say so and say why \u2014 that is the useful result.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G6", "title": "D-4 — one vocabulary for \"service\" on Atlas", "sessions": 1,
-      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md, the D-F..D-H section (D-4 is the live find inside D-H). Three vocabularies on ONE page: the canvas excludes ClientApp/HybridApp, the per-service breakdown lists them AS services, and Hub radar mixes services with types. Separately, raw metadata arity is reaching the UI as Logging.ILogger`1 — that is a rendering leak, fix it wherever the arity survives. Pick ONE definition, state it, and make all three obey it."
+      "id": "G5",
+      "title": "D-3 \u2014 a CLI verb reaches its handler",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md (D-D, and the S8 surprise 3 that corrected the brief). This is real engine work. GitVersion\u0027s five verbs are ICommand\u003CTSettings\u003E classes whose execute member never joined. Note the precedent from Batch E\u0027s CleanArchitecture case: a shape-based fallback needs TWO structural facts and NO name list \u2014 do not pattern-match on names. ROOT-CAUSE PER VERB FROM THE RAW DUMPS BEFORE ANY CODE MOVES (that ordering is what made Batch E work).",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G7", "title": "C-2 / C-3 — a library's empty sections fill or withhold with a reason", "sessions": 2,
-      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md — D-C, plus the S9 scope correction that is the governing precedent: the Confidence Ledger was suppressed entirely on entry-less repos (every library), and the fix was to show the panel and have the two entry-dependent ROWS withhold themselves. That is C-3's rule; apply the same shape to Atlas's five empty sections. A section that withholds must say WHY it is empty."
-    },
-
-    // --- The two R1 items S5 left on the table (R1 does not exit until these are answered).
-    {
-      "id": "G8", "title": "R1 scale wall — profile HotChocolate, do not raise the timeout", "sessions": 2,
-      "notes": "STRAND DOC: docs/dev/research/PLAN.md, the section 'Open R1 items S5 leaves on the table'. HotChocolate (ChilliCream/graphql-platform) produced no dump in 28 minutes and timed out at the 600s budget, while PowerToys (83s) and bitwarden-server (214s) finish — so this is ONE repo an order of magnitude past the rest, not a general regression. It needs a PROFILE, not a bigger timeout; use the devcontext-bench skill for per-phase timings. An accepted limitation with the class NAMED is a valid outcome; a raised timeout is not."
+      "id": "G6",
+      "title": "D-4 \u2014 one vocabulary for \u0022service\u0022 on Atlas",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md, the D-F..D-H section (D-4 is the live find inside D-H). Three vocabularies on ONE page: the canvas excludes ClientApp/HybridApp, the per-service breakdown lists them AS services, and Hub radar mixes services with types. Separately, raw metadata arity is reaching the UI as Logging.ILogger\u00601 \u2014 that is a rendering leak, fix it wherever the arity survives. Pick ONE definition, state it, and make all three obey it.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
     {
-      "id": "G9", "title": "R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)", "sessions": 1,
-      "notes": "STRAND DOC: docs/dev/research/PLAN.md, 'Open R1 items S5 leaves on the table'. ONE root cause, TWO poles: dotnet/command-line-api reads CliTool and MahApps.Metro reads Desktop, because a demo/sample executable that is not under a samples/ path outranks the packable library it demonstrates. Both are pinned RED with the truth declared — DO NOT re-declare the expectations to match the engine. Batch D's ArchetypeDetector is pure and reads ProjectInfo.Sdks, which is where evidence now lives."
+      "id": "G7",
+      "title": "C-2 / C-3 \u2014 a library\u0027s empty sections fill or withhold with a reason",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md \u2014 D-C, plus the S9 scope correction that is the governing precedent: the Confidence Ledger was suppressed entirely on entry-less repos (every library), and the fix was to show the panel and have the two entry-dependent ROWS withhold themselves. That is C-3\u0027s rule; apply the same shape to Atlas\u0027s five empty sections. A section that withholds must say WHY it is empty.",
+      "ownerGate": false,
+      "kind": "deliver"
     },
-
-    // --- S10's standing instruction.
     {
-      "id": "G10", "title": "Sweep for thresholds calibrated on pre-Batch-A data", "sessions": 1,
-      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md, the 'regression E-2 uncovered' note. The known case: START HERE's checkout special case was written when every checkout-titled entry was a 1-hop client command that could not clear a >=4-node gate; Batches A-E made that comment false and the special case began beating the preference it existed to protect. Find the OTHERS. A threshold whose justifying comment describes a starved graph is the signature. Re-measure each on current data; correct it or justify it in a comment that STATES the measurement (S9's habit, three-for-three the most valuable one in this program)."
+      "id": "G8",
+      "title": "R1 scale wall \u2014 profile HotChocolate, do not raise the timeout",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/PLAN.md, the section \u0027Open R1 items S5 leaves on the table\u0027. HotChocolate (ChilliCream/graphql-platform) produced no dump in 28 minutes and timed out at the 600s budget, while PowerToys (83s) and bitwarden-server (214s) finish \u2014 so this is ONE repo an order of magnitude past the rest, not a general regression. It needs a PROFILE, not a bigger timeout; use the devcontext-bench skill for per-phase timings. An accepted limitation with the class NAMED is a valid outcome; a raised timeout is not.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "G9",
+      "title": "R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/PLAN.md, \u0027Open R1 items S5 leaves on the table\u0027. ONE root cause, TWO poles: dotnet/command-line-api reads CliTool and MahApps.Metro reads Desktop, because a demo/sample executable that is not under a samples/ path outranks the packable library it demonstrates. Both are pinned RED with the truth declared \u2014 DO NOT re-declare the expectations to match the engine. Batch D\u0027s ArchetypeDetector is pure and reads ProjectInfo.Sdks, which is where evidence now lives.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "G10",
+      "title": "Sweep for thresholds calibrated on pre-Batch-A data",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/DECISIONS.md, the \u0027regression E-2 uncovered\u0027 note. The known case: START HERE\u0027s checkout special case was written when every checkout-titled entry was a 1-hop client command that could not clear a \u003E=4-node gate; Batches A-E made that comment false and the special case began beating the preference it existed to protect. Find the OTHERS. A threshold whose justifying comment describes a starved graph is the signature. Re-measure each on current data; correct it or justify it in a comment that STATES the measurement (S9\u0027s habit, three-for-three the most valuable one in this program).",
+      "ownerGate": false,
+      "kind": "deliver"
     }
   ],
-
-  // The battery is the review. Conductor re-runs these itself and never takes the agent's word.
-  // Tiers follow the repo's own cadence (T7.0, encoded in eval/gates.ps1's -Scope knob):
-  // fast tier per session, the citable full form at stage close.
-  "gatePolicy": "perPhase",
   "gates": [
     {
       "name": "fast-engine",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -SkipEval -Scope engine",
+      "optional": false,
       "tier": "fast",
-      "stages": ["G1", "G2", "G3", "G4", "G5", "G8", "G9", "G10"],
+      "parallel": false,
+      "stages": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G8",
+        "G9",
+        "G10"
+      ],
       "timeoutMinutes": 25
     },
     {
       "name": "fast-app",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -Scope app",
+      "optional": false,
       "tier": "fast",
-      "stages": ["G6", "G7"],
+      "parallel": false,
+      "stages": [
+        "G6",
+        "G7"
+      ],
       "timeoutMinutes": 20
     },
     {
       "name": "guards",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\loom-guards.ps1",
-      "tier": "fast",
+      "optional": false,
       "skipIfMissing": "scripts/loom-guards.ps1",
+      "tier": "fast",
+      "parallel": false,
       "timeoutMinutes": 10
     },
     {
       "name": "battery",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1",
+      "optional": false,
       "tier": "full",
+      "parallel": false,
       "timeoutMinutes": 45
     }
   ],
-
+  "gatePolicy": "perPhase",
+  "verifyEachDelivery": true,
   "limits": {
     "stallMinutes": 15,
+    "stallGraceMinutes": 3,
     "sessionTimeoutMinutes": 120,
+    "authPreflight": true,
     "maxResumesPerSession": 2,
     "stageSlackFactor": 2,
     "backoffMinutes": 30,
-    "maxBackoffs": 10
-    // No cost cap, deliberately. The run is already bounded deterministically: 17 planned
-    // sessions x stageSlackFactor 2 = 34 attempts maximum, then stages park on their own.
-    // A dollar cap on top of that would park mid-stage on a number nobody can predict.
-    // Add one live if it ever looks wrong: `conductor plan set limits.maxRunCostUsd <n>`.
+    "maxBackoffs": 10,
+    "approvalMode": false,
+    "maxConcurrentLanes": 2,
+    "stallPatternTermination": true,
+    "sameFailureCircuitBreaker": true,
+    "stallBackoffMinutes": 12,
+    "overheadCostPerSecond": 0.0001,
+    "verifierThreshold": 80,
+    "maxRunCostUsd": 100
   },
-
-  "report": { "commit": true, "push": true },
-
-  // Token lives in .conductor/ via SecretsStore (gitignored), never in this file.
-  // allowedChatIds MUST be non-empty or every push is a silent no-op — TelegramService
-  // returns early on Count == 0. Conductor never auto-learns the id from an incoming message.
+  "report": {
+    "commit": true,
+    "push": true,
+    "heartbeatMinutes": 0
+  },
   "telegram": {
-    "allowedChatIds": ["99205495"],
+    "allowedChatIds": [
+      "99205495"
+    ],
     "pollIntervalSeconds": 4,
     "enableTwoWay": true
   },
-
-  // PLAN.md §5 rule 1: this PLAN plus the ONE strand doc the session needs. The strand doc is
-  // named in each stage's notes rather than read by every session regardless of relevance.
+  "promptExtra": "TRAPS THIS PROGRAM HAS ALREADY PAID FOR \u2014 do not rediscover them:\n1. A backtick inside an HTML comment TERMINATES an Angular template literal. This has fired three times. Worse, \u0060pnpm ng build\u0060 piped through grep for error markers looks CLEAN because esbuild emits ANSI colour codes before the failure marker. CHECK $?, never the filtered output. Write field names in comments without backticks.\n2. Every \u0060node scripts/...\u0060 command needs an absolute \u0060cd\u0060 in the SAME command \u2014 a drifted working directory has cost this program two sessions.\n3. \u0060analyze\u0060 takes a POSITIONAL path; \u0060query\u0060 takes \u0060--path\u0060. \u0060analyze --path \u003Crepo\u003E\u0060 silently analyses the working directory instead.\n4. Rebuild src/DevContext.Cli after ANY Core edit \u2014 the CLI carries its own DevContext.Core.dll (stale-dll trap).\n5. CLI paths must be ABSOLUTE \u2014 a relative path is parsed as a GitHub repo and cloned.\n6. Restart src/DevContext.App/scripts/start-dev-bg.ps1 before any Playwright capture that follows a build; a stale vite-error-overlay silently eats clicks.\n7. MEASURE a verdict, do not read it off a doc comment. Three times in this program the doc comment was stale and the code was right. Checking what a field CONTAINS is the highest-value habit here.\n8. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no softened gate. If a bar is genuinely wrong, put a HUMAN: line in the tracker handoff and stop.\n9. Never merge to develop. That is an owner-signed event.",
+  "templatesDir": "templates",
+  "packs": [],
+  "batteryCollapse": false,
   "readOrder": [
     "AGENTS.md",
     "docs/dev/research/PLAN.md"
   ],
-
-  "promptExtra": "TRAPS THIS PROGRAM HAS ALREADY PAID FOR — do not rediscover them:\n1. A backtick inside an HTML comment TERMINATES an Angular template literal. This has fired three times. Worse, `pnpm ng build` piped through grep for error markers looks CLEAN because esbuild emits ANSI colour codes before the failure marker. CHECK $?, never the filtered output. Write field names in comments without backticks.\n2. Every `node scripts/...` command needs an absolute `cd` in the SAME command — a drifted working directory has cost this program two sessions.\n3. `analyze` takes a POSITIONAL path; `query` takes `--path`. `analyze --path <repo>` silently analyses the working directory instead.\n4. Rebuild src/DevContext.Cli after ANY Core edit — the CLI carries its own DevContext.Core.dll (stale-dll trap).\n5. CLI paths must be ABSOLUTE — a relative path is parsed as a GitHub repo and cloned.\n6. Restart src/DevContext.App/scripts/start-dev-bg.ps1 before any Playwright capture that follows a build; a stale vite-error-overlay silently eats clicks.\n7. MEASURE a verdict, do not read it off a doc comment. Three times in this program the doc comment was stale and the code was right. Checking what a field CONTAINS is the highest-value habit here.\n8. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no softened gate. If a bar is genuinely wrong, put a HUMAN: line in the tracker handoff and stop.\n9. Never merge to develop. That is an owner-signed event."
+  "analysisLanes": [],
+  "mutatingLanes": [],
+  "workflows": {
+    "deliver": {
+      "name": "deliver",
+      "description": "Deliver until the stage\u0027s checkpoints are confirmed. Conductor\u0027s battery is the QA; no separate verify session.",
+      "steps": [
+        {
+          "id": "deliver",
+          "kind": "deliver",
+          "deliver": true
+        },
+        {
+          "id": "fix-if-red",
+          "kind": "fix",
+          "runIf": "!gatesGreen",
+          "deliver": true
+        }
+      ],
+      "repeat": true
+    }
+  },
+  "defaultWorkflow": "deliver"
 }
