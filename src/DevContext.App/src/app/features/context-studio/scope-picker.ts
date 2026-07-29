@@ -4,6 +4,7 @@ import { middleEllipsis } from '../../core/format';
 import type { EntryGroupVm, EntryVm } from '../../models/view-models';
 import { KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
+import { Withheld, type WithheldReason } from '../../ui/withheld/withheld';
 import { ToastService } from '../../ui/toast/toast';
 
 export interface ServiceGroup {
@@ -62,9 +63,27 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
   }
 }
 
+/**
+ * R3 C-3 — why the scope picker has nothing to offer.
+ *
+ * It used to have only one answer: "Analyze a repo to see its services and entries", shown whenever
+ * the entry count was zero. On a library that repo HAS been analyzed — the sentence is false and the
+ * instruction is one the reader already carried out. Zero entries is not no analysis.
+ *
+ * Exported for the spec, same as presetSeedsFor.
+ */
+export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { reason: WithheldReason; text: string } {
+  if (!analyzed) {
+    return { reason: 'not-computed', text: 'Analyze a repo to see its services and entries.' };
+  }
+  return isLibrary
+    ? { reason: 'archetype', text: 'No entry points — a library is scoped by its public surface, not by services. Pick types from the omnibox above.' }
+    : { reason: 'archetype', text: 'No entry points were found in this repo, so there is nothing to group by service. Pick a type from the omnibox above.' };
+}
+
 @Component({
   selector: 'app-scope-picker',
-  imports: [Icon],
+  imports: [Icon, Withheld],
   host: { class: 'flex h-full min-h-0 flex-col' },
   template: `
     <div class="relative">
@@ -114,7 +133,7 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
         type="button"
         class="flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         [disabled]="totalEntryCount() === 0"
-        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Pick an entry; its kind decides the cards (a hub seeds consumer wiring, a worker its config)'"
+        [title]="totalEntryCount() === 0 ? pickerWithheld().text : 'Pick an entry; its kind decides the cards (a hub seeds consumer wiring, a worker its config)'"
         (click)="showPresetPicker.set(!showPresetPicker())"
       >
         <app-icon name="edit" [size]="14" />
@@ -195,13 +214,16 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
           </div>
         </details>
       } @empty {
-        <div class="px-3 py-6 text-center text-xs text-ink-subtle">
-          @if (totalEntryCount() === 0) {
-            Analyze a repo to see its services and entries.
-          } @else {
+        <!-- R3 C-3: this read "Analyze a repo to see its services and entries" on a repo that HAD
+             been analyzed — zero entries was being reported as no analysis. On a library it is an
+             instruction the reader has already carried out, and the sentence is false. -->
+        @if (totalEntryCount() === 0) {
+          <app-withheld [reason]="pickerWithheld().reason" [text]="pickerWithheld().text" />
+        } @else {
+          <div class="px-3 py-6 text-center text-xs text-ink-subtle">
             No matches for &ldquo;{{ filterText() }}&rdquo;.
-          }
-        </div>
+          </div>
+        }
       }
     </div>
 
@@ -227,6 +249,11 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
 })
 export class ScopePicker {
   readonly entryGroups = input<readonly EntryGroupVm[]>([]);
+  /** R3 C-3: whether a repo has been analyzed at all. Without it this component could only see
+   * "zero entries" and reported it as "no analysis" — an instruction the reader had already
+   * carried out, and false on every library. */
+  readonly analyzed = input(false);
+  readonly isLibrary = input(false);
 
   readonly cardsChange = output<readonly ContextCardSeed[]>();
   readonly trailSeedRequest = output<void>();
@@ -241,6 +268,9 @@ export class ScopePicker {
   protected readonly totalEntryCount = computed(() =>
     this.entryGroups().reduce((n, g) => n + g.entries.length, 0),
   );
+
+  protected readonly pickerWithheld = computed(() =>
+    scopePickerWithheld(this.analyzed(), this.isLibrary()));
 
   protected readonly allEntries = computed<readonly EntryVm[]>(() =>
     this.entryGroups().flatMap((g) => g.entries),

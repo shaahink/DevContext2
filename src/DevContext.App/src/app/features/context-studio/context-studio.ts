@@ -31,6 +31,8 @@ export const REPACK_DEBOUNCE_MS = 350;
       <app-scope-picker
         class="w-56 shrink-0 border-r border-line bg-surface"
         [entryGroups]="session.entryGroups()"
+        [analyzed]="session.ready()"
+        [isLibrary]="session.mapResponse()?.isLibrary ?? false"
         (cardsChange)="onCardsChange($event)"
         (trailSeedRequest)="onTrailSeed()"
         (omniboxCard)="onCardsChange([$event])"

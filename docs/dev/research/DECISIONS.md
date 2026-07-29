@@ -246,7 +246,7 @@ building, per the standing rule that cost S7 three stale premises.
 |---|---|---|
 | C-1 | What replaces "What runs" on Home for a library | **Open.** The Explore spine landed first; Home still asks the wrong question of a library. |
 | C-2 | Atlas's five empty sections | **Decided + landed (G7.1, see below).** The five are exact, and each section now fills or withholds itself with a stated reason in one of three classes. |
-| C-3 | `0 entries` where entries do not apply | **Open** — same rule as D-3, and the two should land together. **S9 applied C-3's rule to one panel already**, see below; **G7.1 built the reusable instrument** (`ui/withheld`), so C-3 is now a sweep with a component rather than a design call. |
+| C-3 | `0 entries` where entries do not apply | **Decided + landed (G7.2, see below).** Swept over six routes on two poles; the two entries-keyed violations fixed. Interaction-only surfaces remain unmeasured — named in the evidence, not cleared. |
 
 ### S9 scope correction — the Confidence Ledger was suppressed on every library
 
@@ -300,6 +300,29 @@ on more than one indexed flow" instead of an instruction it has already carried 
 draws a per-service card for `TestApp`, its demo executable. `ArchetypeDetector` excludes auxiliary
 samples when deciding Library; `ServiceBoundaryInference.RunnableProjects` does not apply the same
 exclusion. Two judgements about the same projects, one narrower. Same root cause as **G9.1**.
+
+### C-3 — withhold, don't suppress, wherever a surface has no entries (DECIDED + LANDED, G7.2)
+
+Evidence: `eval-results/2026-07-29/G7/G7.2-EVIDENCE.md`. Six routes driven on a library pole and on
+eShop, capturing **what the reader actually sees** rather than only the sections a heuristic knows to
+look for. Two genuine entries-keyed violations, both found by reading the text and not by the
+heuristic:
+
+1. **The Context Studio's scope picker told an analyzed repo to go analyze a repo.** Zero entries was
+   being reported as no analysis — the component received only `entryGroups` and could not tell the
+   two states apart. False on every library, and an instruction the reader had already carried out.
+2. **The Insights page rendered the word "Coverage" over nothing.** The bar is gated on
+   `entries > 0`, so the label stayed and the body vanished: the S9 shape one step short of
+   suppression.
+
+Both now withhold with a reason, and the picker's three states are a pure function tested in the
+battery. The library pole's Insights page grew after the fix (811 → 962 chars) — the rule adds
+content, it does not hide any.
+
+**Named, not cleared:** the sweep drives the six routes in their DEFAULT state. Interaction-only
+surfaces — the Inspector's tabs, the node card, the peek panel, the entry browser's filtered states —
+were not driven, and three carry unmarked empty states in source. They read plausibly, which is what
+this program keeps finding to be wrong. A follow-up should drive them.
 
 ---
 

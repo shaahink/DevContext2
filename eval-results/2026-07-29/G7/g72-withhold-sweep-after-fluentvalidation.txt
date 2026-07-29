@@ -1,0 +1,313 @@
+REPO   C:\code\DevContext2\eval-repos\FluentValidation
+ROUTES / · /explore · /atlas · /insights · /context · /mcp
+
+=== /   [477 chars rendered · 6 headings]
+    headings: Surface by namespace | Consumer front doors | Freshness | Stage timeline | Funnel | Extractors
+    withheld WITH a reason: 0
+    empty-looking, NO reason class: 0
+    --- what the reader sees ---
+      FluentValidation · library.
+      
+      96 public types
+      5 namespaces
+      2 projects
+      319 types
+      edge confidence
+      Library
+      SURFACE BY NAMESPACE
+      Fluent…tion.Validators
+      55
+      FluentValidation
+      32
+      Fluent…tion.TestHelper
+      5
+      Fluent…ation.Resources
+      2
+      Fluent…idation.Results
+      2
+      CONSUMER FRONT DOORS
+      register
+      3
+      derive
+      3
+      implement
+      1
+      extend
+      3
+      
+      Browse the library surface →
+      
+      FRESHNESS
+      
+      Analyzed just now
+      
+      169 edges · HEAD 9439790
+      
+      Current
+      START HERE
+      Open atlas
+      Point your agent here
+      See all 3 insights →
+      Run report
+
+=== /explore   [1242 chars rendered · 1 headings]
+    headings: FluentValidation
+    withheld WITH a reason: 0
+    empty-looking, NO reason class: 1
+      <span> 0
+    --- what the reader sees ---
+      LIBRARY SURFACE
+      
+      Entry API
+      10
+      Abstractions
+      10
+      Generators
+      0
+      Public surface
+      96
+      Consumer paths
+      6
+      FluentValidation
+      96 public types · 5 namespaces · 16 internal
+      register
+      ServiceCollectionExtensions.AddValidatorsFromAssemblies
+      ServiceCollectionExtensions.cs
+      Adds all validators in specified assemblies
+      register
+      ServiceCollectionExtensions.AddValidatorsFromAssembly
+      ServiceCollectionExtensions.cs
+      Adds all validators in specified assembly
+      register
+      ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining
+      ServiceCollectionExtensions.cs
+      Adds all validators in the assembly of the specified type
+      derive
+      AbstractValidator
+      AbstractValidator.cs
+      Base class for object validators.
+      implement
+      IPropertyValidator
+      IPropertyValidator.cs
+      A custom property validator.
+      derive
+      InlineValidator
+      InlineValidator.cs
+      Validator implementation that allows rules to be defined without inheriting from AbstractValidator.
+      derive
+      PropertyValidator
+      PropertyValidator.cs
+      extend
+      DefaultValidatorExtensions
+      DefaultValidatorExtensions.cs
+      Extension methods that provide the default set of validators.
+      extend
+      DefaultValidatorOptions
+      DefaultValidatorOptions.cs
+      Default options that can be used to configure a validator.
+      extend
+      ValidationTestExtension
+      ValidatorTestExtensions.cs
+
+=== /atlas   [797 chars rendered · 9 headings]
+    headings: Atlas | Architecture | Top flows | Event & queue board | Data stores | Per-service breakdown | Cross-cutting | Packages | Hub radar
+    withheld WITH a reason: 5
+      [archetype] No entry points — a library exposes a surface, not flows. Its front doors are on the Explore page.
+      [archetype] No entry points — event wiring does not apply to a pure library surface.
+      [archetype] Data stores are read per service, and a library has none — whatever runs this library owns its storage.
+      [archetype] No services — a library is packaged, not run. Its 2 projects are on the Architecture canvas above.
+      [archetype] No hubs — the radar ranks nodes by how many flows pass through them, and a repo with no entry points has no flows.
+    empty-looking, NO reason class: 0
+    --- what the reader sees ---
+      Atlas
+      Export one-pager
+      Download .md
+      FluentValidation
+      Library
+      Architecture
+      
+      2 projects · 1 dependency edge
+      
+      +
+      −
+      ⊡
+      Top flows
+      No entry points — a library exposes a surface, not flows. Its front doors are on the Explore page.
+      Event & queue board
+      No entry points — event wiring does not apply to a pure library surface.
+      Data stores
+      Data stores are read per service, and a library has none — whatever runs this library owns its storage.
+      Per-service breakdown
+      No services — a library is packaged, not run. Its 2 projects are on the Architecture canvas above.
+      Cross-cutting
+      PACKAGES
+      Testing (3)
+      Utilities (1)
+      Other (9)
+      Hub radar
+      
+      Nodes appearing in the most distinct flows across the repo.
+      
+      No hubs — the radar ranks nodes by how many flows pass through them, and a repo with no entry points has no flows.
+
+=== /insights   [962 chars rendered · 1 headings]
+    headings: Insights
+    withheld WITH a reason: 1
+      [archetype] Coverage measures how many entry points resolve to a target, and this repo has none — a library's edge confidence is in the Confidence Ledger on Home.
+    empty-looking, NO reason class: 0
+    --- what the reader sees ---
+      Insights
+      
+      Repo-specific findings — what's notable, risky, or wired in interesting ways.
+      
+      KNOW THIS
+      Public surface: 45 interfaces, 67 classes (112 total public types)
+      info
+      high confidence
+      
+      The public surface is the library's contract — its size and shape sets the learning curve.
+      
+      45 interfaces
+      67 classes
+      Most depended-upon: FluentValidation (2 dependents) · FluentValidation.DependencyInjectionExtensions (1 dependents)
+      info
+      moderate confidence
+      FluentValidation (2 dependents)
+      FluentValidation.DependencyInjectionExtensions (1 dependents)
+      Wiring hubs: IRuleBuilder (28) · ValidationContext (14) · TrackingCollection (10) · IValidator (9) · MessageFormatter (9)
+      info
+      moderate confidence
+      IRuleBuilder (28)
+      ValidationContext (14)
+      TrackingCollection (10)
+      IValidator (9)
+      MessageFormatter (9)
+      COVERAGE
+      Coverage measures how many entry points resolve to a target, and this repo has none — a library's edge confidence is in the Confidence Ledger on Home.
+      Engine details
+
+=== /context   [644 chars rendered · 5 headings]
+    headings: Budget | Per-card meter | Intent | Bodies | Format
+    withheld WITH a reason: 1
+      [archetype] No entry points — a library is scoped by its public surface, not by services. Pick types from the omnibox above.
+    empty-looking, NO reason class: 5
+      <span> 0 of 0 selected
+      <span> No cards yet. Pick items from the scope picker to build context.
+      <span> 0 cards
+      <span> 0 tok
+      <p> No cards to meter.
+    --- what the reader sees ---
+      Change-impact pack
+      
+      seeds flow · bodies · contracts · tests for one entry, by kind
+      
+      From current trail
+      No entry points — a library is scoped by its public surface, not by services. Pick types from the omnibox above.
+      0 of 0 selected
+      Add to context
+      No cards yet. Pick items from the scope picker to build context.
+      0 cards
+      0 tok
+      LIVE PREVIEW
+      — exactly what Copy copies
+      
+      Add cards from the scope picker — the assembled pack renders here as you shape it.
+      
+      BUDGET
+      Token budget
+      4000 tok
+      1k
+      2k
+      4k
+      8k
+      12k
+      16k
+      PER-CARD METER
+      
+      No cards to meter.
+      
+      Total
+      ~0 / 4000 tok
+      INTENT
+      Trace
+      Explain
+      Review
+      BODIES
+      All bodies shown
+      FORMAT
+      markdown
+      plain
+      json
+      Copy
+      Save
+
+=== /mcp   [845 chars rendered · 4 headings]
+    headings: Host Config | Sessions | Live Feed | Try a Tool
+    withheld WITH a reason: 0
+    empty-looking, NO reason class: 1
+      <p> No agent calls yet — 2 UI-origin calls hidden.
+    --- what the reader sees ---
+      MCP Endpoint Active
+      Stop
+      Accepting connections. Tools served over stdio ↔ gRPC.
+      HOST CONFIG
+      
+      Requires devcontext-mcp on PATH (ships with the desktop installer; from source: dotnet run --project src/DevContext.Mcp).
+      
+      Claude Code
+      Copy
+      {
+        "mcpServers": {
+          "devcontext": {
+            "command": "devcontext-mcp",
+            "args": []
+          }
+        }
+      }
+      Cursor
+      Copy
+      {
+        "mcpServers": {
+          "devcontext": {
+            "command": "devcontext-mcp"
+          }
+        }
+      }
+      VS Code
+      Copy
+      {
+        "inputs": [],
+        "servers": {
+          "devcontext": {
+            "command": "devcontext-mcp"
+          }
+        }
+      }
+      SESSIONS
+      Refresh
+      Repo	Handle	Age	Calls	Nodes	
+      C:\code\DevContext2\eval-repos\FluentValidation	504a8de1…	21s	24	319	use
+      LIVE FEED
+      agents only
+      Total: 699 tok
+      Clear
+      
+      No agent calls yet — 2 UI-origin calls hidden.
+      
+      TRY A TOOL
+      Tool
+      stats
+      map
+      entrypoints
+      trace
+      node
+      find
+      impact
+      get_context
+      Handle
+      Arg
+      Run
+
+SUMMARY
+    marked withheld (a stated reason) : 7
+    empty-looking, unaudited          : 7

@@ -118,6 +118,10 @@ describe('ContextStudio', () => {
             handle: signal('h1'),
             entryGroups: signal([]),
             summary: signal({ label: 'eshop-microservices' }),
+            // R3 C-3: the Studio now tells the scope picker whether a repo was analyzed at all,
+            // so the picker can stop reporting "zero entries" as "no analysis".
+            ready: signal(true),
+            mapResponse: signal(null),
             reAnalyze,
           },
         },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { EntryVm } from '../../models/view-models';
-import { presetSeedsFor } from './scope-picker';
+import { presetSeedsFor, scopePickerWithheld } from './scope-picker';
 
 function entry(kind: string, over: Partial<EntryVm> = {}): EntryVm {
   return { kind, title: 'T', nodeId: 'n1', focus: 'T', ...over } as EntryVm;
@@ -30,5 +30,32 @@ describe('presetSeedsFor (T5.4)', () => {
     expect(seeds.map((s) => s.type)).toEqual(['flow', 'bodies', 'contracts', 'tests', 'tests']);
     expect(seeds[3].title).toBe('Validators for POST /orders');
     expect(seeds.every((s) => s.entryIds[0] === 'n1')).toBe(true);
+  });
+});
+
+/**
+ * R3 C-3 — zero entries is not "no analysis".
+ *
+ * The picker had one sentence for both states: "Analyze a repo to see its services and entries",
+ * shown on an ANALYZED library (measured — eval-results/2026-07-29/G7/g72-withhold-sweep-*.txt).
+ * An instruction the reader has already carried out is worse than no message.
+ */
+describe('scopePickerWithheld (R3 C-3)', () => {
+  it('only tells you to analyze when nothing has been analyzed', () => {
+    expect(scopePickerWithheld(false, false).text).toMatch(/analyze a repo/i);
+    expect(scopePickerWithheld(false, false).reason).toBe('not-computed');
+  });
+
+  it('an analyzed repo is never told to analyze a repo', () => {
+    for (const isLibrary of [true, false]) {
+      const note = scopePickerWithheld(true, isLibrary);
+      expect(note.text).not.toMatch(/analyze a repo/i);
+      expect(note.reason).toBe('archetype');
+      expect(note.text.length).toBeGreaterThanOrEqual(20);
+    }
+  });
+
+  it('an analyzed library is pointed at the surface it does have', () => {
+    expect(scopePickerWithheld(true, true).text).toMatch(/public surface/i);
   });
 });

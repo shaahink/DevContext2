@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
 import { RouterLink } from '@angular/router';
 import { StageTimeline } from '../shared/stage-timeline';
+import { Withheld } from '../../ui/withheld/withheld';
 
 const SEVERITY_CLASS: Record<string, string> = {
   warning: 'border-danger',
@@ -35,7 +36,7 @@ interface InsightGroup {
 @Component({
   selector: 'app-insights-view',
   standalone: true,
-  imports: [RouterLink, StageTimeline],
+  imports: [RouterLink, StageTimeline, Withheld],
   template: `
     <div class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
       <h2 class="text-lg font-semibold text-ink">Insights</h2>
@@ -128,13 +129,20 @@ interface InsightGroup {
       @if (store.stats(); as s) {
         <div class="border-t border-line pt-3">
           <span class="text-2xs text-ink-muted uppercase">Coverage</span>
-          @if (s.graph; as g) {
-            @if (g.entries > 0) {
-              <p class="text-sm text-ink mt-1">{{ g.entriesWithTarget }}/{{ g.entries }} entries have resolved targets</p>
-              <div class="mt-1 h-1 bg-surface-2 rounded-full overflow-hidden">
-                <div class="h-full bg-accent rounded-full" [style.width.%]="coveragePct()"></div>
-              </div>
-            }
+          <!-- R3 C-3: with no entry points this printed the word "Coverage" and nothing under it —
+               a heading over a blank body, which is the S9 shape one step short of suppression.
+               The measure is entry-target resolution, so a repo without entries has no coverage to
+               report; say that instead of leaving a mute label. -->
+          @if (s.graph?.entries) {
+            <p class="text-sm text-ink mt-1">{{ s.graph!.entriesWithTarget }}/{{ s.graph!.entries }} entries have resolved targets</p>
+            <div class="mt-1 h-1 bg-surface-2 rounded-full overflow-hidden">
+              <div class="h-full bg-accent rounded-full" [style.width.%]="coveragePct()"></div>
+            </div>
+          } @else {
+            <app-withheld
+              reason="archetype"
+              text="Coverage measures how many entry points resolve to a target, and this repo has none — a library's edge confidence is in the Confidence Ledger on Home."
+            />
           }
         </div>
       }
