@@ -4,20 +4,24 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-G1.4 CLAIMED @ a09c456 (+ evidence 74a1d73) — `eval-results/2026-07-29/G1.4-EVIDENCE.md`. **G1 §1
-items 1-7 are now all landed.** Next: **G2.1** (fold `flow`→`trace(compact)`, `insights`→`stats`,
-`interesting_points`→`overview`; make did-you-mean reflect the real tool list).
-**VERIFY WITH THE BATTERY'S OWN COMMANDS**, never the bare `--filter "Category!=Eval"` — use
-`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE (gates.ps1:136).
-**A passing test is not named in the log** — the only proof yours ran is the count delta: G1.3 Core
-669 / Server 43 → G1.4 Core 674 / Server 58. Record yours for the next session.
-**Assume your own driver check is vacuous until you have watched it go red.** G1.4's `find-kind`
-case PASSED on the broken before-state (`total >= page` = 22 >= 5); the check that works is the
-INVARIANT — a true total does not move when the page size does. Third time this has bitten.
+**STAGE G2 COMPLETE.** G2.1 @ 35eea1e (+ b579030) · G2.2 @ 7d42c08 — evidence
+`eval-results/2026-07-29/G2.{1,2}-EVIDENCE.md`. R4 §1 items 1-7 + 11-12 all landed. Next: **G3.1**
+(`seam(from,to)` at proto + GraphQuery + tool). Test counts: **Core 674 / Server 76** (G1.4 was
+674/58) — a passing test is NOT named in the log, so the count delta is your only proof.
+**Verify with the battery's OWN commands**, never the bare `--filter "Category!=Eval"`:
+`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"`, then `"Category=McpQa"` ALONE (gates.ps1:136).
+**MIRRORING A CONSTANT DOES NOT KEEP TWO SURFACES TOGETHER — not restating it does.** Both G2 fixes
+are that one lesson: a hand-kept tool list that was CORRECT, and MCP dials that mirrored TracePolicy.
+A C# parameter default is not an unset field — assigning a proto3 `optional` sets its presence bit,
+which had silently disabled `TracePolicy.ElasticDepth` on every request the product ever served.
+G3 opens the proto: fold in `TraceResponse.applied_budget_tokens` (G2.2 §6) while you are there.
+**Watch your driver check go red before you trust it** — 4-for-4 now. G2.1's equality PASSED on the
+before-state (the stale list was still correct); G2.2's budget check would have been theatre (the
+4000 default cuts NOTHING on eShop at any depth — the observable half was the depth rule).
 Traps re-paid: the MCP spawns a DevContext.Server that outlives the driver and locks
 Core/Cli/Contracts.dll — `dotnet build` then reports 6 errors + 30 warnings that read as a code
-break. Kill it BY PID first. And run `pnpm gen:proto` after any proto edit — `pnpm check` neither
-regenerates nor verifies the app's generated TS, so drift there is silent.
+break; kill it BY PID. `InternalsVisibleTo` is unusable for DevContext.Mcp (its top-level `Program`
+collides with the Server's → CS0433). Run `pnpm gen:proto` after any proto edit.
 
 
 ## Baseline numbers (from run.db)
@@ -26,7 +30,7 @@ regenerates nor verifies the app's generated TS, so drift there is silent.
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 3 |
+| Claimed (unconfirmed) | 4 |
 
 ## Checkpoints
 
@@ -40,7 +44,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | DONE | cf1a822 | fast-engine:OK · guards:OK |
 | G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | DONE | 79743b0 | fast-engine:FAIL · guards:OK |
 | G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | DONE | 75704f2 | fast-engine:OK · guards:OK |
-| G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | TODO | - | - |
+| G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | DONE | a09c456 | fast-engine:OK · guards:OK |
 
 ### G2 — R4 menu hygiene + one trace default (items 11-12)
 
