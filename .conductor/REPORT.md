@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 06:23 UTC · branch `feat/graph-v2` · HEAD `04d14a7`_
+_Updated 2026-07-29 06:54 UTC · branch `feat/graph-v2` · HEAD `baa5ffd`_
 
 **Status:** Idle
-**Stage:** G2 — R4 menu hygiene + one trace default (items 11-12) · attempts used 0
-**Checkpoints:** 6/22 done · **Sessions run:** 6 · **Cost:** $96.4393 (agent $96.3401 + gates $0.0993) · **Tokens:** 1,110,589 in / 487,926 out
+**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0 · working ▸ G3.2
+**Checkpoints:** 7/22 done · **Sessions run:** 7 · **Cost:** $113.4173 (agent $113.3048 + gates $0.1125) · **Tokens:** 1,372,760 in / 577,081 out
 **Confirmed phases:** G1, G2
 
 ## Stage progress
@@ -13,7 +13,7 @@ _Updated 2026-07-29 06:23 UTC · branch `feat/graph-v2` · HEAD `04d14a7`_
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
-| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
+| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ███░░░░░░░ 1/3 | **← active** |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
@@ -42,11 +42,11 @@ _Updated 2026-07-29 06:23 UTC · branch `feat/graph-v2` · HEAD `04d14a7`_
 
 </details>
 
-<details><summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (0/3)</summary>
+<details><summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (1/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ⬜ TODO | - |
+| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | - |
 | G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ⬜ TODO | - |
 | G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ⬜ TODO | - |
 
@@ -124,6 +124,7 @@ _Updated 2026-07-29 06:23 UTC · branch `feat/graph-v2` · HEAD `04d14a7`_
 | 4 | G1 | Resume | 2r1 | 07-29 03:12 | 1:13 | Advanced | G1.3 | 4 | fast-engine:OK · guards:OK | $25.4288 | $0.0146 | 173,665/115,497 |
 | 5 | G1 | Deliver | 1 | 07-29 04:28 | 0:24 | Advanced | G1.4 | 3 | fast-engine:OK · guards:OK | $16.5483 | $0.0156 | 225,857/83,097 |
 | 6 | G2 | Deliver | 1 | 07-29 05:11 | 0:52 | Advanced | G2.1 G2.2 | 4 | fast-engine:OK · guards:OK | $25.1946 | $0.0223 | 308,321/130,080 |
+| 7 | G3 | Deliver | 1 | 07-29 06:23 | 0:28 | Advanced | G3.1 | 1 | fast-engine:OK · guards:OK | $16.9647 | $0.0133 | 262,171/89,155 |
 
 ## Timeline
 
@@ -160,6 +161,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 07:07:33  ▪ gate fast-engine pass [session]  (1m57s)
 07-29 07:07:33  ▪ gate guards pass [session]  (1m45s)
 07-29 07:07:37  • session #6 G2 → Advanced · done G2.1,G2.2 · 4 commit(s)  (55m54s)
+07-29 07:23:03  ▪ gate fast-engine pass [phase]  (1m39s)
+07-29 07:23:03  ▪ gate guards pass [phase]  (46.5s)
+07-29 07:23:03  ▪ gate battery pass [phase]  (12m59s)
+07-29 07:23:03  ▸ stage G2 confirmed  (1h11m20s)
+07-29 07:23:06  ▸ stage G3 entered — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)
+07-29 07:23:06  • session #7 G3 Deliver started (attempt 1/4)
+07-29 07:54:04  ▪ gate fast-engine pass [session]  (1m29s)
+07-29 07:54:04  ▪ gate guards pass [session]  (42.9s)
 ```
 
 ## Health
@@ -167,7 +176,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 6 · retries 2 (33 %) · overall Warn
+sessions 7 · retries 2 (29 %) · overall Warn
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
@@ -180,7 +189,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -207,34 +216,34 @@ vs upstream: up to date
   - [`7d42c08`](https://github.com/shaahink/DevContext2/commit/7d42c08) G2.2: one trace policy, and the rule that had never run
   - [`b579030`](https://github.com/shaahink/DevContext2/commit/b579030) G2.1 evidence: the menu in three states, with the red in the middle
   - [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) G2.1: 24 tools become 21, and the menu stops being told twice
+- **s7 (G3 Deliver)** — 1 commit(s):
+  - [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) G3.1: the path between two symbols, and the roll-up that makes it real
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: Stage G2 is complete — G2.1 (tool menu folded 24→21, did-you-mean now reads the SDK's real tool collection) and G2.2 (one trace budget/depth policy across MCP/CLI/server, read from `TracePolicy`) are both landed, claimed via `conductor task --done`, and pushed to `feat/graph-v2` (`35eea1e`, `b579030`, `7d42c08`, `efe70fb`); R4 §1 items 1–7 + 11–12 are now all done. Evidence: `eval-results/2026-07-29/G2.1-EVIDENCE.md` and `G2.2-EVIDENCE.md`, each with a before/red/after driver run (new `menu` and `trace-budget` cases in `eval/mcp-qa/drive-r4.js`). Nothing is red: build 0w/0e, Core 672 passed/2 skipped/674, Server 76, contract sweep PASS, loom-guards PASS, app lint + 120 tests …
+> SESSION-RESULT: **G3.1 landed and claimed** (`baa5ffd`, pushed to `feat/graph-v2`; evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`). `seam(from, to)` now exists at all three layers — `GraphQuery.Seam` (BFS over rolled out-edges collecting every shortest-path predecessor, paths read back off that DAG), `rpc GetSeam` in the proto (RPC 26, regenerated into Contracts and the app), and an MCP `seam` tool (menu 21 → 22). It existed at no layer before: every other graph query is single-source, so "how does A reach B" had no answer. Three honesty decisions ride with it — shortest paths only with an *exact* `totalPaths` counted over the predecessor DAG rather than by enumeration; the reverse dire…
 
 ## Tracker handoff
 
 ```
-**STAGE G2 COMPLETE.** G2.1 @ 35eea1e (+ b579030) · G2.2 @ 7d42c08 — evidence
-`eval-results/2026-07-29/G2.{1,2}-EVIDENCE.md`. R4 §1 items 1-7 + 11-12 all landed. Next: **G3.1**
-(`seam(from,to)` at proto + GraphQuery + tool). Test counts: **Core 674 / Server 76** (G1.4 was
-674/58) — a passing test is NOT named in the log, so the count delta is your only proof.
-**Verify with the battery's OWN commands**, never the bare `--filter "Category!=Eval"`:
-`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"`, then `"Category=McpQa"` ALONE (gates.ps1:136).
-**MIRRORING A CONSTANT DOES NOT KEEP TWO SURFACES TOGETHER — not restating it does.** Both G2 fixes
-are that one lesson: a hand-kept tool list that was CORRECT, and MCP dials that mirrored TracePolicy.
-A C# parameter default is not an unset field — assigning a proto3 `optional` sets its presence bit,
-which had silently disabled `TracePolicy.ElasticDepth` on every request the product ever served.
-G3 opens the proto: fold in `TraceResponse.applied_budget_tokens` (G2.2 §6) while you are there.
-**Watch your driver check go red before you trust it** — 4-for-4 now. G2.1's equality PASSED on the
-before-state (the stale list was still correct); G2.2's budget check would have been theatre (the
-4000 default cuts NOTHING on eShop at any depth — the observable half was the depth rule).
-Traps re-paid: the MCP spawns a DevContext.Server that outlives the driver and locks
-Core/Cli/Contracts.dll — `dotnet build` then reports 6 errors + 30 warnings that read as a code
-break; kill it BY PID. `InternalsVisibleTo` is unusable for DevContext.Mcp (its top-level `Program`
-collides with the Server's → CS0433). Run `pnpm gen:proto` after any proto edit.
+**G3.1 CLAIMED** — `seam(from,to)` at `GraphQuery` + proto (`GetSeam`, RPC 26) + tool (menu 21→**22**).
+Evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`. Test counts **Core 683 / Server 85** (was
+674/76, **+9 each**) — a passing test is not named in the log, so the delta is your only proof.
+Verify with `eval-results/2026-07-29/g3.1-verify.ps1`: the battery's OWN Step 2 filter
+(`Category!=Eval&Category!=CliSmoke&Category!=McpQa`) then `Category=McpQa` **alone** — never the
+bare `Category!=Eval`. Next: **G3.2** — and it is smaller than it looks: `GraphQuery.Neighbors`
+ALREADY takes an `EdgeKind?`; only `NeighborsRequest` and the tool don't expose it. The real work is
+the honesty half — what a kind matching nothing says, and whether the roll-up drops it. Then G3.3.
+**THE ROLL-UP IS WHAT A NEW TRAVERSAL GETS WRONG, and it is invisible until you test for it**: after
+Batch A a Type node carries almost no edges of its own, so anything written against
+`_graph.OutEdges` reports two types that collaborate every request as UNCONNECTED. Watched red
+3-of-9 — and **6 of the 9 passed on that broken state**, so a suite of the wrong 6 ships it.
+Traps re-paid: the MCP leaves a `DevContext.Server` alive that locks Core/Cli/Contracts.dll — kill it
+BY PID before the next build. `pnpm gen:proto` after any proto edit. My driver's ground truth was
+wrong once more (seam-vs-impact hop equality is a wrong premise on a Type target) — measure, 4-for-4.
+Still open from G2.2 §6: fold `TraceResponse.applied_budget_tokens` in on the next proto edit.
 ```
