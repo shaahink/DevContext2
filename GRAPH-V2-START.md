@@ -4,21 +4,26 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G4.1 CLAIMED — the dogfood drive is RUN and graded.** 43 MCP calls on Hangfire (unseen, Library,
-0 entries), questions committed BEFORE the drive (254fd36), no grep and `read_source` never called.
-**8/10 on §3's bar — 6/10 if "answered" must mean a TOOL asserted it** (Q4/Q5 fell to inference: the
-graph has NO inheritance edge kind, so "who implements this" cannot be asked). 44,712 tokens, of which
-`map` alone is 17,105. Evidence `eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md` + CALL-GRADES.md,
-commit 55e7cec. Four bugs filed: **#5** every tool ships `description:""` (MEASURED: the fix is
-`[System.ComponentModel.Description]`, NOT GenerateDocumentationFile — that changes nothing);
-**#6** `trace` + a nodeId → `found:true`, 0 steps, "Type: Type" (its focus resolver matches the token
-BEFORE the first colon and ignores the rest); **#7** a method registered as a Type node, 26 BCL
-`System.Type` refs bound to it, 5th wiring hub; **#8** calls inside a LAMBDA ARGUMENT make no edge, so
-the enqueue path's actual storage write is invisible while the trace looks complete.
-Next: **G4.2** (Tasks 2+3). Drive with `node eval/mcp-qa/dogfood.js <batch.json>`; START THE SERVER
-FIRST (the MCP kills a server it spawned, so handles die with each driver run). Use BARE NAMES in
-`query` — never a nodeId on `trace`. Before Task 3, R4 §2 warns the server ignores devcontext.json,
-so CLI and MCP see different file sets on this repo: measure that first, don't inherit the claim.
+**G4.2 + G4.3 CLAIMED — STAGE G4 IS COMPLETE; R4 §2 is run and REPORT.md is written.** Task 2 made a
+real change in Hangfire on MCP orientation alone: six facts committed BEFORE the drive (546fb32),
+**6/6 TOOL-asserted**, and the code compiles (red canary proved the build really compiles it). Task 3
+**corrected two inherited claims**. Commits e954c79 · 8541958. Totals across all three tasks: 81 calls
+· 72,664 tokens · HELPED 55 / NEUTRAL 13 / HURT 13.
+Findings the next owner should not re-derive: (a) `devcontext.json` costs **0 nodes and 0 edges** —
+solution scoping already did that job — so the real **+6 node / +15 edge CLI↔MCP divergence on this
+repo is still unexplained** and is worth a session; (b) **bug #8's lambda cause is REFUTED** (bug #11):
+lambda calls DO bind, and what never binds is a **static call with a type-name receiver** —
+`BodyFactExtractor`, `RazorCodeVirtualizer`, `ExtractorHelpers` all have **0 in-edges**, 80% of our own
+Calls edges are `approx`; (c) three new bugs **#9/#10/#11**, all one family — *a reply shaped like a
+complete answer with nothing on the wire saying it is partial*, which `contract-sweep.ps1` cannot catch.
+Next: **G5.1** (D-3 — why GitVersion's five `ICommand<TSettings>` verbs join no handler).
+Drive traps if you touch MCP again: start the server FIRST (ServerShim.cs:14 skips spawning when
+/health answers, so handles survive driver runs); bare names in `query`, never a nodeId on `trace`;
+`eval-repos/Hangfire` does NOT build (RazorGenerator `packages/` never restored — bypass with
+`-p:MSBuildCurrentFullPath=Z:\nope\MSBuild.exe -p:MSBuild14FullPath=Z:\nope\MSBuild.exe`, do not edit
+the pole); and PowerShell mangles `git commit -m @'...'@` when the message contains double quotes —
+write the message to a file and use `git commit -F`.
+
 
 ## Baseline numbers (from run.db)
 
@@ -26,7 +31,7 @@ so CLI and MCP see different file sets on this repo: measure that first, don't i
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 9 |
+| Claimed (unconfirmed) | 10 |
 
 ## Checkpoints
 
@@ -61,7 +66,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | TODO | - | - |
+| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | DONE | 254fd36 | fast-engine:OK · guards:OK |
 | G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | TODO | - | - |
 | G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | TODO | - | - |
 

@@ -206,6 +206,49 @@
       external node drive into a 674-test parallel run, where the server the MCP spawns exits
       before binding — `FATAL: Timeout: initialize`, which reads as an engine collapse and is not
       one. That is the `McpQaGateTests` red three G1 sessions have chased.
+      **§2 Tasks 2+3 RUN 2026-07-29 (G4.2) and §2 IS NOW COMPLETE; REPORT.md written (G4.3), so
+      stage G4 is closed.** Task 2 made a real change in Hangfire oriented by MCP only — six facts
+      declared and committed BEFORE the drive (`task2/CHANGE-SPEC.md` @546fb32), **6/6 came back
+      TOOL-asserted, 0 inferred**, and `LogJobDurationAttribute` compiles. That 6/6 against Task 1's
+      8/10-or-6/10 is the strand's most useful single observation: **the MCP is markedly better at
+      "what does this look like" than at "what happens next"** — Task 1 asked for behaviour, which
+      lives in edges; Task 2 asked for declarations, which come back verbatim in
+      `signatures`/`bodies`. On tokens grep won 6:1 (14,424 vs ~2,362) and it is recorded as a FAIL,
+      but the circularity is now nameable rather than asserted: the winning grep was
+      `rg ": JobFilterAttribute"`, **a query that presupposes fact F3, one of the six being sought**.
+      Reusable trick, no engine change needed: an interface's implementors are found by asking about
+      the type its METHOD TAKES AS A PARAMETER — `IServerFilter` has inDegree 0 AND outDegree 0, but
+      `get_context(focus:"PerformingContext")`'s usage section named three implementors with
+      `file:line`. Task 3 **corrected two inherited claims**. R4 §2's "server ignores devcontext.json
+      → different file sets" is true in mechanism (`DevContextConfig` is a CLI-project type; the
+      Server references it nowhere) but moves **no nodes and no edges**: three runs give CLI-with-config
+      1254/1383, CLI-without-config 1254/1383 (file/project inventory 385→442, 8→29), MCP 1260/1398 —
+      the default patterns already exclude `eval-repos`, the config only adds `fixtures`/`goldens`, and
+      solution scoping already excluded those projects. **So the real +6/+15 CLI↔MCP divergence has a
+      different cause, still open.** Rider: `DevContextConfig.DefaultPath` reads the config from the
+      WORKING DIRECTORY, not the analysed repo root. And the maintenance question — bug #8's own
+      "what to measure first" — **refuted bug #8's stated cause** (filed as bug #11): in
+      `BodyFactsExtractor.ExtractAsync`, calls at :51/:54/:62 inside a lambda (one nested two deep)
+      DO bind, while :56/:74/:80 do not — and :74 is in no lambda at all. What the three missing
+      edges share is a STATIC call with a TYPE-NAME receiver; `neighbors(…, in)` is **0 for
+      `BodyFactExtractor`, `RazorCodeVirtualizer` and `ExtractorHelpers` alike**, all live nodes with
+      out-edges. `stats` reads Calls verified 280 / approx 1103 — 80% approximate on our own repo, and
+      the engine's own body walker is called by nobody according to its own graph. My first hypothesis
+      (the callee types are missing nodes) was wrong and `find` killed it — fifth occurrence of
+      agent-premise-wrong / engine-right in this program.
+      Three more defects filed, all the same family: **#9** `get_context`'s fillNote asserts "the pack
+      already contains everything reachable" while eliding the body you asked for (one focus, two
+      budgets, same sentence; `fill %` is tokens/budget so it FELL 42%→18% as content rose); **#10**
+      `read_source` silently accepts an invalid `mode` (`DevContextTools.cs:1756` has an unguarded
+      else) and returned 20 of 147 lines with `found:true`; **#11** above. **The strand's signature
+      defect is now named: not emptiness and not an error, but a reply shaped exactly like a complete
+      answer, with nothing on the wire saying it is partial** — and `contract-sweep.ps1` cannot catch
+      it, because every field involved IS read. Evidence:
+      `eval-results/2026-07-29/mcp-dogfood/{REPORT.md, G4.2-EVIDENCE.md, CALL-GRADES-G4.2.md,
+      task3/DEVCONTEXT-JSON-SCOPE.md}`. Totals across the protocol: **81 calls · 72,664 tokens ·
+      HELPED 55 / NEUTRAL 13 / HURT 13.** Verdict: not yet a proper tool, and the gap is not the one
+      R4 assumed — the two blockers are whole missing edge classes (inheritance, static calls) and
+      replies that cannot distinguish "no" from "I did not look".
 
 Session log (one line each: date · what closed · surprises):
 - 2026-07-27 · S1 steps 1-2 done ahead of session: Prism merge signed+landed (develop 8dbb510,
