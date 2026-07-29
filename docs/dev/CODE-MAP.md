@@ -15,7 +15,7 @@ tool does) and `docs/dev/briefs/loom-graph-design.md` (why the graph model is sh
 | `DevContext.Cli` | `devcontext` dotnet tool; Spectre.Console commands; composition root | `Commands/`, `Services/ServiceRegistration.cs`, `Settings/AnalyzeSettings.cs` |
 | `DevContext.Contracts` | proto → C# gRPC codegen (`Grpc.Tools`) | generated from the proto at build |
 | `DevContext.Server` | gRPC-Web backend; session store; proto mapping | `Endpoints/DevContextGrpcService.cs`, `Sessions/`, `Mapping/ProtoMapper.cs` |
-| `DevContext.Mcp` | MCP server — 24 tools over the gRPC RPCs | `DevContextTools.cs` |
+| `DevContext.Mcp` | MCP server — 22 tools over the gRPC RPCs | `DevContextTools.cs` |
 | `DevContext.App` | Angular 22 (zoneless, signals) + Tauri 2 desktop | see `src/DevContext.App/AGENTS.md` |
 
 Tests: `tests/DevContext.Core.Tests`, `tests/DevContext.Server.Tests`. Bench: `benchmarks/DevContext.Benchmarks`.
@@ -137,14 +137,14 @@ the library/public-surface view by `Graph/LibrarySurfaceBuilder.cs`.
 
 ## 8. Server, MCP, CLI
 
-- **Server** (`DevContext.Server`): `Endpoints/DevContextGrpcService.cs` — 24 gRPC handlers (`Analyze` and
+- **Server** (`DevContext.Server`): `Endpoints/DevContextGrpcService.cs` — 26 gRPC handlers (`Analyze` and
   `ObserveToolCalls` stream; the rest are unary). Sessions in `Sessions/` (`AnalysisSessionManager`,
   `AnalysisSession`, `EngineRunner`, `EngineHostCache` — analyze-once, keep the snapshot, serve queries).
   `Mapping/ProtoMapper.cs` converts engine models ⇄ proto.
-- **MCP** (`DevContext.Mcp/DevContextTools.cs`): 24 tools — `Analyze, Overview, Resolve, Status, ListSessions,
-  CloseSession, Stats, Entrypoints, Map, TopFlows, Flow, InterestingPoints, Trace, Node, Neighbors, Usages,
-  Find, Impact, Config, TestsFor, Insights, GetContext, VerifyContext, ReadSource` (server name `devcontext`;
-  public catalog: `docs/product/mcp-reference.md`).
+- **MCP** (`DevContext.Mcp/DevContextTools.cs`): 22 tools — `Analyze, Overview, Resolve, Status, ListSessions,
+  CloseSession, Stats, Entrypoints, Map, TopFlows, Trace, Node, Neighbors, Usages, Find, Impact, Seam,
+  Config, TestsFor, GetContext, VerifyContext, ReadSource` (server name `devcontext`; public catalog:
+  `docs/product/mcp-reference.md`). `Flow`/`InterestingPoints`/`Insights` were folded away in G2.1.
 - **CLI** (`DevContext.Cli`): `Commands/` = `Analyze, Init, Query, Report, Scenarios, Version`; options in
   `Settings/AnalyzeSettings.cs`; composition root `Services/ServiceRegistration.cs` (`AddDevContextServices`);
   config `Services/DevContextConfig.cs`.

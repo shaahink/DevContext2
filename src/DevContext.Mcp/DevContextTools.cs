@@ -1381,6 +1381,64 @@ public sealed class DevContextTools
         catch { return false; }
     }
 
+    /// <summary>The wiring path BETWEEN two symbols — how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers "does the checkout endpoint actually reach the payment service, and through what". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget (not the graph) ended the search. Example: seam(handle, from:"OrdersController", to:"OrderingContext")</summary>
+    [McpServerTool]
+    public async Task<string> Seam(string? handle = null, string? from = null, string? to = null,
+        int maxDepth = 8, int maxPaths = 3)
+    {
+        if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
+            return Envelope("Missing 'from' or 'to'.",
+                "seam takes BOTH ends — a node id or a resolvable name for each.",
+                "seam(handle, from:\"OrdersController\", to:\"OrderingContext\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "seam", "analyze(path) then seam(from:\"A\", to:\"B\")"); }
+
+        try
+        {
+            var req = new SeamRequest { Handle = handle, From = from, To = to };
+            if (maxDepth > 0) req.MaxDepth = maxDepth;
+            if (maxPaths > 0) req.MaxPaths = maxPaths;
+            var resp = await _client.GetSeamAsync(req);
+
+            // An end that resolved to nothing is a DIFFERENT answer from two ends that do not
+            // connect, and the second is the one an agent would wrongly believe. The server names
+            // which end failed by leaving its id empty; we turn that into candidates for that end.
+            var unresolved = resp.FromNodeId.Length == 0 ? from : resp.ToNodeId.Length == 0 ? to : null;
+            if (unresolved is not null)
+            {
+                var suggestions = await SuggestAsync(handle, unresolved);
+                return Envelope($"'{unresolved}' did not resolve to a node — not the same as no path.",
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to get an exact nodeId.",
+                    "seam(handle, from:\"OrdersController\", to:\"OrderingContext\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            return JsonSerializer.Serialize(new
+            {
+                found = resp.Found,
+                direction = resp.Direction,
+                from = new { nodeId = resp.FromNodeId, title = TrimTitle(resp.FromTitle) },
+                to = new { nodeId = resp.ToNodeId, title = TrimTitle(resp.ToTitle) },
+                hops = resp.Hops,
+                totalPaths = resp.TotalPaths,
+                paths = resp.Paths.Select(p => p.Hops.Select(h => new
+                {
+                    from = TrimTitle(h.FromTitle),
+                    to = TrimTitle(h.ToTitle),
+                    kind = h.Kind,
+                    resolution = h.Resolution,
+                    fromNodeId = h.FromNodeId,
+                    toNodeId = h.ToNodeId,
+                    site = h.HasFilePath
+                        ? Rel(handle, h.FilePath) + (h.HasLineNumber ? $":{h.LineNumber}" : "")
+                        : null,
+                }).ToArray()).ToArray(),
+                note = resp.HasNote ? resp.Note : null,
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "seam", "seam(handle, from:\"OrdersController\", to:\"OrderingContext\")"); }
+    }
+
     /// <summary>Find config key usage sites (IConfiguration, GetValue, GetSection). Optional key filter. Example: config("abc123", "GrpcSettings:DiscountUrl")</summary>
     [McpServerTool]
     public async Task<string> Config(string? handle = null, string? key = null)

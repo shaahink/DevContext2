@@ -141,6 +141,25 @@
       `AnalyzeEvent.Error` arm, so a failed analysis lost the server's own reason. Evidence:
       `eval-results/2026-07-29/G1.4-EVIDENCE.md`. Items 11-12 (G2) open; dogfood + REPORT.md
       ungraded.
+      **§1 items 11-12 LANDED 2026-07-29 (G2)** — the menu is folded and the did-you-mean handler is
+      seeded from the SDK's own tool collection (35eea1e), and one `TracePolicy` budget serves MCP /
+      CLI / server (7d42c08). Evidence: `eval-results/2026-07-29/G2.{1,2}-EVIDENCE.md`.
+      **§1 item 8 LANDED 2026-07-29 (G3.1)** — `seam(from, to)`, the path BETWEEN two symbols, at
+      `GraphQuery` + proto (`GetSeam`, RPC 26) + tool (menu 21 → 22). It existed at no layer: every
+      other graph query is single-source, so "how does A reach B" had no answer. Shortest paths only,
+      with `totalPaths` counted EXACTLY over the predecessor DAG rather than by enumeration; the
+      reverse direction is searched before answering "no"; a search the hop budget ended says so and
+      names the retry. **The discriminating check was watched going RED**: run with direct edges
+      instead of C3's rolled edges, 3 of 9 tests fail with `Expected: Forward / Actual: None` — a
+      Type→Type seam over direct edges calls two types that collaborate on every request
+      "unconnected", because after Batch A the wiring hangs off members, not Type nodes. **Six of the
+      nine passed on that broken state.** On eShop the drive is cross-checked by two tools that
+      predate it: the pair is chosen by `impact` (which already knows the distance) and every hop is
+      confirmed against `neighbors`. Evidence: `eval-results/2026-07-29/G3.1-EVIDENCE.md`.
+      Rider: my own driver was wrong once and the engine right — an exact seam-vs-impact hop equality
+      is a wrong premise on a TYPE target, because seam's roll-up counts arrival at a member of the
+      type while impact reports the distance to the bare Type node (3 vs 4, measured from the raw
+      response). Fourth occurrence of that pattern in this program.
       **A driver check is vacuous until you have watched it go red** — G1.4's `find-kind` case
       PASSED on the broken before-state (`total >= page length` = 22 >= 5), the same way G1.3's
       glyphs case did. The check that discriminates is the INVARIANT: a true total does not move

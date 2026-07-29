@@ -406,6 +406,82 @@ internal static class ProtoMapper
         return resp;
     }
 
+    /// <summary>G3.1 (R4 item 8) — the seam between two symbols.
+    ///
+    /// <para>The note is built HERE rather than left to each client, because the thing a caller most
+    /// needs told is the thing a bare empty list cannot say: whether the search ran out of hops,
+    /// whether the connection runs the other way round, and how many shortest paths were left
+    /// unshown. "No path" for all three is a lie the caller cannot detect.</para></summary>
+    public static Proto.SeamResponse ToSeamResponse(
+        SeamResult result, string fromNodeId, string fromTitle, string toNodeId, string toTitle, int maxDepth)
+    {
+        var resp = new Proto.SeamResponse
+        {
+            Found = result.Direction != SeamDirection.None,
+            FromNodeId = fromNodeId,
+            FromTitle = fromTitle,
+            ToNodeId = toNodeId,
+            ToTitle = toTitle,
+            Direction = result.Direction switch
+            {
+                SeamDirection.Forward => "forward",
+                SeamDirection.Reverse => "reverse",
+                _ => "none",
+            },
+            Hops = result.Hops,
+            TotalPaths = result.TotalPaths,
+        };
+
+        foreach (var path in result.Paths)
+        {
+            var pp = new Proto.SeamPath();
+            foreach (var h in path.Hops)
+            {
+                var hop = new Proto.SeamHop
+                {
+                    FromNodeId = h.From.ToString(),
+                    FromTitle = h.FromTitle,
+                    ToNodeId = h.To.ToString(),
+                    ToTitle = h.ToTitle,
+                    Kind = h.Kind.ToString(),
+                    Resolution = h.Resolution.ToString(),
+                };
+                if (h.FilePath is { } fp) hop.FilePath = fp;
+                if (h.LineNumber is { } ln) hop.LineNumber = ln;
+                pp.Hops.Add(hop);
+            }
+            resp.Paths.Add(pp);
+        }
+
+        var note = SeamNote(result, fromTitle, toTitle, maxDepth, resp.Paths.Count);
+        if (note is not null) resp.Note = note;
+        return resp;
+    }
+
+    private static string? SeamNote(SeamResult result, string fromTitle, string toTitle, int maxDepth, int shown)
+    {
+        if (result.Direction == SeamDirection.None)
+        {
+            var hops = maxDepth == 1 ? "1 hop" : $"{maxDepth} hops";
+            return result.StoppedAtDepthLimit
+                ? $"No path within {hops}, in either direction — the search stopped at the depth limit "
+                  + $"with unexplored nodes left. Retry with maxDepth: {maxDepth * 2}."
+                : $"'{fromTitle}' and '{toTitle}' are unconnected: the walk exhausted everything reachable "
+                  + $"from each end within {hops} and neither reached the other.";
+        }
+
+        var parts = new List<string>();
+        if (result.Direction == SeamDirection.Reverse)
+            parts.Add($"Nothing runs from '{fromTitle}' to '{toTitle}'; these paths run the OTHER way, "
+                      + $"'{toTitle}' -> '{fromTitle}'.");
+        if (result.Hops == 0)
+            parts.Add("Both ends resolved to the same symbol.");
+        if (result.TotalPaths > shown)
+            parts.Add($"Showing {shown} of {result.TotalPaths} shortest paths; raise maxPaths for more. "
+                      + "Longer routes exist and are not searched.");
+        return parts.Count > 0 ? string.Join(" ", parts) : null;
+    }
+
     public static Proto.ContextResponse ToContextResponse(string focus, ContextPack pack)
     {
         var resp = new Proto.ContextResponse

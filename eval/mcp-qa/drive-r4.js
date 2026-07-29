@@ -380,7 +380,10 @@ const CASES = {
     check("the three folded tools are gone from tools/list",
       folded.every((f) => !real.includes(f)),
       folded.filter((f) => real.includes(f)).join(",") || "none present");
-    check("the menu is the folded size", real.length === 21, `${real.length} tools`);
+    // 24 -> 21 by G2.1's fold; +1 for G3.1's `seam`. The number moves when the MENU moves, and
+    // only then — it is here to catch a tool appearing or vanishing without anyone saying so.
+    check("the menu is the folded size", real.length === 22, `${real.length} tools`);
+    check("the seam primitive is on the menu", real.includes("seam"), real.join(" "));
     // THE drift invariant.
     check("did-you-mean advertises exactly the real tool list",
       advertised.length === real.length && advertised.every((n, i) => n === real[i]),
@@ -536,6 +539,110 @@ const CASES = {
     // wondering whether it ran.
     console.log(`  elastic at the policy budget: no dials=${sDflt} vs depth:6=${sAt6}`
       + ` (equal is correct here — the tree already uses most of the default budget)`);
+  },
+
+  // G3.1 (R4 §1 item 8) — seam(from, to), the path BETWEEN two symbols.
+  //
+  // The vacuous check would be "seam returned a path". A path is easy to return and impossible to
+  // trust on its own, so nothing here trusts one: the pair is CHOSEN by `impact`, which already
+  // knows how far apart the two ends are, and every hop of the returned route is then confirmed
+  // against `neighbors` on that hop's own source node. Three tools have to agree about the same
+  // wiring before this case says PASS, and the two that check are the ones that existed before.
+  async seam(client) {
+    const listed = await client.call("tools/list", {}, 45000);
+    const menu = (listed.result?.tools ?? []).map((t) => t.name);
+    check("tools/list advertises seam", menu.includes("seam"), `${menu.length} tools`);
+
+    const { handle, elapsedMs } = await analyzeRepo(client, join(REPOS, "eShop"));
+    check("analyze eShop", !!handle, `${(elapsedMs / 1000).toFixed(1)}s`);
+    if (!handle) return;
+
+    // Pick a genuinely connected pair, from a tool that is not the one under test. impact(down)
+    // reports each affected node WITH its hop distance, so the pair arrives with the right answer
+    // already attached — seam cannot define its own success here.
+    // The target is taken as a MEMBER node on purpose. impact reports the distance to the node it
+    // actually reached; seam's C3 roll-up treats arriving at any member of a target TYPE as
+    // arriving at the type, so on a Type target the two answer subtly different questions and can
+    // legitimately differ by a hop (measured: Order -> OrderingIntegrationEventService reads 4 by
+    // impact, because impact reached the bare Type node, and 3 by seam, because the work is done by
+    // ::AddAndSaveEventAsync). On a Member target there is no roll-up and the equality is exact —
+    // which is the check worth having, so pick the pair that supports it.
+    const found = (await tool(client, "find", { handle, query: "Order", limit: 12 })).data;
+    let from = null, to = null, want = 0;
+    for (const cand of found?.results ?? found?.nodes ?? []) {
+      const imp = (await tool(client, "impact", { handle, nodeId: cand.nodeId, direction: "down", maxDepth: 4 })).data;
+      const rows = Object.values(imp?.resultsByService ?? {}).flat()
+        .filter((r) => r.hops >= 2 && String(r.nodeId).startsWith("Member:"));
+      if (rows.length === 0) continue;
+      const deepest = rows.reduce((a, b) => (b.hops > a.hops ? b : a));
+      from = cand; to = deepest; want = deepest.hops;
+      break;
+    }
+    check("found a connected pair via impact", !!from && !!to,
+      from ? `${from.title} -> ${to.title} at ${want} hops` : "no candidate had a downstream node");
+    if (!from || !to) return;
+    console.log(`  pair: ${from.nodeId}  ->  ${to.nodeId}   (impact says ${want} hops)`);
+
+    const { data: seam } = await tool(client, "seam", { handle, from: from.nodeId, to: to.nodeId });
+    dump("seam-eshop.json", { pair: { from: from.nodeId, to: to.nodeId, impactHops: want }, response: seam });
+
+    check("seam finds the path impact already knew about", seam?.found === true, JSON.stringify(seam)?.slice(0, 200));
+    check("direction is stated", seam?.direction === "forward" || seam?.direction === "reverse", String(seam?.direction));
+    // impact's distance is a BFS shortest distance over the same edges. A seam that is LONGER is
+    // not a shortest path; one that is SHORTER means the two disagree about the graph.
+    check("hop count agrees with impact exactly", seam?.hops === want, `seam=${seam?.hops} impact=${want}`);
+    check("the path has that many hops", (seam?.paths?.[0] ?? []).length === seam?.hops,
+      `${(seam?.paths?.[0] ?? []).length} rows for ${seam?.hops} hops`);
+    // The route must END where it was asked to. A path that stops somewhere plausible is the
+    // easiest wrong answer to ship, because everything about it reads correctly.
+    const last = (seam?.paths?.[0] ?? []).at(-1);
+    check("the route ends on the requested target", last?.toNodeId === to.nodeId,
+      `${last?.toNodeId} vs ${to.nodeId}`);
+
+    // EVERY hop confirmed by the tool that owns edges. A route nothing else can corroborate is a
+    // claim, not evidence.
+    let confirmed = 0, unconfirmed = [];
+    for (const hop of seam?.paths?.[0] ?? []) {
+      const nb = (await tool(client, "neighbors", { handle, nodeId: hop.fromNodeId, direction: "out" })).data;
+      const match = (nb?.edges ?? []).some((e) => e.to === hop.toNodeId && e.kind === hop.kind);
+      if (match) confirmed++; else unconfirmed.push(`${hop.from} -[${hop.kind}]-> ${hop.to}`);
+    }
+    check("every hop is an edge neighbors also reports", unconfirmed.length === 0,
+      `${confirmed}/${seam?.hops} confirmed${unconfirmed.length ? " · missing: " + unconfirmed.join(" | ") : ""}`);
+
+    // Every hop names its seam kind and where to look — the reason to prefer this over a raw path.
+    const hops = seam?.paths?.[0] ?? [];
+    check("every hop carries a seam kind and a resolution",
+      hops.length > 0 && hops.every((h) => !!h.kind && !!h.resolution),
+      hops.map((h) => `${h.kind}/${h.resolution}`).join(" "));
+    console.log("  route: " + hops.map((h) => `${h.from} -[${h.kind}]-> ${h.to}`).join("\n         "));
+
+    // THE INVARIANT (G1.4's lesson): a hop count is a fact about the graph; the path list is a
+    // window onto it. If maxPaths moved the distance, seam would be describing its own page.
+    const { data: one } = await tool(client, "seam", { handle, from: from.nodeId, to: to.nodeId, maxPaths: 1 });
+    const { data: many } = await tool(client, "seam", { handle, from: from.nodeId, to: to.nodeId, maxPaths: 8 });
+    check("hop count does not move with maxPaths", one?.hops === many?.hops, `${one?.hops} vs ${many?.hops}`);
+    check("totalPaths does not move with maxPaths", one?.totalPaths === many?.totalPaths,
+      `${one?.totalPaths} vs ${many?.totalPaths}`);
+    check("the page says it is a page", one?.totalPaths <= 1 || /Showing 1 of/.test(one?.note ?? ""),
+      `totalPaths=${one?.totalPaths} note=${one?.note ?? "(none)"}`);
+    dump("seam-eshop-maxpaths.json", { one, many });
+
+    // Out of budget is not unconnected — and the reply has to name the retry that works.
+    const { data: shallow } = await tool(client, "seam", { handle, from: from.nodeId, to: to.nodeId, maxDepth: 1 });
+    dump("seam-eshop-depthlimit.json", shallow);
+    if (want > 1) {
+      check("a depth-capped search does not claim there is no path",
+        shallow?.found === false && /maxDepth:/.test(shallow?.note ?? "") && !/unconnected/.test(shallow?.note ?? ""),
+        shallow?.note ?? JSON.stringify(shallow)?.slice(0, 160));
+    }
+
+    // An end that resolves to nothing is a third answer again, and it must arrive with candidates.
+    const { data: bogus } = await tool(client, "seam", { handle, from: from.nodeId, to: "Zzz_NoSuchSymbol_Zzz" });
+    dump("seam-eshop-unresolved.json", bogus);
+    check("an unresolved end says so instead of denying the path",
+      typeof bogus?.error === "string" && /did not resolve/.test(bogus.error),
+      bogus?.error ?? JSON.stringify(bogus)?.slice(0, 160));
   },
 };
 

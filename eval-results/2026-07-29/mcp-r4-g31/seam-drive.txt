@@ -1,0 +1,25 @@
+case: seam
+  PASS  tools/list advertises seam — 22 tools
+  PASS  analyze eShop — 0.3s
+  PASS  found a connected pair via impact — Order -> OrderingContext.FindAsync at 4 hops
+  pair: Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order  ->  Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync   (impact says 4 hops)
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g31\seam-eshop.json
+  PASS  seam finds the path impact already knew about — {"found":true,"direction":"forward","from":{"nodeId":"Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order","title":"Order"},"to":{"nodeId":"Member:eShop.Ordering.Infrastructure.OrderingCon
+  PASS  direction is stated — forward
+  PASS  hop count agrees with impact exactly — seam=4 impact=4
+  PASS  the path has that many hops — 4 rows for 4 hops
+  PASS  the route ends on the requested target — Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync vs Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync
+  PASS  every hop is an edge neighbors also reports — 4/4 confirmed
+  PASS  every hop carries a seam kind and a resolution — Raises/Semantic Handles/Join Calls/Syntactic Calls/Syntactic
+  route: SetAwaitingValidationStatus -[Raises]-> OrderStatusChangedToAwaitingValidationDomainEvent
+         OrderStatusChangedToAwaitingValidationDomainEvent -[Handles]-> OrderStatusChangedToAwaitingValidationDomainEventHandler
+         Handle -[Calls]-> GetAsync
+         GetAsync -[Calls]-> OrderingContext.FindAsync
+  PASS  hop count does not move with maxPaths — 4 vs 4
+  PASS  totalPaths does not move with maxPaths — 10 vs 10
+  PASS  the page says it is a page — totalPaths=10 note=Showing 1 of 10 shortest paths; raise maxPaths for more. Longer routes exist and are not searched.
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g31\seam-eshop-maxpaths.json
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g31\seam-eshop-depthlimit.json
+  PASS  a depth-capped search does not claim there is no path — No path within 1 hop, in either direction — the search stopped at the depth limit with unexplored nodes left. Retry with maxDepth: 2.
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g31\seam-eshop-unresolved.json
+  PASS  an unresolved end says so instead of denying the path — 'Zzz_NoSuchSymbol_Zzz' did not resolve to a node — not the same as no path.

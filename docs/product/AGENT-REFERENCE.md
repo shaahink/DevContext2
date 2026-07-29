@@ -18,7 +18,7 @@ prompt, readable by a human, and carry provenance (`file:line`) for how each fac
 | CLI (`devcontext`) | `DevContext.Cli` | Primary scriptable surface; `dotnet tool install -g DevContext.Cli` |
 | Desktop | `DevContext.App` | Angular 22 (zoneless, signals) + Tauri 2; talks to the server over gRPC-Web |
 | gRPC-Web server | `DevContext.Server` | Analyze-once/query-many backend the desktop calls |
-| MCP server | `DevContext.Mcp` | 24 tools mapping to the gRPC RPCs, for AI-agent integration |
+| MCP server | `DevContext.Mcp` | 22 tools mapping to the gRPC RPCs, for AI-agent integration |
 | Contract codegen | `DevContext.Contracts` | proto → C# stubs (Grpc.Tools) |
 
 > There is **no** `DevContext.Desktop` (retired WPF/Blazor/Avalonia app) and **no** `DevContext.Roslyn`
@@ -151,13 +151,13 @@ Other CLI commands: `init` (config scaffold), `query` (graph queries — `--focu
 
 ## MCP tools (`DevContext.Mcp` — server name `devcontext`)
 
-24 tools over the gRPC RPCs (`DevContextTools.cs`; public catalog with setup snippets:
+22 tools over the gRPC RPCs (`DevContextTools.cs`; public catalog with setup snippets:
 `docs/product/mcp-reference.md`):
 
 ```
 Analyze · Overview · Resolve · Status · CloseSession · ListSessions · Stats · Entrypoints ·
-Map · TopFlows · Flow · InterestingPoints · Trace · Node · Neighbors · Usages · Find ·
-Impact · Config · TestsFor · Insights · GetContext · VerifyContext · ReadSource
+Map · TopFlows · Trace · Node · Neighbors · Usages · Find · Impact · Seam · Config ·
+TestsFor · GetContext · VerifyContext · ReadSource
 ```
 
 The desktop MCP page manages the server (status, config snippets, sessions, live log feed, try-a-tool

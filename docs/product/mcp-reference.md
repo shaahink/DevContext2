@@ -1,6 +1,6 @@
 # MCP Reference
 
-DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **21 tools**
+DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **22 tools**
 so any MCP-compatible agent (Claude Code, Cursor, VS Code, Cline, …) can query an analyzed .NET
 codebase instead of grepping it.
 
@@ -81,7 +81,7 @@ path or put the directory on `PATH`):
   ("N omitted") instead of truncating silently. A dial you do not name is left UNSET on the wire, so
   the server's one trace policy applies it — the MCP no longer carries its own copy of the defaults.
 
-## Tool catalog (21)
+## Tool catalog (22)
 
 ### Session
 
@@ -119,6 +119,7 @@ path or put the directory on `PATH`):
 |------|--------------|----------------|
 | `trace` | Call spine from one entry. `format: compact` is the small flow summary (~150 tokens: `steps`/`touches`/`emits`, each step prefixed with a seam glyph, plus a `legend` keying the ones it used); `format: default` is the full tree. **Omit `depth`/`budgetTokens` and the server's trace policy decides** — and only then can it deepen a walk that hit the limit with budget to spare. Naming a dial gets exactly that dial; `budgetTokens: 0` = full tree. Cut subtrees are named ("N omitted"), and `budgetSource` says whether the budget was yours or the policy's. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
+| `seam` | The wiring path **between** two symbols, hop by hop, each hop naming its seam kind, how the edge was bound, and the file:line. `trace` walks down from one entry and `impact` returns a set with distances; this is the only tool that answers "how does A reach B". Returns the shortest paths (`totalPaths` counts every one, including those the page left out); says `direction: reverse` when the connection runs the other way round, and names the retry when the hop budget — not the graph — ended the search. | `from`, `to`, `maxDepth` (8), `maxPaths` (3) |
 | `tests_for` | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
 | `config` | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |
 

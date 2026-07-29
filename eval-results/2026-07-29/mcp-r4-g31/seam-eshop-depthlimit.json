@@ -1,0 +1,16 @@
+{
+  "found": false,
+  "direction": "none",
+  "from": {
+    "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+    "title": "Order"
+  },
+  "to": {
+    "nodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+    "title": "OrderingContext.FindAsync"
+  },
+  "hops": 0,
+  "totalPaths": 0,
+  "paths": [],
+  "note": "No path within 1 hop, in either direction — the search stopped at the depth limit with unexplored nodes left. Retry with maxDepth: 2."
+}

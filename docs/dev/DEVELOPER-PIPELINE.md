@@ -31,7 +31,7 @@ src/
   DevContext.Cli/        `devcontext` dotnet tool — the primary scriptable surface
   DevContext.Contracts/  proto → C# codegen (Grpc.Tools); the C# side of the gRPC contract
   DevContext.Server/     gRPC-Web backend wrapping Core (analyze-once, query-many)
-  DevContext.Mcp/        MCP server — ~24 tools over the gRPC RPCs
+  DevContext.Mcp/        MCP server — 22 tools over the gRPC RPCs
   DevContext.App/        Angular 22 (zoneless, signals) + Tauri 2 desktop shell
 tests/
   DevContext.Core.Tests/    unit + golden + eval + truth tests

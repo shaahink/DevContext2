@@ -4,24 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**STAGE G2 COMPLETE.** G2.1 @ 35eea1e (+ b579030) · G2.2 @ 7d42c08 — evidence
-`eval-results/2026-07-29/G2.{1,2}-EVIDENCE.md`. R4 §1 items 1-7 + 11-12 all landed. Next: **G3.1**
-(`seam(from,to)` at proto + GraphQuery + tool). Test counts: **Core 674 / Server 76** (G1.4 was
-674/58) — a passing test is NOT named in the log, so the count delta is your only proof.
-**Verify with the battery's OWN commands**, never the bare `--filter "Category!=Eval"`:
-`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"`, then `"Category=McpQa"` ALONE (gates.ps1:136).
-**MIRRORING A CONSTANT DOES NOT KEEP TWO SURFACES TOGETHER — not restating it does.** Both G2 fixes
-are that one lesson: a hand-kept tool list that was CORRECT, and MCP dials that mirrored TracePolicy.
-A C# parameter default is not an unset field — assigning a proto3 `optional` sets its presence bit,
-which had silently disabled `TracePolicy.ElasticDepth` on every request the product ever served.
-G3 opens the proto: fold in `TraceResponse.applied_budget_tokens` (G2.2 §6) while you are there.
-**Watch your driver check go red before you trust it** — 4-for-4 now. G2.1's equality PASSED on the
-before-state (the stale list was still correct); G2.2's budget check would have been theatre (the
-4000 default cuts NOTHING on eShop at any depth — the observable half was the depth rule).
-Traps re-paid: the MCP spawns a DevContext.Server that outlives the driver and locks
-Core/Cli/Contracts.dll — `dotnet build` then reports 6 errors + 30 warnings that read as a code
-break; kill it BY PID. `InternalsVisibleTo` is unusable for DevContext.Mcp (its top-level `Program`
-collides with the Server's → CS0433). Run `pnpm gen:proto` after any proto edit.
+**G3.1 CLAIMED** — `seam(from,to)` at `GraphQuery` + proto (`GetSeam`, RPC 26) + tool (menu 21→**22**).
+Evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`. Test counts **Core 683 / Server 85** (was
+674/76, **+9 each**) — a passing test is not named in the log, so the delta is your only proof.
+Verify with `eval-results/2026-07-29/g3.1-verify.ps1`: the battery's OWN Step 2 filter
+(`Category!=Eval&Category!=CliSmoke&Category!=McpQa`) then `Category=McpQa` **alone** — never the
+bare `Category!=Eval`. Next: **G3.2** — and it is smaller than it looks: `GraphQuery.Neighbors`
+ALREADY takes an `EdgeKind?`; only `NeighborsRequest` and the tool don't expose it. The real work is
+the honesty half — what a kind matching nothing says, and whether the roll-up drops it. Then G3.3.
+**THE ROLL-UP IS WHAT A NEW TRAVERSAL GETS WRONG, and it is invisible until you test for it**: after
+Batch A a Type node carries almost no edges of its own, so anything written against
+`_graph.OutEdges` reports two types that collaborate every request as UNCONNECTED. Watched red
+3-of-9 — and **6 of the 9 passed on that broken state**, so a suite of the wrong 6 ships it.
+Traps re-paid: the MCP leaves a `DevContext.Server` alive that locks Core/Cli/Contracts.dll — kill it
+BY PID before the next build. `pnpm gen:proto` after any proto edit. My driver's ground truth was
+wrong once more (seam-vs-impact hop equality is a wrong premise on a Type target) — measure, 4-for-4.
+Still open from G2.2 §6: fold `TraceResponse.applied_budget_tokens` in on the next proto edit.
 
 
 ## Baseline numbers (from run.db)
@@ -30,7 +28,7 @@ collides with the Server's → CS0433). Run `pnpm gen:proto` after any proto edi
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 4 |
+| Claimed (unconfirmed) | 6 |
 
 ## Checkpoints
 
@@ -50,8 +48,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | TODO | - | - |
-| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | TODO | - | - |
+| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | DONE | 35eea1e | fast-engine:OK · guards:OK |
+| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | DONE | 35eea1e | fast-engine:OK · guards:OK |
 
 ### G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)
 

@@ -26,10 +26,10 @@
 
 ## Transport checks
 - [x] Cold start: server started and accepted initialize
-- [x] Analyze: the call returned its own handle in 1.1s
+- [x] Analyze: the call returned its own handle in 6.9s
 - [x] Session lifecycle: create, list, close
 
 ## Tool coverage
-Available tools (24): analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages, verify_context
+Available tools (22): analyze, close_session, config, entrypoints, find, get_context, impact, list_sessions, map, neighbors, node, overview, read_source, resolve, seam, stats, status, tests_for, top_flows, trace, usages, verify_context
 
 M4 tools covered: 9/9 (overview, resolve, trace, impact, read_source, find, config, get_context, tests_for)

@@ -609,6 +609,157 @@ public sealed class GraphQuery
         return results.ToImmutable();
     }
 
+    /// <summary>G3.1 (R4 item 8) — default hop budget for a seam search.</summary>
+    public const int DefaultSeamDepth = 8;
+
+    /// <summary>G3.1 — how many shortest paths a seam returns by default.</summary>
+    public const int DefaultSeamPaths = 3;
+
+    /// <summary>
+    /// seam(from, to) — THE PATH BETWEEN TWO SYMBOLS. Every other query here is single-source
+    /// (<see cref="Impact"/> = what reaches X, <see cref="BlastRadius"/> = which entries reach X,
+    /// <see cref="FindCallers"/> = who calls X); none of them answers the two-ended question, which
+    /// is the one an agent asks out loud — "does the checkout endpoint reach the payment service,
+    /// and through what?".
+    ///
+    /// <para>Returns the SHORTEST paths only, which is a definition and not a hedge: shortest is the
+    /// one answer that is well-defined, bounded, and stable. <c>TotalPaths</c> is the exact number of
+    /// shortest paths (counted over the search DAG, not by enumerating them), so a caller shown 3 of
+    /// 12 knows it was shown 3 of 12.</para>
+    ///
+    /// <para>When nothing runs from → to, the REVERSE direction is searched before answering: "B
+    /// reaches A in 3 hops" and "these two are unconnected" are different facts, and an agent that
+    /// gets the second for the first will conclude the wrong thing. <c>StoppedAtDepthLimit</c> keeps
+    /// the third case separate again — "no path within <paramref name="maxDepth"/> hops" is not "no
+    /// path".</para>
+    ///
+    /// <para>C3 roll-up applies at both ends: a Type departs through its members' edges
+    /// (<see cref="RolledEdges"/>) and arriving at any member of a target Type is arriving at the
+    /// Type. Without it a Type→Type seam dead-ends on two bare nodes that carry no edges of their
+    /// own. Each hop names the TRUE edge endpoints, so where a member carries the collaboration the
+    /// answer says which member.</para>
+    /// </summary>
+    public SeamResult Seam(NodeId from, NodeId to, int maxDepth = DefaultSeamDepth, int maxPaths = DefaultSeamPaths)
+    {
+        maxDepth = Math.Max(1, maxDepth);
+        maxPaths = Math.Max(1, maxPaths);
+
+        var forward = SearchSeam(from, to, maxDepth, maxPaths);
+        if (forward.Paths.Length > 0)
+            return new SeamResult(SeamDirection.Forward, forward.Paths, forward.Hops, forward.TotalPaths, forward.StoppedAtDepthLimit);
+
+        var reverse = SearchSeam(to, from, maxDepth, maxPaths);
+        if (reverse.Paths.Length > 0)
+            return new SeamResult(SeamDirection.Reverse, reverse.Paths, reverse.Hops, reverse.TotalPaths, reverse.StoppedAtDepthLimit);
+
+        return new SeamResult(SeamDirection.None, [], 0, 0,
+            forward.StoppedAtDepthLimit || reverse.StoppedAtDepthLimit);
+    }
+
+    /// <summary>One direction of <see cref="Seam"/>: BFS out-edges from source, collecting every
+    /// shortest-path predecessor, then read the paths back off that DAG.</summary>
+    private (ImmutableArray<SeamPath> Paths, int Hops, int TotalPaths, bool StoppedAtDepthLimit)
+        SearchSeam(NodeId source, NodeId target, int maxDepth, int maxPaths)
+    {
+        // Arriving at any member of a target Type IS arriving at the type (the C3 roll-up, read from
+        // the arrival side). Deterministic order: the target itself, then its members in graph order.
+        var targets = new List<NodeId> { target };
+        if (target.Kind == NodeKind.Type && _membersByType.Value.TryGetValue(target, out var targetMembers))
+            targets.AddRange(targetMembers);
+        var targetSet = targets.ToHashSet();
+
+        if (targetSet.Contains(source))
+            return ([new SeamPath([])], 0, 1, false);
+
+        // Predecessors on a shortest path. Via is the node the BFS EXPANDED; Edge.From can differ
+        // from it when a Type rolled its member's edge up, and the hop must show the member.
+        var dist = new Dictionary<NodeId, int> { [source] = 0 };
+        var preds = new Dictionary<NodeId, List<(NodeId Via, GraphEdge Edge)>>();
+        var frontier = new List<NodeId> { source };
+        var arrivalDepth = -1;
+        var stoppedAtDepthLimit = false;
+
+        for (var depth = 0; depth < maxDepth && frontier.Count > 0 && arrivalDepth < 0; depth++)
+        {
+            var next = new List<NodeId>();
+            foreach (var node in frontier)
+            {
+                foreach (var edge in RolledEdges(node, EdgeDirection.Out))
+                {
+                    var to = edge.To;
+                    if (dist.TryGetValue(to, out var known))
+                    {
+                        // Another equally-short way in — a real alternative path, not a duplicate.
+                        if (known == depth + 1) preds[to].Add((node, edge));
+                        continue;
+                    }
+                    dist[to] = depth + 1;
+                    preds[to] = [(node, edge)];
+                    next.Add(to);
+                    if (targetSet.Contains(to)) arrivalDepth = depth + 1;
+                }
+            }
+            frontier = next;
+            // The budget ran out with somewhere still to go: "no path in 8 hops", not "no path".
+            if (arrivalDepth < 0 && depth + 1 == maxDepth && next.Count > 0) stoppedAtDepthLimit = true;
+        }
+
+        if (arrivalDepth < 0) return ([], 0, 0, stoppedAtDepthLimit);
+
+        var arrivals = targets.Where(t => dist.TryGetValue(t, out var d) && d == arrivalDepth).ToList();
+
+        // Exact count over the DAG — enumerating to count would be exponential on a hub.
+        var counts = new Dictionary<NodeId, long>();
+        long CountTo(NodeId node)
+        {
+            if (node == source) return 1;
+            if (counts.TryGetValue(node, out var memo)) return memo;
+            counts[node] = 0; // cycles cannot occur on a BFS layer DAG; this also guards re-entry
+            long total = 0;
+            if (preds.TryGetValue(node, out var ps))
+                foreach (var (via, _) in ps)
+                    total = Math.Min(int.MaxValue, total + CountTo(via));
+            counts[node] = total;
+            return total;
+        }
+
+        var totalPaths = (int)Math.Min(int.MaxValue, arrivals.Sum(CountTo));
+
+        var paths = ImmutableArray.CreateBuilder<SeamPath>();
+        var acc = new List<GraphEdge>();
+        void Walk(NodeId node)
+        {
+            if (paths.Count >= maxPaths) return;
+            if (node == source)
+            {
+                var hops = ImmutableArray.CreateBuilder<SeamHop>(acc.Count);
+                for (var i = acc.Count - 1; i >= 0; i--) hops.Add(ToHop(acc[i]));
+                paths.Add(new SeamPath(hops.ToImmutable()));
+                return;
+            }
+            if (!preds.TryGetValue(node, out var ps)) return;
+            foreach (var (via, edge) in ps)
+            {
+                if (paths.Count >= maxPaths) return;
+                acc.Add(edge);
+                Walk(via);
+                acc.RemoveAt(acc.Count - 1);
+            }
+        }
+        foreach (var arrival in arrivals) Walk(arrival);
+
+        return (paths.ToImmutable(), arrivalDepth, totalPaths, stoppedAtDepthLimit);
+    }
+
+    private SeamHop ToHop(GraphEdge e)
+    {
+        var fromNode = _graph.Node(e.From);
+        var toNode = _graph.Node(e.To);
+        return new SeamHop(e.From, e.To,
+            fromNode?.Title ?? e.From.Key, toNode?.Title ?? e.To.Key,
+            e.Kind, e.Resolution, fromNode?.FilePath, fromNode?.LineNumber);
+    }
+
     /// <summary>search(term) — finds nodes whose title or id key contain the term.
     /// Capped at 20 results, ranked by degree (most-connected first).</summary>
     public ImmutableArray<SearchResult> Search(string term, int cap = 20)
@@ -747,6 +898,36 @@ public sealed record ImpactResult(
 
 /// <summary>Blast radius result: an entry point reachable from a target node.</summary>
 public sealed record BlastResult(string EntryTitle, string Kind, int Hops);
+
+/// <summary>G3.1 — which way round a seam actually connects. <c>Reverse</c> is the answer to a
+/// question the caller did not ask, returned because "B reaches A" is a fact, and letting it read
+/// as <c>None</c> would be a false negative the caller cannot see.</summary>
+public enum SeamDirection { None, Forward, Reverse }
+
+/// <summary>G3.1 — one hop of a seam path. Endpoints are the TRUE edge endpoints: where a type's
+/// member carries the collaboration, the hop names the member.</summary>
+public sealed record SeamHop(
+    NodeId From,
+    NodeId To,
+    string FromTitle,
+    string ToTitle,
+    EdgeKind Kind,
+    Resolution Resolution,
+    string? FilePath,
+    int? LineNumber);
+
+/// <summary>G3.1 — one route from the source end to the target end. Empty hops = the two ends
+/// resolved to the same symbol.</summary>
+public sealed record SeamPath(ImmutableArray<SeamHop> Hops);
+
+/// <summary>G3.1 — the seam between two symbols. <paramref name="TotalPaths"/> is the exact number
+/// of shortest paths, which is usually more than <paramref name="Paths"/> holds.</summary>
+public sealed record SeamResult(
+    SeamDirection Direction,
+    ImmutableArray<SeamPath> Paths,
+    int Hops,
+    int TotalPaths,
+    bool StoppedAtDepthLimit);
 
 /// <summary>Search result: a node matching a keyword query, with its degree for ranking.</summary>
 public sealed record SearchResult(NodeId Id, string Title, NodeKind Kind, int Degree);

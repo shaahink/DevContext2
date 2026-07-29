@@ -61,7 +61,7 @@ public sealed class McpToolMenuTests
         // Positive precondition first — an empty collection would make every check below vacuous,
         // and an empty ToolCollection is precisely the wiring break Program.cs logs an error for.
         Assert.Equal(ToolMethodNames().Count, registered.Count);
-        Assert.Equal(21, registered.Count);
+        Assert.Equal(22, registered.Count);   // G2.1 folded 24 -> 21; G3.1 added `seam`
 
         foreach (var retired in UnknownToolHandler.Folded.Select(f => f.Retired))
             Assert.DoesNotContain(retired, registered);

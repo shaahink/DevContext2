@@ -1,0 +1,5 @@
+{
+  "error": "'Zzz_NoSuchSymbol_Zzz' did not resolve to a node — not the same as no path.",
+  "hint": "Use resolve(query) to get an exact nodeId.",
+  "example": "seam(handle, from:\"OrdersController\", to:\"OrderingContext\")"
+}

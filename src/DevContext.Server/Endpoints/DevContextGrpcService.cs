@@ -246,6 +246,46 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToImpactResponse(results, request.Direction ?? "up");
         });
 
+    // G3.1 (R4 item 8) — seam(from, to). Both ends resolve through the SAME ResolveNode every other
+    // node-taking RPC uses; an end that does not resolve comes back named, because "OrderService did
+    // not resolve" and "nothing connects these two" are answers a caller must be able to tell apart.
+    public override Task<Proto.SeamResponse> GetSeam(Proto.SeamRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var maxDepth = request.HasMaxDepth && request.MaxDepth > 0
+                ? request.MaxDepth : Core.Graph.GraphQuery.DefaultSeamDepth;
+            var maxPaths = request.HasMaxPaths && request.MaxPaths > 0
+                ? request.MaxPaths : Core.Graph.GraphQuery.DefaultSeamPaths;
+
+            var fromId = ResolveNode(session, request.From);
+            var toId = ResolveNode(session, request.To);
+            if (fromId is null || toId is null)
+            {
+                var unresolved = fromId is null
+                    ? (toId is null ? $"'{request.From}' and '{request.To}'" : $"'{request.From}'")
+                    : $"'{request.To}'";
+                var resp = new Proto.SeamResponse
+                {
+                    Found = false,
+                    Direction = "none",
+                    FromNodeId = fromId?.ToString() ?? "",
+                    FromTitle = fromId is { } f ? Title(session, f) : "",
+                    ToNodeId = toId?.ToString() ?? "",
+                    ToTitle = toId is { } t ? Title(session, t) : "",
+                    Note = $"{unresolved} did not resolve to a node — that is not the same as no path.",
+                };
+                return resp;
+            }
+
+            var result = session.Query.Seam(fromId.Value, toId.Value, maxDepth, maxPaths);
+            return ProtoMapper.ToSeamResponse(result,
+                fromId.Value.ToString(), Title(session, fromId.Value),
+                toId.Value.ToString(), Title(session, toId.Value), maxDepth);
+        });
+
+    private static string Title(AnalysisSession session, NodeId id)
+        => session.Query.Graph.Node(id)?.Title ?? id.Key;
+
     public override Task<Proto.InterestingPointsResponse> GetInterestingPoints(
         Proto.InterestingPointsRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>

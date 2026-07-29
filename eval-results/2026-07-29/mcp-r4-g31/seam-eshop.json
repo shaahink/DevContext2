@@ -1,0 +1,138 @@
+{
+  "pair": {
+    "from": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+    "to": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+    "impactHops": 4
+  },
+  "response": {
+    "found": true,
+    "direction": "forward",
+    "from": {
+      "nodeId": "Type:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order",
+      "title": "Order"
+    },
+    "to": {
+      "nodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+      "title": "OrderingContext.FindAsync"
+    },
+    "hops": 4,
+    "totalPaths": 10,
+    "paths": [
+      [
+        {
+          "from": "SetAwaitingValidationStatus",
+          "to": "OrderStatusChangedToAwaitingValidationDomainEvent",
+          "kind": "Raises",
+          "resolution": "Semantic",
+          "fromNodeId": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetAwaitingValidationStatus",
+          "toNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+          "site": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:99"
+        },
+        {
+          "from": "OrderStatusChangedToAwaitingValidationDomainEvent",
+          "to": "OrderStatusChangedToAwaitingValidationDomainEventHandler",
+          "kind": "Handles",
+          "resolution": "Join",
+          "fromNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+          "toNodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToAwaitingValidationDomainEventHandler",
+          "site": "src/Ordering.Domain/Events/OrderStatusChangedToAwaitingValidationDomainEvent.cs:6"
+        },
+        {
+          "from": "Handle",
+          "to": "GetAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToAwaitingValidationDomainEventHandler::Handle",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "site": "src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToAwaitingValidationDomainEventHandler.cs:23"
+        },
+        {
+          "from": "GetAsync",
+          "to": "OrderingContext.FindAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+          "site": "src/Ordering.Infrastructure/Repositories/OrderRepository.cs:21"
+        }
+      ],
+      [
+        {
+          "from": "SetAwaitingValidationStatus",
+          "to": "OrderStatusChangedToAwaitingValidationDomainEvent",
+          "kind": "Raises",
+          "resolution": "Semantic",
+          "fromNodeId": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetAwaitingValidationStatus",
+          "toNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+          "site": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:99"
+        },
+        {
+          "from": "OrderStatusChangedToAwaitingValidationDomainEvent",
+          "to": "OrderStatusChangedToAwaitingValidationDomainEventHandler",
+          "kind": "Consumes",
+          "resolution": "Join",
+          "fromNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToAwaitingValidationDomainEvent",
+          "toNodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToAwaitingValidationDomainEventHandler",
+          "site": "src/Ordering.Domain/Events/OrderStatusChangedToAwaitingValidationDomainEvent.cs:6"
+        },
+        {
+          "from": "Handle",
+          "to": "GetAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToAwaitingValidationDomainEventHandler::Handle",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "site": "src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToAwaitingValidationDomainEventHandler.cs:23"
+        },
+        {
+          "from": "GetAsync",
+          "to": "OrderingContext.FindAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+          "site": "src/Ordering.Infrastructure/Repositories/OrderRepository.cs:21"
+        }
+      ],
+      [
+        {
+          "from": "SetStockConfirmedStatus",
+          "to": "OrderStatusChangedToStockConfirmedDomainEvent",
+          "kind": "Raises",
+          "resolution": "Semantic",
+          "fromNodeId": "Member:eShop.Ordering.Domain.AggregatesModel.OrderAggregate.Order::SetStockConfirmedStatus",
+          "toNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToStockConfirmedDomainEvent",
+          "site": "src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:108"
+        },
+        {
+          "from": "OrderStatusChangedToStockConfirmedDomainEvent",
+          "to": "OrderStatusChangedToStockConfirmedDomainEventHandler",
+          "kind": "Handles",
+          "resolution": "Join",
+          "fromNodeId": "Type:eShop.Ordering.Domain.Events.OrderStatusChangedToStockConfirmedDomainEvent",
+          "toNodeId": "Type:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToStockConfirmedDomainEventHandler",
+          "site": "src/Ordering.Domain/Events/OrderStatusChangedToStockConfirmedDomainEvent.cs:6"
+        },
+        {
+          "from": "Handle",
+          "to": "GetAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.API.Application.DomainEventHandlers.OrderStatusChangedToStockConfirmedDomainEventHandler::Handle",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "site": "src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToStockConfirmedDomainEventHandler.cs:23"
+        },
+        {
+          "from": "GetAsync",
+          "to": "OrderingContext.FindAsync",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "fromNodeId": "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+          "toNodeId": "Member:eShop.Ordering.Infrastructure.OrderingContext::FindAsync",
+          "site": "src/Ordering.Infrastructure/Repositories/OrderRepository.cs:21"
+        }
+      ]
+    ],
+    "note": "Showing 3 of 10 shortest paths; raise maxPaths for more. Longer routes exist and are not searched."
+  }
+}

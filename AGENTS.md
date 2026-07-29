@@ -27,7 +27,7 @@ DevContext.Core       kernel — analysis pipeline, Graph2 identity spine, BodyF
 ├── DevContext.Cli        `devcontext` dotnet tool — the primary scriptable surface
 ├── DevContext.Contracts  proto → C# codegen (Grpc.Tools)
 ├── DevContext.Server     gRPC-Web backend wrapping Core (analyze-once, query-many)
-└── DevContext.Mcp        MCP server — 21 tools mapping to the gRPC RPCs (docs/product/mcp-reference.md)
+└── DevContext.Mcp        MCP server — 22 tools mapping to the gRPC RPCs (docs/product/mcp-reference.md)
 
 DevContext.App        Angular 22 (zoneless, signals) + Tauri 2 desktop shell; talks to Server over gRPC-Web
 ```

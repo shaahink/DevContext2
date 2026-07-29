@@ -48,6 +48,12 @@ service DevContextService {
   // are affected by it (down). Supports diff-aware mode via a file list.
   rpc GetImpact(ImpactRequest) returns (ImpactResponse);
 
+  // G3.1 (R4 item 8) — the seam BETWEEN two symbols: the shortest wiring paths from one to the
+  // other, hop by hop. Every other graph query is single-source ("what does X reach", "what
+  // reaches X"); this is the two-ended question an agent actually asks — does the checkout
+  // endpoint reach the payment service, and through what.
+  rpc GetSeam(SeamRequest) returns (SeamResponse);
+
   // Configuration key lookup: find config keys and their binding/consumption sites.
   rpc ConfigLookup(ConfigRequest) returns (ConfigResponse);
 
@@ -609,6 +615,55 @@ message ImpactResult {
   optional int32 line_number = 6;
   string service = 7;         // project/service the affected node belongs to
   string node_title = 8;      // display title of the affected node
+}
+
+// ---------------------------------------------------------------------------
+// Seam (G3.1 / R4 item 8 — the path BETWEEN two symbols)
+// ---------------------------------------------------------------------------
+
+message SeamRequest {
+  string handle = 1;
+  string from = 2;                 // node id or resolvable name — the source end
+  string to = 3;                   // node id or resolvable name — the target end
+  optional int32 max_depth = 4;    // hop budget for the search (default 8)
+  optional int32 max_paths = 5;    // how many shortest paths to return (default 3)
+}
+
+message SeamResponse {
+  bool found = 1;                  // a path exists in the reported direction
+  // The two ends, AS RESOLVED. Empty when that end resolved to nothing — which is a different
+  // answer from "no path between them", and the note says which one failed.
+  string from_node_id = 2;
+  string from_title = 3;
+  string to_node_id = 4;
+  string to_title = 5;
+  // "forward" = from -> to. "reverse" = the requested direction has no path but the OTHER one
+  // does, and paths hold that walk; direction is the difference between "unconnected" and
+  // "connected the other way round", which an agent asking "does A reach B" needs told.
+  // "none" = neither.
+  string direction = 6;
+  repeated SeamPath paths = 7;
+  int32 hops = 8;                  // length of the shortest path (0 when none)
+  int32 total_paths = 9;           // shortest paths found before max_paths cut the list
+  // Why there is nothing, or what the answer does not cover: the depth limit stopping a search
+  // is not the same fact as an exhausted graph, and saying "no path" for both is a lie the
+  // caller cannot detect.
+  optional string note = 10;
+}
+
+message SeamPath {
+  repeated SeamHop hops = 1;
+}
+
+message SeamHop {
+  string from_node_id = 1;
+  string from_title = 2;
+  string to_node_id = 3;
+  string to_title = 4;
+  string kind = 5;                 // seam kind: Calls | Sends | Handles | Publishes | ...
+  string resolution = 6;           // Semantic | Syntactic | Heuristic — how the edge was bound
+  optional string file_path = 7;   // declaration site of the hop's SOURCE node
+  optional int32 line_number = 8;
 }
 
 // ---------------------------------------------------------------------------

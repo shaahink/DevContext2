@@ -1,0 +1,41 @@
+﻿Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 00:00:00.79]     
+DevContext.Core.Tests.GraphSeamTests.Type_to_type_connects_through_the_members_that_carry_it [FAIL]
+At line:1 char:428
++ ... evContext2; dotnet test tests/DevContext.Core.Tests --filter "FullyQu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...carry_it [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:00.80]     DevContext.Core.Tests.GraphSeamTests.Every_hop_names_its_seam_kind_resolution_and_site 
+[FAIL]
+[xUnit.net 00:00:00.80]     
+DevContext.Core.Tests.GraphSeamTests.A_connection_that_runs_the_other_way_is_reported_as_reverse [FAIL]
+  Failed DevContext.Core.Tests.GraphSeamTests.Type_to_type_connects_through_the_members_that_carry_it [8 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Forward
+Actual:   None
+  Stack Trace:
+     at DevContext.Core.Tests.GraphSeamTests.Type_to_type_connects_through_the_members_that_carry_it() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphSeamTests.cs:line 84
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.GraphSeamTests.Every_hop_names_its_seam_kind_resolution_and_site [1 ms]
+  Error Message:
+   Assert.Single() Failure: The collection was empty
+  Stack Trace:
+     at DevContext.Core.Tests.GraphSeamTests.Every_hop_names_its_seam_kind_resolution_and_site() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphSeamTests.cs:line 99
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.GraphSeamTests.A_connection_that_runs_the_other_way_is_reported_as_reverse [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Reverse
+Actual:   None
+  Stack Trace:
+     at DevContext.Core.Tests.GraphSeamTests.A_connection_that_runs_the_other_way_is_reported_as_reverse() in C:\code\DevContext2\tests\DevContext.Core.Tests\GraphSeamTests.cs:line 145
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     3, Passed:     6, Skipped:     0, Total:     9, Duration: 103 ms - DevContext.Core.Tests.dll (net10.0)
