@@ -110,8 +110,25 @@
       `EntryPointResolver` ranked candidates on a type's OWN out-edges while `GraphQuery.ResolveNodeId`
       has ranked on ROLLED degree since C3, so on a library — where front doors are interfaces with no
       out-edges — every candidate tied at 0 and enumeration order won. One rolled ranking rule now.
-      Evidence: `eval-results/2026-07-29/G1.2-EVIDENCE.md`. Items 3-7 + 11-12 open;
-      dogfood + REPORT.md ungraded.
+      Evidence: `eval-results/2026-07-29/G1.2-EVIDENCE.md`.
+      **§1 items 3+4+5 LANDED 2026-07-29** (75704f2). Item 3 was understated: Core's `SeamKind` has
+      never produced the plurals the MCP matched, AND `Data`/`Resolve`/`Pipeline` had no arm at all,
+      so **seven of ten seam kinds rendered the same mute dot** — on eShop's `POST /api/orders/` the
+      two mute rows were the MediatR dispatch and its handler. Compact traces now carry a `legend`,
+      and Core's own `TraceRenderer` gained the `CrossService` label it never had. Item 4's root
+      cause is two server lines (`Get()` bumps `LastAccess` on every access, `ListSessions()` orders
+      by it), so `Sessions[0]` meant "whatever repo someone else touched last"; the MCP now prefers
+      the session it analyzed, and names the open ones rather than guessing. Item 5's [audit] ref
+      named 5 tools; a sweep of all 24 found **8**, so the fix is a test that walks every
+      `[McpServerTool]` method against a failing client. Evidence:
+      `eval-results/2026-07-29/G1.3-EVIDENCE.md`. Items 6-7 + 11-12 open; dogfood + REPORT.md
+      ungraded.
+      **Verification-command trap, worth more than any of the above**: `dotnet test --filter
+      "Category!=Eval"` is NOT `eval/gates.ps1` Step 2 (`:136` also excludes `CliSmoke` and
+      `McpQa`, and runs the MCP QA drive alone as Step 2b). Verifying with it drags a 3-minute
+      external node drive into a 674-test parallel run, where the server the MCP spawns exits
+      before binding — `FATAL: Timeout: initialize`, which reads as an engine collapse and is not
+      one. That is the `McpQaGateTests` red three G1 sessions have chased.
 
 Session log (one line each: date · what closed · surprises):
 - 2026-07-27 · S1 steps 1-2 done ahead of session: Prism merge signed+landed (develop 8dbb510,
