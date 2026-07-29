@@ -139,8 +139,10 @@ import {
       <div class="tile">
         <h3 class="tile-heading">Freshness</h3>
         @if (summary(); as s) {
+          <!-- G3.3 (R4 item 10): on a snapshot-cache hit elapsedMs times the LOAD, so pairing it
+               with the analysis date read as an implausibly fast run. Say which one this is. -->
           <p class="text-xs text-ink">
-            Analyzed {{ age() }}@if (s.elapsedMs > 0) {<span class="text-ink-muted"> in <span class="font-mono tabular-nums">{{ formatElapsed() }}</span></span>}
+            Analyzed {{ age() }}@if (fromCache()) {<span class="text-ink-muted"> · restored from snapshot</span>} @else if (s.elapsedMs > 0) {<span class="text-ink-muted"> in <span class="font-mono tabular-nums">{{ formatElapsed() }}</span></span>}
           </p>
           <!-- R3 D-E (E1): types and projects live on the identity strip; this tile is about the
                RUN, so it keeps what only the run knows — edge count and the commit it read. -->
@@ -264,6 +266,9 @@ export class HomeTiles implements OnDestroy {
     const sha = this.session.freshness()?.commitSha ?? '';
     return sha ? sha.slice(0, 7) : null;
   });
+
+  /** G3.3 — these numbers were rehydrated from a persisted snapshot, not computed by this run. */
+  protected readonly fromCache = computed(() => this.session.freshness()?.fromCache ?? false);
 
   protected reanalyze(): void {
     void this.session.reAnalyze();

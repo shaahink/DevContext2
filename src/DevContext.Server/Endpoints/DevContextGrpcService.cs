@@ -567,6 +567,11 @@ public sealed class DevContextGrpcService(
                     Nodes = s.Snapshot.Graph?.NodeCount ?? 0,
                     Edges = s.Snapshot.Graph?.EdgeCount ?? 0,
                     Entries = s.Snapshot.Entries.Length,
+                    // R4 item 10 — AgeSeconds above is how long ago this SESSION opened. When the
+                    // runner rehydrated a snapshot, that is minutes-to-days younger than the
+                    // analysis it serves, and the app's freshness card read the wrong one.
+                    FromCache = s.Engine.FromSnapshotCache,
+                    AnalyzedAt = ProtoMapper.Iso(s.Engine.AnalyzedAtUtc),
                 });
             }
             return Task.FromResult(resp);

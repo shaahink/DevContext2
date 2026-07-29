@@ -165,6 +165,17 @@ message AnalysisSummary {
   string archetype = 11;
   bool stale = 12;
   string stale_message = 13;
+  // R4 item 10 -- snapshot-cache truth. These three answer "how much do I trust the numbers above",
+  // which nothing on this message could answer before: elapsed_ms on a rehydrate times the 200ms
+  // LOAD, so a cache-served summary looked exactly like a freshly computed one.
+  // Distinct from AnalyzeResult.cached, which answers "did THIS CALL do work" (an already-open
+  // session for the same repo also makes that true). from_cache is about the NUMBERS: they were
+  // rehydrated from a persisted snapshot rather than computed in this process.
+  bool from_cache = 14;
+  // ISO-8601 UTC instant the analysis behind these numbers finished; empty when unknown.
+  string analyzed_at = 15;
+  // git rev-parse HEAD of the analysed root -- the commit these numbers describe. Empty outside git.
+  string git_head = 16;
 }
 
 message SessionRequest {
@@ -842,6 +853,11 @@ message SessionInfo {
   int32 nodes = 8;
   int32 edges = 9;
   int32 entries = 10;
+  // R4 item 10 -- age_seconds is the SESSION's age, and a snapshot-cache hit opens a brand-new
+  // session, so it reported ~0 for an analysis that ran days ago. These two are about the ANALYSIS.
+  bool from_cache = 11;
+  // ISO-8601 UTC instant the analysis behind this session finished; empty when unknown.
+  string analyzed_at = 12;
 }
 
 // ---------------------------------------------------------------------------

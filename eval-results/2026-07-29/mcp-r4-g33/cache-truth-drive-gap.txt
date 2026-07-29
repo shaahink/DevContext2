@@ -1,0 +1,19 @@
+case: cache-truth
+  PASS  analyze MediatR — 0.1s
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g33\cache-truth-1-fresh.json
+  SKIP (precondition)  the first call was itself served from cache on this host — a server was already running with a different cache root. Cold-path assertion lives in AnalyzeCacheTruthTests.All_three_paths_report_themselves.
+  PASS  the summary dates itself — 2026-07-29T10:26:31Z
+  PASS  ...and the date is NOW — 134s ago
+  PASS  the summary names the commit it describes — 1fd25f5beb40aafd6859d9225a37d0c4f5062cfa
+  PASS  list_sessions carries the same three facts — analyzedAt=2026-07-29T10:26:31Z commitSha=1fd25f5 fromCache=true
+  PASS  session closed — {"closed":true,"handle":"fea0e84ffd4649928e245b6bcb122f24"}
+  waiting 20s so the analysis is measurably older than the session it will open
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g33\cache-truth-2-rehydrated.json
+  PASS  the rehydrate is a NEW session — fea0e84f -> 4ac8a5e9
+  PASS  ...and says the numbers came from disk — cached=true fromCache=true
+  PASS  THE CLAIM: it reports the ORIGINAL analysis instant, not its own — 2026-07-29T10:26:31Z -> 2026-07-29T10:26:31Z
+  PASS  ...and the same commit — 1fd25f5
+  PASS  the note says so in words, and names the instant — Served from cache — no analysis ran. The numbers below describe an analysis that finished 2026-07-29T10:26:31Z at HEAD 1fd25f5. elapsedMs below is the snapshot load, not that analysis.
+  session age 0s vs analysis age 155s
+  PASS  THE DIVERGENCE the field exists for: the session is younger than the analysis — analysis 155s old, session 0s old
+  PASS  ...and the app reads the analysis one (it is what the freshness card is built from) — fromCache=true analyzedAt=2026-07-29T10:26:31Z

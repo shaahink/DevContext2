@@ -65,6 +65,16 @@ path or put the directory on `PATH`):
   the result has been snapshotted. It returns the run's `summary` as well — archetype, projects,
   nodes, edges, entries, `entriesWithTarget`, `elapsedMs`, warnings — so the first call answers
   "what is this repo" without a second one. A first analysis of a large repo can take minutes.
+- **How old is the answer?** The summary dates itself: `analyzedAt` (ISO-8601 UTC) is when the
+  analysis behind those numbers actually finished, `gitHead` is the commit it describes, and
+  `fromCache` says the numbers were rehydrated from a persisted snapshot rather than computed now.
+  Read `fromCache` before `elapsedMs`: a rehydrate stops the clock at the *load*, so a snapshot from
+  last week reports a couple of hundred milliseconds. `cached` and `fromCache` answer different
+  questions — `cached` is "did this CALL do work" (an already-open session also makes it true),
+  `fromCache` is "were these NUMBERS loaded from disk".
+- `list_sessions` carries the same distinction: `ageSeconds` is how long ago the **session** opened,
+  which a cache hit resets to zero; `analyzedAt`, `commitSha` and `fromCache` are about the
+  **analysis**.
 - A repo with several solutions analyses one of them. `map` says which in `solutionScope` and lists
   the alternatives; `analyze(path, sln:)` switches to one of them by name, file name, or
   repo-relative path.

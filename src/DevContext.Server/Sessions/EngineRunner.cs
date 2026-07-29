@@ -35,7 +35,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                 var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options0);
                 if (_snapCache.Exists(repoKey, versionKey))
                 {
-                    var cached = await _snapCache.TryLoadAsync(repoKey, versionKey, ct)
+                    var cached = await _snapCache.TryLoadCachedAsync(repoKey, versionKey, ct)
                         .ConfigureAwait(false);
                     if (cached is not null)
                     {
@@ -46,14 +46,18 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                         var options = options0;
 
                         var host = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
-                        var rehydrated = cached with { Options = options, RootPath = rootResult.EffectiveRootPath };
+                        var rehydrated = cached.Snapshot with { Options = options, RootPath = rootResult.EffectiveRootPath };
                         var label = BuildLabel(rehydrated, rootResult);
                         var projectCount = rehydrated.Map?.Topology.Length ?? 0;
                         sw.Stop();
                         return new EngineResult(rehydrated, host.Pipeline, label, projectCount,
                             sw.ElapsedMilliseconds, resolvedIntent.Explanation, resolvedIntent.Warnings,
                             registryEntry.Path, spec.Cleanup, stale, stale ? staleMessage : null,
-                            FromSnapshotCache: true);
+                            FromSnapshotCache: true,
+                            // R4 item 10 — the snapshot's own instant, not this call's. sw above
+                            // timed the rehydrate; reporting it as the analysis time is the lie.
+                            AnalyzedAtUtc: cached.AnalyzedAtUtc,
+                            GitHead: GitHeadReader.Read(rootResult.EffectiveRootPath));
                     }
                 }
             }
@@ -70,18 +74,20 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath, options2);
         if (_snapCache.Exists(repoKey2, versionKey2))
         {
-            var cached2 = await _snapCache.TryLoadAsync(repoKey2, versionKey2, ct)
+            var cached2 = await _snapCache.TryLoadCachedAsync(repoKey2, versionKey2, ct)
                 .ConfigureAwait(false);
             if (cached2 is not null)
             {
                 var host2 = hostCache.GetOrCreate(rootResult2.EffectiveRootPath);
-                var rehydrated2 = cached2 with { Options = options2, RootPath = rootResult2.EffectiveRootPath };
+                var rehydrated2 = cached2.Snapshot with { Options = options2, RootPath = rootResult2.EffectiveRootPath };
                 var label2 = BuildLabel(rehydrated2, rootResult2);
                 var projectCount2 = rehydrated2.Map?.Topology.Length ?? 0;
                 sw.Stop();
                 return new EngineResult(rehydrated2, host2.Pipeline, label2, projectCount2,
                     sw.ElapsedMilliseconds, resolvedIntent2.Explanation, resolvedIntent2.Warnings,
-                    gitClonePath, spec.Cleanup, FromSnapshotCache: true);
+                    gitClonePath, spec.Cleanup, FromSnapshotCache: true,
+                    AnalyzedAtUtc: cached2.AnalyzedAtUtc,
+                    GitHead: GitHeadReader.Read(rootResult2.EffectiveRootPath));
             }
         }
 
@@ -113,6 +119,9 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         };
 
         var snapshot = await host3.Pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
+        // R4 item 10 — stamped where the analysis ENDS, next to the save that persists the same
+        // instant, so a run and its later rehydrate report one time rather than two.
+        var analyzedAt = DateTime.UtcNow;
 
         // J2 — awaited save (the fire-and-forget form could die with the request scope) with the
         // failure surfaced in the server log instead of swallowed.
@@ -129,7 +138,9 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         return new EngineResult(
             snapshot, host3.Pipeline, label3, projectCount3, sw.ElapsedMilliseconds,
             resolvedIntent2.Explanation, resolvedIntent2.Warnings, gitClonePath,
-            spec.Cleanup);
+            spec.Cleanup,
+            AnalyzedAtUtc: analyzedAt,
+            GitHead: GitHeadReader.Read(rootResult2.EffectiveRootPath));
     }
 
     /// <summary>

@@ -16,6 +16,15 @@ const REPOS = join(__dirname, "..", "..", "eval-repos");
 
 const MCP_EXE = join(__dirname, "..", "..", "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
 
+// G3.3 — the cache-truth case needs its FIRST analyze to be a real cold run, so it gets a private
+// snapshot cache. This only takes effect when the MCP has to spawn the server: ServerShim pings
+// 127.0.0.1:5179 first and reuses whatever is already listening, env and all. The case therefore
+// checks whether the cold path was actually exercised rather than assuming it.
+if (CASE === "cache-truth") {
+  process.env.DEVCONTEXT_CACHE_ROOT = join(
+    require("os").tmpdir(), "devcontext-cachetruth-drive", String(process.pid));
+}
+
 // ---- JSON-RPC over stdio (same transport as run.js) ----
 function mcpClient(exePath) {
   const proc = spawn(exePath, [], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
@@ -769,6 +778,87 @@ const CASES = {
     check("an unfiltered call still returns the whole set",
       unfiltered.count === unfiltered.totalEdges && !unfiltered.note,
       `count=${unfiltered.count} total=${unfiltered.totalEdges} note=${unfiltered.note ?? "(none)"}`);
+  },
+
+  // G3.3 (R4 item 10) — snapshot-cache truth. The question this case answers is not "did the call
+  // do work" (item 7 already landed `cached`) but "what are these numbers ABOUT": when the analysis
+  // behind them ran, and against which commit. The proof is the SECOND analyze: it must report the
+  // FIRST one's instant, and list_sessions must show ageSeconds and analyzedAt disagreeing — the
+  // session is seconds old, the analysis is not. That divergence is the whole defect.
+  async "cache-truth"(client) {
+    const repo = join(REPOS, "MediatR");
+    const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+
+    const first = await analyzeRepo(client, repo);
+    check("analyze MediatR", !!first.handle, `${(first.elapsedMs / 1000).toFixed(1)}s`);
+    if (!first.handle) return;
+    dump("cache-truth-1-fresh.json", first.response);
+
+    const s1 = first.response.summary ?? {};
+    const coldPathExercised = first.response.cached === false;
+    if (coldPathExercised) {
+      check("a fresh run says it is fresh", s1.fromCache === false,
+        `cached=${first.response.cached} fromCache=${s1.fromCache}`);
+    } else {
+      // Loud, not silent: a server was already listening on 5179 with its own cache root, so this
+      // host answered the first call from disk too. Everything below still runs; the cold assertion
+      // itself is pinned deterministically by AnalyzeCacheTruthTests, which owns its cache root.
+      console.log(`  SKIP (precondition)  the first call was itself served from cache on this host — `
+        + `a server was already running with a different cache root. Cold-path assertion lives in `
+        + `AnalyzeCacheTruthTests.All_three_paths_report_themselves.`);
+    }
+    check("the summary dates itself", iso.test(s1.analyzedAt ?? ""), s1.analyzedAt ?? "(missing)");
+    check("...and the date is NOW", Math.abs(Date.now() - Date.parse(s1.analyzedAt)) < 600000,
+      `${Math.round((Date.now() - Date.parse(s1.analyzedAt)) / 1000)}s ago`);
+    check("the summary names the commit it describes", /^[0-9a-f]{40}$/.test(s1.gitHead ?? ""),
+      s1.gitHead ?? "(missing)");
+
+    const before = await tool(client, "list_sessions", {});
+    const own1 = (before.data.sessions ?? []).find((s) => s.handle === first.handle);
+    check("list_sessions carries the same three facts", !!own1 && own1.analyzedAt === s1.analyzedAt && own1.commitSha === s1.gitHead,
+      own1 ? `analyzedAt=${own1.analyzedAt} commitSha=${(own1.commitSha ?? "").slice(0, 7)} fromCache=${own1.fromCache}` : "session not listed");
+
+    // Drop the session so the next analyze cannot be answered by session reuse. What is left is
+    // the snapshot on disk — the path that used to look identical to a fresh run.
+    const closed = await tool(client, "close_session", { handle: first.handle });
+    check("session closed", closed.data?.closed === true || closed.data?.status === "closed", JSON.stringify(closed.data));
+
+    // Wait, deliberately. In production the gap between an analysis and its rehydrate is hours or
+    // days; MediatR analyses in ~3s, so without a pause the divergence below is a rounding error
+    // and the evidence proves nothing. 20s is enough to be unambiguous and cheap to run.
+    const GAP_MS = 20000;
+    console.log(`  waiting ${GAP_MS / 1000}s so the analysis is measurably older than the session it will open`);
+    await new Promise((r) => setTimeout(r, GAP_MS));
+
+    const second = await analyzeRepo(client, repo);
+    dump("cache-truth-2-rehydrated.json", second.response);
+    const s2 = second.response.summary ?? {};
+
+    check("the rehydrate is a NEW session", second.handle !== first.handle, `${first.handle?.slice(0, 8)} -> ${second.handle?.slice(0, 8)}`);
+    check("...and says the numbers came from disk", second.response.cached === true && s2.fromCache === true,
+      `cached=${second.response.cached} fromCache=${s2.fromCache}`);
+    check("THE CLAIM: it reports the ORIGINAL analysis instant, not its own",
+      s2.analyzedAt === s1.analyzedAt, `${s1.analyzedAt} -> ${s2.analyzedAt}`);
+    check("...and the same commit", s2.gitHead === s1.gitHead, (s2.gitHead ?? "").slice(0, 7));
+    if (coldPathExercised) {
+      check("the rehydrate really was near-instant (so elapsedMs is the LOAD)",
+        Number(s2.elapsedMs) < Number(s1.elapsedMs), `${s2.elapsedMs}ms vs ${s1.elapsedMs}ms`);
+    }
+    check("the note says so in words, and names the instant",
+      typeof second.response.note === "string" && second.response.note.includes(s1.analyzedAt)
+        && /snapshot load/.test(second.response.note),
+      second.response.note ?? "(missing)");
+
+    const after = await tool(client, "list_sessions", {});
+    const own2 = (after.data.sessions ?? []).find((s) => s.handle === second.handle);
+    const analysisAgeS = Math.round((Date.now() - Date.parse(own2?.analyzedAt ?? "")) / 1000);
+    const sessionAgeS = Number(own2?.ageSeconds ?? -1);
+    console.log(`  session age ${sessionAgeS}s vs analysis age ${analysisAgeS}s`);
+    check("THE DIVERGENCE the field exists for: the session is younger than the analysis",
+      analysisAgeS - sessionAgeS >= GAP_MS / 1000 - 2, `analysis ${analysisAgeS}s old, session ${sessionAgeS}s old`);
+    check("...and the app reads the analysis one (it is what the freshness card is built from)",
+      own2?.fromCache === true && own2?.analyzedAt === s1.analyzedAt,
+      `fromCache=${own2?.fromCache} analyzedAt=${own2?.analyzedAt}`);
   },
 };
 

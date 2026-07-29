@@ -1,0 +1,22 @@
+{
+  "handle": "fea0e84ffd4649928e245b6bcb122f24",
+  "status": "ready",
+  "cached": true,
+  "note": "Served from cache — no analysis ran. The numbers below describe an analysis that finished 2026-07-29T10:26:31Z at HEAD 1fd25f5. elapsedMs below is the snapshot load, not that analysis.",
+  "summary": {
+    "label": "MediatR",
+    "archetype": "Library",
+    "isLibrary": true,
+    "projects": 2,
+    "nodes": 187,
+    "edges": 67,
+    "entries": 1,
+    "entriesWithTarget": 0,
+    "elapsedMs": 109,
+    "fromCache": true,
+    "analyzedAt": "2026-07-29T10:26:31Z",
+    "gitHead": "1fd25f5beb40aafd6859d9225a37d0c4f5062cfa",
+    "explanation": "Overview map (no focus)."
+  },
+  "hint": "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving."
+}

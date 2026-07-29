@@ -20,11 +20,16 @@ export interface LogLine {
   readonly timestamp: number;
 }
 
-/** D4.6 (L2) — when the session's snapshot came to be: analyzed-at (server age for
- * adopted sessions, client stamp for fresh runs) + the analyzed HEAD sha ('' outside git). */
+/** D4.6 (L2) — when the session's snapshot came to be, plus the analyzed HEAD sha ('' outside git).
+ *
+ * G3.3 (R4 item 10) — analyzedAtMs is now the server's own analyzed-at instant. It used to be
+ * derived from SessionInfo.age_seconds, which is how long ago the SESSION opened: a snapshot-cache
+ * hit opens a brand-new session, so a three-day-old analysis arrived with age ~0 and this card said
+ * "just now". fromCache says whether those numbers were rehydrated rather than computed. */
 export interface SessionFreshness {
   readonly analyzedAtMs: number;
   readonly commitSha: string;
+  readonly fromCache: boolean;
 }
 
 /** Everything SessionStore used to hold as its own private signals — now one tab's slice. */

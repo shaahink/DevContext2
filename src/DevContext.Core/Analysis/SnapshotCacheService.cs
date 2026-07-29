@@ -154,6 +154,10 @@ public sealed class SnapshotCacheService
             {
                 SchemaVersion = SnapshotSchema.Version,
                 EngineVersion = SnapshotSchema.EngineVersion,
+                // R4 item 10 — the instant the analysis behind this payload finished. Written here
+                // rather than derived from the file's mtime because eviction, backup and sync tools
+                // all rewrite mtimes, and "when did this analysis run" must survive them.
+                CreatedAtUtc = DateTime.UtcNow,
                 Payload = SnapshotPersistence.FromSnapshot(snapshot),
             };
             await using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
@@ -173,6 +177,13 @@ public sealed class SnapshotCacheService
     }
 
     public async Task<AnalysisSnapshot?> TryLoadAsync(string repoKey, string versionKey, CancellationToken ct)
+        => (await TryLoadCachedAsync(repoKey, versionKey, ct).ConfigureAwait(false))?.Snapshot;
+
+    /// <summary>R4 item 10 — the load that also answers "how old is this answer". Callers that only
+    /// render the snapshot keep using <see cref="TryLoadAsync"/>; callers that REPORT freshness
+    /// (the server's analyze envelope, SessionInfo) need the instant, because a rehydrate takes
+    /// 200ms and used to be indistinguishable on the wire from an eight-minute run.</summary>
+    public async Task<CachedSnapshot?> TryLoadCachedAsync(string repoKey, string versionKey, CancellationToken ct)
     {
         var path = GetSnapshotPath(repoKey, versionKey);
         if (!File.Exists(path)) return null;
@@ -190,7 +201,13 @@ public sealed class SnapshotCacheService
             if (envelope.Payload is null) return null;
             var snapshot = SnapshotPersistence.ToSnapshot(envelope.Payload);
             TouchMeta(repoKey);
-            return snapshot;
+            // A pre-item-10 file carries no stamp. It can only be read by the build that wrote it
+            // (EngineVersion above), so this fallback is unreachable in practice — but a wrong
+            // timestamp is worse than a coarse one, and the file's own mtime is at least a bound.
+            var analyzedAt = envelope.CreatedAtUtc == default
+                ? File.GetLastWriteTimeUtc(path)
+                : envelope.CreatedAtUtc;
+            return new CachedSnapshot(snapshot, analyzedAt);
         }
         catch (Exception)
         {
@@ -204,6 +221,10 @@ public sealed class SnapshotCacheService
     {
         public int SchemaVersion { get; init; }
         public string? EngineVersion { get; init; }
+        /// <summary>R4 item 10 — when the analysis behind <see cref="Payload"/> finished. Envelope
+        /// metadata, not payload, so it needs no <see cref="SnapshotSchema.Version"/> bump: an older
+        /// file simply deserializes it as default and the loader falls back to the file mtime.</summary>
+        public DateTime CreatedAtUtc { get; init; }
         public PersistedSnapshot? Payload { get; init; }
     }
 
@@ -354,3 +375,10 @@ public sealed record CacheInfo(
     long TotalBytes,
     DateTime LastUsed
 );
+
+/// <summary>R4 item 10 — a rehydrated snapshot together with the one fact the file used to lose:
+/// WHEN the analysis that produced it actually ran. <see cref="AnalysisSnapshot"/> carries no clock,
+/// so every consumer of a cache hit stamped "now" and a three-day-old answer claimed to be current.
+/// The git HEAD needs no field here: the version key IS the head, so a hit can only happen when the
+/// tree on disk still stands at the commit the snapshot describes.</summary>
+public sealed record CachedSnapshot(AnalysisSnapshot Snapshot, DateTime AnalyzedAtUtc);

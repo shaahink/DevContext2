@@ -1,0 +1,65 @@
+
+> devcontext-app@0.0.0 check C:\code\DevContext2\src\DevContext.App
+> pnpm lint && pnpm test && pnpm build
+
+
+> devcontext-app@0.0.0 lint C:\Code\DevContext2\src\DevContext.App
+> ng lint
+
+
+Linting "devcontext-app"...
+
+All files pass linting.
+
+
+> devcontext-app@0.0.0 test C:\Code\DevContext2\src\DevContext.App
+> ng test --watch=false
+
+❯ Building...
+✔ Building...
+Application bundle generation complete. [13.245 seconds] - 2026-07-29T10:23:56.803Z
+
+
+ RUN  v4.1.9 C:/Code/DevContext2/src/DevContext.App
+
+
+ Test Files  17 passed (17)
+      Tests  123 passed (123)
+   Start at  11:23:58
+   Duration  13.32s (transform 6.61s, setup 13.06s, import 18.69s, tests 6.21s, environment 94.60s)
+
+
+> devcontext-app@0.0.0 build C:\Code\DevContext2\src\DevContext.App
+> ng build
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names           |  Raw size | Estimated transfer size
+main-KZXEC6WA.js    | main            | 271.04 kB |                73.15 kB
+styles-J3UFIH4Y.css | styles          |  52.45 kB |                 8.54 kB
+
+                    | Initial total   | 323.50 kB |                81.68 kB
+
+Lazy chunk files    | Names           |  Raw size | Estimated transfer size
+chunk-CTTF6mXf.js   | elk-bundled     |   1.46 MB |               338.79 kB
+chunk-5F7QpV9f.js   | -               | 472.30 kB |               127.71 kB
+chunk-CIhfsNKw.js   | -               | 127.67 kB |                32.53 kB
+chunk-DaEYJDBv.js   | workbench-page  | 115.93 kB |                26.31 kB
+chunk-C__N2Ke3.js   | workspace-shell |  55.50 kB |                13.21 kB
+chunk-0_867QcN.js   | home-page       |  50.74 kB |                12.84 kB
+chunk-D_-LT1J2.js   | context-studio  |  49.23 kB |                11.88 kB
+chunk-Br6E-8An.js   | -               |  39.24 kB |                 8.62 kB
+chunk-pEv5_i8H.js   | -               |  28.17 kB |                 9.42 kB
+chunk-Ba9fP-Gr.js   | atlas-page      |  21.04 kB |                 6.05 kB
+chunk-B_jpPuUX.js   | -               |  20.05 kB |                 6.01 kB
+chunk-DsHscitP.js   | window          |  14.04 kB |                 3.06 kB
+chunk-DQuXnImS.js   | mcp-page        |  14.01 kB |                 4.18 kB
+chunk-CRVDVJ9g.js   | settings-view   |  13.45 kB |                 3.67 kB
+chunk-hrHpXOzh.js   | insights-page   |   8.53 kB |                 2.76 kB
+...and 17 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [45.905 seconds] - 2026-07-29T10:25:00.679Z
+
+Output location: C:\Code\DevContext2\src\DevContext.App\dist\devcontext-app
+
+CHECK EXIT=0

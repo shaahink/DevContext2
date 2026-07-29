@@ -2,7 +2,7 @@ import { computed, inject, Injectable } from '@angular/core';
 import { create } from '@bufbuild/protobuf';
 
 import { ActivityService } from '../core/activity/activity.service';
-import { AnalysisSummarySchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { type AnalysisSummary, AnalysisSummarySchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, groupEntries } from '../models/view-models';
 import { AtlasStore } from './atlas.store';
@@ -127,29 +127,14 @@ export class SessionStore {
         mapMarkdown: map.markdown,
         entryGroups,
         status: 'ready',
-        // D4.6 (L2) — provisional stamp; the ListSessions round-trip below refines it
-        // with the server's HEAD sha (fresh runs have age ≈ 0 anyway).
-        freshness: { analyzedAtMs: Date.now(), commitSha: '' },
+        // G3.3 (R4 item 10) — the summary now carries the analysis's own instant, HEAD and
+        // from-cache flag, so the card is right on the first paint. This replaces a ListSessions
+        // round-trip whose age_seconds measured the SESSION, not the analysis: analyze() on a
+        // repo whose snapshot is cached returns in ~200ms with a session 0s old, and the card
+        // read "just now" over numbers that could be days old.
+        freshness: freshnessOf(outcome.summary),
       }));
       this.activity.clear();
-
-      // D4.6 (L2) — the server already knows the analyzed HEAD (SessionInfo.commit_sha,
-      // previously fetched-and-dropped on adopt only); one cheap call feeds the card.
-      this.api
-        .listSessions()
-        .then((ls) => {
-          const own = ls.sessions.find((s) => s.handle === outcome.handle);
-          if (own) {
-            this.workspace.updateSession(tabId, (s) => ({
-              ...s,
-              freshness: {
-                analyzedAtMs: Date.now() - Number(own.ageSeconds) * 1000,
-                commitSha: own.commitSha,
-              },
-            }));
-          }
-        })
-        .catch(() => { /* freshness is advisory — the card degrades to the client stamp */ });
 
       // L4.3 — service map + flow list come from the graph projections (one truth), fetched
       // once here; Home hero and Atlas read graphFacets instead of re-deriving client-side.
@@ -232,9 +217,11 @@ export class SessionStore {
         // pick stays unrequested, which is a different analysis from naming it.
         requestedSln: map.solutionScope?.wasRequested ? map.solutionScope.analyzedRelPath : null,
         // D4.6 (L2) — the adopted SessionInfo carries age + HEAD; stop dropping them.
+        // G3.3 — and now analyzed_at, which is the one of those that is about the ANALYSIS.
         freshness: {
-          analyzedAtMs: Date.now() - Number(match.ageSeconds) * 1000,
+          analyzedAtMs: parseAnalyzedAt(match.analyzedAt, () => Date.now() - Number(match.ageSeconds) * 1000),
           commitSha: match.commitSha,
+          fromCache: match.fromCache,
         },
       }));
       this.workspace.setPathLabel(tabId, path, summary.label);
@@ -301,6 +288,34 @@ export class SessionStore {
 
 function isRepoUrl(path: string): boolean {
   return /github\.com|^https?:\/\//i.test(path);
+}
+
+/**
+ * G3.3 (R4 item 10) — the server's ISO-8601 analyzed-at instant, in ms. Empty or unparseable
+ * falls back to the caller's guess: the field is empty outside git and on a pre-item-10 server,
+ * and a card that degrades is better than one showing NaN.
+ */
+export function parseAnalyzedAt(iso: string, fallback: () => number): number {
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : fallback();
+}
+
+/**
+ * The freshness a fresh analyze() reports. AnalysisSummary.analyzed_at is the instant of the
+ * analysis these numbers came from — which for a snapshot-cache hit is when the ORIGINAL run
+ * finished, not when this call returned. Falling back to now is right only in the one case the
+ * server cannot date the analysis at all.
+ */
+export function freshnessOf(summary: AnalysisSummary): {
+  analyzedAtMs: number;
+  commitSha: string;
+  fromCache: boolean;
+} {
+  return {
+    analyzedAtMs: parseAnalyzedAt(summary.analyzedAt, () => Date.now()),
+    commitSha: summary.gitHead,
+    fromCache: summary.fromCache,
+  };
 }
 
 function describeError(err: unknown): string {

@@ -1,0 +1,19 @@
+case: cache-truth
+  PASS  analyze MediatR — 3.0s
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g33\cache-truth-1-fresh.json
+  PASS  a fresh run says it is fresh — cached=false fromCache=false
+  PASS  the summary dates itself — 2026-07-29T10:26:31Z
+  PASS  ...and the date is NOW — 1s ago
+  PASS  the summary names the commit it describes — 1fd25f5beb40aafd6859d9225a37d0c4f5062cfa
+  PASS  list_sessions carries the same three facts — analyzedAt=2026-07-29T10:26:31Z commitSha=1fd25f5 fromCache=false
+  PASS  session closed — {"closed":true,"handle":"eca70cb4481249048eda7b0ad2dd3c78"}
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g33\cache-truth-2-rehydrated.json
+  PASS  the rehydrate is a NEW session — eca70cb4 -> 01007aff
+  PASS  ...and says the numbers came from disk — cached=true fromCache=true
+  PASS  THE CLAIM: it reports the ORIGINAL analysis instant, not its own — 2026-07-29T10:26:31Z -> 2026-07-29T10:26:31Z
+  PASS  ...and the same commit — 1fd25f5
+  PASS  the rehydrate really was near-instant (so elapsedMs is the LOAD) — 189ms vs 2894ms
+  PASS  the note says so in words, and names the instant — Served from cache — no analysis ran. The numbers below describe an analysis that finished 2026-07-29T10:26:31Z at HEAD 1fd25f5. elapsedMs below is the snapshot load, not that analysis.
+  session age 0s vs analysis age 1s
+  PASS  THE DIVERGENCE the field exists for: the session is younger than the analysis — analysis 1s old, session 0s old
+  PASS  ...and the app reads the analysis one (it is what the freshness card is built from) — fromCache=true analyzedAt=2026-07-29T10:26:31Z

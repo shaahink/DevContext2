@@ -130,6 +130,44 @@ public sealed class SnapshotCacheTests : IDisposable
         Assert.Null(await svc.TryLoadAsync("repo1", "v1", CancellationToken.None));
     }
 
+    /// <summary>R4 item 10 — a snapshot must be able to say WHEN the analysis behind it ran. Before
+    /// this the envelope carried no clock at all, so every rehydrate was reported with the time of
+    /// the call that loaded it and a three-day-old answer read as freshly computed.
+    ///
+    /// The stamp is CONTENT, not the file's mtime: eviction, backup, sync and antivirus tools all
+    /// rewrite mtimes, so this rewrites the file after the save (which moves mtime to now) and
+    /// requires the load to still report the persisted instant.</summary>
+    [Fact]
+    public async Task Load_reports_when_the_analysis_ran_not_when_the_file_was_written()
+    {
+        var (snapshot, _) = await AnalyzedFixtureAsync();
+        var svc = new SnapshotCacheService(_cacheRoot);
+        var before = DateTime.UtcNow;
+
+        Assert.True((await svc.SaveAsync("repo1", "v1", snapshot, CancellationToken.None)).Success);
+
+        var fresh = await svc.TryLoadCachedAsync("repo1", "v1", CancellationToken.None);
+        Assert.NotNull(fresh);
+        Assert.InRange(fresh.AnalyzedAtUtc, before.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
+
+        // Back-date the persisted stamp to an instant nothing in this process could produce, and
+        // rewrite the file (so its mtime is NOW — the two answers are unmistakably different).
+        var backdated = new DateTime(2020, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        var path = svc.GetSnapshotPath("repo1", "v1");
+        var json = ReadAllGzip(path);
+        Assert.Contains("\"CreatedAtUtc\":", json);
+        WriteAllGzip(path, new System.Text.RegularExpressions.Regex("\"CreatedAtUtc\":\"[^\"]*\"")
+            .Replace(json, "\"CreatedAtUtc\":\"2020-01-02T03:04:05Z\"", 1));
+        Assert.True(File.GetLastWriteTimeUtc(path) > backdated.AddYears(1), "precondition: mtime is now");
+
+        var aged = await svc.TryLoadCachedAsync("repo1", "v1", CancellationToken.None);
+        Assert.NotNull(aged);
+        Assert.Equal(backdated, aged.AnalyzedAtUtc);
+
+        // The plain overload keeps its old shape — the CLI's three load sites are untouched.
+        Assert.NotNull(await svc.TryLoadAsync("repo1", "v1", CancellationToken.None));
+    }
+
     private static string ReadAllGzip(string path)
     {
         using var fs = File.OpenRead(path);

@@ -26,10 +26,24 @@ internal static class ProtoMapper
             Archetype = snapshot.Map?.Archetype.ToString() ?? "App",
             Stale = engine.Stale,
             StaleMessage = engine.StaleMessage ?? string.Empty,
+            // R4 item 10 — the three that make elapsed_ms readable. A rehydrate reports the load
+            // time; from_cache is what tells a reader that is what elapsed_ms means here.
+            FromCache = engine.FromSnapshotCache,
+            AnalyzedAt = Iso(engine.AnalyzedAtUtc),
+            GitHead = engine.GitHead ?? string.Empty,
         };
         summary.Warnings.AddRange(engine.Warnings);
         return summary;
     }
+
+    /// <summary>R4 item 10 — one spelling of an instant across the contract: ISO-8601, UTC, second
+    /// resolution. Unknown is the EMPTY STRING and never <c>DateTime.MinValue</c>, which would ride
+    /// the wire as a confident "0001-01-01" — the field-with-a-plausible-default class of lie.</summary>
+    internal static string Iso(DateTime utc)
+        => utc == default
+            ? string.Empty
+            : DateTime.SpecifyKind(utc, DateTimeKind.Utc)
+                .ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
 
     public static Proto.EntryPoint ToProto(EntryPoint e, string? layer = null, string? feature = null)
     {

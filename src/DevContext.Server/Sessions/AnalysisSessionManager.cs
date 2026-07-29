@@ -179,8 +179,17 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         return path;
     }
 
-    private static string ResolveCommitSha(string repoPath)
+    /// <summary>R4 item 10 — session identity's notion of HEAD, now the SAME one the snapshot cache
+    /// keys on (<see cref="Core.Analysis.GitHeadReader"/> = <c>git rev-parse HEAD</c>). The hand-rolled
+    /// walk below is kept only for a machine with no git on PATH; as the primary reader it returned
+    /// the EMPTY STRING for two ordinary layouts, measured on this repo's own second worktree:
+    /// a git WORKTREE (<c>.git</c> is a FILE there, so <c>Directory.Exists</c> walks off the end of
+    /// the path — and AGENTS.md tells agents to work from worktrees), and a packed ref (after
+    /// <c>git gc</c> there is no <c>.git/refs/heads/&lt;branch&gt;</c> file to read).</summary>
+    internal static string ResolveCommitSha(string repoPath)
     {
+        if (Core.Analysis.GitHeadReader.Read(repoPath) is { Length: > 0 } head) return head;
+
         try
         {
             var dir = repoPath;

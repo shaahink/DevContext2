@@ -257,9 +257,7 @@ public sealed class DevContextTools
             // anything" (AnalyzeResult.cached: an open session for this repo+HEAD+sln, or a
             // snapshot-cache hit); the note is the CLI's honesty stamp in a sentence.
             cached,
-            note = cached
-                ? "Served from cache — no analysis ran, and the numbers below describe the run that produced this session."
-                : "Analyzed now. A first analysis of a large repo can take minutes; the result is snapshotted, so the same repo+HEAD+solution re-opens in seconds.",
+            note = CacheNote(cached, summary),
             summary = summary is null ? null : new
             {
                 label = summary.Label,
@@ -271,12 +269,35 @@ public sealed class DevContextTools
                 entries = summary.Entries,
                 entriesWithTarget = summary.EntriesWithTarget,
                 elapsedMs = summary.ElapsedMs,
+                // R4 item 10 — what the numbers above are ABOUT. Without these an eight-minute run
+                // and a 200ms rehydrate of a three-day-old snapshot were the same object on the wire.
+                fromCache = summary.FromCache,
+                analyzedAt = summary.AnalyzedAt.Length > 0 ? summary.AnalyzedAt : null,
+                gitHead = summary.GitHead.Length > 0 ? summary.GitHead : null,
                 explanation = summary.Explanation,
                 warnings = summary.Warnings.Count > 0 ? summary.Warnings.ToArray() : null,
                 stale = summary.Stale ? summary.StaleMessage : null,
             },
             hint = "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving.",
         }, JsonOpts);
+    }
+
+    /// <summary>R4 item 10 — the sentence that makes <c>analyze</c>'s numbers datable. "Served from
+    /// cache" alone left the agent to assume the analysis was recent; it can be days old, taken at a
+    /// commit that is no longer checked out anywhere it can see. When the summary carries the
+    /// snapshot's own instant and head, say both — and say what elapsedMs is then measuring, because
+    /// on a rehydrate it times the LOAD and reads like an implausibly fast analysis.</summary>
+    private static string CacheNote(bool cached, AnalysisSummary? summary)
+    {
+        if (!cached)
+            return "Analyzed now. A first analysis of a large repo can take minutes; the result is snapshotted, so the same repo+HEAD+solution re-opens in seconds.";
+
+        var when = summary is { AnalyzedAt.Length: > 0 } ? $" that finished {summary.AnalyzedAt}" : "";
+        var head = summary is { GitHead.Length: >= 7 } ? $" at HEAD {summary.GitHead[..7]}" : "";
+        var elapsed = summary is { FromCache: true }
+            ? " elapsedMs below is the snapshot load, not that analysis."
+            : "";
+        return $"Served from cache — no analysis ran. The numbers below describe an analysis{when}{head}.{elapsed}";
     }
 
     /// <summary>One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Example: overview("abc123")</summary>
@@ -505,7 +526,13 @@ public sealed class DevContextTools
             {
                 handle = s.Handle,
                 repo = s.Repo,
+                // R4 item 10 — ageSeconds is how long ago the SESSION opened, which a snapshot-cache
+                // hit resets to zero. analyzedAt/commitSha describe the ANALYSIS: what commit these
+                // numbers are about and when they were actually computed.
                 ageSeconds = s.AgeSeconds,
+                analyzedAt = s.AnalyzedAt.Length > 0 ? s.AnalyzedAt : null,
+                fromCache = s.FromCache,
+                commitSha = s.CommitSha.Length > 0 ? s.CommitSha : null,
                 calls = s.Calls,
                 nodes = s.Nodes,
                 edges = s.Edges,
