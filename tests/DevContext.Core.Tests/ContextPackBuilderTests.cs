@@ -400,4 +400,74 @@ public sealed class ContextPackBuilderTests
         Assert.DoesNotContain("_Archetype: _", pack.AssembledMarkdown, StringComparison.Ordinal);
         Assert.Contains("_Archetype: unknown_", pack.AssembledMarkdown, StringComparison.Ordinal);
     }
+
+    // ── G1.2 (R4 item 2) — symbol-rooted packs ───────────────────────────────
+    // Every other section is built from a trace, and a trace walks OUT-edges. That is the right
+    // direction for an HTTP endpoint and the wrong one for a library symbol: MEASURED on
+    // FluentValidation, `IValidator` (the library's central abstraction) has 9 in-edges and 0
+    // out-edges, so its pack was structurally empty while the graph knew all nine users.
+
+    [Fact]
+    public void Symbol_rooted_pack_names_who_uses_the_symbol_with_a_location()
+    {
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("OrderService", 4000);
+
+        Assert.True(pack.Found);
+        var usage = pack.Sections.Single(s => s.Section == "usage");
+        Assert.Contains("`OrdersController.Post` calls it", usage.Content, StringComparison.Ordinal);
+        // This fixture's edge carries no call site, so the row falls back to the caller's own
+        // declaration line — and says so, rather than passing a declaration off as a call site.
+        Assert.Contains("declared in src/App/OrdersController.cs:11", usage.Content, StringComparison.Ordinal);
+        // Absolute machine paths never leak into a pack (T3.5), this section included.
+        Assert.DoesNotContain(@"C:\repo", usage.Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Symbol_rooted_pack_says_which_symbol_it_landed_on()
+    {
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("OrderService", 4000);
+
+        // A symbol focus is a NAME; the pack must say which node that name resolved to, and say
+        // it is not a declared entry — otherwise the reader cannot tell a library symbol's pack
+        // from an entry's.
+        Assert.Contains("Rooted on symbol: Type:App.OrderService", pack.Content, StringComparison.Ordinal);
+        Assert.Contains("not a declared entry point", pack.Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_bare_member_name_builds_a_pack_instead_of_nothing()
+    {
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("CreateOrder", 4000);
+
+        Assert.True(pack.Found);
+        // MCP's get_context rejects a pack whose only section is `identity` — this is the exact
+        // check that turned focus:"RuleFor" into "No context could be built" before G1.2.
+        Assert.Contains(pack.Sections, s => s.Section != "identity");
+        Assert.Contains("Rooted on symbol: Member:App.OrderService::CreateOrder", pack.Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Entry_rooted_packs_are_unmoved_by_the_symbol_sections()
+    {
+        // THE CANARY. `usage` is symbol-rooted only: a declared entry has no meaningful inbound
+        // direction (nothing in the repo calls an HTTP endpoint), so building it for one would add
+        // an "usage: empty — omitted" line to every entry pack in the product and move the goldens.
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", 4000);
+
+        Assert.DoesNotContain(pack.Sections, s => s.Section == "usage");
+        Assert.DoesNotContain(pack.Omitted, o => o.StartsWith("usage", StringComparison.Ordinal));
+        Assert.DoesNotContain("Rooted on symbol", pack.Content, StringComparison.Ordinal);
+        // Section order is the one it always had.
+        Assert.Equal(
+            ["identity", "trace", "signatures", "bodies"],
+            pack.Sections.Select(s => s.Section).ToArray());
+    }
 }

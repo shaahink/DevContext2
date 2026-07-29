@@ -1,0 +1,42 @@
+{
+  "focus": "IValidator",
+  "budgetTokens": 4000,
+  "totalTokens": 941,
+  "fillNote": "fill 23%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).",
+  "sections": [
+    {
+      "key": "identity",
+      "tokens": 87
+    },
+    {
+      "key": "trace",
+      "tokens": 27
+    },
+    {
+      "key": "signatures",
+      "tokens": 40
+    },
+    {
+      "key": "usage",
+      "tokens": 387
+    },
+    {
+      "key": "contracts",
+      "tokens": 44
+    },
+    {
+      "key": "tests",
+      "tokens": 123
+    },
+    {
+      "key": "bodies",
+      "tokens": 233
+    }
+  ],
+  "omitted": [
+    "di_wiring: empty — omitted",
+    "entities: empty — omitted",
+    "config: empty — omitted"
+  ],
+  "content": "# FluentValidation — IValidator\r\nanalyzed 2026-07-29 02:10 UTC · HEAD 9439790\r\nArchetype: library | 0 entries | 319 nodes\r\nRooted on symbol: Type:FluentValidation.IValidator`1 — src/FluentValidation/IValidator.cs (not a declared entry point)\r\n2 symbols share the name 'IValidator' — this is the most connected one; resolve(query) lists the rest.\r\n\nFocus: IValidator (PublicApi)\r\n- [Entry] IValidator\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n- `Type:FluentValidation.IValidator`1` — IValidator\r\n  Location: src/FluentValidation/IValidator.cs:30\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n- `Validate` calls it — `FluentValidation.DefaultValidatorExtensions::Validate` at src/FluentValidation/DefaultValidatorExtensions_Validate.cs:38 [approx]\r\n- `ValidateAsync` calls it — `FluentValidation.DefaultValidatorExtensions::ValidateAsync` at src/FluentValidation/DefaultValidatorExtensions_Validate.cs:50 [approx]\r\n- `ValidateAndThrow` calls it — `FluentValidation.DefaultValidatorExtensions::ValidateAndThrow` at src/FluentValidation/DefaultValidatorExtensions_Validate.cs:59\r\n- `ValidateAndThrowAsync` calls it — `FluentValidation.DefaultValidatorExtensions::ValidateAndThrowAsync` at src/FluentValidation/DefaultValidatorExtensions_Validate.cs:72\r\n- `IncludeRule` calls it — `FluentValidation.Internal.IncludeRule`1::IncludeRule` at src/FluentValidation/Internal/IncludeRule.cs:23 [approx]\r\n- `SetValidator` calls it — `FluentValidation.Internal.RuleBuilder`2::SetValidator` at src/FluentValidation/Internal/RuleBuilder.cs:68 [approx]\r\n- `ShouldHaveChildValidator` calls it — `FluentValidation.TestHelper.ValidationTestExtension::ShouldHaveChildValidator` at src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:39 [approx]\r\n- `TestValidate` calls it — `FluentValidation.TestHelper.ValidationTestExtension::TestValidate` at src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:97 [approx]\r\n- `TestValidateAsync` calls it — `FluentValidation.TestHelper.ValidationTestExtension::TestValidateAsync` at src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:118 [approx]\r\n_provenance: 9 source sites · 2 verified · 7 approx_\n\n- `IValidator` (interface) — src/FluentValidation/IValidator.cs:30\r\n  `public interface IValidator<in T> : IValidator`\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n_best-effort: name/path/project heuristic — no rows ≠ untested_\n- `ShouldHaveChildValidator` — reaches `IValidator` (distance 1) — src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:38\r\n- `TestValidate` — reaches `IValidator` (distance 1) — src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:94\r\n- `TestValidateAsync` — reaches `IValidator` (distance 1) — src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:117\r\n_provenance: 3 source sites · 0 verified · 3 approx_\n\n### IValidator — src/FluentValidation/IValidator.cs:30\n```csharp\n\r\n/// <summary>\r\n/// Defines a validator for a particular type.\r\n/// </summary>\r\n/// <typeparam name=\"T\"></typeparam>\r\npublic interface IValidator<in T> : IValidator {\r\n\t/// <summary>\r\n\t/// Validates the specified instance.\r\n\t/// </summary>\r\n\t/// <param name=\"instance\">The instance to validate</param>\r\n\t/// <returns>A ValidationResult object containing any validation failures.</returns>\r\n\tValidationResult Validate(T instance);\r\n\r\n\t/// <summary>\r\n\t/// Validate the specified instance asynchronously\r\n\t/// </summary>\r\n\t/// <param name=\"instance\">The instance to validate</param>\r\n\t/// <param name=\"cancellation\"></param>\r\n\t/// <returns>A ValidationResult object containing any validation failures.</returns>\r\n\tTask<ValidationResult> ValidateAsync(T instance, CancellationToken cancellation = default);\r\n}\n```\n_provenance: 1 source sites · 1 verified · 0 approx_\n"
+}

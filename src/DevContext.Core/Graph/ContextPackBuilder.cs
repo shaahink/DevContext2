@@ -368,6 +368,76 @@ public sealed class ContextPackBuilder
         return "_best-effort: name/path/project heuristic — no rows ≠ untested_\n" + sb;
     }
 
+    /// <summary>G1.2 (R4 item 2) — the INBOUND half of a symbol-rooted pack: who calls, sends to,
+    /// resolves or otherwise references this symbol, each with the call site's repo-relative file:line.
+    /// <para>Every other section is built from a trace, and a trace walks OUT-edges — which is the
+    /// right direction for an HTTP endpoint and the wrong one for a library symbol. MEASURED on
+    /// FluentValidation before this section existed: <c>InlineValidator</c> filled 8% of a 4000-token
+    /// budget with a one-line trace, while the graph knew who used it; <c>IValidator</c>, the library's
+    /// central abstraction, has 9 in-edges and 0 out-edges, so its pack was structurally empty.</para>
+    /// <para>In-edges roll up through <see cref="GraphQuery.Neighbors"/>, so a Type root answers with
+    /// the members that carry the collaboration, not with the bare type.</para></summary>
+    private string BuildUsageSection(NodeId rootId, SectionProvenance prov)
+    {
+        const int maxRows = 14;
+        var usages = _query.FindUsages(rootId);
+        if (usages.Length == 0) return "";
+
+        var sb = new StringBuilder();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var shown = 0;
+        foreach (var u in usages)
+        {
+            var callerKey = u.From.Key;
+            if (!seen.Add(callerKey + "|" + u.Kind)) continue;
+            if (shown >= maxRows) continue;
+
+            sb.Append($"- `{u.OtherTitle}` {UsageVerb(u.Kind)} — `{callerKey}`");
+            // The edge's provenance is the CALL SITE. When an edge carries none, the caller's own
+            // declaration line is the honest second-best — and it is labelled differently, because
+            // "where the caller is declared" is not "where it calls me".
+            if (u.Provenance is { Length: > 0 } site)
+            {
+                var rel = RelPath(site);
+                sb.Append($" at {rel}");
+                prov.Locations.Add(rel);
+            }
+            else if (_query.Graph.Node(u.From) is { FilePath: { Length: > 0 } fp } caller)
+            {
+                var rel = Location(fp, caller.LineNumber);
+                sb.Append($" declared in {rel}");
+                prov.Locations.Add(rel);
+            }
+            if (u.Resolution == Resolution.Syntactic) sb.Append(" [approx]");
+            sb.AppendLine();
+            prov.Tally(u.Resolution);
+            shown++;
+        }
+
+        var total = seen.Count;
+        if (total > shown)
+            sb.AppendLine($"- … (+{total - shown} more references — usages(nodeId) for the full list)");
+        return sb.ToString();
+    }
+
+    /// <summary>The edge kind read from the CALLER's side ("X calls me", "X sends me").</summary>
+    private static string UsageVerb(EdgeKind kind) => kind switch
+    {
+        EdgeKind.Calls => "calls it",
+        EdgeKind.Sends => "sends it",
+        EdgeKind.Handles => "is handled by it",
+        EdgeKind.Raises => "raises it",
+        EdgeKind.Consumes => "consumes it",
+        EdgeKind.ReadsWrites => "reads/writes it",
+        EdgeKind.Resolves => "resolves to it",
+        EdgeKind.WrappedBy => "is wrapped by it",
+        EdgeKind.EntityRelation => "relates to it",
+        EdgeKind.ServiceLink => "links to it",
+        EdgeKind.Exposes => "exposes it",
+        EdgeKind.DependsOn => "depends on it",
+        _ => "references it",
+    };
+
     private string BuildDiRegistrations(Trace? trace, SectionProvenance prov)
     {
         var types = new HashSet<NodeId>();
@@ -595,8 +665,16 @@ public sealed class ContextPackBuilder
             _ => "trace",
         };
 
+        // G1.2 — resolve ONCE, here, so the pack knows what its root IS. A focus that resolves to a
+        // declared entry point builds the pack it always has; a focus that resolves to a Type or
+        // Member the entry inventory never listed is SYMBOL-ROOTED, and a symbol-rooted pack owes the
+        // reader the inbound direction as well as the outbound one (see BuildUsageSection).
+        var rootEntry = _query.ResolveEntry(focus);
+        var symbolRooted = rootEntry is not null
+            && !_snapshot.Entries.Any(e => e.Node == rootEntry.Node);
+
         // Build identity
-        var identity = BuildIdentitySection(focus);
+        var identity = BuildIdentitySection(focus, symbolRooted ? rootEntry : null);
         tokensAddSection(sections, omitted, budgetTokens, "identity", identity, ref budgetTokens);
 
         // T4.2 — the spine scales with the budget: a bigger budget buys a DEEPER walk (more
@@ -604,7 +682,7 @@ public sealed class ContextPackBuilder
         // checkout spine is 46 steps at depth 6 but ~12 at depth 4.
         var depth = mode == "review" || budgetTokens >= 3000 ? 6 : 4;
         var fanOut = budgetTokens >= 6000 ? 16 : 12;
-        var trace = _query.Trace(focus, depth, fanOut);
+        var trace = rootEntry is null ? null : _query.Trace(rootEntry, depth, fanOut);
         if (trace is null)
             return ([.. sections], [.. omitted]);
 
@@ -639,6 +717,11 @@ public sealed class ContextPackBuilder
         var config = BuildConfigSection(trace, configProv);
         var testsProv = new SectionProvenance();
         var tests = BuildTestsSection(trace, testsProv);
+        // G1.2 — symbol-rooted only. A declared entry has no meaningful inbound direction (nothing in
+        // the repo calls an HTTP endpoint), so building this for one would only add an
+        // "usage: empty — omitted" line to every entry pack in the product.
+        var usageProv = new SectionProvenance();
+        var usage = symbolRooted ? BuildUsageSection(rootEntry!.Node, usageProv) : "";
 
         if (mode == "explain")
         {
@@ -647,6 +730,8 @@ public sealed class ContextPackBuilder
             tokensAddSection(sections, omitted, budgetTokens, "config", config, ref budgetTokens, configProv);
             tokensAddSection(sections, omitted, budgetTokens, "tests", tests, ref budgetTokens, testsProv);
             tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv);
+            if (symbolRooted)
+                tokensAddSection(sections, omitted, budgetTokens, "usage", usage, ref budgetTokens, usageProv);
             tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
             tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens, skeletonProv);
         }
@@ -658,6 +743,8 @@ public sealed class ContextPackBuilder
             if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv))
                 return ([.. sections], [.. omitted]);
 
+            if (symbolRooted)
+                tokensAddSection(sections, omitted, budgetTokens, "usage", usage, ref budgetTokens, usageProv);
             tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", di, ref budgetTokens, diProv);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
@@ -672,6 +759,8 @@ public sealed class ContextPackBuilder
             if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv))
                 return ([.. sections], [.. omitted]);
 
+            if (symbolRooted)
+                tokensAddSection(sections, omitted, budgetTokens, "usage", usage, ref budgetTokens, usageProv);
             tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", di, ref budgetTokens, diProv);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
@@ -763,7 +852,7 @@ public sealed class ContextPackBuilder
         return string.Join(" · ", parts);
     }
 
-    private string BuildIdentitySection(string focus)
+    private string BuildIdentitySection(string focus, EntryPoint? symbolRoot = null)
     {
         var map = _query.Map();
         var archetype = map?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
@@ -774,6 +863,20 @@ public sealed class ContextPackBuilder
         sb.Append("Archetype: ").Append(archetype);
         sb.Append(" | ").Append(_snapshot.Entries.Length).Append(" entries");
         sb.Append(" | ").Append(_snapshot.Graph?.NodeCount ?? 0).AppendLine(" nodes");
+
+        // G1.2 — a symbol focus is a NAME, and a name can match several symbols. Say which one this
+        // pack is rooted on, and say when the name was ambiguous, so the reader is never left
+        // guessing which of five same-named members they are reading.
+        if (symbolRoot is not null)
+        {
+            sb.Append("Rooted on symbol: ").Append(symbolRoot.Node.ToString());
+            if (symbolRoot.Provenance is { Length: > 0 } file)
+                sb.Append(" — ").Append(RelPath(file));
+            sb.AppendLine(" (not a declared entry point)");
+            var sameName = CountSymbolsNamed(focus);
+            if (sameName > 1)
+                sb.Append(sameName).AppendLine($" symbols share the name '{focus}' — this is the most connected one; resolve(query) lists the rest.");
+        }
 
         if (map?.ServiceStyles is { Length: > 0 })
         {
@@ -800,6 +903,22 @@ public sealed class ContextPackBuilder
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>How many Type/Member nodes carry this exact short name — the honesty number behind
+    /// "N symbols share this name". Counts titles and member names, the two things the resolver matches.</summary>
+    private int CountSymbolsNamed(string name)
+    {
+        var n = 0;
+        foreach (var node in _query.Graph.Nodes)
+        {
+            if (node.Kind is not (NodeKind.Type or NodeKind.Member)) continue;
+            if (string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
+                || (node.Kind == NodeKind.Member
+                    && string.Equals(Graph2.SymbolCanon.MemberNameOf(node.Id.Key), name, StringComparison.OrdinalIgnoreCase)))
+                n++;
+        }
+        return n;
     }
 
     private string? ResolveFocus(string entryId) => FindEntry(entryId) is { } e

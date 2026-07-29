@@ -1,0 +1,382 @@
+{
+  "InlineValidator": {
+    "resolved": {
+      "query": "InlineValidator",
+      "count": 1,
+      "ambiguous": false,
+      "candidates": [
+        {
+          "nodeId": "Type:FluentValidation.InlineValidator`1",
+          "title": "InlineValidator",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/InlineValidator.cs",
+          "lineNumber": 42,
+          "outDegree": 1,
+          "inDegree": 1,
+          "tags": []
+        }
+      ]
+    },
+    "neighbors": {
+      "nodeId": "Type:FluentValidation.InlineValidator`1",
+      "direction": "out",
+      "count": 1,
+      "edges": [
+        {
+          "from": "Type:FluentValidation.InlineValidator`1",
+          "to": "Type:FluentValidation.Internal.ChildRulesContainer`1",
+          "kind": "Resolves",
+          "resolution": "Syntactic",
+          "otherTitle": "ChildRulesContainer",
+          "provenance": ""
+        }
+      ]
+    },
+    "usages": {
+      "nodeId": "Type:FluentValidation.InlineValidator`1",
+      "count": 1,
+      "usages": [
+        {
+          "caller": "Member:FluentValidation.DefaultValidatorExtensions::ForEach",
+          "kind": "Calls",
+          "otherTitle": "ForEach",
+          "provenance": "src/FluentValidation/DefaultValidatorExtensions.cs:1172"
+        }
+      ]
+    }
+  },
+  "AbstractValidator": {
+    "resolved": {
+      "query": "AbstractValidator",
+      "count": 8,
+      "ambiguous": true,
+      "candidates": [
+        {
+          "nodeId": "Type:FluentValidation.AbstractValidator`1",
+          "title": "AbstractValidator",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 36,
+          "outDegree": 7,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::Validate",
+          "title": "Validate",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 115,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::SetExecutedRuleSets",
+          "title": "SetExecutedRuleSets",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 182,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+          "title": "RuleFor",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 210,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleForEach",
+          "title": "RuleForEach",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 224,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleSet",
+          "title": "RuleSet",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 237,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::Include",
+          "title": "Include",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 345,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::GetEnumerator",
+          "title": "GetEnumerator",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 369,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        }
+      ],
+      "hint": "Multiple matches — provide a specific nodeId"
+    },
+    "neighbors": {
+      "nodeId": "Type:FluentValidation.AbstractValidator`1",
+      "direction": "out",
+      "count": 7,
+      "edges": [
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::Validate",
+          "to": "Type:FluentValidation.ValidationContext`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "ValidationContext",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:123"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::SetExecutedRuleSets",
+          "to": "Type:FluentValidation.ValidationContext`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "ValidationContext",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:183"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:213"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::RuleForEach",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:227"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::RuleSet",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:245"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::Include",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:348"
+        },
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::GetEnumerator",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:369"
+        }
+      ]
+    },
+    "usages": {
+      "nodeId": "Type:FluentValidation.AbstractValidator`1",
+      "count": 0,
+      "usages": []
+    }
+  },
+  "RuleFor": {
+    "resolved": {
+      "query": "RuleFor",
+      "count": 2,
+      "ambiguous": true,
+      "candidates": [
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+          "title": "RuleFor",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 210,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        },
+        {
+          "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleForEach",
+          "title": "RuleForEach",
+          "kind": "Member",
+          "filePath": "src/FluentValidation/AbstractValidator.cs",
+          "lineNumber": 224,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        }
+      ],
+      "hint": "Multiple matches — provide a specific nodeId"
+    },
+    "neighbors": {
+      "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+      "direction": "out",
+      "count": 1,
+      "edges": [
+        {
+          "from": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+          "to": "Type:FluentValidation.Internal.TrackingCollection`1",
+          "kind": "Calls",
+          "resolution": "Syntactic",
+          "otherTitle": "TrackingCollection",
+          "provenance": "src/FluentValidation/AbstractValidator.cs:213"
+        }
+      ]
+    },
+    "usages": {
+      "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+      "count": 0,
+      "usages": []
+    }
+  },
+  "IValidator": {
+    "resolved": {
+      "query": "IValidator",
+      "count": 5,
+      "ambiguous": true,
+      "candidates": [
+        {
+          "nodeId": "Type:FluentValidation.IValidator`1",
+          "title": "IValidator",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/IValidator.cs",
+          "lineNumber": 30,
+          "outDegree": 0,
+          "inDegree": 9,
+          "tags": []
+        },
+        {
+          "nodeId": "Type:FluentValidation.IValidator",
+          "title": "IValidator",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/IValidator.cs",
+          "lineNumber": 50,
+          "outDegree": 0,
+          "inDegree": 3,
+          "tags": []
+        },
+        {
+          "nodeId": "Type:FluentValidation.IValidatorDescriptor",
+          "title": "IValidatorDescriptor",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/IValidatorDescriptor.cs",
+          "lineNumber": 29,
+          "outDegree": 1,
+          "inDegree": 3,
+          "tags": []
+        },
+        {
+          "nodeId": "Type:FluentValidation.Internal.IValidatorSelector",
+          "title": "IValidatorSelector",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/Internal/IValidatorSelector.cs",
+          "lineNumber": 24,
+          "outDegree": 0,
+          "inDegree": 2,
+          "tags": []
+        },
+        {
+          "nodeId": "Type:FluentValidation.IValidatorFactory",
+          "title": "IValidatorFactory",
+          "kind": "Type",
+          "filePath": "src/FluentValidation/IValidatorFactory.cs",
+          "lineNumber": 26,
+          "outDegree": 1,
+          "inDegree": 0,
+          "tags": []
+        }
+      ],
+      "hint": "Multiple matches — provide a specific nodeId"
+    },
+    "neighbors": {
+      "nodeId": "Type:FluentValidation.IValidator`1",
+      "direction": "out",
+      "count": 0,
+      "edges": []
+    },
+    "usages": {
+      "nodeId": "Type:FluentValidation.IValidator`1",
+      "count": 9,
+      "usages": [
+        {
+          "caller": "Member:FluentValidation.DefaultValidatorExtensions::Validate",
+          "kind": "Calls",
+          "otherTitle": "Validate",
+          "provenance": "src/FluentValidation/DefaultValidatorExtensions_Validate.cs:38"
+        },
+        {
+          "caller": "Member:FluentValidation.DefaultValidatorExtensions::ValidateAsync",
+          "kind": "Calls",
+          "otherTitle": "ValidateAsync",
+          "provenance": "src/FluentValidation/DefaultValidatorExtensions_Validate.cs:50"
+        },
+        {
+          "caller": "Member:FluentValidation.DefaultValidatorExtensions::ValidateAndThrow",
+          "kind": "Calls",
+          "otherTitle": "ValidateAndThrow",
+          "provenance": "src/FluentValidation/DefaultValidatorExtensions_Validate.cs:59"
+        },
+        {
+          "caller": "Member:FluentValidation.DefaultValidatorExtensions::ValidateAndThrowAsync",
+          "kind": "Calls",
+          "otherTitle": "ValidateAndThrowAsync",
+          "provenance": "src/FluentValidation/DefaultValidatorExtensions_Validate.cs:72"
+        },
+        {
+          "caller": "Member:FluentValidation.Internal.IncludeRule`1::IncludeRule",
+          "kind": "Calls",
+          "otherTitle": "IncludeRule",
+          "provenance": "src/FluentValidation/Internal/IncludeRule.cs:23"
+        },
+        {
+          "caller": "Member:FluentValidation.Internal.RuleBuilder`2::SetValidator",
+          "kind": "Calls",
+          "otherTitle": "SetValidator",
+          "provenance": "src/FluentValidation/Internal/RuleBuilder.cs:68"
+        },
+        {
+          "caller": "Member:FluentValidation.TestHelper.ValidationTestExtension::ShouldHaveChildValidator",
+          "kind": "Calls",
+          "otherTitle": "ShouldHaveChildValidator",
+          "provenance": "src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:39"
+        },
+        {
+          "caller": "Member:FluentValidation.TestHelper.ValidationTestExtension::TestValidate",
+          "kind": "Calls",
+          "otherTitle": "TestValidate",
+          "provenance": "src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:97"
+        },
+        {
+          "caller": "Member:FluentValidation.TestHelper.ValidationTestExtension::TestValidateAsync",
+          "kind": "Calls",
+          "otherTitle": "TestValidateAsync",
+          "provenance": "src/FluentValidation/TestHelper/ValidatorTestExtensions.cs:118"
+        }
+      ]
+    }
+  }
+}

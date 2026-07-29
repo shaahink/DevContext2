@@ -124,9 +124,14 @@ public sealed class GraphQuery
     public Trace? Trace(string focus, int depth = TracePolicy.DefaultDepth,
         int maxFanOut = TracePolicy.DefaultFanOut, int budgetTokens = 0)
     {
-        var entry = EntryPointResolver.Resolve(_entries, _graph, focus);
+        var entry = ResolveEntry(focus);
         return entry is null ? null : Trace(entry, depth, maxFanOut, budgetTokens);
     }
+
+    /// <summary>The entry a focus resolves to, or null. Exposed (G1.2) so a caller that needs the ROOT
+    /// as well as the walk — the context pack, which asks whether the root is a declared entry or a
+    /// symbol — resolves through the SAME inventory this query traces with, instead of a second one.</summary>
+    public EntryPoint? ResolveEntry(string focus) => EntryPointResolver.Resolve(_entries, _graph, focus);
 
     /// <summary>Batch E — the build, for callers that already resolved the entry (the render path, which
     /// would otherwise resolve and walk a second time). <paramref name="explicitDepth"/> false lets the

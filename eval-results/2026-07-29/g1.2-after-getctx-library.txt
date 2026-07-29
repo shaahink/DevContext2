@@ -1,0 +1,20 @@
+﻿case: getctx-library
+  PASS  analyze FluentValidation
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-after\getctx-library-AbstractValidator.json
+  focus=AbstractValidator: found=yes sections=[identity,trace,signatures,di_wiring,bodies] tokens=1772 fill=44% 
+  PASS  pack for AbstractValidator is substantive ΓÇö identity,trace,signatures,di_wiring,bodies
+  PASS  pack for AbstractValidator names the symbol it rooted on ΓÇö Rooted on symbol: Type:FluentValidation.AbstractValidator`1 ΓÇö src/FluentValidation/Abstrac
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-after\getctx-library-InlineValidator.json
+  focus=InlineValidator: found=yes sections=[identity,trace,signatures,usage,bodies] tokens=430 fill=11% 
+  PASS  pack for InlineValidator is substantive ΓÇö identity,trace,signatures,usage,bodies
+  PASS  pack for InlineValidator names the symbol it rooted on ΓÇö Rooted on symbol: Type:FluentValidation.InlineValidator`1 ΓÇö src/FluentValidation/InlineVal
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-after\getctx-library-IValidator.json
+  focus=IValidator: found=yes sections=[identity,trace,signatures,usage,contracts,tests,bodies] tokens=941 fill=24% 
+  PASS  pack for IValidator is substantive ΓÇö identity,trace,signatures,usage,contracts,tests,bodies
+  PASS  pack for IValidator names the symbol it rooted on ΓÇö Rooted on symbol: Type:FluentValidation.IValidator`1 ΓÇö src/FluentValidation/IValidator.cs 
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-after\getctx-library-RuleFor.json
+  focus=RuleFor: found=yes sections=[identity,trace,signatures,bodies] tokens=759 fill=19% 
+  PASS  pack for RuleFor is substantive ΓÇö identity,trace,signatures,bodies
+  PASS  pack for RuleFor names the symbol it rooted on ΓÇö Rooted on symbol: Member:FluentValidation.AbstractValidator`1::RuleFor ΓÇö src/FluentValidat
+  PASS  InlineValidator pack carries the inbound direction (usage section) ΓÇö 48 tok ┬╖ 1 rows
+  PASS  IValidator pack carries the inbound direction (usage section) ΓÇö 387 tok ┬╖ 9 rows

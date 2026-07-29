@@ -1,0 +1,33 @@
+{
+  "focus": "RuleFor",
+  "budgetTokens": 4000,
+  "totalTokens": 759,
+  "fillNote": "fill 18%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).",
+  "sections": [
+    {
+      "key": "identity",
+      "tokens": 67
+    },
+    {
+      "key": "trace",
+      "tokens": 35
+    },
+    {
+      "key": "signatures",
+      "tokens": 82
+    },
+    {
+      "key": "bodies",
+      "tokens": 575
+    }
+  ],
+  "omitted": [
+    "usage: empty — omitted",
+    "contracts: empty — omitted",
+    "di_wiring: empty — omitted",
+    "entities: empty — omitted",
+    "config: empty — omitted",
+    "tests: empty — omitted"
+  ],
+  "content": "# FluentValidation — RuleFor\r\nanalyzed 2026-07-29 02:10 UTC · HEAD 9439790\r\nArchetype: library | 0 entries | 319 nodes\r\nRooted on symbol: Member:FluentValidation.AbstractValidator`1::RuleFor — src/FluentValidation/AbstractValidator.cs (not a declared entry point)\r\n\nFocus: RuleFor (PublicApi)\r\n- [Entry] RuleFor\r\n  - [Call] TrackingCollection [approx]\r\n_provenance: 2 source sites · 1 verified · 1 approx_\n\n- `Member:FluentValidation.AbstractValidator`1::RuleFor` — RuleFor\r\n  Location: src/FluentValidation/AbstractValidator.cs:210\r\n- `Type:FluentValidation.Internal.TrackingCollection`1` — TrackingCollection\r\n  Location: src/FluentValidation/Internal/TrackingCollection.cs:25\r\n_provenance: 2 source sites · 1 verified · 1 approx_\n\n### RuleFor — src/FluentValidation/AbstractValidator.cs:210\n```csharp\npublic IRuleBuilderInitial<T, TProperty> RuleFor<TProperty>(Expression<Func<T, TProperty>> expression) {\r\n\t\tArgumentNullException.ThrowIfNull(expression);\r\n\t\tvar rule = PropertyRule<T, TProperty>.Create(expression, () => RuleLevelCascadeMode);\r\n\t\tRules.Add(rule);\r\n\t\tOnRuleAdded(rule);\r\n\t\treturn new RuleBuilder<T, TProperty>(rule, this);\r\n\t}\n```\n### TrackingCollection — src/FluentValidation/Internal/TrackingCollection.cs:25\n```csharp\n\r\ninternal class TrackingCollection<T> : IEnumerable<T> {\r\n\treadonly List<T> _innerCollection = new();\r\n\tpublic event Action<T> ItemAdded;\r\n\tprivate Action<T> _capture = null;\r\n\r\n\tpublic void Add(T item) {\r\n\t\tif (_capture == null) {\r\n\t\t\t_innerCollection.Add(item);\r\n\t\t}\r\n\t\telse {\r\n\t\t\t_capture(item);\r\n\t\t}\r\n\r\n\t\tItemAdded?.Invoke(item);\r\n\t}\r\n\r\n\tpublic int Count => _innerCollection.Count;\r\n\r\n\tpublic T this[int index] => _innerCollection[index];\r\n\r\n\tpublic void Remove(T item) {\r\n\t\t_innerCollection.Remove(item);\r\n\t}\r\n\r\n\tpublic IDisposable OnItemAdded(Action<T> onItemAdded) {\r\n\t\tItemAdded += onItemAdded;\r\n\t\treturn new EventDisposable(this, onItemAdded);\r\n\t}\r\n\r\n\tinternal IDisposable Capture(Action<T> onItemAdded) {\r\n\t\treturn new CaptureDisposable(this, onItemAdded);\r\n\t}\r\n\r\n\tpublic void AddRange(IEnumerable<T> collection) {\r\n\t\t_innerCollection.AddRange(collection);\r\n\t}\r\n\r\n\tpublic IEnumerator<T> GetEnumerator() {\r\n\t\treturn _innerCollection.GetEnumerator();\r\n\t}\r\n\r\n\tIEnumerator IEnumerable.GetEnumerator() {\r\n\t\treturn GetEnumerator();\r\n\t}\r\n\r\n\tclass EventDisposable : IDisposable {\r\n\t\treadonly TrackingCollection<T> parent;\r\n\t\treadonly Action<T> handler;\r\n\r\n\t\tpublic EventDisposable(TrackingCollection<T> parent, Action<T> handler) {\r\n\t\t\tthis.parent = parent;\r\n\t\t\tthis.handler = handler;\r\n\t\t}\r\n\r\n\t\tpublic void Dispose() {\r\n\t\t\tparent.ItemAdded -= handler;\r\n\t\t}\r\n\t}\r\n\r\n\tprivate class CaptureDisposable : IDisposable {\r\n\t\treadonly TrackingCollection<T> _parent;\r\n\t\treadonly Action<T> _old;\r\n\r\n\t\tpublic CaptureDisposable(TrackingCollection<T> parent, Action<T> handler) {\r\n\t\t\tthis._parent = parent;\r\n\t\t\tthis._old = parent._capture;\r\n\t\t\tparent._capture = handler;\r\n\t\t}\r\n\r\n\t\tpublic void Dispose() {\r\n\t\t\t_parent._capture = _old;\r\n\t\t}\r\n\t}\r\n}\n```\n_provenance: 2 source sites · 1 verified · 1 approx_\n"
+}

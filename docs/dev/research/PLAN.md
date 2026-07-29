@@ -98,7 +98,19 @@
       than the [audit] ref — it lives in the **Core renderers all three surfaces share**, so it is
       found by sweeping Core, not by reading the MCP tool: `LibrarySurfaceRenderer.cs:122,125` were
       missed on the first pass. `MarkdownRenderer`'s `--around` is correctly left alone (CLI-only
-      registration). Evidence: `eval-results/2026-07-29/G1.1-EVIDENCE.md`. Items 2-7 + 11-12 open;
+      registration). Evidence: `eval-results/2026-07-29/G1.1-EVIDENCE.md`.
+      **§1 item 2 LANDED 2026-07-29** — and its [audit] premise was partly STALE: a TYPE focus already
+      resolved (`AbstractValidator` filled 43%), so "libraries get nothing" was wrong. The two real
+      defects, both measured: a bare MEMBER name resolved to nothing (`focus:"RuleFor"` → envelope,
+      while `resolve("RuleFor")` on the same handle listed the member), and every section was built
+      from a trace, which walks OUT-edges — so `IValidator` (9 in-edges, 0 out) got a structurally
+      empty pack. Now: a member tier that runs LAST (additive by construction), a `usage` section on
+      symbol-rooted packs only (entry packs unmoved — that is the canary), and an identity line naming
+      the resolved symbol. The evidence run then found a **second** defect nothing had read:
+      `EntryPointResolver` ranked candidates on a type's OWN out-edges while `GraphQuery.ResolveNodeId`
+      has ranked on ROLLED degree since C3, so on a library — where front doors are interfaces with no
+      out-edges — every candidate tied at 0 and enumeration order won. One rolled ranking rule now.
+      Evidence: `eval-results/2026-07-29/G1.2-EVIDENCE.md`. Items 3-7 + 11-12 open;
       dogfood + REPORT.md ungraded.
 
 Session log (one line each: date · what closed · surprises):

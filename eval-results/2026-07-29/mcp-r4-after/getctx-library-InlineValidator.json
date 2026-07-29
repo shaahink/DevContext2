@@ -1,0 +1,36 @@
+{
+  "focus": "InlineValidator",
+  "budgetTokens": 4000,
+  "totalTokens": 430,
+  "fillNote": "fill 10%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).",
+  "sections": [
+    {
+      "key": "identity",
+      "tokens": 65
+    },
+    {
+      "key": "trace",
+      "tokens": 29
+    },
+    {
+      "key": "signatures",
+      "tokens": 43
+    },
+    {
+      "key": "usage",
+      "tokens": 48
+    },
+    {
+      "key": "bodies",
+      "tokens": 245
+    }
+  ],
+  "omitted": [
+    "contracts: empty — omitted",
+    "di_wiring: empty — omitted",
+    "entities: empty — omitted",
+    "config: empty — omitted",
+    "tests: empty — omitted"
+  ],
+  "content": "# FluentValidation — InlineValidator\r\nanalyzed 2026-07-29 02:10 UTC · HEAD 9439790\r\nArchetype: library | 0 entries | 319 nodes\r\nRooted on symbol: Type:FluentValidation.InlineValidator`1 — src/FluentValidation/InlineValidator.cs (not a declared entry point)\r\n\nFocus: InlineValidator (PublicApi)\r\n- [Entry] InlineValidator\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n- `Type:FluentValidation.InlineValidator`1` — InlineValidator\r\n  Location: src/FluentValidation/InlineValidator.cs:42\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n- `ForEach` calls it — `FluentValidation.DefaultValidatorExtensions::ForEach` at src/FluentValidation/DefaultValidatorExtensions.cs:1172\r\n_provenance: 1 source sites · 1 verified · 0 approx_\n\n### InlineValidator — src/FluentValidation/InlineValidator.cs:42\n```csharp\n\r\n/// <summary>\r\n/// Validator implementation that allows rules to be defined without inheriting from AbstractValidator.\r\n/// </summary>\r\n/// <example>\r\n/// <code>\r\n/// <![CDATA[\r\n/// public class Customer {\r\n///   public int Id { get; set; }\r\n///   public string Name { get; set; }\r\n///\r\n///   public static readonly InlineValidator<Customer> Validator = new InlineValidator<Customer> {\r\n///     v => v.RuleFor(x => x.Name).NotNull(),\r\n///     v => v.RuleFor(x => x.Id).NotEqual(0),\r\n///   }\r\n/// }\r\n/// ]]>\r\n/// </code>\r\n/// </example>\r\n/// <typeparam name=\"T\"></typeparam>\r\npublic class InlineValidator<T> : AbstractValidator<T> {\r\n\t/// <summary>\r\n\t/// Allows configuration of the validator.\r\n\t/// </summary>\r\n\tpublic void Add<TProperty>(Func<InlineValidator<T>, IRuleBuilderOptions<T, TProperty>> ruleCreator) {\r\n\t\truleCreator(this);\r\n\t}\r\n}\n```\n_provenance: 1 source sites · 1 verified · 0 approx_\n"
+}

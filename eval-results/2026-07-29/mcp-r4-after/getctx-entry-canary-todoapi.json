@@ -1,0 +1,58 @@
+{
+  "focus": "GET /",
+  "budgetTokens": 4000,
+  "totalTokens": 854,
+  "fillNote": "fill 21%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+  "suggestedFocuses": [
+    {
+      "focus": "POST /todos/",
+      "kind": "HttpEndpoint",
+      "score": 0.4,
+      "depth": 3
+    },
+    {
+      "focus": "POST /auth/register",
+      "kind": "HttpEndpoint",
+      "score": 0.3,
+      "depth": 4
+    },
+    {
+      "focus": "POST /auth/login",
+      "kind": "HttpEndpoint",
+      "score": 0.3,
+      "depth": 4
+    },
+    {
+      "focus": "GET /auth/signin/{provider}",
+      "kind": "HttpEndpoint",
+      "score": 0.3,
+      "depth": 4
+    }
+  ],
+  "sections": [
+    {
+      "key": "identity",
+      "tokens": 64
+    },
+    {
+      "key": "trace",
+      "tokens": 84
+    },
+    {
+      "key": "signatures",
+      "tokens": 191
+    },
+    {
+      "key": "bodies",
+      "tokens": 515
+    }
+  ],
+  "omitted": [
+    "contracts: empty — omitted",
+    "di_wiring: empty — omitted",
+    "entities: empty — omitted",
+    "config: empty — omitted",
+    "tests: empty — omitted"
+  ],
+  "content": "# TodoApp — GET /\r\nanalyzed 2026-07-29 02:20 UTC · HEAD 307a1ea\r\nArchetype: app | 12 entries | 129 nodes\r\nServices: Todo.Api (Web API), TodoApp.AppHost (Aspire AppHost), Todo.Web.Server (Blazor)\r\nCross-service: Todo.Web.Server → Todo.Api (http-direct)\r\n\nFocus: GET / (UiEntry)\r\n- [Entry] GET /\r\n  - [Call] App.OnInitializedAsync\r\n    - [Call] ExternalProviders [approx]\r\n      - [CrossService] Todo.Api\r\n    - [Call] ExternalProviders.GetProviderNamesAsync [approx]\r\n      - [Call] ExternalProviders.GetProviderNamesAsyncCore [approx]\r\n_provenance: 4 source sites · 3 verified · 3 approx_\n\n- `EntryPoint:GET /` — GET /\r\n  Location: Todo.Web/Server/App.razor:1\r\n- `Member:Todo.Web.Server.App::OnInitializedAsync` — App.OnInitializedAsync\r\n  Location: Todo.Web/Server/App.razor\r\n- `Type:Todo.Web.Server.ExternalProviders` — ExternalProviders\r\n  Location: Todo.Web/Server/Authentication/ExternalProviders.cs:6\r\n- `Member:Todo.Web.Server.ExternalProviders::GetProviderNamesAsync` — ExternalProviders.GetProviderNamesAsync\r\n  Location: Todo.Web/Server/Authentication/ExternalProviders.cs\r\n- `Service:Todo.Api` — Todo.Api\r\n- `Member:Todo.Web.Server.ExternalProviders::GetProviderNamesAsyncCore` — ExternalProviders.GetProviderNamesAsyncCore\r\n  Location: Todo.Web/Server/Authentication/ExternalProviders.cs\r\n_provenance: 4 source sites · 3 verified · 3 approx_\n\n### ExternalProviders — Todo.Web/Server/Authentication/ExternalProviders.cs:6\n```csharp\n\r\npublic class ExternalProviders(IAuthenticationSchemeProvider schemeProvider)\r\n{\r\n    private Task<string[]>? _providerNames;\r\n\r\n    public Task<string[]> GetProviderNamesAsync()\r\n    {\r\n        return _providerNames ??= GetProviderNamesAsyncCore();\r\n    }\r\n\r\n    private async Task<string[]> GetProviderNamesAsyncCore()\r\n    {\r\n        List<string>? providerNames = null;\r\n\r\n        var schemes = await schemeProvider.GetAllSchemesAsync();\r\n\r\n        foreach (var s in schemes)\r\n        {\r\n            // We're assuming all schemes that aren't cookies are social\r\n            if (s.Name == CookieAuthenticationDefaults.AuthenticationScheme ||\r\n                s.Name == AuthenticationSchemes.ExternalScheme)\r\n            {\r\n                continue;\r\n            }\r\n\r\n            providerNames ??= [];\r\n            providerNames.Add(s.Name);\r\n        }\r\n\r\n        return providerNames?.ToArray() ?? [];\r\n    }\r\n}\n```\n### ExternalProviders.GetProviderNamesAsync — Todo.Web/Server/Authentication/ExternalProviders.cs\n```csharp\npublic Task<string[]> GetProviderNamesAsync()\r\n    {\r\n        return _providerNames ??= GetProviderNamesAsyncCore();\r\n    }\n```\n### ExternalProviders.GetProviderNamesAsyncCore — Todo.Web/Server/Authentication/ExternalProviders.cs\n```csharp\nprivate async Task<string[]> GetProviderNamesAsyncCore()\r\n    {\r\n        List<string>? providerNames = null;\r\n\r\n        var schemes = await schemeProvider.GetAllSchemesAsync();\r\n\r\n        foreach (var s in schemes)\r\n        {\r\n            // We're assuming all schemes that aren't cookies are social\r\n            if (s.Name == CookieAuthenticationDefaults.AuthenticationScheme ||\r\n                s.Name == AuthenticationSchemes.ExternalScheme)\r\n            {\r\n                continue;\r\n            }\r\n\r\n            providerNames ??= [];\r\n            providerNames.Add(s.Name);\r\n        }\r\n\r\n        return providerNames?.ToArray() ?? [];\r\n    }\n```\n_provenance: 2 source sites · 0 verified · 3 approx_\n"
+}

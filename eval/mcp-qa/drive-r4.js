@@ -121,19 +121,80 @@ const CASES = {
     console.log(`  scope line: ${scopeLine.trim()}`);
   },
 
-  // G1.2 measurement — does a type/symbol focus root a pack on a library today?
+  // G1.2 — does a type/symbol focus root a pack on a library? Before the fix: a TYPE resolved
+  // (AbstractValidator 43% fill) but a bare MEMBER did not (RuleFor → "No context could be built"),
+  // and no pack carried the inbound direction (InlineValidator 8% fill, one-line trace).
   async "getctx-library"(client) {
     const { handle } = await analyzeRepo(client, join(REPOS, "FluentValidation"));
     check("analyze FluentValidation", !!handle);
     if (!handle) return;
-    for (const focus of ["AbstractValidator", "InlineValidator", "RuleFor"]) {
+    // IValidator is the pole case: 9 in-edges, 0 out-edges — a trace-shaped pack sees nothing.
+    for (const focus of ["AbstractValidator", "InlineValidator", "IValidator", "RuleFor"]) {
       const { data } = await tool(client, "get_context", { handle, focus, budgetTokens: 4000 }, 90000);
       dump(`getctx-library-${focus}.json`, data);
-      const sections = (data.sections ?? []).map((s) => s.key).join(",");
-      const substantive = (data.sections ?? []).some((s) => s.key !== "identity");
-      console.log(`  focus=${focus}: found=${data.error ? "ENVELOPE" : "yes"} sections=[${sections}] tokens=${data.totalTokens ?? "-"} ${data.error ? "error=" + data.error : ""}`);
-      check(`pack for ${focus} is substantive`, substantive, sections || "envelope only");
+      const sections = (data.sections ?? []).map((s) => s.key);
+      const substantive = sections.some((k) => k !== "identity");
+      const fill = data.totalTokens ? Math.round((data.totalTokens / 4000) * 100) : 0;
+      console.log(`  focus=${focus}: found=${data.error ? "ENVELOPE" : "yes"} sections=[${sections.join(",")}] tokens=${data.totalTokens ?? "-"} fill=${fill}% ${data.error ? "error=" + data.error : ""}`);
+      check(`pack for ${focus} is substantive`, substantive, sections.join(",") || "envelope only");
+      if (!substantive) continue;
+      check(`pack for ${focus} names the symbol it rooted on`,
+        /Rooted on symbol: (Type|Member):/.test(data.content ?? ""),
+        ((data.content ?? "").match(/Rooted on symbol:.*/) ?? ["(absent)"])[0].slice(0, 90));
     }
+    // The inbound half: these two have real in-edges, so they must carry a `usage` section.
+    for (const focus of ["InlineValidator", "IValidator"]) {
+      const { data } = await tool(client, "get_context", { handle, focus, budgetTokens: 4000 }, 90000);
+      const usage = (data.sections ?? []).find((s) => s.key === "usage");
+      const rows = ((data.content ?? "").match(/^- `.*(calls it|resolves to it|references it)/gm) ?? []).length;
+      check(`${focus} pack carries the inbound direction (usage section)`, !!usage, usage ? `${usage.tokens} tok · ${rows} rows` : "no usage section");
+    }
+  },
+
+  // G1.2 CANARY — an entry-rooted pack must be UNMOVED: no usage section, no symbol header.
+  async "getctx-entry-canary"(client) {
+    const { handle } = await analyzeRepo(client, join(REPOS, "TodoApi"));
+    check("analyze TodoApi", !!handle);
+    if (!handle) return;
+    // The focus must be a REAL declared entry, taken from the tool that lists them — a focus that
+    // fails to resolve returns an envelope with no sections, and "no usage section" on an empty pack
+    // is a vacuous pass. The first run of this canary did exactly that; hence the hard check below.
+    const eps = (await tool(client, "entrypoints", { handle, limit: 20 })).data;
+    const flat = [];
+    for (const v of Object.values(eps ?? {})) {
+      if (Array.isArray(v)) flat.push(...v);
+      else if (v && typeof v === "object") for (const vv of Object.values(v)) if (Array.isArray(vv)) flat.push(...vv);
+    }
+    const focus = flat.map((e) => e?.title ?? e?.route).find((t) => typeof t === "string" && t.length > 0);
+    check("found a declared entry to root the canary on", !!focus, focus ?? JSON.stringify(eps).slice(0, 160));
+    if (!focus) return;
+    const { data } = await tool(client, "get_context", { handle, focus, budgetTokens: 4000 }, 90000);
+    dump("getctx-entry-canary-todoapi.json", data);
+    const sections = (data.sections ?? []).map((s) => s.key);
+    console.log(`  entry focus=${focus}: sections=[${sections.join(",")}] tokens=${data.totalTokens ?? "-"}`);
+    // Guard against a vacuous pass: an empty pack proves nothing about the canary.
+    check("entry pack is a real pack (not an envelope)", sections.length > 1, sections.join(",") || `ENVELOPE: ${data.error ?? "?"}`);
+    check("entry pack has NO usage section", !sections.includes("usage"), sections.join(","));
+    check("entry pack has NO symbol header", !/Rooted on symbol/.test(data.content ?? ""), "clean");
+    check("entry pack omitted[] has no usage line", !(data.omitted ?? []).some((o) => o.startsWith("usage")), (data.omitted ?? []).join(" | ").slice(0, 120));
+  },
+
+  // G1.2 probe — what does the graph actually HOLD around a library symbol? (measure, don't assume)
+  async "symbol-probe"(client) {
+    const { handle } = await analyzeRepo(client, join(REPOS, "FluentValidation"));
+    check("analyze FluentValidation", !!handle);
+    if (!handle) return;
+    const out = {};
+    for (const name of ["InlineValidator", "AbstractValidator", "RuleFor", "IValidator"]) {
+      const resolved = (await tool(client, "resolve", { handle, query: name })).data;
+      const cands = resolved?.candidates ?? resolved?.results ?? [];
+      const nodeId = cands[0]?.nodeId ?? cands[0]?.id ?? resolved?.nodeId ?? null;
+      const nb = nodeId ? (await tool(client, "neighbors", { handle, nodeId })).data : null;
+      const us = nodeId ? (await tool(client, "usages", { handle, nodeId })).data : null;
+      out[name] = { resolved, neighbors: nb, usages: us };
+      console.log(`  ${name}: nodeId=${nodeId} candidates=${cands.length} nbKeys=${nb ? Object.keys(nb).join("/") : "-"} usKeys=${us ? Object.keys(us).join("/") : "-"}`);
+    }
+    dump("symbol-probe-fluentvalidation.json", out);
   },
 
   // G1.3 — seam glyphs vs proto singular names (needs a repo with bus seams: eShop).

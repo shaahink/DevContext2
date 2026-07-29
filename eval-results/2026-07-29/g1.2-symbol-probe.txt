@@ -1,0 +1,7 @@
+﻿case: symbol-probe
+  PASS  analyze FluentValidation
+  InlineValidator: nodeId=null in=? out=? usages=?
+  AbstractValidator: nodeId=null in=? out=? usages=?
+  RuleFor: nodeId=null in=? out=? usages=?
+  IValidator: nodeId=null in=? out=? usages=?
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-before\symbol-probe-fluentvalidation.json

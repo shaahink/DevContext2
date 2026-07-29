@@ -1,0 +1,17 @@
+{
+  "error": "No context could be built for 'RuleFor'.",
+  "hint": "Did you mean one of these? Use an exact route or nodeId.",
+  "example": "get_context(handle, focus:\"POST /basket/checkout\")",
+  "candidates": [
+    {
+      "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleFor",
+      "title": "RuleFor",
+      "kind": "Member"
+    },
+    {
+      "nodeId": "Member:FluentValidation.AbstractValidator`1::RuleForEach",
+      "title": "RuleForEach",
+      "kind": "Member"
+    }
+  ]
+}

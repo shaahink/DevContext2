@@ -1,0 +1,9 @@
+﻿case: getctx-entry-canary
+  PASS  analyze TodoApi
+  PASS  found a declared entry to root the canary on ΓÇö GET /
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-after\getctx-entry-canary-todoapi.json
+  entry focus=GET /: sections=[identity,trace,signatures,bodies] tokens=854
+  PASS  entry pack is a real pack (not an envelope) ΓÇö identity,trace,signatures,bodies
+  PASS  entry pack has NO usage section ΓÇö identity,trace,signatures,bodies
+  PASS  entry pack has NO symbol header ΓÇö clean
+  PASS  entry pack omitted[] has no usage line ΓÇö contracts: empty ΓÇö omitted | di_wiring: empty ΓÇö omitted | entities: empty ΓÇö omitted | config: empty ΓÇö omitted | tests: e
