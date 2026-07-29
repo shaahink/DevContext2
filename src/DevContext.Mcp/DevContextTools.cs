@@ -717,6 +717,12 @@ public sealed class DevContextTools
                 serviceStyles = resp.ServiceStyles.Count > 0
                     ? resp.ServiceStyles.Select(s => new { projectName = s.ProjectName, style = s.Style, stack = s.Stack.ToArray() }).ToArray()
                     : null,
+                // R3 D-4: runnable apps OUTSIDE the analysed solution. Separate key on purpose — an
+                // agent that folded these into serviceStyles would be answering "what services are
+                // there?" with projects this analysis never opened.
+                outsideScopeApps = resp.OutsideScopeApps.Count > 0
+                    ? resp.OutsideScopeApps.Select(s => new { projectName = s.ProjectName, style = s.Style, stack = s.Stack.ToArray() }).ToArray()
+                    : null,
                 packages = resp.Packages.Count > 0
                     ? resp.Packages.Select(p => new { label = p.Label, packages = p.Packages.ToArray() }).ToArray()
                     : null,

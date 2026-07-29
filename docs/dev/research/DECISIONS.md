@@ -420,6 +420,35 @@ What landed:
    The server's `FlowIndexBuilder` now carries each row's title, kind, project and flow count, and the
    app renders the graph's own facts. The client's duplicate top-10 ranking is gone with it.
 
+**What G6.1 also did, unnoticed until the eval gate said so (fixed as G6.3).** Making the breakdown
+obey `RunnableProjects(scope, …)` also made it obey the **solution** scope, and a repo that declares
+several solutions is analysed one at a time. dotnet-podcasts keeps its two MAUI clients in sibling
+solutions: the engine parses their csprojs (that is where the mobile-TFM triple is read) but
+`NetPodcast.sln` does not list them, so the per-service rollup — the only surface that had ever named
+them — went silent, and the ratcheted `maui-present` expectation went red.
+
+G6.1's own real-repo invariant could not see it. "Breakdown rows == the graph's Service nodes" now
+reads *both sides from the same scope-narrowed list*, so a shrink that moves both surfaces together
+measures as SAME SET (podcasts 5 = 5) while both dropped the same two projects. **An equality
+invariant between two surfaces is blind to a shared shrink; pair it with a content ratchet.** The
+eval expectation was that ratchet and it is what caught this.
+
+The fix does **not** put non-services back in the service list — that would be a straight revert of
+the decision. It gives the boundary a name. `SolutionScopeNote`'s own rule already said what to do:
+*the pick is legitimate, hiding it is not.* The note said which solution and how many exist; it never
+said that **runnable apps** were among the ones you are not seeing. So there are now two
+differently-named populations from the same style detector, and no project can be in both:
+
+| list | population | who draws it |
+|---|---|---|
+| `service_styles` | `RunnableProjects(scope)` — the services | the Atlas canvas |
+| `outside_scope_apps` | runnable production projects **not in the analysed solution** | nobody; they are named, not drawn |
+
+Rendered under `SCOPE` in the Map ("not analyzed — 2 runnable apps outside this solution"), served on
+`MapResponse`, read by MCP `map` and by the Atlas page under the breakdown. The STACK line still reads
+every discovered project (podcasts prints `net7.0-android`, which exists only in those MAUI csprojs) —
+a cross-scope leak that is honest by accident, recorded here rather than fixed in a fix session.
+
 ### D-4's arity half — no metadata syntax in a name (DECIDED + LANDED, G6.2)
 
 **The rule, adopted:** *a metadata arity marker belongs to a canonical **id** and nothing else. Where

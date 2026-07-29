@@ -136,6 +136,9 @@ public sealed class DiscoveryPipeline
         // gateway and a background worker from a web host. The overall style (ApplyArchitectureStyle) stays
         // between Stage 2 and 3 because it seals a signal; this rollup only feeds the map/render.
         model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
+        // R3 D-4 (G6.3) — and the runnable apps that rollup does NOT cover, because the analysed
+        // solution is not the whole repo. Same detector, separate list: never called services.
+        model.OutsideScopeApps = ArchitectureStyleDetector.DetectOutsideScopeApps(model);
 
         // T7.3 — every post-extraction phase lands in a named waterfall row: on shamshir the observed
         // stages summed to ~25s of a 51s wall because semantic-lite, graph assembly, insights and

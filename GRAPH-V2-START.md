@@ -4,29 +4,29 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G6.2 CLAIMED** — evidence `eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`. **D-4 is now closed, both halves.**
-The engine was already clean and I MEASURED that rather than trusting SymbolCanon's doc comment: 0 node
-titles carry arity across 5 poles, 248 node IDS do (correct). **The leak was the client — 8 sites, 8 rules**,
-one of them `shortNodeTitle` in workbench-page.ts, i.e. the SAME function G6.1 deleted from the hub radar,
-alive in a second file. Rule now: never derive a name from an id — thread the graph's title
-(`TraceStore.titleFor`) — and where there truly is none, ONE fallback, `nodeIdLabel` in core/format.ts.
-This is not taste: `label-mirror-fidelity.ps1` measured that a derivation CANNOT reproduce engine titles
-(Member titles are 343 owner-qualified vs **627 bare** — filed as bug #17; bug #18 = Type nodes whose title
-is a 20-line lambda body). Enforced as **loom-guards rule 8** (3 shapes, 1 allow-listed matcher), watched
-RED 8 → GREEN 0. Gates: build 0w/0e · guards+truth PASS · `pnpm check` EXIT=0 (138 tests). **Next = G7.1 (C-2).**
-Reusable: `scripts/g62-arity-dom.mts` greps text nodes AND `title=` attributes (2 leaks lived in tooltips);
-its GAP, stated in the evidence: it does not reach the stage's node-altitude branch. A LIBRARY POLE CANNOT
-exercise interactive surfaces (FluentValidation: densest arity ids, but no trace → no trail/peek). New traps:
-a .ps1 must be ASCII (a UTF-8 em dash inside a "string" makes PS 5.1 fail to PARSE); `git stash pop` in a
-script must be gated on stash@{0} being YOURS (this repo carries 3 old stashes from other branches);
-`Get-ChildItem -Include` leaks DIRECTORIES into Select-String and kills a guard silently under -EA Stop.
+**FIX SESSION — the battery's one red was a real G6.1 regression; FULL battery now `GATE: PASS` (`BATTERY-EXIT=0`).**
+Evidence `eval-results/2026-07-29/G6/G6.3-EVIDENCE.md` + `G6.3-battery.log`. Red: dotnet-podcasts
+`maui-present`. G6.1 swapped a PREDICATE (`model.Projects` + a home-grown skip list → `RunnableProjects(scope,…)`)
+and, invisibly, a **POPULATION** — `SolutionScope` keeps only the resolved `.sln`'s csprojs, and podcasts holds
+its two MAUI clients in sibling solutions, so the rollup that was the only surface ever naming them went silent.
+**The lesson is bigger than the bug: G6.1's own 5-pole invariant was blind BY CONSTRUCTION.** "Breakdown rows ==
+Service nodes" now reads BOTH sides from the same narrowed list, so a shared shrink measures as agreement —
+podcasts read 5=5 before AND after; the 5 used to be 7. **Pair every A==B invariant with a content ratchet.**
+Fix NAMES the boundary rather than re-admitting non-services: `outside_scope_apps` (proto 19; MCP `map` + Atlas
+read it) renders under SCOPE as "not analyzed — 2 runnable apps outside this solution". D-4's "service" is
+untouched, and the live DOM probe (`scripts/g63-outside-scope-dom.mts`) proves BOTH halves: block present, and
+0 of its names leaked onto a service card. Still open, filed: **bug #19** — the same page states a FOURTH count
+(STYLE evidence "6 runnable web services" vs 5 rows / 5 boxes); the STACK line still reads every discovered
+project (podcasts prints `net7.0-android` from the out-of-scope csprojs). **Next = G7.1 (C-2).**
+
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 15 |
+| Claimed (unconfirmed) | 16 |
 
 ## Checkpoints
 
@@ -77,7 +77,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | DONE | 2fdd4cf | fast-app:OK · guards:OK |
-| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | TODO | - | - |
+| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | DONE | 051386c | fast-app:OK · guards:OK |
 
 ### G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason
 
@@ -110,4 +110,3 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 ```
 (none — stages run sequentially by plan order)
 ```
-

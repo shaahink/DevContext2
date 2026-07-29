@@ -592,11 +592,35 @@ public sealed class ArchitectureStyleDetector
     /// name-keyed infrastructure filter, which was never a membership rule the canvas honoured.</para></summary>
     public static ImmutableArray<PerServiceStyle> DetectPerServiceStyles(DiscoveryModel model)
     {
-        var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
         var scope = Graph.SolutionScope.FromModel(model);   // T1.4 — canonical file→project mapping
+        return DetectStyles(model, scope,
+            Graph2.ServiceBoundaryInference.RunnableProjects(scope, model.SamplesAreTheProduct));
+    }
+
+    /// <summary>R3 D-4 (G6.3) — the runnable apps this analysis did NOT cover, described with the same
+    /// style vocabulary as the services so a reader can compare them, and kept in a separate list so
+    /// nothing ever calls them services.
+    /// <para>Why it exists: G6.1 made the per-service breakdown obey the solution scope (its own
+    /// population had been a second, differently-filtered guess). That was right, and it made a second
+    /// silence audible — dotnet-podcasts' two MAUI clients live in sibling solutions, so the only
+    /// surface that had ever mentioned them went quiet. <c>SolutionScopeNote</c>'s rule is the one
+    /// that applies: the pick is legitimate, hiding it is not.</para></summary>
+    public static ImmutableArray<PerServiceStyle> DetectOutsideScopeApps(DiscoveryModel model)
+    {
+        var scope = Graph.SolutionScope.FromModel(model);
+        return DetectStyles(model, scope, Graph2.ServiceBoundaryInference
+            .RunnableProjectsOutsideScope(model, scope, model.SamplesAreTheProduct));
+    }
+
+    /// <summary>The style vocabulary itself — one rung ladder, applied to whichever population the
+    /// caller names. Membership is never decided here (R3 D-4).</summary>
+    private static ImmutableArray<PerServiceStyle> DetectStyles(
+        DiscoveryModel model, Graph.SolutionScope scope, ImmutableArray<ProjectInfo> population)
+    {
+        var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
         var signals = model.Architecture.All;
 
-        foreach (var proj in Graph2.ServiceBoundaryInference.RunnableProjects(scope, model.SamplesAreTheProduct))
+        foreach (var proj in population)
         {
             // T1.4 — the Aspire AppHost is a runnable ORCHESTRATOR; its style is its role.
             // D1.3a: bitwarden names its host exactly `AppHost` — no dotted suffix.

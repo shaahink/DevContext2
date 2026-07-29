@@ -38,4 +38,32 @@ public static class ServiceBoundaryInference
             .Where(p => classifier.IsProduction(p, samplesAreTheProduct) && IsRunnableService(p))
             .ToImmutableArray();
     }
+
+    /// <summary>
+    /// R3 D-4 (G6.3) — the runnable production projects the analysed solution does NOT contain.
+    /// <para>Same predicate as <see cref="RunnableProjects"/>, different population: the projects
+    /// discovery found on disk minus the ones in <paramref name="scope"/>. A repo that declares
+    /// several solutions is analysed one solution at a time (<see cref="SolutionScope"/>), and
+    /// <c>SolutionScopeNote</c> already says which one and how many exist — but it never said that
+    /// runnable APPS were among the ones you are not seeing. dotnet-podcasts keeps its two MAUI
+    /// clients in sibling solutions: the engine parses their csprojs (that is where the mobile TFM
+    /// triple is read from) and then had no word for them.</para>
+    /// <para>These are NEVER called services. The canvas draws <see cref="RunnableProjects"/>; this
+    /// list names the boundary. No project can appear in both.</para>
+    /// </summary>
+    public static ImmutableArray<ProjectInfo> RunnableProjectsOutsideScope(
+        DiscoveryModel model, SolutionScope scope, bool samplesAreTheProduct = false)
+    {
+        if (scope.Projects.Length >= model.Projects.Length) return [];
+        var inScope = scope.Projects
+            .Select(p => p.FilePath)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // The classifier reads the WHOLE project set: build-tooling exclusion is transitive, so
+        // handing it only the leftovers would classify a Cake bootstrapper as production.
+        var classifier = new ProjectClassifier(model.Projects);
+        return model.Projects
+            .Where(p => !inScope.Contains(p.FilePath))
+            .Where(p => classifier.IsProduction(p, samplesAreTheProduct) && IsRunnableService(p))
+            .ToImmutableArray();
+    }
 }

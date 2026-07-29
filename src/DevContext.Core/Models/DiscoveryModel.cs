@@ -25,6 +25,11 @@ public sealed class DiscoveryModel
     /// <summary>Per-service (runnable-project) style assessment. M1.9 / D5 — one entry per
     /// runnable web service, each carrying its local style + stack tags.</summary>
     public ImmutableArray<PerServiceStyle> PerServiceStyles { get; internal set; } = [];
+    /// <summary>R3 D-4 (G6.3) — runnable production projects that live OUTSIDE the analysed solution.
+    /// Same style vocabulary as <see cref="PerServiceStyles"/>, deliberately a different list: these are
+    /// never services (the canvas does not draw them and the topology does not hold them), they are the
+    /// apps this analysis did not cover. Empty unless the repo declares more than one solution.</summary>
+    public ImmutableArray<PerServiceStyle> OutsideScopeApps { get; internal set; } = [];
     /// <summary>The detected codebase archetype ("App" or "Library"), set at graph-assembly time.</summary>
     public string? Archetype { get; internal set; }
     /// <summary>T8 — true when every non-test/non-benchmark project lives under a sample path (a sample

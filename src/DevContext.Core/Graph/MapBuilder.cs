@@ -27,6 +27,9 @@ public sealed record MapModel
     public ImmutableArray<GatewayRoute> Routes { get; init; } = [];
     /// <summary>Per-service style assessment (M1.9 / D5). One entry per runnable web project.</summary>
     public ImmutableArray<PerServiceStyle> ServiceStyles { get; init; } = [];
+    /// <summary>R3 D-4 (G6.3) — runnable apps that live outside the analysed solution. Never services;
+    /// the companion to <see cref="ScopeNote"/>, which says a choice was made but not what it cost.</summary>
+    public ImmutableArray<PerServiceStyle> OutsideScopeApps { get; init; } = [];
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn)
@@ -64,6 +67,7 @@ public sealed class MapBuilder
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
             ServiceStyles = model.PerServiceStyles,
+            OutsideScopeApps = model.OutsideScopeApps,
         };
     }
 

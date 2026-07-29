@@ -51,6 +51,7 @@ public sealed record PersistedModel
     public float StyleConfidence { get; init; }
     public string? StyleDetectedVia { get; init; }
     public ImmutableArray<PerServiceStyle> PerServiceStyles { get; init; } = [];
+    public ImmutableArray<PerServiceStyle> OutsideScopeApps { get; init; } = [];
     public string? Archetype { get; init; }
     public bool SamplesAreTheProduct { get; init; }
     public TypeDiscovery[] Types { get; init; } = [];
@@ -150,6 +151,7 @@ public static class SnapshotPersistence
         StyleConfidence = m.StyleConfidence,
         StyleDetectedVia = m.StyleDetectedVia,
         PerServiceStyles = m.PerServiceStyles,
+        OutsideScopeApps = m.OutsideScopeApps,
         Archetype = m.Archetype,
         SamplesAreTheProduct = m.SamplesAreTheProduct,
         Types = [.. m.Types.Values],
@@ -177,6 +179,7 @@ public static class SnapshotPersistence
             StyleConfidence = p.StyleConfidence,
             StyleDetectedVia = p.StyleDetectedVia,
             PerServiceStyles = p.PerServiceStyles,
+            OutsideScopeApps = p.OutsideScopeApps,
             Archetype = p.Archetype,
             SamplesAreTheProduct = p.SamplesAreTheProduct,
         };

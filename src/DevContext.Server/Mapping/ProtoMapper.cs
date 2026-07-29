@@ -158,6 +158,16 @@ internal static class ProtoMapper
                 Stack = { ss.Stack },
             });
 
+        // R3 D-4 — and the runnable apps the analysed solution does not contain. Same shape, separate
+        // list: a client that renders these under "services" would be re-opening the defect D-4 closed.
+        foreach (var oa in map.OutsideScopeApps)
+            resp.OutsideScopeApps.Add(new Proto.ServiceStyle
+            {
+                ProjectName = oa.ProjectName,
+                Style = oa.Style,
+                Stack = { oa.Stack },
+            });
+
         // L7.2 — archetype-specific entry-point view
         if (map.ArchetypeView is { IsRelevant: true } view)
         {

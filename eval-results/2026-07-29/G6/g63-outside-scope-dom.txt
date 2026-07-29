@@ -1,0 +1,21 @@
+REPO  C:/code/DevContext2/eval-repos/dotnet-podcasts
+
+[1] OUTSIDE-SCOPE BLOCK
+    NOT ANALYZED — 2 RUNNABLE APPS OUTSIDE THIS SOLUTION
+    
+    Discovered on disk, listed in another solution. Not services — switch solutions to analyze them.
+    
+    Microsoft.NetConf2021.Maui
+    MAUI App
+    .NET MAUI
+    NetPodsMauiBlazor
+    MAUI App
+    .NET MAUI
+
+[2] SERVICE CARD TEXT (27 leaf strings)
+    Podcast.Server | Razor Pages | in no relationship — trayed on the canvas | 2 HTTP | Razor | ListenTogether.Hub | SignalR host | in no relationship — trayed on the canvas | 1 HTTP | 1 SignalR hubs | SignalR | Podcast.API | Web API | drawn on the canvas | 9 HTTP | EF Core | Podcast.Ingestion.Worker | Worker Service | drawn on the canvas | 1 Hosted services | Worker | EF Core | Podcast.Updater.Worker | Worker Service | in no relationship — trayed on the canvas | Worker | EF Core
+
+[3] VERDICT
+    outside-scope apps named : 6  (Microsoft.NetConf2021.Maui, MAUI, .NET, NetPodsMauiBlazor, MAUI, .NET)
+    of those, ALSO on a service card: 0  (none)
+    PASS

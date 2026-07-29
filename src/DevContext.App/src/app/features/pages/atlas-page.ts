@@ -196,6 +196,33 @@ import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
             runnable production project.
           </p>
           <app-service-cards [services]="serviceStyles()" [entryMix]="entryMix()" [roles]="serviceRoles()" />
+
+          <!-- R3 D-4: the boundary the scope pick draws. A repo that declares several solutions is
+               analysed one at a time, so some runnable apps are discovered on disk and then never
+               drawn, counted or named. dotnet-podcasts keeps two MAUI clients in sibling solutions
+               and every Atlas surface was silent about them. They are listed apart from the cards
+               above and never called services - the canvas does not draw them. -->
+          @if (outsideScopeApps().length) {
+            <div class="mt-4 rounded-lg border border-dashed border-line bg-surface px-3 py-2.5">
+              <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">
+                Not analyzed &mdash; {{ outsideScopeApps().length }} runnable app{{ outsideScopeApps().length === 1 ? '' : 's' }} outside this solution
+              </h3>
+              <p class="mt-1 text-2xs text-ink-subtle">
+                Discovered on disk, listed in another solution. Not services &mdash; switch solutions to analyze them.
+              </p>
+              <div class="mt-2 space-y-1">
+                @for (a of outsideScopeApps(); track a.projectName) {
+                  <div class="flex items-center gap-2 text-xs">
+                    <span class="min-w-0 flex-1 truncate font-mono text-ink-muted">{{ a.projectName }}</span>
+                    <span class="chip shrink-0 text-2xs">{{ a.style }}</span>
+                    @for (tech of a.stack; track tech) {
+                      <span class="chip shrink-0 text-2xs">{{ tech }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- ⑤ Cross-cutting (behaviors, packages) -->
@@ -300,6 +327,12 @@ export class AtlasPage {
     return chips;
   });
   protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
+  /**
+   * R3 D-4 — runnable apps the analysed solution does NOT contain, from the engine's own list.
+   * Deliberately separate from `serviceStyles`: a service is a project the canvas draws, and the
+   * canvas does not draw these. Merging the two lists would re-open the defect D-4 closed.
+   */
+  protected readonly outsideScopeApps = computed(() => this.session.mapResponse()?.outsideScopeApps ?? []);
   protected readonly pipelineBehaviors = computed(() => this.session.mapResponse()?.pipelineBehaviors ?? []);
   protected readonly packages = computed(() => this.session.mapResponse()?.packages ?? []);
 

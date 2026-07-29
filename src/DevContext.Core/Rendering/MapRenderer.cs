@@ -71,7 +71,26 @@ public static class MapRenderer
         sb.AppendLine($"{label}  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
         if (ctx.Map.ScopeNote is { Length: > 0 } scope)
             sb.AppendLine($"SCOPE  {scope} — style/topology are local to this slice, not the whole system");
+        AppendOutsideScopeApps(sb, ctx.Map);
         sb.AppendLine();
+    }
+
+    /// <summary>R3 D-4 (G6.3) — say what the scope pick cost. The SCOPE line already names the solution
+    /// analysed and how many the repo declares; it never said that RUNNABLE APPS were among the ones you
+    /// are not seeing. dotnet-podcasts keeps its two MAUI clients in sibling solutions, so once the
+    /// per-service rollup started obeying the scope (G6.1) the only surface that had ever mentioned them
+    /// went silent. These rows carry the same style vocabulary as the services and are deliberately NOT
+    /// under "per service:" — a service is a project the canvas draws, and the canvas does not draw these.</summary>
+    private static void AppendOutsideScopeApps(StringBuilder sb, MapModel map)
+    {
+        if (map.OutsideScopeApps.IsDefaultOrEmpty) return;
+        var n = map.OutsideScopeApps.Length;
+        sb.AppendLine($"       not analyzed — {n} runnable app{(n != 1 ? "s" : "")} outside this solution:");
+        foreach (var app in map.OutsideScopeApps)
+        {
+            var stackStr = app.Stack.Length > 0 ? $" [{string.Join(", ", app.Stack)}]" : "";
+            sb.AppendLine($"         {app.ProjectName}: {app.Style}{stackStr}");
+        }
     }
 
     /// <summary>A5 (Prism D1.1e) — no dead maps. An App-archetype map with ZERO entries renders the

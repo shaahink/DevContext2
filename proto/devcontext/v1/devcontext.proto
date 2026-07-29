@@ -242,6 +242,11 @@ message MapResponse {
   // the CLI's sentence and ends by naming a flag no GUI has; a picker is the desktop's way of
   // saying the same thing. Absent when the repo declares one solution — there is no choice to report.
   optional SolutionScope solution_scope = 18;
+  // R3 D-4 — runnable apps that live OUTSIDE the analysed solution, described with the same style
+  // vocabulary as service_styles and kept in a SEPARATE list because they are not services: the
+  // canvas does not draw them and the topology does not hold them. solution_scope says a choice was
+  // made; this says what the choice cost (dotnet-podcasts' two MAUI clients sit in sibling solutions).
+  repeated ServiceStyle outside_scope_apps = 19;
 }
 
 // R3 D-D — which solution an analysis covered, and which ones it did not. Batch C already computed
