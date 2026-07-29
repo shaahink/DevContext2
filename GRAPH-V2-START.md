@@ -4,23 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G3.3 CLAIMED — STAGE G3 IS COMPLETE.** `from_cache`/`analyzed_at`/`git_head` on AnalysisSummary
-(+`from_cache`/`analyzed_at` on SessionInfo), persisted in the snapshot envelope. Evidence
-`eval-results/2026-07-29/G3.3-EVIDENCE.md`, commit cf0fa62. Counts **Core 704 / Server 104**
-(+1/+4) — the delta is your only proof a new file ran. Verify `eval-results/2026-07-29/g33/
-g3.3-verify.ps1` (battery's OWN Step 2 filter, then `Category=McpQa` ALONE — never bare
-`Category!=Eval`). All green, sweep PASS **499 fields 0 NEW**, `pnpm check` exit 0.
-Next: **G4.1** — the R4 dogfood drive (§2), the strand's actual point. Unseen repo, MCP tools ONLY,
-every call graded. Hangfire and OrchardCore are both already in `eval-repos/`.
-**A TEST THAT CANNOT FAIL LOOKS EXACTLY LIKE ONE THAT PASSES**: asserting a rehydrate reports the
-original instant is vacuous unless you BACK-DATE the persisted stamp — `DateTime.UtcNow` has ~15.6ms
-granularity on Windows, so two calls milliseconds apart return bit-identical values. Traps re-paid:
-`DevContext.Server.Tests` has NO Xunit.SkippableFact (`Assert.Skip*` will not compile there — use the
-early-`return` guard SnapshotCacheTests uses). An MCP drive that needs a COLD cache cannot get one by
-setting DEVCONTEXT_CACHE_ROOT: ServerShim pings 127.0.0.1:5179 and reuses any live server, env and
-all — check whether the cold path ran, don't assume. Still open from G2.2 §6, and I did not fold it
-in: `TraceResponse.applied_budget_tokens` on the next proto edit.
-
+**G4.1 CLAIMED — the dogfood drive is RUN and graded.** 43 MCP calls on Hangfire (unseen, Library,
+0 entries), questions committed BEFORE the drive (254fd36), no grep and `read_source` never called.
+**8/10 on §3's bar — 6/10 if "answered" must mean a TOOL asserted it** (Q4/Q5 fell to inference: the
+graph has NO inheritance edge kind, so "who implements this" cannot be asked). 44,712 tokens, of which
+`map` alone is 17,105. Evidence `eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md` + CALL-GRADES.md,
+commit 55e7cec. Four bugs filed: **#5** every tool ships `description:""` (MEASURED: the fix is
+`[System.ComponentModel.Description]`, NOT GenerateDocumentationFile — that changes nothing);
+**#6** `trace` + a nodeId → `found:true`, 0 steps, "Type: Type" (its focus resolver matches the token
+BEFORE the first colon and ignores the rest); **#7** a method registered as a Type node, 26 BCL
+`System.Type` refs bound to it, 5th wiring hub; **#8** calls inside a LAMBDA ARGUMENT make no edge, so
+the enqueue path's actual storage write is invisible while the trace looks complete.
+Next: **G4.2** (Tasks 2+3). Drive with `node eval/mcp-qa/dogfood.js <batch.json>`; START THE SERVER
+FIRST (the MCP kills a server it spawned, so handles die with each driver run). Use BARE NAMES in
+`query` — never a nodeId on `trace`. Before Task 3, R4 §2 warns the server ignores devcontext.json,
+so CLI and MCP see different file sets on this repo: measure that first, don't inherit the claim.
 
 ## Baseline numbers (from run.db)
 
@@ -28,7 +26,7 @@ in: `TraceResponse.applied_budget_tokens` on the next proto edit.
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 8 |
+| Claimed (unconfirmed) | 9 |
 
 ## Checkpoints
 
@@ -57,7 +55,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 |---|-----------|--------|--------|----------|
 | G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | DONE | baa5ffd | fast-engine:OK · guards:OK |
 | G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | DONE | d82d074 | fast-engine:OK · guards:OK |
-| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | TODO | - | - |
+| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | DONE | cf0fa62 | fast-engine:OK · guards:OK |
 
 ### G4 — R4 dogfood drive — is the MCP a proper tool?
 

@@ -1,0 +1,2 @@
+{"seq":1,"tool":"tools/list","args":{},"why":"bug 5 measurement: does GenerateDocumentationFile put the XML summaries on the wire","ms":15,"chars":13870,"tokens":3468,"error":null,"raw":"raw/001-tools_list.json"}
+{"seq":2,"tool":"tools/list","args":{},"why":"bug 5 measurement: does GenerateDocumentationFile put the XML summaries on the wire","ms":14,"chars":13924,"tokens":3481,"error":null,"raw":"raw/002-tools_list.json"}

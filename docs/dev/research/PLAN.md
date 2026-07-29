@@ -160,6 +160,42 @@
       is a wrong premise on a TYPE target, because seam's roll-up counts arrival at a member of the
       type while impact reports the distance to the bare Type node (3 vs 4, measured from the raw
       response). Fourth occurrence of that pattern in this program.
+      **§1 items 9-10 LANDED 2026-07-29 (G3.2, G3.3)** — kind-filtered `neighbors` (d82d074) and
+      snapshot-cache truth `from_cache`/`analyzed_at`/`git_head` on AnalysisSummary + SessionInfo
+      (cf0fa62). **§1 IS NOW COMPLETE (items 1-12).**
+      **§2 Task 1 RUN 2026-07-29 (G4.1) — the first honest answer to "is this a proper tool".**
+      43 MCP calls on `eval-repos/Hangfire` (unseen, non-octet, archetype Library, 946 nodes / 615
+      edges / **0 entries**), ten architecture questions written and committed BEFORE the drive
+      (254fd36), MCP tools only: **no grep, and `read_source` never called**. 44,712 response tokens,
+      12.9s of tool wall time, graded HELPED 28 / NEUTRAL 7 / HURT 8. Verdict against §3's bar:
+      **8/10 answered correctly — 6/10 if "answered" has to mean a TOOL ASSERTED the fact rather than
+      the agent inferring it from names** (Q4 and Q5 are the two that fall, both because the graph has
+      no inheritance edge). On tokens the honest comparison is the other way round: the post-drive
+      grep phase verified all ten answers in three shell calls and ~4k tokens. The defensible claim is
+      not economy but that the MCP produced the right symbol names with file:line provenance from zero
+      prior knowledge — grep needs the name first. Evidence:
+      `eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md` (+ `CALL-GRADES.md`, `call-log.jsonl`,
+      43 raw responses). Driver: `eval/mcp-qa/dogfood.js`.
+      **Four defects filed, three of them silent-wrong-answer class.** (5) All 22 tools ship
+      `description: ""` — 31 written `///` summaries never reach the wire; MEASURED both ways:
+      `GenerateDocumentationFile` does NOT carry them (byte-identical response), a
+      `[System.ComponentModel.Description]` attribute does. (6) `trace` handed a nodeId returns
+      `found:true` with an EMPTY tree titled "Type: Type" — its focus resolver matches the prefix
+      token before the first colon and ignores the rest, proved by `Type:ZzzNoSuchSymbolAnywhere`
+      returning the identical answer; `get_context` resolves the same string correctly, and trace's
+      own envelope tells the agent to pass a nodeId. (7) An explicit interface METHOD is registered
+      as a Type node with an empty filePath, and 26 BCL `System.Type` references bind to it —
+      4.2% of the repo's edges, and it ranks 5th in `stats`' wiring hubs. (8) Calls inside a LAMBDA
+      ARGUMENT produce no edge, so `CoreBackgroundJobFactory.cs:89`'s
+      `ctx.Context.Connection.CreateExpiredJob(...)` — the actual persistence write of the whole
+      enqueue path — is invisible, and the trace of that type looks *complete* without it.
+      **Structural gaps, not bugs:** `SeamKind` has no inheritance kind at all, so "who implements
+      this" cannot be asked on a library (biggest gap for the archetype S10 made first-class);
+      `seam` reports two genuinely-connected symbols as "unconnected" because a library's call graph
+      fragments at every interface (19 `Resolves` for 51 interfaces); `map` is 17,105 tokens with one
+      parameter; and dead ends still do not name a working next step outside G3.2's kind-filter path —
+      measured at its sharpest when `usages`' envelope recommended a retry that returned STRICTLY LESS
+      than the reply suggesting it.
       **A driver check is vacuous until you have watched it go red** — G1.4's `find-kind` case
       PASSED on the broken before-state (`total >= page length` = 22 >= 5), the same way G1.3's
       glyphs case did. The check that discriminates is the INVARIANT: a true total does not move
