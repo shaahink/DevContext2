@@ -1,16 +1,16 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 02:36 UTC · branch `feat/graph-v2` · HEAD `1a7a219`_
+_Updated 2026-07-29 04:28 UTC · branch `feat/graph-v2` · HEAD `56f2bcf`_
 
-**Status:** Aborted
-**Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 1 · working ▸ G1.3
-**Checkpoints:** 2/22 done · **Sessions run:** 2 · **Cost:** $29.2151 (agent $29.1684 + gates $0.0467) · **Tokens:** 402,746 in / 159,252 out
+**Status:** Idle
+**Stage:** G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) · attempts used 0 · working ▸ G1.4
+**Checkpoints:** 3/22 done · **Sessions run:** 4 · **Cost:** $54.6586 (agent $54.5972 + gates $0.0614) · **Tokens:** 576,411 in / 274,749 out
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | █████░░░░░ 2/4 | **← active** |
+| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ████████░░ 3/4 | **← active** |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ░░░░░░░░░░ 0/2 | todo |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ░░░░░░░░░░ 0/3 | todo |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
@@ -21,13 +21,13 @@ _Updated 2026-07-29 02:36 UTC · branch `feat/graph-v2` · HEAD `1a7a219`_
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | todo |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
-<details><summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (2/4)</summary>
+<details><summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (3/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) |
 | G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) |
-| G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ⬜ TODO | - |
+| G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ✅ DONE | - |
 | G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ⬜ TODO | - |
 
 </details>
@@ -119,6 +119,8 @@ _Updated 2026-07-29 02:36 UTC · branch `feat/graph-v2` · HEAD `1a7a219`_
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | G1 | Deliver | 1 | 07-29 00:28 | 0:56 | Advanced | G1.1 | 2 | fast-engine:OK · guards:OK | $12.6728 | $0.0305 | 172,654/66,379 |
 | 2 | G1 | Deliver | 1 | 07-29 01:29 | 0:55 | GatesRed | G1.2 | 3 | fast-engine:FAIL · guards:OK | $16.4956 | $0.0163 | 230,092/92,873 |
+| 3 | G1 | Fix | 2 | 07-29 03:04 | 0:06 | Interrupted |  | 0 |  |  |  |  |
+| 4 | G1 | Resume | 2r1 | 07-29 03:12 | 1:13 | Advanced | G1.3 | 4 | fast-engine:OK · guards:OK | $25.4288 | $0.0146 | 173,665/115,497 |
 
 ## Timeline
 
@@ -135,6 +137,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 03:27:42  ▪ gate fast-engine FAIL [session]  (59.4s)
 07-29 03:27:42  ▪ gate guards pass [session]  (1m43s)
 07-29 03:27:47  • session #2 G1 → GatesRed · done G1.2 · 3 commit(s)  (57m58s)
+07-29 03:36:37  ◆ run resumed · DevContext graph-v2 — autonomous remainder
+07-29 04:04:17  • session #3 G1 Fix started (attempt 2/6)
+07-29 04:11:14  ◆ run resumed · DevContext graph-v2 — autonomous remainder
+07-29 04:12:15  • session #4 G1 Resume started (attempt 2/6)
+07-29 05:28:29  ▪ gate fast-engine pass [session]  (1m38s)
+07-29 05:28:29  ▪ gate guards pass [session]  (48.0s)
 ```
 
 ## Health
@@ -142,7 +150,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 2 · retries 0 (0 %) · overall Warn
+sessions 4 · retries 2 (50 %) · overall Warn
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ```
 
@@ -152,7 +160,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -165,45 +173,34 @@ vs upstream: up to date
   - [`27de288`](https://github.com/shaahink/DevContext2/commit/27de288) conductor: G1.2 handoff + the orchestrator's own plan edits from this run
   - [`7c6eb5e`](https://github.com/shaahink/DevContext2/commit/7c6eb5e) G1.2: a library symbol gets a pack — member roots resolve, and the pack carries who uses it
   - [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) conductor: telegram gets the one field without which it is a silent no-op
+- **s4 (G1 Resume)** — 4 commit(s):
+  - [`56f2bcf`](https://github.com/shaahink/DevContext2/commit/56f2bcf) PLAN §2: R4 status through G1.3, and the verification-command trap that produced three sessions of phantom red
+  - [`611dae3`](https://github.com/shaahink/DevContext2/commit/611dae3) conductor: G1.3 handoff + the orchestrator's own plan edits from this run
+  - [`2d27a6c`](https://github.com/shaahink/DevContext2/commit/2d27a6c) G1.3 evidence: before/after MCP responses, battery-style gate logs, and the driver runners
+  - [`75704f2`](https://github.com/shaahink/DevContext2/commit/75704f2) G1.3: a seam says what kind it is, a handle-less call stays in its own repo, and no tool throws a stack trace at an agent
 
 ## Last gate run
 
-fast-engine:FAIL · guards:OK
-
-<details><summary>fast-engine — exit 1</summary>
-
-```
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 0 orphaned process(es)
-
---- Step 1: Build solution ---
-  PASS  Build succeeded
-
---- Step 1a: Contract sweep (dead proto fields) ---
-  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
-
---- Step 2: Fast unit tests ---
-```
-</details>
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** G1.2 landed and is claimed (`task_update(G1.2, done)`, commit `7c6eb5e`, pushed as `6c6eccb..27de288`), evidence at `eval-results/2026-07-29/G1.2-EVIDENCE.md`. The item-2 `[audit]` premise turned out **partly stale** and re-measuring it first was the whole session's leverage: a TYPE focus already resolved (`AbstractValidator` filled 43%), so "libraries get nothing" was false — the two real defects were that a bare **member** name resolved to nothing (`get_context(focus:"RuleFor")` returned an envelope while `resolve("RuleFor")` on the same handle listed that member), and that every pack section is built from a trace, which walks OUT-edges — so `IValidator`, with 9 in-edges …
+> SESSION-RESULT: G1.3 delivered and claimed (commits 75704f2 code, 2d27a6c evidence, 611dae3 handoff, 56f2bcf PLAN; pushed to feat/graph-v2) — seam glyphs now cover all ten SeamKind values with a legend and a self-naming fallback (eShop trace: 3 mute rows → 0), handle-less MCP calls stick to the session this client analyzed and refuse to guess between repos (driver FAIL → PASS), and no tool leaks a raw RpcException (3/7 → 7/7), pinned by 13 new tests in DevContext.Server.Tests including one that walks every `[McpServerTool]` method against a failing client so the eight-of-twenty-four drift cannot recur; collateral fixes to the MCP QA harness (cold-analyze budget, a poll matching a field that …
 
 ## Tracker handoff
 
 ```
-G1.2 CLAIMED @ 7c6eb5e — evidence `eval-results/2026-07-29/G1.2-EVIDENCE.md`. Next: **G1.3**.
-RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js glyphs|retarget|envelope <outDir>` — the
-driver already has a case per remaining G1 checkpoint and each measures the before-state.
-**Re-verify every [audit] ref before editing.** Item 1's was wider than written; item 2's was partly
-STALE (type roots already resolved — "libraries get nothing" was false). Assume item 3-7's are too.
-Make the evidence print the IDENTITY a tool resolved, not just PASS/FAIL — that is the only reason
-G1.2 caught its second defect. And a negative assertion needs a positive precondition: G1.2's canary
-first passed on a pack with ZERO sections.
-Traps paid for: the MCP SPAWNS a DevContext.Server that outlives the driver and locks Core/Cli/
-Contracts DLLs — kill it BY PID before any build (`start-dev-bg.ps1 -Kill` does not know it), and
-pin `DEVCONTEXT_SERVER` to the fresh exe or an installed copy shadows your build.
-RED, not mine and not new: `McpQaGateTests` fails 0/12 on the FIRST run after any Core edit
-(open bug #1, MVID snapshot invalidation). Warm re-run = 12/12. Do not weaken it. Bug #2 also filed.
+G1.3 CLAIMED @ 75704f2 (+ evidence 2d27a6c) — `eval-results/2026-07-29/G1.3-EVIDENCE.md`. Next: **G1.4**.
+RUN ITS MEASUREMENT FIRST: `node eval/mcp-qa/drive-r4.js find-kind|analyze-honesty <outDir>`.
+**VERIFY WITH THE BATTERY'S OWN COMMANDS.** `--filter "Category!=Eval"` is NOT gates.ps1 Step 2 — it
+drags the 3-minute MCP QA drive into a 674-test parallel run where the server the MCP spawns exits
+before binding, and you get `FATAL: Timeout: initialize` that reads as an engine collapse. Use
+`"Category!=Eval&Category!=CliSmoke&Category!=McpQa"` then `"Category=McpQa"` ALONE. That is the
+whole McpQaGateTests mystery three sessions have chased; bug #1 should be re-read in that light.
+**Re-verify every [audit] ref before editing** — item 5's named 5 tools and the real set was 8, found
+by sweeping all 24, not by reading the ref. Tighten your own driver too: the glyphs case PASSED on
+the broken before-state (one non-Call glyph satisfied it) — assert the ZERO, not the some.
+Traps paid for: the MCP spawns a DevContext.Server that outlives the driver and locks the DLLs —
+kill it BY PID before any build; pin `DEVCONTEXT_SERVER`; and never raise a timeout in a node
+harness without clearing the timer, or the timeout becomes the process's minimum lifetime.
 ```
