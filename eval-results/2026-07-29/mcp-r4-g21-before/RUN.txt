@@ -1,0 +1,21 @@
+case: menu
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-before\menu-toolslist.json
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-before\menu-didyoumean.json
+  tools/list (24): analyze close_session config entrypoints find flow get_context impact insights interesting_points list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  availableTools (24): analyze close_session config entrypoints find flow get_context impact insights interesting_points list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  FAIL  the three folded tools are gone from tools/list — flow,insights,interesting_points
+  FAIL  the menu is the folded size — 24 tools
+  PASS  did-you-mean advertises exactly the real tool list — only-in-didyoumean=[] only-in-tools/list=[]
+  FAIL  flow names its replacement (trace) — Pass the entry route or symbol to summarize as 'focus' or 'query'.
+  FAIL  insights names its replacement (stats) — Run analyze(path) first, then retry.
+  FAIL  interesting_points names its replacement (overview) — Run analyze(path) first, then retry.
+  PASS  analyze TodoApi
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-before\menu-overview.json
+  FAIL  overview absorbed interesting_points (addressable, not just titles) — 0 points · keys=
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-before\menu-stats.json
+  FAIL  stats absorbed insights (with the confidence insights() carried) — 9 insights · keys=id,category,severity,title,detail,evidence,action,actionTarget
+  PASS  found an entry to trace — GET /
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-before\menu-trace-compact.json
+  FAIL  trace(compact) absorbed flow's counters — steps=undefined touches=undefined emits=undefined
+  PASS  trace(compact) still renders the compact text — Entry: EntryPoint: GET /
+  PASS  no reply points at a folded tool — clean

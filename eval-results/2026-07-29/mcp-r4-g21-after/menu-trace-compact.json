@@ -1,0 +1,13 @@
+{
+  "found": true,
+  "format": "compact",
+  "focus": "GET /",
+  "steps": 5,
+  "touches": 0,
+  "emits": 0,
+  "tokens": 228,
+  "budgetTokens": 4000,
+  "omitted": 0,
+  "legend": "▼ entry · → call · ⇛ cross-service",
+  "text": "Entry: EntryPoint: GET /\r\n▼ EntryPoint: GET /  Todo.Web/Server/App.razor:1\r\n  → Member: App.OnInitializedAsync  Todo.Web/Server/App.razor:1\r\n    → Type: ExternalProviders (public class ExternalProviders(IAuthenticationSchemeProvider schemeProvider)\nprivate Task<string[]>? _providerNames;\npublic Task<string[]> GetProviderNamesAsync()) [approx]  Todo.Web/Server/App.razor:44\r\n      ⇛ Service: Todo.Api  Todo.Web/Server/Program.cs:25\r\n    → Member: ExternalProviders.GetProviderNamesAsync (public Task<string[]> GetProviderNamesAsync()\nreturn _providerNames ??= GetProviderNamesAsyncCore();) [approx]  Todo.Web/Server/App.razor:44\r\n      → Member: ExternalProviders.GetProviderNamesAsyncCore (private async Task<string[]> GetProviderNamesAsyncCore()\nList<string>? providerNames = null;\nvar schemes = await schemeProvider.GetAllSchemesAsync();) [approx]  Todo.Web/Server/Authentication/ExternalProviders.cs:12\r\n"
+}

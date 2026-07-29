@@ -1,0 +1,158 @@
+{
+  "handle": "af209f1c939d4647bacc45c6513db8b5",
+  "archetype": "App",
+  "tokens": 141,
+  "text": "App: Todo.Api (Web API), TodoApp.AppHost, Todo.Web.Server (Web API)\r\n  129 nodes · 80 edges · 12 entries · 6 projects\r\nTop flows:\r\n  UiEntry: GET / → ExternalProviders.GetProviderNamesAsync\r\n  HttpEndpoint: POST /todos/ → TodoDbContext\r\n  HttpEndpoint: POST /auth/register → AuthClient.CreateUserAsync\r\n  HttpEndpoint: POST /auth/login → AuthClient.GetTokenAsync\r\n  HttpEndpoint: GET /auth/signin/{provider} → AuthClient.GetOrCreateUserAsync\r\nService links:\r\n  Todo.Web.Server → Todo.Api (http-direct)\r\nStart here: MapTodos, TodoDbContext, TodoClient, MapAuth\r\n",
+  "startHere": [
+    {
+      "nodeId": "Member:TodoApi.TodoApi::MapTodos",
+      "title": "MapTodos",
+      "kind": "Member",
+      "why": "Central type: 13 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Type:TodoApi.TodoDbContext",
+      "title": "TodoDbContext",
+      "kind": "Type",
+      "why": "Central type: 8 connections",
+      "tags": [
+        "service"
+      ]
+    },
+    {
+      "nodeId": "Type:Todo.Web.Client.TodoClient",
+      "title": "TodoClient",
+      "kind": "Type",
+      "why": "Central type: 6 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.AuthApi::MapAuth",
+      "title": "MapAuth",
+      "kind": "Member",
+      "why": "Central type: 5 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Type:Todo.Web.Server.AuthClient",
+      "title": "AuthClient",
+      "kind": "Type",
+      "why": "Central type: 4 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Type:global.Todo",
+      "title": "Todo",
+      "kind": "Type",
+      "why": "Central type: 4 connections",
+      "tags": [
+        "entity"
+      ]
+    },
+    {
+      "nodeId": "Member:TodoApi.TodoApi::<lambda> POST /todos/",
+      "title": "<lambda> POST /todos/",
+      "kind": "Member",
+      "why": "Central type: 3 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.App::OnInitializedAsync",
+      "title": "App.OnInitializedAsync",
+      "kind": "Member",
+      "why": "Central type: 3 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:TodoApi.RateLimitExtensions::AddRateLimiting",
+      "title": "AddRateLimiting",
+      "kind": "Member",
+      "why": "Central type: 3 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Service:Todo.Api",
+      "title": "Todo.Api",
+      "kind": "Service",
+      "why": "Central type: 2 connections",
+      "tags": [
+        "runnable"
+      ]
+    },
+    {
+      "nodeId": "Service:TodoApp.AppHost",
+      "title": "TodoApp.AppHost",
+      "kind": "Service",
+      "why": "Central type: 2 connections",
+      "tags": [
+        "runnable"
+      ]
+    },
+    {
+      "nodeId": "Service:Todo.Web.Server",
+      "title": "Todo.Web.Server",
+      "kind": "Service",
+      "why": "Central type: 2 connections",
+      "tags": [
+        "runnable"
+      ]
+    },
+    {
+      "nodeId": "Member:TodoApi.TodoApi::<lambda> GET /todos/",
+      "title": "<lambda> GET /todos/",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:TodoApi.TodoApi::<lambda> GET /todos/{id}",
+      "title": "<lambda> GET /todos/{id}",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:TodoApi.TodoApi::<lambda> PUT /todos/{id}",
+      "title": "<lambda> PUT /todos/{id}",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:TodoApi.TodoApi::<lambda> DELETE /todos/{id}",
+      "title": "<lambda> DELETE /todos/{id}",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.AuthApi::<lambda> POST /auth/register",
+      "title": "<lambda> POST /auth/register",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.AuthApi::<lambda> POST /auth/login",
+      "title": "<lambda> POST /auth/login",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.AuthApi::<lambda> GET /auth/signin/{provider}",
+      "title": "<lambda> GET /auth/signin/{provider}",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    },
+    {
+      "nodeId": "Member:Todo.Web.Server.AuthApi::SignIn",
+      "title": "SignIn",
+      "kind": "Member",
+      "why": "Central type: 2 connections",
+      "tags": []
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+case: menu
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-mid\menu-toolslist.json
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-mid\menu-didyoumean.json
+  tools/list (21): analyze close_session config entrypoints find get_context impact list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  availableTools (24): analyze close_session config entrypoints find flow get_context impact insights interesting_points list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  PASS  the three folded tools are gone from tools/list — none present
+  PASS  the menu is the folded size — 21 tools
+  FAIL  did-you-mean advertises exactly the real tool list — only-in-didyoumean=[flow,insights,interesting_points] only-in-tools/list=[]
+  FAIL  flow names its replacement (trace) — Did you mean 'top_flows'? See availableTools.
+  FAIL  insights names its replacement (stats) — Did you mean 'insights'? See availableTools.
+  FAIL  interesting_points names its replacement (overview) — Did you mean 'interesting_points'? See availableTools.
+  PASS  analyze TodoApi
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-mid\menu-overview.json
+  PASS  overview absorbed interesting_points (addressable, not just titles) — 20 points · keys=nodeId,title,kind,why,tags
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-mid\menu-stats.json
+  PASS  stats absorbed insights (with the confidence insights() carried) — 9 insights · keys=id,category,severity,title,detail,evidence,confidence,action,actionTarget
+  PASS  found an entry to trace — GET /
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-mid\menu-trace-compact.json
+  PASS  trace(compact) absorbed flow's counters — steps=5 touches=0 emits=0
+  PASS  trace(compact) still renders the compact text — Entry: EntryPoint: GET /
+  PASS  no reply points at a folded tool — clean

@@ -1,0 +1,172 @@
+{
+  "meta": "nodes=129 edges=80",
+  "nodeCount": 129,
+  "edgeCount": 80,
+  "entryCount": 12,
+  "entriesWithTarget": 12,
+  "totalWallMs": 5470,
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 54,
+      "verified": 18,
+      "approx": 36
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 2,
+      "verified": 0,
+      "approx": 2
+    },
+    {
+      "kind": "Resolves",
+      "total": 21,
+      "verified": 21,
+      "approx": 0
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    },
+    {
+      "kind": "DependsOn",
+      "total": 2,
+      "verified": 2,
+      "approx": 0
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "warning",
+      "title": "5/11 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "POST /users/token/{provider}",
+        "POST /auth/register",
+        "POST /auth/login",
+        "GET /auth/login/{provider}",
+        "GET /auth/signin/{provider}"
+      ],
+      "confidence": 0.55,
+      "action": "Focus",
+      "actionTarget": "EntryPoint:POST /users/token/{provider}"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "notable",
+      "title": "Auth surface: 6 protected, 5 unannotated of 11 API endpoints",
+      "detail": "",
+      "evidence": [
+        "6 protected",
+        "GET /todos/",
+        "GET /todos/{id}",
+        "5 no auth annotation"
+      ],
+      "confidence": 0.5454545454545454,
+      "action": "Focus",
+      "actionTarget": "EntryPoint:GET /todos/"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "info",
+      "title": "Entry targets resolved 12/12 (100%) — trace any entry for its full path",
+      "detail": "",
+      "evidence": [],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "info",
+      "title": "DI: 33 Extension · 5 Singleton · 5 Scoped (43 total)",
+      "detail": "",
+      "evidence": [],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "info",
+      "title": "Entry surface: 11 HTTP · 1 UI",
+      "detail": "",
+      "evidence": [
+        "11 HTTP",
+        "1 UI"
+      ],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "info",
+      "title": "Most depended-upon: Todo.Api (2 dependents) · Todo.Web.Shared (2 dependents) · TodoApp.ServiceDefaults (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "Todo.Api (2 dependents)",
+        "Todo.Web.Shared (2 dependents)",
+        "TodoApp.ServiceDefaults (1 dependents)"
+      ],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "info",
+      "title": "Data map: 2 entities across 2 scopes",
+      "detail": "",
+      "evidence": [
+        "Todo.Api (1 entities)",
+        "TodoDbContext (1 entities)"
+      ],
+      "confidence": 0.6,
+      "action": "None",
+      "actionTarget": ""
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "info",
+      "title": "Wiring hubs: TodoDbContext (8) · TodoClient (6)",
+      "detail": "",
+      "evidence": [
+        "TodoDbContext (8)",
+        "TodoClient (6)"
+      ],
+      "confidence": 0.5,
+      "action": "None",
+      "actionTarget": ""
+    }
+  ],
+  "warnings": [
+    "5/11 endpoints anonymous, incl. 3 POST/PUT/DELETE"
+  ],
+  "extractionFailures": []
+}

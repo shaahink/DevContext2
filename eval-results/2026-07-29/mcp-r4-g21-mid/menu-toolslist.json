@@ -1,0 +1,26 @@
+{
+  "count": 21,
+  "tools": [
+    "analyze",
+    "close_session",
+    "config",
+    "entrypoints",
+    "find",
+    "get_context",
+    "impact",
+    "list_sessions",
+    "map",
+    "neighbors",
+    "node",
+    "overview",
+    "read_source",
+    "resolve",
+    "stats",
+    "status",
+    "tests_for",
+    "top_flows",
+    "trace",
+    "usages",
+    "verify_context"
+  ]
+}

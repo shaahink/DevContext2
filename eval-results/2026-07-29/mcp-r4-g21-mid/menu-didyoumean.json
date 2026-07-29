@@ -1,0 +1,31 @@
+{
+  "error": "Unknown tool 'no_such_tool_xyz'.",
+  "hint": "Use one of availableTools.",
+  "example": "overview(handle)",
+  "availableTools": [
+    "analyze",
+    "overview",
+    "resolve",
+    "status",
+    "close_session",
+    "list_sessions",
+    "stats",
+    "entrypoints",
+    "map",
+    "top_flows",
+    "flow",
+    "interesting_points",
+    "trace",
+    "node",
+    "neighbors",
+    "usages",
+    "find",
+    "impact",
+    "config",
+    "tests_for",
+    "insights",
+    "get_context",
+    "verify_context",
+    "read_source"
+  ]
+}

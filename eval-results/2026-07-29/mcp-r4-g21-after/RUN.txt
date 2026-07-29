@@ -1,0 +1,21 @@
+case: menu
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-after\menu-toolslist.json
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-after\menu-didyoumean.json
+  tools/list (21): analyze close_session config entrypoints find get_context impact list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  availableTools (21): analyze close_session config entrypoints find get_context impact list_sessions map neighbors node overview read_source resolve stats status tests_for top_flows trace usages verify_context
+  PASS  the three folded tools are gone from tools/list — none present
+  PASS  the menu is the folded size — 21 tools
+  PASS  did-you-mean advertises exactly the real tool list — only-in-didyoumean=[] only-in-tools/list=[]
+  PASS  flow names its replacement (trace) — 'flow' was folded into 'trace' — same answer, one fewer tool. Use trace(handle, focus:"POST /basket/checkout", format:"compact")
+  PASS  insights names its replacement (stats) — 'insights' was folded into 'stats' — same answer, one fewer tool. Use stats(handle)
+  PASS  interesting_points names its replacement (overview) — 'interesting_points' was folded into 'overview' — same answer, one fewer tool. Use overview(handle)
+  PASS  analyze TodoApi
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-after\menu-overview.json
+  PASS  overview absorbed interesting_points (addressable, not just titles) — 20 points · keys=nodeId,title,kind,why,tags
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-after\menu-stats.json
+  PASS  stats absorbed insights (with the confidence insights() carried) — 9 insights · keys=id,category,severity,title,detail,evidence,confidence,action,actionTarget
+  PASS  found an entry to trace — GET /
+  wrote C:\code\DevContext2\eval-results\2026-07-29\mcp-r4-g21-after\menu-trace-compact.json
+  PASS  trace(compact) absorbed flow's counters — steps=5 touches=0 emits=0
+  PASS  trace(compact) still renders the compact text — Entry: EntryPoint: GET /
+  PASS  no reply points at a folded tool — clean
