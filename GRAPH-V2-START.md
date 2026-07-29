@@ -4,23 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**STAGE G7 COMPLETE — G7.1 (C-2) @ 55af763, G7.2 (C-3) @ 5ba0ec7.** Evidence `eval-results/2026-07-29/G7/
-G7.1-EVIDENCE.md` + `G7.2-EVIDENCE.md`; `pnpm check` `CHECK-EXIT=0` (19 files / **151** tests). C-2's "five"
-is EXACT (FluentValidation: 7 Atlas sections, 5 empty). The three unexplained ones each failed differently —
-an instruction the reader cannot act on, an empty set described as a set (**plus a second notice under it**),
-and — the sharp one — a "nothing found" over inputs empty BY CONSTRUCTION (Data stores reads only per-service
-styles + ServiceMap cards, so on a library it examined NOTHING). **Nothing was looked at is not nothing was
-found.** C-3 then found the same class twice more: the Studio picker told an **analyzed** repo to go analyze
-a repo, and Insights printed "Coverage" over nothing. Rule = S9's shape with three non-interchangeable reason
-classes (`archetype`/`none-found`/`not-computed`) as DATA ATTRIBUTES — a text grep passes on a page that
-DELETED the section. **Instruments to reuse: `ui/withheld` · pure-fn + spec (`atlas-sections.vm.ts`,
-`scopePickerWithheld`) · `scripts/g71-atlas-empty-sections.mts` + `g72-withhold-sweep.mts`.**
-**NAMED, NOT CLEARED:** the C-3 sweep drives 6 routes in their DEFAULT state — Inspector tabs / node card /
-peek / entry-browser were NOT driven and 3 carry unmarked empty states (`inspector.ts:184,217`,
-`node-card.ts:82`, `stage.ts:250`). Filed **bug #20**: AutoMapper (a LIBRARY) cards `TestApp` as a service —
-`ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same root cause as G9.1.
-**Method, twice over: the full-text dump beat the verdict line both times** (the probe PASSED on AutoMapper
-before I read it; my own `/^no/` flagged the Hub radar's caption). **Next = G8.1 (HotChocolate profile).**
+**STAGE G8 COMPLETE — G8.1 (profile) @ 59b17aa, G8.2 (fix) @ d6be215.** Evidence `eval-results/2026-07-29/G8/`.
+**R1's scale wall was never a big repo.** `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole
+file's syntax tree once per base-list entry — `baseEntries × nodes` **inside one file**. HotChocolate carries an
+11.3 MB generated client with 4,598 base lists: **1,216,998 ms of a 1,275 s run (95.4 %)**. One per-file index →
+**11,830 ms**, whole analysis **64.3 s**, `types=19456 detections=3889` **identical**. Timeout untouched, bug #21
+closed. **The class is large AND base-list dense, not large** — SignalR's 3.0 MB generated file has ONE base list
+and never engages it (121s→113s, and my first "196s→110s" was a cold-cache artefact I had to retract).
+**Instruments to reuse: `DEVCONTEXT_PROFILE=1`** (stderr stage/extractor stream + heartbeat naming what is still
+outstanding — both old observers report a hang as SILENCE) **· `dotnet-stack report --process-id`
+· `g82-capture*.ps1` + `g82-diff.ps1`** (15-pole SHA-256 differential, the acceptance instrument).
+**TRAPS PAID FOR:** any engine before/after MUST pass `--no-cache` — the snapshot key is the TARGET repo's git
+HEAD, *not* the DevContext build, so `graph-truth.ps1` would serve pre-change results; take BOTH sides of a
+timing comparison back-to-back or the ratio is fiction; `eval-repos/VerticalSlice` IS `CleanArchitecture`
+(identical dump hash), so never count it as a second pole. `McpQaGateTests` flaked once under load — bug #3/#1,
+green alone and on a quiet re-run, not a regression. **Next = G9.1** (archetype loses to an auxiliary exe:
+`CLI` + `MahApps.Metro` read CliTool/Desktop; same root cause as bug #20 — `ArchetypeDetector` excludes
+auxiliary samples, `RunnableProjects` does not).
 
 
 ## Baseline numbers (from run.db)
@@ -29,7 +29,7 @@ before I read it; my own `/^no/` flagged the Hub radar's caption). **Next = G8.1
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 16 |
+| Claimed (unconfirmed) | 18 |
 
 ## Checkpoints
 
@@ -86,8 +86,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G7.1 | C-2 — Atlas's five empty sections on a library either fill or withhold themselves with a stated reason | TODO | - | - |
-| G7.2 | C-3 — the withhold-don't-suppress rule applied consistently wherever a surface has no entries | TODO | - | - |
+| G7.1 | C-2 — Atlas's five empty sections on a library either fill or withhold themselves with a stated reason | DONE | 55af763 | fast-app:OK · guards:OK |
+| G7.2 | C-3 — the withhold-don't-suppress rule applied consistently wherever a surface has no entries | DONE | 55af763 | fast-app:OK · guards:OK |
 
 ### G8 — R1 scale wall — profile HotChocolate, do not raise the timeout
 
