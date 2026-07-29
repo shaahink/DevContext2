@@ -8,15 +8,42 @@ namespace DevContext.Mcp;
 // The SDK routes any name absent from the tool collection here (calls like `routes`
 // used to surface as an opaque "Unknown tool" error with no next step). We return
 // an actionable envelope naming the closest real tools + the full list.
-internal static class UnknownToolHandler
+// Public, not internal: McpToolMenuTests asserts the advertised menu against the SDK's registered
+// collection, and `InternalsVisibleTo` is not available here — this project and DevContext.Server
+// both compile a top-level `Program` into the global namespace, so opening internals to the shared
+// test assembly makes that name ambiguous (CS0433).
+public static class UnknownToolHandler
 {
-    // The 24 tool names the server exposes (McpServerTool methods on DevContextTools).
-    private static readonly string[] ToolNames =
+    // G2.1 (R4 §1 item 11) — THE SECOND HAND-MAINTAINED TOOL LIST IS GONE.
+    //
+    // This used to be a literal array of 24 names sitting beside the 24 [McpServerTool] methods
+    // that produced them. It was correct the day it was written and had no way to STAY correct:
+    // the moment three tools were folded away it went on advertising three tools the server no
+    // longer has, and an agent that trusted the list would call one and land right back here.
+    // A list whose only defence is that someone remembers to edit it is a list that drifts.
+    //
+    // It is now seeded once at startup from the SDK's own registered tool collection — the same
+    // object `tools/list` is built from (Program.cs) — so the menu and the did-you-mean answer
+    // are one fact. McpToolMenuTests pins the equality.
+    private static string[] _toolNames = [];
+
+    /// <summary>Seed the advertised names from the server's registered tools. Called once at startup.</summary>
+    public static void UseToolNames(IEnumerable<string> names)
+        => _toolNames = [.. names.Distinct(StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal)];
+
+    /// <summary>The names this handler advertises — the server's real menu.</summary>
+    public static IReadOnlyList<string> ToolNames => _toolNames;
+
+    // Tools that were FOLDED into another tool, with the call that replaces them. This is not a
+    // second menu — every entry names a tool that no longer exists, and the test asserts exactly
+    // that. Without it the nearest-name heuristic below answers `flow` with `top_flows`, because
+    // "flow" is a SUBSTRING of "top_flows": a confident, wrong redirect. An agent carrying an older
+    // prompt gets the working call instead.
+    public static readonly (string Retired, string Replacement, string Call)[] Folded =
     [
-        "analyze", "overview", "resolve", "status", "close_session", "list_sessions",
-        "stats", "entrypoints", "map", "top_flows", "flow", "interesting_points",
-        "trace", "node", "neighbors", "usages", "find", "impact", "config",
-        "tests_for", "insights", "get_context", "verify_context", "read_source",
+        ("flow", "trace", "trace(handle, focus:\"POST /basket/checkout\", format:\"compact\")"),
+        ("insights", "stats", "stats(handle)"),
+        ("interesting_points", "overview", "overview(handle)"),
     ];
 
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };
@@ -24,18 +51,7 @@ internal static class UnknownToolHandler
     public static ValueTask<CallToolResult> Handle(
         RequestContext<CallToolRequestParams> request, CancellationToken ct)
     {
-        var name = request.Params?.Name ?? "(none)";
-        var closest = Closest(name);
-
-        var payload = JsonSerializer.Serialize(new
-        {
-            error = $"Unknown tool '{name}'.",
-            hint = closest is not null
-                ? $"Did you mean '{closest}'? See availableTools."
-                : "Use one of availableTools.",
-            example = $"{closest ?? "overview"}(handle)",
-            availableTools = ToolNames,
-        }, JsonOpts);
+        var payload = JsonSerializer.Serialize(Describe(request.Params?.Name ?? "(none)"), JsonOpts);
 
         return ValueTask.FromResult(new CallToolResult
         {
@@ -44,13 +60,41 @@ internal static class UnknownToolHandler
         });
     }
 
-    // Cheap nearest-name: shared-prefix / substring, else Levenshtein <= 3.
-    private static string? Closest(string name)
+    /// <summary>The reply body. Separated from the transport so it can be asserted without a server.</summary>
+    public static object Describe(string name)
     {
         var lower = name.ToLowerInvariant();
+
+        foreach (var fold in Folded)
+        {
+            if (fold.Retired != lower) continue;
+            return new
+            {
+                error = $"Unknown tool '{name}'.",
+                hint = $"'{fold.Retired}' was folded into '{fold.Replacement}' — same answer, one fewer tool. Use {fold.Call}",
+                example = fold.Call,
+                availableTools = _toolNames,
+            };
+        }
+
+        var closest = Closest(lower);
+        return new
+        {
+            error = $"Unknown tool '{name}'.",
+            hint = closest is not null ? $"Did you mean '{closest}'? See availableTools."
+                : _toolNames.Length > 0 ? "Use one of availableTools."
+                : "Call tools/list for the current menu.",
+            example = $"{closest ?? "overview"}(handle)",
+            availableTools = _toolNames,
+        };
+    }
+
+    // Cheap nearest-name: shared-prefix / substring, else Levenshtein <= 3.
+    private static string? Closest(string lower)
+    {
         string? best = null;
         var bestDist = int.MaxValue;
-        foreach (var t in ToolNames)
+        foreach (var t in _toolNames)
         {
             if (t == lower) return t;
             if (t.Contains(lower, StringComparison.Ordinal) || lower.Contains(t, StringComparison.Ordinal))

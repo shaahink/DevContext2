@@ -25,7 +25,7 @@ query it from whichever surface fits your workflow.
 |---------|---------------|--------|
 | **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); CI-verified on Windows, Linux, and macOS — see [Platform support](#platform-support)) |
 | **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
-| **MCP server** (24 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
+| **MCP server** (21 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
 | **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
 
 ---
@@ -95,7 +95,7 @@ Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD
 
 ### 🔌 MCP Integration
 
-DevContext ships a built-in **MCP server** exposing **24 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
+DevContext ships a built-in **MCP server** exposing **21 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
 
 <p align="center">
   <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP" width="85%"></a>
@@ -197,7 +197,7 @@ then register the built server with your MCP client:
 }
 ```
 
-The MCP server auto-spawns the gRPC backend. All 24 tools, session model, and per-client snippets: [docs/product/mcp-reference.md](docs/product/mcp-reference.md)
+The MCP server auto-spawns the gRPC backend. All 21 tools, session model, and per-client snippets: [docs/product/mcp-reference.md](docs/product/mcp-reference.md)
 
 ### Platform support
 
@@ -221,7 +221,7 @@ itself is portable .NET and CI-verified on all three OSes.
 |-----|--------------|
 | [docs/product/cli-reference.md](docs/product/cli-reference.md) | Every `devcontext analyze` flag, verified against source |
 | [docs/product/configuration.md](docs/product/configuration.md) | `devcontext.json` schema and precedence |
-| [docs/product/mcp-reference.md](docs/product/mcp-reference.md) | MCP setup + all 24 tools |
+| [docs/product/mcp-reference.md](docs/product/mcp-reference.md) | MCP setup + all 21 tools |
 | [docs/product/desktop-ui.md](docs/product/desktop-ui.md) | Desktop app tour, page by page |
 | [docs/product/TRACE-ENGINE-DESIGN.md](docs/product/TRACE-ENGINE-DESIGN.md) | Trace engine internals: edges, priorities, caps |
 | [docs/product/DETECTION-GUIDE.md](docs/product/DETECTION-GUIDE.md) | What each detector finds and its provenance |
@@ -249,7 +249,7 @@ DevContext.Core (kernel)   —  analysis pipeline, Graph2 identity spine, BodyFa
 ├── DevContext.Cli          —  `devcontext` dotnet tool
 ├── DevContext.Contracts    —  proto → C# gRPC codegen
 ├── DevContext.Server       —  gRPC-Web backend (analyze once, query many)
-├── DevContext.Mcp          —  MCP server (24 tools, stdio → gRPC proxy)
+├── DevContext.Mcp          —  MCP server (21 tools, stdio → gRPC proxy)
 DevContext.App (Angular 22) —  Tauri 2 desktop, zoneless, signals — talks gRPC-Web to Server
 ```
 

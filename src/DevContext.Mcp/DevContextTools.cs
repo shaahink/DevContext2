@@ -360,6 +360,19 @@ public sealed class DevContextTools
             sb.AppendLine();
         }
 
+        // G2.1 (R4 §1 item 11) — `interesting_points` folded in here. The prose line above is a
+        // reading aid; these rows are the ADDRESSABLE form — a nodeId is what trace/node/read_source
+        // take, and dropping it was what made the prose a dead end. Every field the retired tool
+        // returned is here, all of them, not the first four.
+        var startHere = pts.Points.Select(p => new
+        {
+            nodeId = p.NodeId,
+            title = p.Title,
+            kind = p.Kind,
+            why = p.Why,
+            tags = p.Tags.ToArray(),
+        }).ToArray();
+
         if (map.PipelineBehaviors.Count > 0)
             sb.Append("Behaviors: ").AppendJoin(", ", map.PipelineBehaviors).AppendLine();
 
@@ -369,7 +382,7 @@ public sealed class DevContextTools
         var text = sb.ToString();
         var tokens = (text.Length + 3) / 4;
 
-        return JsonSerializer.Serialize(new { handle, tokens, text }, JsonOpts);
+        return JsonSerializer.Serialize(new { handle, archetype = map.Archetype, tokens, text, startHere }, JsonOpts);
     }
 
     /// <summary>Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks — returns all matches. Example: resolve("abc123", "Product")</summary>
@@ -533,6 +546,9 @@ public sealed class DevContextTools
                 title = i.Title,
                 detail = i.Detail,
                 evidence = i.Evidence.ToArray(),
+                // G2.1 — the one field insights() carried that stats() did not, so folding the two
+                // menu entries into one costs an agent nothing.
+                confidence = i.Confidence,
                 action = i.Action,
                 actionTarget = i.ActionTarget,
             }).ToArray(),
@@ -777,74 +793,13 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Compact flow summary for an entry (≤150 tok typical): what it touches/emits, not the full call spine. Deep-link to trace() for full detail. Address with 'focus' OR 'query'. Example: flow("abc123", "POST /basket/checkout")</summary>
-    [McpServerTool]
-    public async Task<string> Flow(string? handle = null, string? focus = null, int depth = 8, string? query = null)
-    {
-        focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
-        if (string.IsNullOrWhiteSpace(focus))
-            return Envelope("Missing required parameter 'focus' (or 'query').",
-                "Pass the entry route or symbol to summarize as 'focus' or 'query'.",
-                "flow(handle, focus:\"POST /basket/checkout\")");
-        try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "flow", "analyze(path) then flow(focus:\"POST /basket/checkout\")"); }
-        try
-        {
-            var resp = await _client.GetTraceAsync(new TraceRequest
-            {
-                Handle = handle,
-                Focus = focus,
-                Depth = depth,
-            });
-
-            if (!resp.Found)
-            {
-                var suggestions = await SuggestAsync(handle, focus);
-                return Envelope($"No entry or node matched '{focus}'.",
-                    suggestions.Length > 0 ? "Did you mean one of these?" : "Try top_flows() to list entries.",
-                    "flow(handle, focus:\"POST /basket/checkout\")",
-                    suggestions.Length > 0 ? suggestions : null);
-            }
-
-            var sb = new StringBuilder();
-            var entryInfo = resp.Root is not null
-                ? $"{resp.Root.Kind}: {resp.Root.Title}" : focus;
-            sb.Append("Entry: ").AppendLine(entryInfo);
-            if (resp.Root is not null)
-                BuildCompactFlow(sb, resp.Root, 0, handle);
-
-            if (resp.TouchedEntities.Count > 0)
-                sb.Append("Touches: ").AppendJoin(", ", resp.TouchedEntities).AppendLine();
-            if (resp.EmittedEvents.Count > 0)
-                sb.Append("Emits: ").AppendJoin(", ", resp.EmittedEvents).AppendLine();
-
-            var compact = sb.ToString();
-            var approxTokens = (compact.Length + 3) / 4;
-            var stepCount = CountTraceSteps(resp.Root);
-
-            // L5.4 — flow renders compact; if it's large, deep-link to trace for full detail.
-            string? hint = null;
-            if (approxTokens > 150)
-                hint = $"Full detail ({stepCount} steps): trace(handle, focus:\"{focus}\", depth:{depth}, format:\"compact\")";
-
-            return JsonSerializer.Serialize(new
-            {
-                found = true,
-                focus,
-                steps = stepCount,
-                touches = resp.TouchedEntities.Count,
-                emits = resp.EmittedEvents.Count,
-                approxTokens,
-                legend = SeamLegend(compact),
-                text = compact,
-                hint,
-            }, JsonOpts);
-        }
-        catch (RpcException ex)
-        {
-            return FromRpc(ex, "flow", "flow(handle, focus:\"POST /basket/checkout\")");
-        }
-    }
+    // G2.1 (R4 §1 item 11) — `flow` is FOLDED into trace(format:"compact"). It was not a second
+    // capability: both tools called the SAME GetTrace RPC and rendered the response through the same
+    // BuildCompactFlow, so the text they returned was built by one code path. What differed was the
+    // dials they sent — flow walked depth 8 with NO budget, trace walks TracePolicy's depth with one —
+    // which is item 12's divergence living inside a single client. The counters flow put in its
+    // envelope (steps/touches/emits) now ride the compact trace, so nothing an agent could read is
+    // lost. UnknownToolHandler answers the retired name with the call that replaces it.
 
     private static int CountTraceSteps(TraceNode? node)
     {
@@ -870,43 +825,15 @@ public sealed class DevContextTools
     {
         var omitted = OmittedNodes(node);
         if (omitted == 0) return null;
-        return $"{omitted} node(s) omitted to fit ~{budgetTokens} tok. Raise budgetTokens (or 0 for full), or read_source(nodeId)/flow(focus) into a truncated subtree.";
+        return $"{omitted} node(s) omitted to fit ~{budgetTokens} tok. Raise budgetTokens (or 0 for full), or read_source(nodeId) into a truncated subtree.";
     }
 
-    /// <summary>Archetype-aware starting points for exploring the codebase. Example: interesting_points("abc123")</summary>
-    [McpServerTool]
-    public async Task<string> InterestingPoints(string? handle = null)
-    {
-        try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "interesting_points", "analyze(path) then interesting_points()"); }
-        MapResponse map;
-        InterestingPointsResponse pts;
-        try
-        {
-            map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
-            pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
-            {
-                Handle = handle,
-                Archetype = map.Archetype,
-            });
-        }
-        catch (RpcException ex) { return FromRpc(ex, "interesting_points", "interesting_points(handle)"); }
-        return JsonSerializer.Serialize(new
-        {
-            archetype = map.Archetype,
-            count = pts.Points.Count,
-            points = pts.Points.Select(p => new
-            {
-                nodeId = p.NodeId,
-                title = p.Title,
-                kind = p.Kind,
-                why = p.Why,
-                tags = p.Tags.ToArray(),
-            }).ToArray(),
-        }, JsonOpts);
-    }
+    // G2.1 (R4 §1 item 11) — `interesting_points` is FOLDED into overview(). Overview already made
+    // the same GetInterestingPoints call; it just spent the answer on four bare titles in prose and
+    // threw the nodeId away, so the one thing that made a starting point ADDRESSABLE was the thing
+    // it dropped. The points now ride overview's envelope in full.
 
-    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = call spine from ONE entry (deep); use flow() for a compact summary. format: default|compact. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
+    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = the call spine from ONE entry; format:"compact" is the small flow summary (what it touches/emits, ~150 tok) and format:"default" the full tree. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
     // depth 6 mirrors TracePolicy.DefaultDepth. It is a literal because this project is a gRPC CLIENT
     // and deliberately does not reference DevContext.Core — the server, which does, is where the
@@ -955,7 +882,24 @@ public sealed class DevContextTools
 
                 var compact = sb.ToString();
                 var tokens = (compact.Length + 3) / 4;
-                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, budgetTokens, omitted = OmittedNodes(resp.Root), hint = BudgetHint(resp.Root, budgetTokens), legend = SeamLegend(compact), text = compact }, JsonOpts);
+                // G2.1 — the three counters `flow` carried in its envelope. They are the summary an
+                // agent reads before deciding whether to spend the full tree, and they cost nothing:
+                // the response they count is already in hand.
+                return JsonSerializer.Serialize(new
+                {
+                    found = true,
+                    format = "compact",
+                    focus,
+                    steps = CountTraceSteps(resp.Root),
+                    touches = resp.TouchedEntities.Count,
+                    emits = resp.EmittedEvents.Count,
+                    tokens,
+                    budgetTokens,
+                    omitted = OmittedNodes(resp.Root),
+                    hint = BudgetHint(resp.Root, budgetTokens),
+                    legend = SeamLegend(compact),
+                    text = compact,
+                }, JsonOpts);
             }
 
             return JsonSerializer.Serialize(new
@@ -1525,32 +1469,9 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "tests_for", "tests_for(handle, nodeId:\"OrderService\")"); }
     }
 
-    /// <summary>List all insights (warnings, notable items, info) for the analyzed repo. Example: insights("abc123")</summary>
-    [McpServerTool]
-    public async Task<string> Insights(string? handle = null)
-    {
-        try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "insights", "analyze(path) then insights()"); }
-        StatsResponse resp;
-        try { resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle }); }
-        catch (RpcException ex) { return FromRpc(ex, "insights", "insights(handle)"); }
-        return JsonSerializer.Serialize(new
-        {
-            count = resp.Insights.Count,
-            insights = resp.Insights.Select(i => new
-            {
-                id = i.Id,
-                category = i.Category,
-                severity = i.Severity,
-                title = i.Title,
-                detail = i.Detail,
-                evidence = i.Evidence.ToArray(),
-                confidence = i.Confidence,
-                action = i.Action,
-                actionTarget = i.ActionTarget,
-            }).ToArray(),
-        }, JsonOpts);
-    }
+    // G2.1 (R4 §1 item 11) — `insights` is FOLDED into stats(). Both read the SAME StatsResponse
+    // from the same RPC, and stats already serialised every insight field but one; `confidence` now
+    // rides with them, so the fold drops nothing.
 
     /// <summary>Budget-priced context pack for a focus. Address with 'focus' OR 'query'. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
     [McpServerTool]

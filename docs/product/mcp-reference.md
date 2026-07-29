@@ -1,6 +1,6 @@
 # MCP Reference
 
-DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **24 tools**
+DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **21 tools**
 so any MCP-compatible agent (Claude Code, Cursor, VS Code, Cline, …) can query an analyzed .NET
 codebase instead of grepping it.
 
@@ -80,7 +80,7 @@ path or put the directory on `PATH`):
 - Budgeted tools (`trace`, `get_context`) take `budgetTokens` and name what they cut
   ("N omitted") instead of truncating silently.
 
-## Tool catalog (24)
+## Tool catalog (21)
 
 ### Session
 
@@ -95,13 +95,11 @@ path or put the directory on `PATH`):
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
-| `overview` | One-call repo brief: identity, services, ServiceLinks, top flows, where to start (~600 tokens). | `handle` |
+| `overview` | One-call repo brief: identity, services, ServiceLinks, top flows, plus `startHere` — the archetype-aware starting points, each with the `nodeId` that addresses it. | `handle` |
 | `map` | Architecture map, structured **and** rendered: style, archetype, topology, packages, aggregates, pipeline behaviours, per-service styles, the library surface (entry API, abstractions, namespace groups, internals, extension points, consumer paths, generators), the archetype view, the solution scope — plus the markdown. | `handle` |
-| `stats` | Full analysis stats: node/edge counts, seam breakdown, insights, warnings. | `handle` |
+| `stats` | Full analysis stats: node/edge counts, seam breakdown, every insight (category, severity, evidence, confidence, action), warnings, swallowed extraction failures. | `handle` |
 | `entrypoints` | Entry points (HTTP routes, bus consumers, gRPC services). Summary by default; `kind` filters, `full:true` lists every entry. | `kind`, `top`, `full` |
 | `top_flows` | Top 20 entry points ranked by importance score. | `handle` |
-| `interesting_points` | Archetype-aware starting points for exploring the codebase. | `handle` |
-| `insights` | All insights (warnings, notable items, info) for the analyzed repo. | `handle` |
 
 ### Navigation — find and inspect symbols
 
@@ -118,8 +116,7 @@ path or put the directory on `PATH`):
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
-| `flow` | Compact flow summary for an entry (≤150 tokens typical): what it touches/emits. Deep-link to `trace` for detail. | `focus`/`query`, `depth` |
-| `trace` | Full call spine from one entry. Budgeted: cut subtrees are named ("N omitted"); `budgetTokens: 0` = full tree. `format: compact` prefixes each step with a seam glyph and returns a `legend` keying the ones it used. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
+| `trace` | Call spine from one entry. `format: compact` is the small flow summary (~150 tokens: `steps`/`touches`/`emits`, each step prefixed with a seam glyph, plus a `legend` keying the ones it used); `format: default` is the full tree. Budgeted: cut subtrees are named ("N omitted"); `budgetTokens: 0` = full tree. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
 | `tests_for` | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
 | `config` | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |
@@ -130,6 +127,18 @@ path or put the directory on `PATH`):
 |------|--------------|----------------|
 | `get_context` | Budget-priced context pack for a focus: identity header, flows, signatures, bodies, DI wiring, config, contracts, tests — with per-section provenance. A pack filling <85% of budget says why (`fillNote`: budget-cut vs content-exhausted) and, when the focus is weakly connected, suggests better-connected focuses (`suggestedFocuses`). | `focus`/`query`, `budgetTokens` (default 8000), `intent: trace\|explain\|review` |
 | `verify_context` | Has the source drifted since `analyze`? Per-section stale flags, changed files with line deltas, repo HEAD then/now (hash + line-count delta, no diff). | `focus`/`query`, `budgetTokens` |
+
+### Folded tools (removed — the replacement answers the same question)
+
+Three tools were second doors onto a call the surviving tool already made, so the menu carried them
+and an agent had to learn which of two names to pick. Calling a retired name returns an envelope
+naming the replacement.
+
+| Retired | Use instead | Why it was the same answer |
+|---------|-------------|----------------------------|
+| `flow` | `trace(focus, format: "compact")` | Both called `GetTrace` and rendered the response through the same compact builder; only the dials differed. The `steps`/`touches`/`emits` counters moved onto the compact trace. |
+| `insights` | `stats` | Both read the same `GetStats` response; `stats` already returned every insight, and now carries `confidence` too. |
+| `interesting_points` | `overview` | `overview` already made the call — it just spent the answer on four bare titles. The points ride its `startHere` array in full, `nodeId` included. |
 
 ## A typical agent session
 

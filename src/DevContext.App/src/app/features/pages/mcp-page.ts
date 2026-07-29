@@ -296,7 +296,13 @@ export class McpPage implements OnInit, OnDestroy {
     this.showUiCalls() ? this.events() : this.events().filter((e) => e.origin !== 'ui'));
 
   protected readonly configSnippets = CONFIG_SNIPPETS;
-  protected readonly availableTools = ['stats', 'map', 'entrypoints', 'trace', 'node', 'search', 'impact', 'insights', 'get_context'];
+  /**
+   * The sandbox probes gRPC RPCs but LABELS them with MCP tool names, so this list drifts from the
+   * real menu independently of it. Two rows were already wrong when G2.1 folded the menu: there is
+   * no MCP tool called search (it is find), and insights was a second door onto the same GetStats
+   * call that stats makes — now folded away. See UnknownToolHandler for the menu itself.
+   */
+  protected readonly availableTools = ['stats', 'map', 'entrypoints', 'trace', 'node', 'find', 'impact', 'get_context'];
   protected selectedTool = 'stats';
   protected tryHandle = '';
   protected tryArg = '';
@@ -410,9 +416,8 @@ export class McpPage implements OnInit, OnDestroy {
         case 'entrypoints': return this.client.listEntryPoints({ handle });
         case 'trace': return this.client.getTrace({ handle, focus: arg || handle });
         case 'node': return this.client.getNode({ handle, nodeId: arg });
-        case 'search': return this.client.searchNodes({ handle, query: arg });
+        case 'find': return this.client.searchNodes({ handle, query: arg });
         case 'impact': return this.client.getImpact({ handle, nodeId: arg, maxDepth: 4 });
-        case 'insights': return this.client.getStats({ handle });
         case 'get_context': return this.client.getContext({ handle, focus: arg, budgetTokens: 4000 });
         default: return null;
       }

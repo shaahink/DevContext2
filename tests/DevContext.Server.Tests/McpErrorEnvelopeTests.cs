@@ -51,8 +51,11 @@ public sealed class McpErrorEnvelopeTests
         var methods = ToolMethods();
 
         // A positive precondition, so this can never pass vacuously on an empty list (G1.2's lesson:
-        // the entry canary first "passed" against a pack with zero sections).
-        Assert.True(methods.Count >= 24, $"expected the full tool menu, found {methods.Count}");
+        // the entry canary first "passed" against a pack with zero sections). The bar moved 24 -> 21
+        // when G2.1 folded flow/insights/interesting_points into the tools that already answered
+        // them; the EXACT count is pinned once, in McpToolMenuTests, against the SDK's registered
+        // collection — this stays a floor so the two don't drift apart as separate literals.
+        Assert.True(methods.Count >= 21, $"expected the full tool menu, found {methods.Count}");
 
         foreach (var m in methods)
         {

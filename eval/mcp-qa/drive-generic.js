@@ -79,7 +79,7 @@ function log(step, text) {
     ["neighbors", { query: "PodcastService", direction: "out" }],
     ["usages", { query: "ShowClient" }],
     ["read_source", { query: "ListenTogetherHub", mode: "window", windowLines: 20 }],
-    ["flow", { query: "GET /listen-together" }],
+    ["trace", { query: "GET /listen-together", format: "compact" }],
     ["trace", { query: "POST /", budgetTokens: 2000 }],
     ["impact", { query: "PodcastService", direction: "up" }],
     ["tests_for", { query: "FeedsApi" }],
@@ -87,8 +87,6 @@ function log(step, text) {
     ["get_context", { query: "GET /listen-together", budgetTokens: 6000 }],
     ["verify_context", { query: "GET /listen-together" }],
     ["top_flows", {}],
-    ["interesting_points", {}],
-    ["insights", {}],
     ["stats", {}],
   ];
 

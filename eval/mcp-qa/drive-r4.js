@@ -259,11 +259,11 @@ const CASES = {
     for (const [name, args] of [
       ["status", { handle: bogus }],
       ["entrypoints", { handle: bogus }],
-      ["insights", { handle: bogus }],
+      ["stats", { handle: bogus }],
       ["close_session", { handle: bogus }],
       ["map", { handle: bogus }],
       ["top_flows", { handle: bogus }],
-      ["interesting_points", { handle: bogus }],
+      ["overview", { handle: bogus }],
     ]) {
       const { data, raw } = await tool(client, name, args);
       results[name] = { data, isError: raw?.isError ?? false };
@@ -357,6 +357,83 @@ const CASES = {
     check("the note changes when the answer does", cold.response?.note !== again.response?.note
       || cold.response?.cached === again.response?.cached,
       `cold.cached=${cold.response?.cached} again.cached=${again.response?.cached}`);
+  },
+  // G2.1 (R4 §1 item 11) — the folded menu, and a did-you-mean handler that reads the REAL list.
+  //
+  // The discriminating check here is an EQUALITY, not a spot check. The hand-maintained array in
+  // UnknownToolHandler was CORRECT at 24 names, so "does availableTools contain `map`" passes on
+  // the broken state; what makes it wrong is the fold itself. So: availableTools (as a set) must
+  // equal tools/list (as a set). Run this case with the fold landed and the hand list still in
+  // place and it goes red on three names — that is the red this case exists to have seen.
+  async menu(client) {
+    const listed = await client.call("tools/list", {}, 45000);
+    const real = (listed.result?.tools ?? []).map((t) => t.name).sort();
+    const { data: unknown } = await tool(client, "no_such_tool_xyz", {});
+    dump("menu-toolslist.json", { count: real.length, tools: real });
+    dump("menu-didyoumean.json", unknown);
+
+    const advertised = [...(unknown?.availableTools ?? [])].sort();
+    console.log(`  tools/list (${real.length}): ${real.join(" ")}`);
+    console.log(`  availableTools (${advertised.length}): ${advertised.join(" ")}`);
+
+    const folded = ["flow", "insights", "interesting_points"];
+    check("the three folded tools are gone from tools/list",
+      folded.every((f) => !real.includes(f)),
+      folded.filter((f) => real.includes(f)).join(",") || "none present");
+    check("the menu is the folded size", real.length === 21, `${real.length} tools`);
+    // THE drift invariant.
+    check("did-you-mean advertises exactly the real tool list",
+      advertised.length === real.length && advertised.every((n, i) => n === real[i]),
+      `only-in-didyoumean=[${advertised.filter((n) => !real.includes(n)).join(",")}] ` +
+      `only-in-tools/list=[${real.filter((n) => !advertised.includes(n)).join(",")}]`);
+    // A retired name must teach its replacement, not merely fail. `flow` is the trap: it is a
+    // SUBSTRING of `top_flows`, so the nearest-name heuristic answers the wrong tool with total
+    // confidence.
+    for (const [retired, want] of [["flow", "trace"], ["insights", "stats"], ["interesting_points", "overview"]]) {
+      const { data } = await tool(client, retired, {});
+      check(`${retired} names its replacement (${want})`,
+        typeof data?.hint === "string" && data.hint.includes(want),
+        data?.hint ?? JSON.stringify(data)?.slice(0, 120));
+    }
+
+    // Nothing may be lost in the fold: every field the three tools returned must still reach an
+    // agent through the tool that absorbed it.
+    const { handle } = await analyzeRepo(client, join(REPOS, "TodoApi"));
+    check("analyze TodoApi", !!handle);
+    if (!handle) return;
+
+    const { data: ov } = await tool(client, "overview", { handle });
+    dump("menu-overview.json", ov);
+    const pts = ov?.startHere ?? [];
+    check("overview absorbed interesting_points (addressable, not just titles)",
+      pts.length > 0 && pts.every((p) => typeof p.nodeId === "string" && p.nodeId.length > 0),
+      `${pts.length} points · keys=${Object.keys(pts[0] ?? {}).join(",")}`);
+
+    const { data: st } = await tool(client, "stats", { handle });
+    dump("menu-stats.json", st);
+    check("stats absorbed insights (with the confidence insights() carried)",
+      Array.isArray(st?.insights) && st.insights.length > 0
+      && st.insights.every((i) => typeof i.confidence === "number"),
+      `${st?.insights?.length ?? 0} insights · keys=${Object.keys(st?.insights?.[0] ?? {}).join(",")}`);
+
+    const top = (await tool(client, "top_flows", { handle })).data;
+    const focus = (top?.topFlows ?? [])[0];
+    const focusArg = focus?.route && focus?.httpMethod ? `${focus.httpMethod} ${focus.route}` : focus?.title;
+    check("found an entry to trace", !!focusArg, focusArg ?? JSON.stringify(top)?.slice(0, 120));
+    if (!focusArg) return;
+    const { data: cf } = await tool(client, "trace", { handle, focus: focusArg, format: "compact" }, 90000);
+    dump("menu-trace-compact.json", cf);
+    check("trace(compact) absorbed flow's counters",
+      typeof cf?.steps === "number" && typeof cf?.touches === "number" && typeof cf?.emits === "number",
+      `steps=${cf?.steps} touches=${cf?.touches} emits=${cf?.emits}`);
+    check("trace(compact) still renders the compact text",
+      typeof cf?.text === "string" && cf.text.startsWith("Entry: "),
+      (cf?.text ?? "").split("\n")[0]?.slice(0, 80) ?? "(no text)");
+    // No reply may point at a surface that no longer exists (R4 §3's bar).
+    const blob = JSON.stringify({ cf, ov, st });
+    check("no reply points at a folded tool",
+      !/\bflow\(|\binsights\(|\binteresting_points\(/.test(blob),
+      (blob.match(/\b(flow|insights|interesting_points)\(/g) ?? []).join(",") || "clean");
   },
 };
 

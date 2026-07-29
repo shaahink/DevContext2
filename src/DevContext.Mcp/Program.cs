@@ -4,6 +4,8 @@ using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using ModelContextProtocol.Server;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -69,6 +71,20 @@ try
     var provider = services.BuildServiceProvider();
     var server = provider.GetRequiredService<ModelContextProtocol.Server.McpServer>();
     var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("DevContext.Mcp");
+
+    // G2.1 (R4 §1 item 11) — the did-you-mean handler reads the REAL menu. This is the SDK's own
+    // registered collection, the same object `tools/list` is answered from, so the two can no longer
+    // disagree the way a hand-maintained array did. Loud on empty: an unseeded handler still answers
+    // (it points at tools/list) but it has stopped naming tools, and that is a wiring break, not a
+    // cosmetic one.
+    var toolNames = provider.GetRequiredService<IOptions<McpServerOptions>>()
+        .Value.ToolCollection?.PrimitiveNames ?? [];
+    UnknownToolHandler.UseToolNames(toolNames);
+    if (UnknownToolHandler.ToolNames.Count == 0)
+        logger.LogError("No tools registered — the unknown-tool handler cannot name the menu.");
+    else
+        logger.LogInformation("Tool menu: {Count} tools — {Names}", UnknownToolHandler.ToolNames.Count,
+            string.Join(", ", UnknownToolHandler.ToolNames));
 
     logger.LogInformation("DevContext MCP server starting (stdio → gRPC proxy to {Endpoint})", serverEndpoint);
 

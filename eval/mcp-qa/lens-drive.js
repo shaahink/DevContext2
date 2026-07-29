@@ -127,13 +127,14 @@ function log(step, text, err) {
     transcript.push(`\n===== PROBE =====\nSKIP: get_context probe (no entry points — library surface rides the map probe)`);
   }
 
-  // neighbors on a central node (from interesting_points): a node the lens itself calls central
+  // neighbors on a central node (overview's startHere, which absorbed interesting_points in
+  // G2.1): a node the lens itself calls central
   // must navigate somewhere (C3 type rollups) — out, else in; both empty = dead end.
-  const ip = await call("tools/call", { name: "interesting_points", arguments: {} }, 180000);
+  const ip = await call("tools/call", { name: "overview", arguments: {} }, 180000);
   const ipText = content(ip);
-  log("interesting_points", ipText, isError(ip));
+  log("overview(startHere)", ipText, isError(ip));
   let points = [];
-  try { points = JSON.parse(ipText).points ?? []; } catch (_) {}
+  try { points = JSON.parse(ipText).startHere ?? []; } catch (_) {}
   if (points.length > 0) {
     const nodeId = points[0].nodeId;
     let navigated = false;
