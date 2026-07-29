@@ -52,7 +52,8 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                         sw.Stop();
                         return new EngineResult(rehydrated, host.Pipeline, label, projectCount,
                             sw.ElapsedMilliseconds, resolvedIntent.Explanation, resolvedIntent.Warnings,
-                            registryEntry.Path, spec.Cleanup, stale, stale ? staleMessage : null);
+                            registryEntry.Path, spec.Cleanup, stale, stale ? staleMessage : null,
+                            FromSnapshotCache: true);
                     }
                 }
             }
@@ -80,7 +81,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                 sw.Stop();
                 return new EngineResult(rehydrated2, host2.Pipeline, label2, projectCount2,
                     sw.ElapsedMilliseconds, resolvedIntent2.Explanation, resolvedIntent2.Warnings,
-                    gitClonePath, spec.Cleanup);
+                    gitClonePath, spec.Cleanup, FromSnapshotCache: true);
             }
         }
 

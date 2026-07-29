@@ -20,6 +20,10 @@ internal static class ProtoMapper
             ElapsedMs = engine.ElapsedMs,
             Explanation = engine.Explanation,
             IsLibrary = snapshot.Map?.Archetype == Archetype.Library,
+            // R4 item 7 — the field has existed since the summary did and nothing ever assigned it,
+            // so AnalysisSummary.archetype was the empty string on every analyze ever served.
+            // ToMapResponse has filled the same fact correctly all along, from the same source.
+            Archetype = snapshot.Map?.Archetype.ToString() ?? "App",
             Stale = engine.Stale,
             StaleMessage = engine.StaleMessage ?? string.Empty,
         };
@@ -221,9 +225,11 @@ internal static class ProtoMapper
         return edge;
     }
 
-    public static Proto.SearchResponse ToSearchResponse(IReadOnlyList<(string Id, string Title, string Kind, ImmutableArray<string> Tags)> nodes)
+    public static Proto.SearchResponse ToSearchResponse(
+        IReadOnlyList<(string Id, string Title, string Kind, ImmutableArray<string> Tags)> nodes,
+        int totalMatches)
     {
-        var resp = new Proto.SearchResponse();
+        var resp = new Proto.SearchResponse { TotalMatches = totalMatches };
         foreach (var (id, title, kind, tags) in nodes)
         {
             var nr = new Proto.NodeRef { NodeId = id, Title = title, Kind = kind };

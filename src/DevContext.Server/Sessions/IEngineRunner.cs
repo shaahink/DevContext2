@@ -24,4 +24,8 @@ public sealed record EngineResult(
     string? GitClonePath,
     string? Cleanup = null,
     bool Stale = false,
-    string? StaleMessage = null);
+    string? StaleMessage = null,
+    /// <summary>R4 item 7 — this result was rehydrated from the snapshot cache; no analysis ran.
+    /// The runner has always had two such return paths and neither said so, which is why
+    /// <c>analyze</c> could sit for 2ms or 8 minutes and report the same thing.</summary>
+    bool FromSnapshotCache = false);

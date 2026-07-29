@@ -194,19 +194,39 @@ public sealed class DevContextTools
         var req = new AnalyzeRequest { Path = path };
         if (sln is { Length: > 0 }) req.Sln = sln;
         string? handle = null;
+        AnalysisSummary? summary = null;
+        var cached = false;
+        AnalyzeError? failure = null;
 
         try
         {
             var call = _client.Analyze(req);
+            // R4 item 7 — read the stream instead of draining it. The old loop kept the handle and
+            // dropped everything else: the summary the server had already computed, and the error
+            // event, so a failed analysis surfaced as the generic "did not return a handle" below
+            // and the server's own reason ("Git is not installed", "Repository not found") never
+            // reached the agent.
             await foreach (var evt in call.ResponseStream.ReadAllAsync())
             {
-                if (evt.EventCase == AnalyzeEvent.EventOneofCase.Result)
+                switch (evt.EventCase)
                 {
-                    handle = evt.Result.Handle;
+                    case AnalyzeEvent.EventOneofCase.Result:
+                        handle = evt.Result.Handle;
+                        summary = evt.Result.Summary;
+                        cached = evt.Result.Cached;
+                        break;
+                    case AnalyzeEvent.EventOneofCase.Error:
+                        failure = evt.Error;
+                        break;
                 }
             }
         }
         catch (RpcException ex) { return FromRpc(ex, "analyze", "analyze(\"C:/repos/MyApp\")"); }
+
+        if (failure is not null)
+            return Envelope(failure.Message,
+                $"Analysis failed ({failure.Code}) — fix the cause and re-run analyze.",
+                "analyze(\"C:/repos/MyApp\")");
 
         if (handle is null)
             return Envelope("Analysis did not return a handle.",
@@ -232,6 +252,29 @@ public sealed class DevContextTools
         {
             handle,
             status = "ready",
+            // R4 item 7 — `analyze` could sit for eight minutes or return in two milliseconds and say
+            // exactly the same thing. `cached` is the server's answer to "did this call analyze
+            // anything" (AnalyzeResult.cached: an open session for this repo+HEAD+sln, or a
+            // snapshot-cache hit); the note is the CLI's honesty stamp in a sentence.
+            cached,
+            note = cached
+                ? "Served from cache — no analysis ran, and the numbers below describe the run that produced this session."
+                : "Analyzed now. A first analysis of a large repo can take minutes; the result is snapshotted, so the same repo+HEAD+solution re-opens in seconds.",
+            summary = summary is null ? null : new
+            {
+                label = summary.Label,
+                archetype = summary.Archetype,
+                isLibrary = summary.IsLibrary,
+                projects = summary.Projects,
+                nodes = summary.Nodes,
+                edges = summary.Edges,
+                entries = summary.Entries,
+                entriesWithTarget = summary.EntriesWithTarget,
+                elapsedMs = summary.ElapsedMs,
+                explanation = summary.Explanation,
+                warnings = summary.Warnings.Count > 0 ? summary.Warnings.ToArray() : null,
+                stale = summary.Stale ? summary.StaleMessage : null,
+            },
             hint = "Analysis complete. Omit 'handle' on later calls and they use THIS session, whatever else the server is serving.",
         }, JsonOpts);
     }
@@ -1238,21 +1281,19 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "find", "analyze(path) then find(query:\"Order\")"); }
         try
         {
-            var resp = await _client.SearchNodesAsync(new SearchRequest
-            {
-                Handle = handle,
-                Query = query,
-                Limit = limit + cursor + 20, // fetch extra for offset
-            });
+            // R4 item 6 — the kind filter and the match count are the SERVER's job now. This used to
+            // over-fetch (limit+cursor+20), filter that page by kind, and report the survivors as
+            // `total`: on eShop, find("Order", limit:100) answered total=120, which is the fetch
+            // window to the node, and find("Order", kind:"Type", limit:5) answered 22 — "Types among
+            // the first 25 matches". Both moved when the page size moved, which is the tell.
+            var req = new SearchRequest { Handle = handle, Query = query, Limit = limit + cursor };
+            if (kind is { Length: > 0 }) req.Kind = kind;
+            var resp = await _client.SearchNodesAsync(req);
 
-            var results = resp.Nodes.AsEnumerable();
-            if (kind is not null)
-                results = results.Where(n => string.Equals(n.Kind, kind, StringComparison.OrdinalIgnoreCase));
+            var total = resp.TotalMatches;
+            var page = resp.Nodes.Skip(cursor).Take(limit).ToArray();
 
-            var all = results.ToArray();
-            var page = all.Skip(cursor).Take(limit).ToArray();
-
-            if (all.Length == 0)
+            if (total == 0)
             {
                 var suggestions = await SuggestAsync(handle, query);
                 return Envelope($"No nodes match '{query}'" + (kind is not null ? $" of kind '{kind}'." : "."),
@@ -1268,8 +1309,10 @@ public sealed class DevContextTools
                 cursor,
                 limit,
                 count = page.Length,
-                total = all.Length,
-                hasMore = cursor + limit < all.Length,
+                total,
+                hasMore = cursor + page.Length < total,
+                // A cursor past the end is not an error and not "no matches" — say which it is.
+                hint = page.Length == 0 ? $"cursor {cursor} is past the last of {total} matches — lower it." : null,
                 results = page.Select(n => new
                 {
                     nodeId = n.NodeId,

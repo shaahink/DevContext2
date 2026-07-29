@@ -12,6 +12,15 @@ public sealed record AnalyzeSpec(string Path, string? Focus, int? Depth, string?
 /// <summary>A coarse progress tick streamed back while the engine runs.</summary>
 public sealed record AnalysisProgress(string Stage, double Percent, string Message);
 
+/// <summary>R4 item 7 — what one analyze CALL produced: the session, and whether the call had to
+/// analyze anything to get it. <paramref name="Cached"/> covers both ways the answer can already
+/// exist — an open session for the same repo+HEAD+sln, or a snapshot-cache hit — because to a caller
+/// deciding whether to expect minutes or milliseconds they are the same fact.
+///
+/// It rides here rather than on the session because a reused session hands back the ORIGINAL
+/// analysis (elapsed_ms and all): stored on the session, the flag would describe the wrong run.</summary>
+public sealed record AnalysisOutcome(AnalysisSession Session, bool Cached);
+
 /// <summary>A failure the user can act on (bad path, git not installed, private repo). Carries a
 /// stable <see cref="Code"/> so the transport layer can surface it without string-matching.</summary>
 public sealed class AnalysisException(string code, string message) : Exception(message)

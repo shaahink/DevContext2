@@ -131,6 +131,13 @@ message ProgressEvent {
 message AnalyzeResult {
   string handle = 1;
   AnalysisSummary summary = 2;
+  // R4 item 7: true when THIS call returned an existing analysis instead of running one — either
+  // in-process session reuse (repo+HEAD+sln already open) or a snapshot-cache hit. It is a fact
+  // about the CALL, which is why it rides here and not on AnalysisSummary: a reused session hands
+  // back the ORIGINAL analysis's summary, elapsed_ms and all, so a flag stored there would describe
+  // the wrong run. Distinct from R4 item 10's planned session-level provenance
+  // (analyzed_at / git_head on SessionInfo) — same subject, different question.
+  bool cached = 3;
 }
 
 message AnalyzeError {
@@ -404,10 +411,17 @@ message SearchRequest {
   string handle = 1;
   string query = 2;
   int32 limit = 3;
+  // R4 item 6: the kind filter belongs on THIS side of the truncation. The MCP used to filter the
+  // page it got back, so a kind-filtered find reported a total that was an artefact of the fetch
+  // size rather than a fact about the repo.
+  optional string kind = 4;
 }
 
 message SearchResponse {
   repeated NodeRef nodes = 1;
+  // How many nodes matched query (and kind) BEFORE limit cut the page. Without it no caller can
+  // say hasMore honestly: nodes.size() only ever describes the window it was given.
+  int32 total_matches = 2;
 }
 
 message NodeRef {

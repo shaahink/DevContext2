@@ -60,6 +60,11 @@ path or put the directory on `PATH`):
 
 - `analyze(path)` starts (or reuses) an analysis and returns a **handle**. It is idempotent: the
   same repo at the same git HEAD and the same solution returns the existing handle.
+- `analyze` says which of those two it did: `cached: true` means no analysis ran (an open session
+  for this repo+HEAD+solution, or a snapshot-cache hit), `cached: false` means it analysed now and
+  the result has been snapshotted. It returns the run's `summary` as well — archetype, projects,
+  nodes, edges, entries, `entriesWithTarget`, `elapsedMs`, warnings — so the first call answers
+  "what is this repo" without a second one. A first analysis of a large repo can take minutes.
 - A repo with several solutions analyses one of them. `map` says which in `solutionScope` and lists
   the alternatives; `analyze(path, sln:)` switches to one of them by name, file name, or
   repo-relative path.
@@ -103,7 +108,7 @@ path or put the directory on `PATH`):
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
 | `resolve` | Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks. | `query`, `limit` |
-| `find` | Free-text search across graph nodes, paginated. | `query`, `kind`, `limit`, `cursor` |
+| `find` | Free-text search across graph nodes, paginated. `kind` filters server-side, so `total` and `hasMore` count every match, not the page. | `query`, `kind`, `limit`, `cursor` |
 | `node` | Detail card for a node: title, kind, file path, degrees. | `nodeId` or `query` |
 | `neighbors` | Outgoing/incoming edges of a node. | `nodeId`/`query`, `direction: out\|in\|usages` |
 | `usages` | All usages (in-edges) of a node across the codebase. | `nodeId` or `query` |

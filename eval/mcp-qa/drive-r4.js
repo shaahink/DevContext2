@@ -276,28 +276,87 @@ const CASES = {
   },
 
   // G1.4 — find(kind:) server-side: total/hasMore must be true over the kind-filtered set.
+  //
+  // The FIRST version of this case passed on the broken before-state, the same way the glyphs case
+  // did: it asked "is total >= the page" (22 >= 5, true, and meaningless). What actually distinguishes
+  // a true total from a windowed one is that a true total DOES NOT MOVE WITH THE PAGE SIZE. Before
+  // the fix, find("Order", limit:100) reported total=120 — i.e. limit+20, the MCP's own fetch
+  // window — and the kind-filtered total was "Types among the first 25 matches".
   async "find-kind"(client) {
     const { handle } = await analyzeRepo(client, join(REPOS, "eShop"));
     check("analyze eShop", !!handle);
     if (!handle) return;
-    const all = (await tool(client, "find", { handle, query: "Order", limit: 100 })).data;
-    const typed = (await tool(client, "find", { handle, query: "Order", kind: "Type", limit: 5 })).data;
-    dump("find-kind-eshop.json", { all, typed });
-    const everyTyped = (typed.results ?? []).every((r) => r.kind === "Type");
-    check("kind filter applied", everyTyped, (typed.results ?? []).map((r) => r.kind).join(","));
-    check("total is the kind-filtered total (not the page)", typeof typed.total === "number" && typed.total >= (typed.results?.length ?? 0), `total=${typed.total} page=${typed.results?.length}`);
-    console.log(`  all-kind total=${all.total} · Type total=${typed.total} · hasMore=${typed.hasMore}`);
+    const find = async (args) => (await tool(client, "find", { handle, query: "Order", ...args })).data;
+
+    const all = await find({ limit: 100 });          // the unfiltered canary — kept identical to the
+    const allSmall = await find({ limit: 5 });       // before-state call so the pages can be diffed
+    const typed = await find({ kind: "Type", limit: 5 });
+    const typedAll = await find({ kind: "Type", limit: 1000 });
+    const bogusKind = await find({ kind: "NoSuchKind", limit: 5 });
+    const page2 = await find({ limit: 5, cursor: 5 });
+    dump("find-kind-eshop.json", { all, allSmall, typed, typedAll, bogusKind, page2 });
+
+    console.log(`  total@limit100=${all.total} · total@limit5=${allSmall.total} · Type total=${typed.total} · typedAll page=${typedAll.results?.length} · hasMore=${typed.hasMore}`);
+
+    // 1. The invariant. Two page sizes, one repo, one query — one answer.
+    check("total does not move with the page size", all.total === allSmall.total,
+      `limit100 -> ${all.total} · limit5 -> ${allSmall.total}`);
+    // 2. ...and it is not simply the fetch window in disguise (before: 100+20 === 120).
+    check("total is not the fetch window", all.total !== 120 || allSmall.total !== 25,
+      `${all.total} vs limit+20=120`);
+    // 3. The kind filter runs above the truncation: its total counts every match of that kind.
+    check("kind filter applied", (typed.results ?? []).every((r) => r.kind === "Type"),
+      (typed.results ?? []).map((r) => r.kind).join(","));
+    check("kind total is the whole kind-filtered set", typed.total === (typedAll.results?.length ?? -1),
+      `total=${typed.total} · everything-in-one-page=${typedAll.results?.length}`);
+    check("kind total does not move with the page size", typed.total === typedAll.total,
+      `limit5 -> ${typed.total} · limit1000 -> ${typedAll.total}`);
+    check("filtering can only narrow", typed.total <= all.total, `${typed.total} <= ${all.total}`);
+    // 4. hasMore is derived from that total, on both sides of the boundary.
+    check("hasMore true when the page is short of the total", typed.hasMore === (5 < typed.total),
+      `hasMore=${typed.hasMore} page=5 total=${typed.total}`);
+    check("hasMore false when one page holds everything", typedAll.hasMore === false,
+      `hasMore=${typedAll.hasMore} of ${typedAll.total}`);
+    // 5. Paging over the honest total returns different rows, not a re-served first page.
+    const ids1 = (allSmall.results ?? []).map((r) => r.nodeId);
+    const ids2 = (page2.results ?? []).map((r) => r.nodeId);
+    check("cursor pages forward", ids2.length > 0 && ids2.every((id) => !ids1.includes(id)),
+      `page1=${ids1.length} page2=${ids2.length} overlap=${ids2.filter((id) => ids1.includes(id)).length}`);
+    // 6. An unknown kind is a true zero, not an error and not an unfiltered fallback.
+    check("an unknown kind matches nothing", (bogusKind.results ?? []).length === 0 && !!bogusKind.error,
+      `error=${bogusKind.error ?? "(none)"} results=${bogusKind.results?.length ?? 0}`);
   },
 
   // G1.4 — analyze honesty: cached flag + long-run note + summary in the envelope.
+  // Before the fix analyze returned {handle,status,hint} and nothing else — the same six words
+  // whether the call took 8 minutes or 0 ms, with the summary the server had already computed
+  // thrown away at DevContextTools.cs:203.
   async "analyze-honesty"(client) {
     const cold = await analyzeRepo(client, join(REPOS, "TodoApi"));
     dump("analyze-honesty-first.json", cold.response);
     const again = await analyzeRepo(client, join(REPOS, "TodoApi"));
     dump("analyze-honesty-again.json", again.response);
-    check("summary returned", !!cold.response?.summary, JSON.stringify(cold.response?.summary)?.slice(0, 120));
-    check("re-analyze reports cached", again.response?.cached === true, `cached=${again.response?.cached} in ${(again.elapsedMs / 1000).toFixed(1)}s`);
-    check("note present", typeof cold.response?.note === "string" && cold.response.note.length > 10, cold.response?.note?.slice(0, 80));
+    const s = cold.response?.summary;
+    check("summary returned", !!s, JSON.stringify(s)?.slice(0, 140));
+    check("summary carries a real graph, not zeros", (s?.nodes ?? 0) > 0 && (s?.edges ?? 0) > 0,
+      `nodes=${s?.nodes} edges=${s?.edges} entries=${s?.entries} projects=${s?.projects}`);
+    // AnalysisSummary.archetype was assigned nowhere before this checkpoint — it shipped "" on
+    // every analyze the server ever answered. Reading it back is how that stays fixed.
+    check("summary names the archetype", typeof s?.archetype === "string" && s.archetype.length > 0,
+      `archetype=${JSON.stringify(s?.archetype)}`);
+    check("note present", typeof cold.response?.note === "string" && cold.response.note.length > 10,
+      cold.response?.note?.slice(0, 90));
+    check("cold call answers the cached question at all", typeof cold.response?.cached === "boolean",
+      `cached=${cold.response?.cached} in ${(cold.elapsedMs / 1000).toFixed(1)}s`);
+    check("re-analyze reports cached", again.response?.cached === true,
+      `cached=${again.response?.cached} in ${(again.elapsedMs / 1000).toFixed(1)}s`);
+    // Corroborate the flag against the clock rather than taking its word: a call that reused an
+    // analysis cannot also have spent minutes making one.
+    check("cached agrees with the clock", again.response?.cached !== true || again.elapsedMs < 5000,
+      `cached=${again.response?.cached} elapsed=${again.elapsedMs}ms`);
+    check("the note changes when the answer does", cold.response?.note !== again.response?.note
+      || cold.response?.cached === again.response?.cached,
+      `cold.cached=${cold.response?.cached} again.cached=${again.response?.cached}`);
   },
 };
 

@@ -134,4 +134,74 @@ public sealed class GraphQueryTests
         Assert.DoesNotContain("System.Collections.Generic.List", titles); // System.* filtered
         Assert.DoesNotContain("AppDbContext", titles);                    // infra store filtered
     }
+
+    // ---- G1.4 (R4 §1 item 6) — FindPage: kind above the limit, and a total that is a fact -------
+
+    /// <summary>Six "Order" matches: 3 Types, 2 Members, 1 Store.</summary>
+    private static GraphQuery OrderGraph()
+    {
+        var g = new CodeGraphBuilder();
+        void Node(NodeId id, string title, NodeKind kind) => g.AddNode(new GraphNode(id, title, kind));
+        Node(NodeId.ForType("Ns.OrderService"), "OrderService", NodeKind.Type);
+        Node(NodeId.ForType("Ns.OrderRepository"), "OrderRepository", NodeKind.Type);
+        Node(NodeId.ForType("Ns.Order"), "Order", NodeKind.Type);
+        Node(NodeId.ForMember("Ns.OrderService", "PlaceOrder"), "PlaceOrder", NodeKind.Member);
+        Node(NodeId.ForMember("Ns.OrderService", "CancelOrder"), "CancelOrder", NodeKind.Member);
+        Node(NodeId.ForStore("Ns.OrderStore"), "OrderStore", NodeKind.Store);
+        Node(NodeId.ForType("Ns.Basket"), "Basket", NodeKind.Type);   // must never match
+        return new GraphQuery(g.Build(), []);
+    }
+
+    /// <summary>
+    /// The defect in one assertion: a total that describes the page is not a total. Ask for one row
+    /// of six matches and the answer to "how many are there" is still six.
+    /// </summary>
+    [Fact]
+    public void FindPage_total_counts_every_match_not_the_page()
+    {
+        var q = OrderGraph();
+
+        var (page, total) = q.FindPage("Order", kind: null, limit: 1);
+
+        Assert.Single(page);
+        Assert.Equal(6, total);
+    }
+
+    /// <summary>The kind narrows what is COUNTED, which is only true if it runs above the limit.</summary>
+    [Fact]
+    public void FindPage_applies_the_kind_before_the_limit()
+    {
+        var q = OrderGraph();
+
+        var (page, total) = q.FindPage("Order", kind: "Type", limit: 1);
+
+        Assert.Equal(3, total);                       // 3 Types match, not "Types within the first 1"
+        Assert.Equal(NodeKind.Type, page[0].Kind);
+    }
+
+    [Fact]
+    public void FindPage_kind_is_case_insensitive()
+        => Assert.Equal(3, OrderGraph().FindPage("Order", kind: "type", limit: 10).TotalMatches);
+
+    /// <summary>An unrecognised kind is an honest zero, not an ignored filter.</summary>
+    [Fact]
+    public void FindPage_an_unknown_kind_matches_nothing()
+    {
+        var (page, total) = OrderGraph().FindPage("Order", kind: "NoSuchKind", limit: 10);
+
+        Assert.Empty(page);
+        Assert.Equal(0, total);
+    }
+
+    /// <summary>Find() is FindPage's page — the shared resolve/usages/impact path must not move.</summary>
+    [Fact]
+    public void Find_still_returns_the_same_page_it_always_did()
+    {
+        var q = OrderGraph();
+
+        var find = q.Find("Order", limit: 4);
+        var (page, _) = q.FindPage("Order", kind: null, limit: 4);
+
+        Assert.Equal(find.Select(r => r.Title), page.Select(r => r.Title));
+    }
 }

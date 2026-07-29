@@ -13,12 +13,22 @@ namespace DevContext.Server.Tests;
 internal sealed class McpStubCallInvoker : CallInvoker
 {
     private readonly Func<string, object?> _respond;
+    private readonly Action<string, object>? _observe;
 
     /// <param name="respond">
     /// Called with the bare RPC name (e.g. "GetStats"). Return a response message to answer with,
     /// null to answer with an empty message of the right type, or throw to fail the call.
     /// </param>
-    internal McpStubCallInvoker(Func<string, object?> respond) => _respond = respond;
+    /// <param name="observe">
+    /// Called with the RPC name and the REQUEST message before responding. Some defects are on the
+    /// outbound side — R4 item 6 was a filter the MCP applied to the response instead of putting it
+    /// on the request — and those are only visible from here.
+    /// </param>
+    internal McpStubCallInvoker(Func<string, object?> respond, Action<string, object>? observe = null)
+    {
+        _respond = respond;
+        _observe = observe;
+    }
 
     /// <summary>Every call fails with the given status — the "server is unreachable" shape.</summary>
     internal static McpStubCallInvoker FailAll(StatusCode code, string detail)
@@ -26,13 +36,13 @@ internal sealed class McpStubCallInvoker : CallInvoker
 
     public override TResponse BlockingUnaryCall<TRequest, TResponse>(
         Method<TRequest, TResponse> method, string? host, CallOptions options, TRequest request)
-        => Respond<TResponse>(method.Name);
+        => Respond<TResponse>(method.Name, request);
 
     public override AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(
         Method<TRequest, TResponse> method, string? host, CallOptions options, TRequest request)
     {
         Task<TResponse> result;
-        try { result = Task.FromResult(Respond<TResponse>(method.Name)); }
+        try { result = Task.FromResult(Respond<TResponse>(method.Name, request)); }
         catch (RpcException ex) { result = Task.FromException<TResponse>(ex); }
         return new AsyncUnaryCall<TResponse>(
             result, Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
@@ -42,7 +52,7 @@ internal sealed class McpStubCallInvoker : CallInvoker
         Method<TRequest, TResponse> method, string? host, CallOptions options, TRequest request)
     {
         IAsyncStreamReader<TResponse> reader;
-        try { reader = new OneShotReader<TResponse>(Respond<TResponse>(method.Name)); }
+        try { reader = new OneShotReader<TResponse>(Respond<TResponse>(method.Name, request)); }
         catch (RpcException ex) { reader = new OneShotReader<TResponse>(ex); }
         return new AsyncServerStreamingCall<TResponse>(
             reader, Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
@@ -56,8 +66,11 @@ internal sealed class McpStubCallInvoker : CallInvoker
         Method<TRequest, TResponse> method, string? host, CallOptions options)
         => throw new NotSupportedException("No duplex-streaming RPC on this service.");
 
-    private TResponse Respond<TResponse>(string method) where TResponse : class
-        => _respond(method) as TResponse ?? Activator.CreateInstance<TResponse>();
+    private TResponse Respond<TResponse>(string method, object request) where TResponse : class
+    {
+        _observe?.Invoke(method, request);
+        return _respond(method) as TResponse ?? Activator.CreateInstance<TResponse>();
+    }
 
     /// <summary>A stream that yields one message, or fails on the first read.</summary>
     private sealed class OneShotReader<T> : IAsyncStreamReader<T>

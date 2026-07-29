@@ -51,7 +51,7 @@ public sealed class HostReleaseTests : IDisposable
         var (manager, hosts) = CreateManager(capacity: 5);
         await using var _ = manager;
 
-        var session = await manager.AnalyzeAsync(Spec("ControllerApp"), progress: null, CancellationToken.None);
+        var (session, _) = await manager.AnalyzeAsync(Spec("ControllerApp"), progress: null, CancellationToken.None);
         Assert.Equal(1, hosts.Count);
 
         Assert.True(await manager.CloseSessionAsync(session.Handle));

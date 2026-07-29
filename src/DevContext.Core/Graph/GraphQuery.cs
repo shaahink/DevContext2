@@ -635,9 +635,23 @@ public sealed class GraphQuery
     /// Rank: exact Title == query > Title starts-with (prefix) > Title word-boundary > Title contains.
     /// Tiebreaker: Types over Members over other kinds; then by total degree (out+in edges).</summary>
     public ImmutableArray<SearchResult> Find(string query, int limit = 20)
+        => FindPage(query, null, limit).Results;
+
+    /// <summary>R4 item 6 — <see cref="Find"/> with the kind filter applied BEFORE the limit, plus
+    /// the count of everything that matched.
+    ///
+    /// Both halves exist because the caller was doing them after the fact: the MCP asked for a page,
+    /// filtered THAT by kind, and then reported the survivors as the total. A filter downstream of a
+    /// truncation can only ever describe the window, so a kind-filtered find(kind:"Type") answered
+    /// "how many Types are in the first N matches", which is a fact about N.
+    ///
+    /// <paramref name="kind"/> matches <see cref="NodeKind"/> by name, case-insensitively; an
+    /// unrecognised kind matches nothing (0 results and a total of 0 — a true answer, not an error).
+    /// <paramref name="limit"/> caps the returned page only; TotalMatches is uncapped.</summary>
+    public (ImmutableArray<SearchResult> Results, int TotalMatches) FindPage(string query, string? kind, int limit)
     {
         if (string.IsNullOrWhiteSpace(query))
-            return ImmutableArray<SearchResult>.Empty;
+            return (ImmutableArray<SearchResult>.Empty, 0);
 
         var term = query.Trim();
         var results = new List<(SearchResult Result, int Rank)>();
@@ -651,6 +665,9 @@ public sealed class GraphQuery
             if (!titleMatch && !keyMatch)
                 continue;
 
+            if (kind is { Length: > 0 } && !string.Equals(n.Kind.ToString(), kind, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             var rank = MatchRank(title, term);
 
             var outD = _graph.OutEdges(n.Id).Length;
@@ -658,13 +675,15 @@ public sealed class GraphQuery
             results.Add((new SearchResult(n.Id, title, n.Kind, outD + inD), rank));
         }
 
-        return results
+        var page = results
             .OrderBy(r => r.Rank)
             .ThenByDescending(r => KindPriority(r.Result.Kind))
             .ThenByDescending(r => r.Result.Degree)
             .Take(limit)
             .Select(r => r.Result)
             .ToImmutableArray();
+
+        return (page, results.Count);
     }
 
     private static int MatchRank(string title, string term)

@@ -67,12 +67,12 @@ public sealed class DevContextGrpcService(
 
         try
         {
-            var session = await work.ConfigureAwait(false);
+            var (session, cached) = await work.ConfigureAwait(false);
             var (_, entriesWithTarget, _, _) = session.Query.Stats();
             var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
             await responseStream.WriteAsync(new Proto.AnalyzeEvent
             {
-                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary },
+                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary, Cached = cached },
             }).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -81,14 +81,13 @@ public sealed class DevContextGrpcService(
         }
     }
 
-    private async Task<AnalysisSession> RunAnalysisWithProgressAsync(
+    private async Task<AnalysisOutcome> RunAnalysisWithProgressAsync(
         AnalyzeSpec spec, ChannelWriter<Proto.AnalyzeEvent> writer, string path, CancellationToken ct)
     {
         var progress = new ChannelProgress(writer);
         try
         {
-            var session = await sessions.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
-            return session;
+            return await sessions.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -195,7 +194,9 @@ public sealed class DevContextGrpcService(
         {
             var query = request.Query.Trim();
             var limit = request.Limit > 0 ? request.Limit : 20;
-            var ranked = session.Query.Find(query, limit);
+            // R4 item 6 — the kind filter and the match count both belong here, above the limit.
+            var (ranked, totalMatches) = session.Query.FindPage(
+                query, request.HasKind ? request.Kind : null, limit);
             var graph = session.Query.Graph;
 
             var results = new List<(string Id, string Title, string Kind, ImmutableArray<string> Tags)>();
@@ -205,7 +206,7 @@ public sealed class DevContextGrpcService(
                 results.Add((r.Id.ToString(), r.Title, r.Kind.ToString(), node?.Tags ?? ImmutableArray<string>.Empty));
             }
 
-            return ProtoMapper.ToSearchResponse(results);
+            return ProtoMapper.ToSearchResponse(results, totalMatches);
         });
 
     public override Task<Proto.ImpactResponse> GetImpact(Proto.ImpactRequest request, ServerCallContext context)

@@ -17,7 +17,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         _options = options;
     }
 
-    public async Task<AnalysisSession> AnalyzeAsync(AnalyzeSpec spec, IProgress<AnalysisProgress>? progress, CancellationToken ct)
+    public async Task<AnalysisOutcome> AnalyzeAsync(AnalyzeSpec spec, IProgress<AnalysisProgress>? progress, CancellationToken ct)
     {
         await EvictIfNeededAsync().ConfigureAwait(false);
 
@@ -34,7 +34,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         if (existing is not null)
         {
             progress?.Report(new AnalysisProgress("cached", 100, "Reusing existing analysis for this repo"));
-            return existing;
+            return new AnalysisOutcome(existing, Cached: true);
         }
 
         var engine = await _runner.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
@@ -51,7 +51,9 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         var repoKey = RepoKey(repoPath, commitSha, spec.Sln);
         _repoToHandle[repoKey] = handle;
 
-        return session;
+        // A brand-new session is still a cached ANSWER when the runner rehydrated it from disk
+        // instead of analyzing — the caller asked "did this take minutes", not "is this session new".
+        return new AnalysisOutcome(session, engine.FromSnapshotCache);
     }
 
     public AnalysisSession? Get(string handle)
