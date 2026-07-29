@@ -577,30 +577,28 @@ public sealed class ArchitectureStyleDetector
 
     // ── M1.9 Per-service style rollup ─────────────────────────────────────────
 
-    /// <summary>M1.9 / D5 — For each runnable web service project, detect its local architecture
-    /// style and technology stack. Called by the pipeline after solution-level style detection.</summary>
+    /// <summary>M1.9 / D5 — the local architecture style and technology stack of each SERVICE.
+    /// Called by the pipeline after solution-level style detection.
+    /// <para>R3 D-4 (G6.1): membership is NOT decided here. A service is
+    /// <see cref="Graph2.ServiceBoundaryInference.RunnableProjects"/> — the one runnable-and-production
+    /// list <see cref="Graph.GraphBuilder"/> turns into <c>NodeKind.Service</c> nodes, and therefore the
+    /// one set the Atlas canvas draws. This rung answers only "what STYLE is each of those", so the
+    /// per-service breakdown and the canvas cannot describe different populations.</para>
+    /// <para>The second skip list that used to live here (holder / build-tooling / benchmark / sample /
+    /// an infrastructure filter keyed on the project NAME containing "shared"/"common"/".eventbus" /
+    /// a test filter keyed on the FILE PATH rather than the project) was a re-derivation of the same
+    /// question with different answers. It agreed with the canvas on eShop by luck, not by design.
+    /// Every one of its real exclusions is already inside <c>RunnableProjects</c> except the
+    /// name-keyed infrastructure filter, which was never a membership rule the canvas honoured.</para></summary>
     public static ImmutableArray<PerServiceStyle> DetectPerServiceStyles(DiscoveryModel model)
     {
         var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
-        var projectClassifier = new Graph.ProjectClassifier(model.Projects);
         var scope = Graph.SolutionScope.FromModel(model);   // T1.4 — canonical file→project mapping
         var signals = model.Architecture.All;
 
-        foreach (var proj in model.Projects)
+        foreach (var proj in Graph2.ServiceBoundaryInference.RunnableProjects(scope, model.SamplesAreTheProduct))
         {
-            if (!IsRunnableService(proj)) continue;
-            // D1.1b (E2/A3): holder csproj and build-tooling exes never get per-service rows —
-            // GitVersion's Cake build tree rendered as seven "Unknown" services.
-            if (Graph.ProjectClassifier.IsHolderProject(proj)
-                || projectClassifier.IsBuildTooling(proj)) continue;
-            // C4 (Prism D1.3a): a benchmark harness is not a service (bitwarden MicroBenchmarks).
-            if (Graph.ProjectClassifier.IsBenchmarkProject(proj)) continue;
-            // A4 (Prism D1.1c): runnable-service inference honors the sample filter — wolverine's
-            // per-service table was ~80 rows of samples/ and test hosts. SamplesAreTheProduct repos
-            // (aspire-samples) keep their sample hosts: they ARE the services there (T8).
-            if (!model.SamplesAreTheProduct && Graph.ProjectClassifier.IsSamplePath(proj.FilePath)) continue;
-            // T1.4 — the Aspire AppHost is a runnable orchestrator; surface it (before the infra skip that
-            // otherwise hides ".apphost") so the constellation's conductor isn't dropped to "no services".
+            // T1.4 — the Aspire AppHost is a runnable ORCHESTRATOR; its style is its role.
             // D1.3a: bitwarden names its host exactly `AppHost` — no dotted suffix.
             if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
                 || proj.Name.Equals("AppHost", StringComparison.OrdinalIgnoreCase))
@@ -608,8 +606,6 @@ public sealed class ArchitectureStyleDetector
                 results.Add(new PerServiceStyle(proj.Name, "Aspire AppHost", ["Aspire"]));
                 continue;
             }
-            if (IsInfrastructureProject(proj.Name)) continue;
-            if (projectClassifier.IsInTestProject(proj.FilePath)) continue;
 
             var pkgs = proj.PackageReferences;
             var hasMediatR = pkgs.Any(p => p.Name.Contains("MediatR", StringComparison.OrdinalIgnoreCase));
@@ -834,11 +830,5 @@ public sealed class ArchitectureStyleDetector
 
         return results.ToImmutable();
     }
-
-    /// <summary>True when a project is a runnable service. Delegates to the canonical runnable check
-    /// (<see cref="Graph2.ServiceBoundaryInference.IsRunnableService"/>) so per-service styles and service
-    /// nodes agree on Exe / Web-SDK / Worker-SDK / Aspire-AppHost signals (T1.4).</summary>
-    private static bool IsRunnableService(ProjectInfo proj)
-        => Graph2.ServiceBoundaryInference.IsRunnableService(proj);
 
 }

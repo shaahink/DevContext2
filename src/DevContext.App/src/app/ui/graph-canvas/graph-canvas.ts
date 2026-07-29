@@ -6,7 +6,7 @@ import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
 import { ThemeService } from '../../core/theme/theme.service';
 import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutNodeIn } from './graph-layout';
-import { classifyTransport, declaredStores, isTraffic, serviceLabel, storeLabel, type TransportClass } from './semantics';
+import { classifyServiceRoles, classifyTransport, declaredStores, isTraffic, orchestratorMembership, serviceLabel, storeLabel, type TransportClass } from './semantics';
 
 /** Minimap only earns its screen space in zen mode, and only once a graph is
  * big enough that the viewport can't already see everything at a glance. */
@@ -268,40 +268,19 @@ function buildServiceLevelElements(
     }
   }
 
-  const related = new Set<string>();
-  for (const g of groups.values()) {
-    related.add(g.from);
-    related.add(g.to);
-  }
-
-  // A repo whose services carry no links at all is an inventory, not a mesh — drawing the boxes
-  // beats an empty canvas plus a tray holding everything. The tray only earns its place when it is
-  // separating the unconnected FROM something connected.
-  const trayEarnsIts = services.some((s) => related.has(s.displayName));
+  // R3 D-4 (G6.1): the roles are the SHARED classification the Atlas breakdown also reads, so the
+  // picture and the list cannot describe the same twelve projects differently. A frame is related to
+  // the canvas by definition — it contains it — which is why its own lack of transports never trays it.
+  const roles = classifyServiceRoles(services, transports);
+  const frameOf = orchestratorMembership(services);
   const isolated: string[] = [];
-
-  // R3 D-B, B1's conditional half: a declared orchestrator expresses MEMBERSHIP, not traffic, so it
-  // becomes the frame its members sit inside. Only a frame with members earns the treatment — an
-  // AppHost whose projects all fell out of scope would otherwise render as an empty box.
-  const byName = new Map(services.map((s) => [s.displayName, s]));
-  const frameOf = new Map<string, string>();
-  const frames = new Set<string>();
-  for (const s of services) {
-    if (s.orchestrates.length === 0) continue;
-    const members = s.orchestrates.filter((m) => byName.has(m) && m !== s.displayName && !frameOf.has(m));
-    if (members.length === 0) continue;
-    frames.add(s.displayName);
-    for (const m of members) frameOf.set(m, s.displayName);
-  }
 
   const placed = new Set<string>();
   const drawnStores = new Set<string>();
   for (const s of services) {
     const name = s.displayName;
     if (placed.has(name)) continue;
-    // A frame is related to the canvas by definition — it contains it. Its own lack of transports is
-    // what used to strand it in the tray, which said the opposite of the truth.
-    if (trayEarnsIts && !related.has(name) && !frames.has(name)) {
+    if (roles.get(name) === 'isolated') {
       isolated.push(name);
       continue;
     }
@@ -309,7 +288,7 @@ function buildServiceLevelElements(
     const proj = projByName.get(name);
     const expandable = !!proj && proj.dependsOn.length > 0;
     const isExpanded = expandable && expanded.has(name);
-    const isFrame = frames.has(name);
+    const isFrame = roles.get(name) === 'orchestrator';
     els.push({
       data: {
         id: name, nodeId: name,

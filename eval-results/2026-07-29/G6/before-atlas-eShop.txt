@@ -1,0 +1,53 @@
+REPO C:\code\DevContext2\eval-repos\eShop
+URL  http://localhost:4200/atlas
+
+[1] CANVAS — cytoscape nodes drawn (cyreg ok=true)  n=16
+    Basket.API    [svc]
+    Catalog.API    [svc]
+    catalogdb    [store]
+    eShop.AppHost    [frame]
+    eventbus    [store]
+    Identity.API    [svc]
+    identitydb    [store]
+    Ordering.API    [svc]
+    orderingdb    [store]
+    OrderProcessor    [svc]
+    PaymentProcessor    [svc]
+    redis    [store]
+    WebApp    [svc]
+    WebhookClient    [svc]
+    Webhooks.API    [svc]
+    webhooksdb    [store]
+    TRAY: ServicesAll projectsHTTPqueuegRPCdeploy refstorein no relationship · 2ClientApp · HybridApp+−⊡
+
+[2] PER-SERVICE BREAKDOWN — service cards in the DOM  n=12
+    Basket.API   shown="Basket.API"  style="gRPC Service"
+    Catalog.API   shown="Catalog.API"  style="Web API"
+    ClientApp   shown="ClientApp"  style="MAUI App"
+    eShop.AppHost   shown="eShop.AppHost"  style="Aspire AppHost"
+    HybridApp   shown="HybridApp"  style="MAUI App"
+    Identity.API   shown="Identity.API"  style="Identity provider"
+    Ordering.API   shown="Ordering.API"  style="Web API"
+    OrderProcessor   shown="OrderProcessor"  style="Worker Service"
+    PaymentProcessor   shown="PaymentProcessor"  style="Worker Service"
+    WebApp   shown="WebApp"  style="Blazor"
+    WebhookClient   shown="WebhookClient"  style="Blazor"
+    Webhooks.API   shown="Webhooks.API"  style="Web API"
+
+[1 vs 2] drawn-on-canvas but NOT a service card (6): catalogdb · eventbus · identitydb · orderingdb · redis · webhooksdb
+[1 vs 2] a service card but NOT drawn on canvas (2): ClientApp · HybridApp
+
+[3] HUB RADAR — rows in the DOM  n=10
+    "Webhooks.API"   38 flows · in 5 · out 3
+    "Identity.API"   35 flows · in 6 · out 6
+    "Basket.API"   30 flows · in 4 · out 3
+    "Catalog.API"   28 flows · in 3 · out 4
+    "Ordering.API"   27 flows · in 6 · out 8
+    "Service.WebApp"   25 flows · in 3 · out 5
+    "Service.PaymentProcessor"   23 flows · in 2 · out 2
+    "Infrastructure.CatalogContext"   9 flows · in 13 · out 0
+    "Logging.ILogger`1"   9 flows · in 10 · out 0
+    "Infrastructure.OrderingContext"   9 flows · in 18 · out 0
+
+[ARITY] page text nodes carrying a metadata backtick-arity: 1
+    Logging.ILogger`1

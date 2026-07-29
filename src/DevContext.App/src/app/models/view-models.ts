@@ -92,6 +92,22 @@ export const KIND_LABELS: Record<string, string> = {
   UiEntry: 'UI',
 };
 
+/**
+ * R3 D-4 — the app's ONE word for each graph NodeKind (Core `NodeKind`: Type, Member, EntryPoint,
+ * Service, Message, Store). "service" is the word for a node the engine judged a runnable production
+ * project — exactly the set the Atlas canvas draws and the per-service breakdown describes. Any
+ * surface that lists graph nodes of mixed kinds says which is which using this map, so the word
+ * cannot mean one thing in a picture and another in a list.
+ */
+export const NODE_KIND_LABELS: Record<string, string> = {
+  Type: 'type',
+  Member: 'member',
+  EntryPoint: 'entry',
+  Service: 'service',
+  Message: 'message',
+  Store: 'store',
+};
+
 export const KIND_ICONS: Record<string, string> = {
   HttpEndpoint: 'webhook',
   MessageConsumer: 'arrow-right',

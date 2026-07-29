@@ -1,0 +1,55 @@
+REPO C:\code\DevContext2\eval-repos\eShop
+URL  http://localhost:4200/atlas
+
+[1] CANVAS — cytoscape nodes drawn (cyreg ok=true)  n=16
+    Basket.API    [svc]
+    Catalog.API    [svc]
+    catalogdb    [store]
+    eShop.AppHost    [frame]
+    eventbus    [store]
+    Identity.API    [svc]
+    identitydb    [store]
+    Ordering.API    [svc]
+    orderingdb    [store]
+    OrderProcessor    [svc]
+    PaymentProcessor    [svc]
+    redis    [store]
+    WebApp    [svc]
+    WebhookClient    [svc]
+    Webhooks.API    [svc]
+    webhooksdb    [store]
+    TRAY: ServicesAll projectsHTTPqueuegRPCdeploy refstorein no relationship · 2ClientApp · HybridApp+−⊡
+
+[CAPTION] Architecture:  12 services (9 drawn · 1 orchestrator · 2 in no relationship) · 19 projects · 36 dependency edges · 23 transport links
+[CAPTION] Breakdown:     The 12 services the Architecture canvas draws — a service is a runnable production project.
+
+[2] PER-SERVICE BREAKDOWN — service cards in the DOM  n=12
+    Basket.API   shown="Basket.API"  style="gRPC Service"  canvas-state="drawn on the canvas"
+    Catalog.API   shown="Catalog.API"  style="Web API"  canvas-state="drawn on the canvas"
+    ClientApp   shown="ClientApp"  style="MAUI App"  canvas-state="in no relationship — trayed on the canvas"
+    eShop.AppHost   shown="eShop.AppHost"  style="Aspire AppHost"  canvas-state="orchestrator — drawn as the frame on the canvas"
+    HybridApp   shown="HybridApp"  style="MAUI App"  canvas-state="in no relationship — trayed on the canvas"
+    Identity.API   shown="Identity.API"  style="Identity provider"  canvas-state="drawn on the canvas"
+    Ordering.API   shown="Ordering.API"  style="Web API"  canvas-state="drawn on the canvas"
+    OrderProcessor   shown="OrderProcessor"  style="Worker Service"  canvas-state="drawn on the canvas"
+    PaymentProcessor   shown="PaymentProcessor"  style="Worker Service"  canvas-state="drawn on the canvas"
+    WebApp   shown="WebApp"  style="Blazor"  canvas-state="drawn on the canvas"
+    WebhookClient   shown="WebhookClient"  style="Blazor"  canvas-state="drawn on the canvas"
+    Webhooks.API   shown="Webhooks.API"  style="Web API"  canvas-state="drawn on the canvas"
+
+[1 vs 2] drawn-on-canvas but NOT a service card (6): catalogdb · eventbus · identitydb · orderingdb · redis · webhooksdb
+[1 vs 2] a service card but NOT drawn on canvas (2): ClientApp · HybridApp
+
+[3] HUB RADAR — rows in the DOM  n=10
+    serviceWebhooks.API 38 flows · in 5 · out 3
+    serviceIdentity.API 35 flows · in 6 · out 6
+    serviceBasket.API 30 flows · in 4 · out 3
+    serviceCatalog.API 28 flows · in 3 · out 4
+    serviceOrdering.API 27 flows · in 6 · out 8
+    serviceWebApp 25 flows · in 3 · out 5
+    servicePaymentProcessor 23 flows · in 2 · out 2
+    typeILogger 9 flows · in 10 · out 0
+    typeCatalogContextCatalog.API 9 flows · in 13 · out 0
+    typeOrderingContextOrdering.Infrastructure 9 flows · in 18 · out 0
+
+[ARITY] page text nodes carrying a metadata backtick-arity: 0

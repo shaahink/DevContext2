@@ -30,8 +30,19 @@ public sealed record FlowStatRow(
     public double Score { get; init; }
 }
 
-/// <summary>In/out degree for one of the flow index's top hubs.</summary>
-public sealed record HubDegree(string NodeId, int InDegree, int OutDegree);
+/// <summary>One row of the hub radar: a node that appears on more than one indexed flow.
+/// <para>R3 D-4 (G6.1): this carries <see cref="Title"/>, <see cref="Kind"/> and <see cref="FlowCount"/>
+/// as well as the degrees, because the radar's rows were previously NAMED by the client splitting the
+/// node id on <c>[./:]</c> and keeping the last two segments. That made a Service node read as a
+/// namespace-qualified type ("Service.WebApp") or as no kind at all ("Webhooks.API"), sitting in one
+/// list beside real types. A node's title and kind are facts the graph already holds — carry them.</para></summary>
+public sealed record HubDegree(string NodeId, int InDegree, int OutDegree)
+{
+    public string Title { get; init; } = "";
+    public string Kind { get; init; } = "";
+    public int FlowCount { get; init; }
+    public string? Project { get; init; }
+}
 
 public sealed record FlowIndexResult(
     ImmutableArray<FlowStatRow> Flows,
@@ -121,8 +132,11 @@ public static class FlowIndexBuilder
         };
     }
 
-    /// <summary>The same top hubs the client radar computes (distinct per flow, on &gt;1 flow, top 10
-    /// by flow count), with real graph degrees — so the app needs no per-hub GetNode calls.</summary>
+    /// <summary>THE hub radar — nodes on more than one indexed flow, top 10 by flow count, with real
+    /// graph degrees, titles and kinds.
+    /// <para>R3 D-4 (G6.1): this is the ONLY place the radar's rows are chosen. The app used to run the
+    /// same ranking again over <see cref="FlowStatRow.HubIds"/> with a different tie-break, so the two
+    /// top-10s could disagree and a row could render with no degree at all.</para></summary>
     private static ImmutableArray<HubDegree> TopHubDegrees(
         GraphQuery query, ImmutableArray<FlowStatRow>.Builder flows,
         Dictionary<string, NodeId> idMap)
@@ -137,9 +151,20 @@ public static class FlowIndexBuilder
             .OrderByDescending(kv => kv.Value)
             .ThenBy(kv => kv.Key, StringComparer.Ordinal)
             .Take(MaxHubs)
-            .Select(kv => new HubDegree(kv.Key,
-                query.Graph.InEdges(idMap[kv.Key]).Length,
-                query.Graph.OutEdges(idMap[kv.Key]).Length))
+            .Select(kv =>
+            {
+                var id = idMap[kv.Key];
+                var node = query.Graph.Node(id);
+                return new HubDegree(kv.Key,
+                    query.Graph.InEdges(id).Length,
+                    query.Graph.OutEdges(id).Length)
+                {
+                    Title = node?.Title ?? id.Key,
+                    Kind = (node?.Kind ?? id.Kind).ToString(),
+                    FlowCount = kv.Value,
+                    Project = node?.Project,
+                };
+            })
             .ToImmutableArray();
     }
 }

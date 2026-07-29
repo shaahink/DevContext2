@@ -121,6 +121,16 @@ public sealed class DiscoveryPipeline
         // anchor pick below (per-service styles, graph assembly, insights) ever sees it.
         model.SealDeterministicOrder();
 
+        // R3 D-4 (G6.1) — SamplesAreTheProduct must be decided BEFORE the rollup below reads it.
+        // It used to be assigned only at graph-assembly time (further down this method), so the
+        // per-service rollup always saw the default `false`. On a samples-only repo (aspire-samples,
+        // blazor-samples) that made every sample host a non-production project to the rollup while
+        // the graph — which sets the flag first — built Service nodes for the same projects: the
+        // canvas drew services the per-service breakdown said did not exist. Measured on
+        // aspire-samples: 2 Service nodes, 0 breakdown rows.
+        var sampleVerdict = new ProjectClassifier(model.Projects, context.RootPath);
+        model.SamplesAreTheProduct = sampleVerdict.SamplesAreTheProduct;
+
         // T1.4 — per-service style rollup runs AFTER Stage 3 so it can read the specific detections
         // (Blazor @page routes, gRPC RPCs, message consumers) that distinguish a Blazor storefront from a
         // gateway and a background worker from a web host. The overall style (ApplyArchitectureStyle) stays

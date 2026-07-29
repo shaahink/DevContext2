@@ -381,4 +381,40 @@ above; the areas themselves were deliberately not briefed (owner: implement Home
   live find is on Atlas — **three vocabularies for "service" on one page**: the canvas excludes
   ClientApp/HybridApp, the per-service breakdown lists them as services, and Hub radar mixes services
   with types, one rendering as `` Logging.ILogger`1 `` (raw metadata arity reaching the UI). That is
-  D-4, still open.
+  D-4. **Its "service" half is DECIDED and LANDED (G6.1, 2026-07-29); the arity half is G6.2.**
+
+### D-4 — one vocabulary for "service" on Atlas (DECIDED + LANDED, G6.1)
+
+**The definition, adopted:** *a service is a project the engine judged **runnable and production** —
+`ServiceBoundaryInference.RunnableProjects`, the same list `GraphBuilder.AddServiceNodes` turns into
+`NodeKind.Service` nodes. Every Atlas surface that says "service" means exactly that set.* It already
+existed and the canvas already obeyed it; the other two surfaces re-derived their own.
+
+**One correction to the find above, measured on the live page before any edit**
+(`eval-results/2026-07-29/G6/before-atlas-eShop.txt`): the canvas and the breakdown did **not**
+disagree on membership. Both held the same 12 projects — the canvas drew 9 boxes, framed the AppHost
+and **trayed** ClientApp/HybridApp as "in no relationship", while the breakdown listed 12 identical
+peers. One set, three stories, no surface reconciling its count with the others.
+
+**But the divergence was real, just latent.** Two independent membership predicates existed:
+`DetectPerServiceStyles` carried its own skip list, including an infrastructure filter keyed on the
+project *name* containing `shared` / `common` / `.eventbus`, and a test filter keyed on the *file
+path* rather than the project. They agreed on eShop by luck. Pinned in a unit test that goes red on
+the old code: five runnable production projects, of which the breakdown returned two.
+
+What landed:
+
+1. **Engine — one predicate.** `DetectPerServiceStyles` iterates `RunnableProjects` and answers only
+   *what style is each of those*. Its second skip list is gone; the AppHost keeps its orchestrator
+   **style**, not a membership exemption. Real-repo invariant sweep in
+   `eval-results/2026-07-29/G6/`.
+2. **App — the picture and the list reconcile.** The Architecture caption leads with the service count
+   and accounts for every member of it ("12 services (9 drawn · 1 orchestrator · 2 in no
+   relationship)"); the breakdown states the same count and each card names its canvas state. The
+   role rule (`classifyServiceRoles`) is shared by both — it used to live inside the canvas.
+3. **Hub radar — rows say what they are.** Its titles were carved out of node ids by splitting on
+   `[./:]` and keeping the last two segments, so `Service:WebApp` rendered as "Service.WebApp" (the
+   node **kind** read as a namespace) while `Service:Webhooks.API` rendered as "Webhooks.API",
+   indistinguishable from the type rows beside it — **seven of eShop's ten hubs were Service nodes**.
+   The server's `FlowIndexBuilder` now carries each row's title, kind, project and flow count, and the
+   app renders the graph's own facts. The client's duplicate top-10 ranking is gone with it.

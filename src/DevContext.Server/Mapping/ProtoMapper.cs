@@ -686,6 +686,10 @@ internal static class ProtoMapper
                 NodeId = h.NodeId,
                 InDegree = h.InDegree,
                 OutDegree = h.OutDegree,
+                Title = h.Title,
+                Kind = h.Kind,
+                FlowCount = h.FlowCount,
+                Project = h.Project ?? "",
             });
         return resp;
     }

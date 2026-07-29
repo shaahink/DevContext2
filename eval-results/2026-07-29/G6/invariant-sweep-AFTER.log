@@ -1,0 +1,31 @@
+===== eShop =====
+  breakdown rows : 12
+  Service nodes  : 12
+  breakdown-only : (none)
+  canvas-only    : (none)
+  VERDICT: SAME SET
+===== aspire-samples =====
+  breakdown rows : 2
+  Service nodes  : 2
+  breakdown-only : (none)
+  canvas-only    : (none)
+  VERDICT: SAME SET
+===== CleanArchitecture =====
+  breakdown rows : 2
+  Service nodes  : 2
+  breakdown-only : (none)
+  canvas-only    : (none)
+  VERDICT: SAME SET
+===== dotnet-podcasts =====
+  breakdown rows : 5
+  Service nodes  : 5
+  breakdown-only : (none)
+  canvas-only    : (none)
+  VERDICT: SAME SET
+===== bitwarden-server =====
+  breakdown rows : 16
+  Service nodes  : 16
+  breakdown-only : (none)
+  canvas-only    : (none)
+  VERDICT: SAME SET
+DONE-SWEEP

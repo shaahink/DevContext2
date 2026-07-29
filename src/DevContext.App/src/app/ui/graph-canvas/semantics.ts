@@ -145,6 +145,89 @@ export function declaredStores(services: readonly ServiceStoreOwner[]): readonly
   return [...byName.values()];
 }
 
+/**
+ * R3 D-4 (G6.1) — a service's ROLE in the picture: `orchestrator` (it declares other services as
+ * resources, so the canvas draws it as the frame they sit in), `isolated` (the engine placed it in
+ * no transport relationship at all, so the canvas trays it), or `linked` (a drawn box).
+ *
+ * This lived inside `buildServiceLevelElements`, which meant only the canvas knew it. The
+ * per-service breakdown listed the same twelve projects as twelve identical peers, so a reader who
+ * saw nine boxes, one frame and a tray of two had no way to join the two surfaces — the third of the
+ * three vocabularies D-4 found. Both surfaces now read this one function.
+ *
+ * Membership is NOT decided here: the services passed in are the engine's one runnable-and-production
+ * set (`ServiceBoundaryInference.RunnableProjects` → `NodeKind.Service` → the ServiceMap facet).
+ */
+export type ServiceRole = 'orchestrator' | 'linked' | 'isolated';
+
+export interface ServiceRoleInput {
+  readonly displayName: string;
+  readonly orchestrates: readonly string[];
+}
+
+export interface TransportPair {
+  readonly fromService: string;
+  readonly toService: string;
+}
+
+export function classifyServiceRoles(
+  services: readonly ServiceRoleInput[],
+  transports: readonly TransportPair[],
+): ReadonlyMap<string, ServiceRole> {
+  const related = new Set<string>();
+  for (const t of transports) {
+    if (t.fromService === t.toService) continue;
+    related.add(t.fromService);
+    related.add(t.toService);
+  }
+
+  // A declared orchestrator expresses MEMBERSHIP, not traffic (D-B, B1). Only a frame with members
+  // earns the role — an AppHost whose projects all fell out of scope is just another service.
+  const byName = new Set(services.map((s) => s.displayName));
+  const claimed = new Set<string>();
+  const frames = new Set<string>();
+  for (const s of services) {
+    if (s.orchestrates.length === 0) continue;
+    const members = s.orchestrates.filter(
+      (m) => byName.has(m) && m !== s.displayName && !claimed.has(m));
+    if (members.length === 0) continue;
+    frames.add(s.displayName);
+    for (const m of members) claimed.add(m);
+  }
+
+  // A repo whose services carry no links at all is an inventory, not a mesh — every box is drawn and
+  // nothing is trayed. The tray only earns its place when it separates the unconnected FROM
+  // something connected.
+  const trayEarnsIts = services.some((s) => related.has(s.displayName));
+
+  const roles = new Map<string, ServiceRole>();
+  for (const s of services) {
+    const name = s.displayName;
+    if (roles.has(name)) continue;
+    if (frames.has(name)) roles.set(name, 'orchestrator');
+    else if (trayEarnsIts && !related.has(name)) roles.set(name, 'isolated');
+    else roles.set(name, 'linked');
+  }
+  return roles;
+}
+
+/** The frame each framed service belongs to, for the canvas's compound parenting. Same rule as
+ * {@link classifyServiceRoles} — one pass, so the two cannot drift. */
+export function orchestratorMembership(
+  services: readonly ServiceRoleInput[],
+): ReadonlyMap<string, string> {
+  const byName = new Set(services.map((s) => s.displayName));
+  const frameOf = new Map<string, string>();
+  for (const s of services) {
+    if (s.orchestrates.length === 0) continue;
+    const members = s.orchestrates.filter(
+      (m) => byName.has(m) && m !== s.displayName && !frameOf.has(m));
+    if (members.length === 0) continue;
+    for (const m of members) frameOf.set(m, s.displayName);
+  }
+  return frameOf;
+}
+
 function saysItsOwnType(name: string, resourceType: string): boolean {
   const n = name.toLowerCase().replace(/[^a-z]/g, '');
   const t = resourceType.toLowerCase().replace(/[^a-z]/g, '');

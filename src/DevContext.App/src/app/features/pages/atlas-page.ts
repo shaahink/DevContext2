@@ -8,8 +8,8 @@ import { humanizeTfms, projectDisplayName } from '../../core/format';
 import { FlowStepper } from '../shared/flow-stepper';
 import { ServiceCards, type EntryMix } from '../shared/service-cards';
 import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-canvas';
-import { classifyTransport } from '../../ui/graph-canvas/semantics';
-import { KIND_LABELS } from '../../models/view-models';
+import { classifyServiceRoles, classifyTransport } from '../../ui/graph-canvas/semantics';
+import { KIND_LABELS, NODE_KIND_LABELS } from '../../models/view-models';
 
 @Component({
   selector: 'app-atlas-page',
@@ -76,7 +76,14 @@ import { KIND_LABELS } from '../../models/view-models';
              projects into. Double-click a box to open it in Explore. -->
         <div>
           <h2 class="section-h mb-3">Architecture</h2>
+          <!-- R3 D-4: this caption used to count PROJECTS while the section below counted SERVICES,
+               so the page never said the picture and the list hold the same set. It now leads with
+               that one number and accounts for every member of it. -->
           <p class="mb-2 text-2xs text-ink-subtle">
+            @if (serviceCount()) {
+              <span class="text-ink-muted">{{ serviceCount() }} services</span>
+              <span> ({{ serviceRoleSummary() }})</span> &middot;
+            }
             {{ topology().length }} projects &middot;
             {{ topology().reduce((n, p) => n + p.dependsOn.length, 0) }} dependency edges
             @if (atlasTransports().length) {
@@ -182,7 +189,13 @@ import { KIND_LABELS } from '../../models/view-models';
         <!-- ⑤ Per-service cards (style + entry mix, D4.3) -->
         <div>
           <h2 class="section-h mb-3">Per-service breakdown</h2>
-          <app-service-cards [services]="serviceStyles()" [entryMix]="entryMix()" />
+          <!-- R3 D-4: same set as the canvas above, same count, and every card says how the canvas
+               drew it — the reader can now join a card to a box, a frame, or the tray. -->
+          <p class="mb-2 text-2xs text-ink-subtle">
+            The {{ serviceCount() }} services the Architecture canvas draws &mdash; a service is a
+            runnable production project.
+          </p>
+          <app-service-cards [services]="serviceStyles()" [entryMix]="entryMix()" [roles]="serviceRoles()" />
         </div>
 
         <!-- ⑤ Cross-cutting (behaviors, packages) -->
@@ -231,7 +244,17 @@ import { KIND_LABELS } from '../../models/view-models';
                   (keydown.enter)="onHubTap(h.nodeId)"
                   (keydown.space)="onHubTap(h.nodeId); $event.preventDefault()"
                 >
-                  <span class="min-w-0 flex-1 truncate font-mono text-xs text-ink">{{ h.title }}</span>
+                  <span class="flex min-w-0 flex-1 items-center gap-2">
+                    <!-- R3 D-4: say WHAT each row is. Seven of eShop's ten hubs were Service nodes
+                         sitting unlabelled beside types, two of them printing the node kind as if it
+                         were a namespace. A row now names its kind, and a service row uses the same
+                         word the canvas and the breakdown use. -->
+                    <span class="chip shrink-0 text-2xs" [title]="hubKindTitle(h.kind)">{{ hubKindLabel(h.kind) }}</span>
+                    <span class="min-w-0 truncate font-mono text-xs text-ink">{{ h.title }}</span>
+                    @if (h.project && h.kind !== 'Service') {
+                      <span class="shrink-0 truncate text-2xs text-ink-subtle">{{ h.project }}</span>
+                    }
+                  </span>
                   <span class="shrink-0 text-2xs tabular-nums text-ink-subtle">
                     {{ h.flowCount }} flow{{ h.flowCount === 1 ? '' : 's' }}
                     @if (h.degree; as d) {
@@ -283,10 +306,35 @@ export class AtlasPage {
   /** D4.3: the atlas diagram is the full canvas fed by the ServiceMap facet — same
    * deterministic geometry as Home/Explore (one map, three sizes). */
   protected readonly atlasTransports = computed(() => this.session.graphFacets()?.serviceMap?.transports ?? []);
+
+  /**
+   * R3 D-4 (G6.1) — THE service set for this page. One definition, from the engine's one
+   * runnable-and-production list: `ServiceBoundaryInference.RunnableProjects` → `NodeKind.Service`
+   * → the ServiceMap facet. The canvas draws it; the breakdown describes it; the hub radar labels
+   * its rows with the same word.
+   */
+  protected readonly serviceCards = computed(() => this.session.graphFacets()?.serviceMap?.services ?? []);
+  protected readonly serviceCount = computed(() => this.serviceCards().length);
+  /** The same role classification the canvas renders — not a second derivation of it. */
+  protected readonly serviceRoles = computed(() =>
+    classifyServiceRoles(this.serviceCards(), this.atlasTransports()));
+  /** "9 drawn · 1 orchestrator · 2 in no relationship" — every member of the set accounted for. */
+  protected readonly serviceRoleSummary = computed(() => {
+    let linked = 0, orchestrators = 0, isolated = 0;
+    for (const role of this.serviceRoles().values()) {
+      if (role === 'orchestrator') orchestrators++;
+      else if (role === 'isolated') isolated++;
+      else linked++;
+    }
+    const parts = [`${linked} drawn`];
+    if (orchestrators) parts.push(`${orchestrators} orchestrator${orchestrators === 1 ? '' : 's'}`);
+    if (isolated) parts.push(`${isolated} in no relationship`);
+    return parts.join(' · ');
+  });
   protected readonly atlasCanvasData = computed<GraphCanvasData>(() => ({
     mode: 'topology',
     projects: this.topology(),
-    services: this.session.graphFacets()?.serviceMap?.services ?? [],
+    services: this.serviceCards(),
     transports: this.atlasTransports(),
   }));
 
@@ -313,7 +361,7 @@ export class AtlasPage {
       const techs = s.stack.filter((t) => AtlasPage.STORE_TECH.test(t));
       if (techs.length) byService.set(s.projectName, new Set(techs));
     }
-    for (const card of this.session.graphFacets()?.serviceMap?.services ?? []) {
+    for (const card of this.serviceCards()) {
       if (!card.stack.includes('datastore')) continue;
       const set = byService.get(card.displayName) ?? new Set<string>();
       if (set.size === 0) set.add('data store');
@@ -364,6 +412,18 @@ export class AtlasPage {
   protected onProjectTap(name: string): void {
     if (!name) return;
     void this.router.navigate(['/explore'], { queryParams: { view: 'system', project: name } });
+  }
+
+  /** R3 D-4: the row's kind in the app's one word for it. An unmapped kind renders verbatim
+   * rather than being silently dropped — a missing word is a fact worth seeing. */
+  protected hubKindLabel(kind: string): string {
+    return NODE_KIND_LABELS[kind] ?? kind.toLowerCase();
+  }
+
+  protected hubKindTitle(kind: string): string {
+    return kind === 'Service'
+      ? 'A service — a runnable production project. The same set the Architecture canvas draws and the per-service breakdown describes.'
+      : `Graph node kind: ${kind}`;
   }
 
   protected onHubTap(nodeId: string): void {

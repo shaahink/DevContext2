@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyTransport, declaredStores, hasDataStore, isTraffic, serviceKindGlyph, serviceLabel, storeLabel } from './semantics';
+import { classifyServiceRoles, classifyTransport, declaredStores, hasDataStore, isTraffic, orchestratorMembership, serviceKindGlyph, serviceLabel, storeLabel } from './semantics';
 
 describe('canvas semantics (D4.2 vocabulary)', () => {
   it('classifies the engine transport tags seen in the wild', () => {
@@ -117,5 +117,61 @@ describe('canvas semantics (D4.2 vocabulary)', () => {
     expect(storeLabel('redis', 'redis', id)).toBe('[db] redis');
     // A name that merely ends in a letter the type starts with keeps its type.
     expect(storeLabel('cache', 'redis', id)).toBe('[db] cache · redis');
+  });
+});
+
+/**
+ * R3 D-4 (G6.1) — one role classification, read by the canvas AND by the Atlas per-service
+ * breakdown. The eShop shape is the case the strand doc found: twelve services, of which the canvas
+ * drew nine boxes, framed the AppHost and trayed two, while the breakdown listed twelve identical
+ * peers with nothing joining the two surfaces.
+ */
+describe('service roles (R3 D-4)', () => {
+  const eShop = [
+    { displayName: 'eShop.AppHost', orchestrates: ['Basket.API', 'Catalog.API', 'WebApp', 'ClientApp', 'HybridApp'] },
+    { displayName: 'Basket.API', orchestrates: [] },
+    { displayName: 'Catalog.API', orchestrates: [] },
+    { displayName: 'WebApp', orchestrates: [] },
+    { displayName: 'ClientApp', orchestrates: [] },
+    { displayName: 'HybridApp', orchestrates: [] },
+  ];
+  const transports = [
+    { fromService: 'WebApp', toService: 'Basket.API' },
+    { fromService: 'WebApp', toService: 'Catalog.API' },
+  ];
+
+  it('accounts for every service exactly once — drawn, orchestrator, or in no relationship', () => {
+    const roles = classifyServiceRoles(eShop, transports);
+    expect(roles.size).toBe(eShop.length);
+    expect(roles.get('eShop.AppHost')).toBe('orchestrator');
+    expect(roles.get('WebApp')).toBe('linked');
+    expect(roles.get('Basket.API')).toBe('linked');
+    expect(roles.get('ClientApp')).toBe('isolated');
+    expect(roles.get('HybridApp')).toBe('isolated');
+  });
+
+  it('draws every box when NOTHING is linked — a tray holding everything separates nothing', () => {
+    const roles = classifyServiceRoles(
+      [{ displayName: 'A', orchestrates: [] }, { displayName: 'B', orchestrates: [] }], []);
+    expect([...roles.values()]).toEqual(['linked', 'linked']);
+  });
+
+  it('does not promote an orchestrator whose members all fell out of scope', () => {
+    const roles = classifyServiceRoles(
+      [{ displayName: 'Host', orchestrates: ['Gone'] }, { displayName: 'A', orchestrates: [] }],
+      [{ fromService: 'A', toService: 'A' }]);
+    expect(roles.get('Host')).toBe('linked');   // no members => an ordinary service, not a frame
+  });
+
+  it('never trays a frame — containment IS a relationship', () => {
+    const roles = classifyServiceRoles(eShop, transports);
+    expect(roles.get('eShop.AppHost')).not.toBe('isolated');
+  });
+
+  it('gives membership the same answer the roles do', () => {
+    const frameOf = orchestratorMembership(eShop);
+    expect(frameOf.get('Basket.API')).toBe('eShop.AppHost');
+    expect(frameOf.get('ClientApp')).toBe('eShop.AppHost');
+    expect(frameOf.has('eShop.AppHost')).toBe(false);
   });
 });

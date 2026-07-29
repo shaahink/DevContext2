@@ -50,6 +50,11 @@ export interface HubStat {
   readonly title: string;
   /** In how many distinct indexed flows this node appears. */
   readonly flowCount: number;
+  /** R3 D-4: the graph's own NodeKind for this row — Service, Type, Member, Store… A radar that
+   * lists a service and a type as identical rows is the third of the three vocabularies D-4 found. */
+  readonly kind: string;
+  /** Owning project, when the graph attributes one. Empty for a Service row (it IS the project). */
+  readonly project: string;
 }
 
 export interface NodeDegree {
@@ -59,14 +64,21 @@ export interface NodeDegree {
 
 export type AtlasStatus = 'idle' | 'indexing' | 'paused' | 'done' | 'cancelled';
 
+/** The server's hub-radar rows, verbatim (R3 D-4 — one hub list, ranked once, server-side). */
+interface HubRow extends HubStat {
+  readonly inDegree: number;
+  readonly outDegree: number;
+}
+
 interface AtlasSlice {
   readonly flows: Readonly<Record<string, FlowStat>>;
+  readonly hubs: readonly HubRow[];
   readonly status: AtlasStatus;
   readonly indexed: number;
   readonly total: number;
 }
 
-const EMPTY_SLICE: AtlasSlice = { flows: {}, status: 'idle', indexed: 0, total: 0 };
+const EMPTY_SLICE: AtlasSlice = { flows: {}, hubs: [], status: 'idle', indexed: 0, total: 0 };
 const CONSUMER_KINDS = new Set(['MessageConsumer', 'DomainEventHandler']);
 
 /**
@@ -91,9 +103,6 @@ export class AtlasStore {
   private readonly _slices = signal<ReadonlyMap<string, AtlasSlice>>(new Map());
   /** In-flight index fetch per tab — aborted on tab close / restart. */
   private readonly inflight = new Map<string, AbortController>();
-  /** §3.7 hub degrees, keyed by node id — seeded from the flow-index response (node ids
-   * are effectively unique per analyzed repo, so no per-tab scoping needed here). */
-  private readonly degreeCache = signal<ReadonlyMap<string, NodeDegree>>(new Map());
 
   private readonly active = computed(
     () => this._slices().get(this.workspace.activeId() ?? '') ?? EMPTY_SLICE,
@@ -129,23 +138,19 @@ export class AtlasStore {
   });
 
   /** §3.7 — nodes appearing in the most distinct flows ("everything passes through X").
-   * Appearance frequency only; degree enrichment via getNode is a W5 wiring TODO. */
-  readonly hubs = computed<readonly HubStat[]>(() => {
-    const counts = new Map<string, number>();
-    for (const flow of this.flows()) {
-      for (const id of new Set(flow.hubIds)) counts.set(id, (counts.get(id) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .filter(([, n]) => n > 1)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([nodeId, flowCount]) => ({ nodeId, title: shortTitle(nodeId), flowCount }));
-  });
+   *
+   * R3 D-4 (G6.1): these rows are the SERVER's (`FlowIndexBuilder.TopHubDegrees`) — one hub list,
+   * ranked once. This getter used to re-run the same ranking over `hubIds` with a different
+   * tie-break, so the client's top-10 and the server's could disagree and a row could render with
+   * no degree; and it named each row by splitting the node id on `[./:]` and keeping the last two
+   * segments, which printed `Service:WebApp` as "Service.WebApp" — the node KIND read as a
+   * namespace — while `Service:Webhooks.API` came out as "Webhooks.API", indistinguishable from a
+   * type. Title and kind are facts the graph holds; they are read, not carved. */
+  readonly hubs = computed<readonly HubStat[]>(() => this.active().hubs);
 
-  /** §3.7 — `hubs()` enriched with real in/out-degree, once `getNode` resolves (see the
-   * enrichment effect below). `degree` is null until then — render without it, don't wait. */
+  /** §3.7 — `hubs()` with the in/out-degree from the same server rows. */
   readonly hubsWithDegree = computed<readonly (HubStat & { readonly degree: NodeDegree | null })[]>(() =>
-    this.hubs().map((h) => ({ ...h, degree: this.degreeCache().get(h.nodeId) ?? null })),
+    this.active().hubs.map((h) => ({ ...h, degree: { inDegree: h.inDegree, outDegree: h.outDegree } })),
   );
 
   /** §3.3 — the event board's rows. T6.11: prefer the server's ONE T2.6 join (the
@@ -231,6 +236,7 @@ export class AtlasStore {
     this.inflight.set(tabId, controller);
     this.update(tabId, () => ({
       flows: {},
+      hubs: [],
       status: 'indexing',
       indexed: 0,
       total: Math.min(entries.length, 100),
@@ -261,21 +267,24 @@ export class AtlasStore {
             score: f.score,
           };
         }
+        // R3 D-4: the radar's rows arrive ranked, titled and kinded. Nothing is re-derived here.
+        const hubs: HubRow[] = res.hubDegrees.map((h) => ({
+          nodeId: h.nodeId,
+          title: h.title,
+          flowCount: h.flowCount,
+          kind: h.kind,
+          project: h.project,
+          inDegree: h.inDegree,
+          outDegree: h.outDegree,
+        }));
+
         this.update(tabId, () => ({
           flows,
+          hubs,
           status: 'done',
           indexed: res.flows.length,
           total: res.flows.length,
         }));
-
-        if (res.hubDegrees.length > 0) {
-          this.degreeCache.update((m) => {
-            const next = new Map(m);
-            for (const h of res.hubDegrees)
-              next.set(h.nodeId, { inDegree: h.inDegree, outDegree: h.outDegree });
-            return next;
-          });
-        }
       })
       .catch(() => {
         if (this.inflight.get(tabId) !== controller) return;
@@ -306,9 +315,4 @@ export class AtlasStore {
 function normalizeEventName(name: string): string {
   const last = name.split(/[./:]/).pop() ?? name;
   return last.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/(event|handler|consumer)$/g, '');
-}
-
-function shortTitle(nodeId: string): string {
-  const parts = nodeId.split(/[./:]/).filter(Boolean);
-  return parts.length > 1 ? parts.slice(-2).join('.') : nodeId;
 }

@@ -27,6 +27,20 @@ function flowRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** R3 D-4: the server's hub-radar row — ranked, titled and kinded on the server side. */
+function hubRow(overrides: Record<string, unknown> = {}) {
+  return {
+    nodeId: 'Type:OrderHandler',
+    inDegree: 4,
+    outDegree: 6,
+    title: 'OrderHandler',
+    kind: 'Type',
+    flowCount: 2,
+    project: 'Shop.Ordering',
+    ...overrides,
+  };
+}
+
 describe('AtlasStore server-side flow index (T7.4)', () => {
   function setup(getFlowIndex: ReturnType<typeof vi.fn>) {
     TestBed.configureTestingModule({
@@ -42,7 +56,7 @@ describe('AtlasStore server-side flow index (T7.4)', () => {
     const getFlowIndex = vi.fn().mockResolvedValue({
       flows: [flowRow(), flowRow({ focus: 'GET /orders', title: 'GET /orders', found: false,
         nodeCount: 0, score: 0, nodeIds: [], hubIds: [], touchedEntities: [], emittedEvents: [] })],
-      hubDegrees: [{ nodeId: 'Type:OrderHandler', inDegree: 4, outDegree: 6 }],
+      hubDegrees: [hubRow()],
     });
     const { atlas, tabId } = setup(getFlowIndex);
 
@@ -65,7 +79,7 @@ describe('AtlasStore server-side flow index (T7.4)', () => {
   it('seeds hub degrees from the response — the getNode enrichment fan-out is gone', async () => {
     const getFlowIndex = vi.fn().mockResolvedValue({
       flows: [flowRow(), flowRow({ focus: 'PUT /orders', title: 'PUT /orders' })],
-      hubDegrees: [{ nodeId: 'Type:OrderHandler', inDegree: 4, outDegree: 6 }],
+      hubDegrees: [hubRow()],
     });
     const { atlas, tabId } = setup(getFlowIndex);
 
@@ -74,6 +88,46 @@ describe('AtlasStore server-side flow index (T7.4)', () => {
 
     const hub = atlas.hubsWithDegree().find((h) => h.nodeId === 'Type:OrderHandler');
     expect(hub?.degree).toEqual({ inDegree: 4, outDegree: 6 });
+  });
+
+  // R3 D-4 (G6.1) — the hub radar is the SERVER's list, verbatim. It used to be recomputed here from
+  // the flow rows' hubIds and titled by splitting the node id on [./:] and keeping the last two
+  // segments, which rendered `Service:WebApp` as "Service.WebApp" (the node KIND read as a namespace)
+  // and `Service:Webhooks.API` as "Webhooks.API" — a service indistinguishable from a type.
+  it('hub rows carry the graph title and kind, and no label is carved out of the node id', async () => {
+    const getFlowIndex = vi.fn().mockResolvedValue({
+      flows: [flowRow(), flowRow({ focus: 'PUT /orders', title: 'PUT /orders' })],
+      hubDegrees: [
+        hubRow({ nodeId: 'Service:WebApp', title: 'WebApp', kind: 'Service', project: 'WebApp', flowCount: 25 }),
+        hubRow({ nodeId: 'Service:Webhooks.API', title: 'Webhooks.API', kind: 'Service', project: 'Webhooks.API', flowCount: 38 }),
+        hubRow(),
+      ],
+    });
+    const { atlas, tabId } = setup(getFlowIndex);
+
+    atlas.start(tabId, 'h1', [ENTRY as never]);
+    await vi.waitFor(() => expect(atlas.status()).toBe('done'));
+
+    const hubs = atlas.hubs();
+    expect(hubs.map((h) => h.title)).toEqual(['WebApp', 'Webhooks.API', 'OrderHandler']);
+    expect(hubs.map((h) => h.kind)).toEqual(['Service', 'Service', 'Type']);
+    // The node-kind token never appears in a rendered title.
+    expect(hubs.some((h) => h.title.startsWith('Service.'))).toBe(false);
+    // The server's ranking is the one ranking — order is not re-derived from flow counts here.
+    expect(hubs.map((h) => h.flowCount)).toEqual([25, 38, 2]);
+  });
+
+  it('a hub list the server did not send is empty, not invented from hubIds', async () => {
+    const getFlowIndex = vi.fn().mockResolvedValue({
+      flows: [flowRow(), flowRow({ focus: 'PUT /orders', title: 'PUT /orders' })],
+      hubDegrees: [],
+    });
+    const { atlas, tabId } = setup(getFlowIndex);
+
+    atlas.start(tabId, 'h1', [ENTRY as never]);
+    await vi.waitFor(() => expect(atlas.status()).toBe('done'));
+
+    expect(atlas.hubs()).toHaveLength(0);
   });
 
   it('a failed index fetch lands in cancelled, not a forever-indexing state', async () => {

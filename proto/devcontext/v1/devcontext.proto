@@ -1048,10 +1048,19 @@ message FlowStatRow {
   double score = 14;                     // node_count * (1 + boundary_crossings)
 }
 
+// R3 D-4 (G6.1): the hub radar's ROWS, not just their degrees. The app used to recompute the same
+// top-10 client-side from the flow rows' hub_ids and then derive each row's label by splitting the
+// node id on [./:] and keeping the last two segments — which rendered `Service:WebApp` as
+// "Service.WebApp" (the node KIND read as a namespace) and `Service:Webhooks.API` as "Webhooks.API"
+// (indistinguishable from a type). One hub list, computed once, carrying what it takes to name a row.
 message HubDegreeRow {
   string node_id = 1;
   int32 in_degree = 2;
   int32 out_degree = 3;
+  string title = 4;                      // the graph node's own title — never carved out of the id
+  string kind = 5;                       // NodeKind (Service / Type / Member / Store / …)
+  int32 flow_count = 6;                  // distinct indexed flows this node appears on
+  string project = 7;                    // owning project, when the graph attributes one
 }
 
 message ServiceMapFacet {

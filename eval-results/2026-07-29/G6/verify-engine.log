@@ -1,0 +1,48 @@
+== contract sweep ==
+[sweep] reading consumers...
+
+[sweep] messages 107 - fields 503
+[sweep] unread by every client: 10 (10 allow-listed, 0 NEW)
+
+GATE: PASS - every response field is read by a client or allow-listed with a reason.
+sweep exit=0
+== loom guards ==
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+guards exit=0
+== fast unit+integration (Category!=Eval) ==
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:03.32]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+[xUnit.net 00:00:03.47]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+[xUnit.net 00:00:16.75]     DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [FAIL]
+  Failed DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [15 s]
+  Error Message:
+   The harness never reached scoring.
+exit 1
+--- stderr ---
+FAILED: Could not analyze repo
+
+--- stdout ---
+DevContext MCP QA Harness (M4 post-gate)
+Repo: C:/Users/shahi/source/repos/run-aspnetcore-microservices/src
+MCP:  C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+
+
+  Stack Trace:
+     at DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood() in C:\code\DevContext2\tests\DevContext.Core.Tests\McpQaGateTests.cs:line 57
+--- End of stack trace from previous location ---
+
+Passed!  - Failed:     0, Passed:   104, Skipped:     0, Total:   104, Duration: 14 s - DevContext.Server.Tests.dll (net10.0)
+
+Failed!  - Failed:     1, Passed:   717, Skipped:     2, Total:   720, Duration: 21 s - DevContext.Core.Tests.dll (net10.0)
+tests exit=1
+DONE-VERIFY
