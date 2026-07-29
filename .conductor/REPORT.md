@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 11:17 UTC · branch `feat/graph-v2` · HEAD `fa8ce07`_
+_Updated 2026-07-29 11:48 UTC · branch `feat/graph-v2` · HEAD `ebf5b3a`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G4 — R4 dogfood drive — is the MCP a proper tool? · attempts used 0 · working ▸ G4.2
-**Checkpoints:** 10/22 done · **Sessions run:** 14 · **Cost:** $157.7821 (agent $157.6155 + gates $0.1666) · **Tokens:** 2,227,915 in / 838,436 out
+**Stage:** G4 — R4 dogfood drive — is the MCP a proper tool? · attempts used 0
+**Checkpoints:** 12/22 done · **Sessions run:** 15 · **Cost:** $172.2879 (agent $172.1057 + gates $0.1822) · **Tokens:** 2,477,549 in / 938,913 out
 **Confirmed phases:** G1, G2, G3
+**Pending:** full-battery phase gate for G4
 
 ## Stage progress
 
@@ -14,7 +15,7 @@ _Updated 2026-07-29 11:17 UTC · branch `feat/graph-v2` · HEAD `fa8ce07`_
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
-| G4 | R4 dogfood drive — is the MCP a proper tool? | ███░░░░░░░ 1/3 | **← active** |
+| G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | gating… |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
@@ -52,13 +53,13 @@ _Updated 2026-07-29 11:17 UTC · branch `feat/graph-v2` · HEAD `fa8ce07`_
 
 </details>
 
-<details><summary>G4 — R4 dogfood drive — is the MCP a proper tool? (1/3)</summary>
+<details> ✅<summary>G4 — R4 dogfood drive — is the MCP a proper tool? (3/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ✅ DONE | - |
-| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ⬜ TODO | - |
-| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ⬜ TODO | - |
+| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ✅ DONE | [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) |
+| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ✅ DONE | - |
+| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ✅ DONE | - |
 
 </details>
 
@@ -132,16 +133,13 @@ _Updated 2026-07-29 11:17 UTC · branch `feat/graph-v2` · HEAD `fa8ce07`_
 | 12 | G3 | Deliver | 1 | 07-29 09:29 | 0:31 | Advanced | G3.2 | 1 | fast-engine:OK · guards:OK | $16.9310 | $0.0132 | 240,450/86,120 |
 | 13 | G3 | Deliver | 1 | 07-29 10:03 | 0:29 | Advanced | G3.3 | 3 | fast-engine:OK · guards:OK | $14.4742 | $0.0140 | 210,692/81,557 |
 | 14 | G4 | Deliver | 1 | 07-29 10:46 | 0:28 | Advanced | G4.1 | 3 | fast-engine:OK · guards:OK | $12.9056 | $0.0173 | 404,013/93,678 |
+| 15 | G4 | Deliver | 1 | 07-29 11:17 | 0:28 | Advanced | G4.2 G4.3 | 4 | fast-engine:OK · guards:OK | $14.4902 | $0.0155 | 249,634/100,477 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 07:23:03  ▪ gate fast-engine pass [phase]  (1m39s)
-07-29 07:23:03  ▪ gate guards pass [phase]  (46.5s)
-07-29 07:23:03  ▪ gate battery pass [phase]  (12m59s)
-07-29 07:23:03  ▸ stage G2 confirmed  (1h11m20s)
 07-29 07:23:06  ▸ stage G3 entered — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10)
 07-29 07:23:06  • session #7 G3 Deliver started (attempt 1/4)
 07-29 07:54:04  ▪ gate fast-engine pass [session]  (1m29s)
@@ -178,6 +176,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 11:46:55  • session #14 G4 Deliver started (attempt 1/4)
 07-29 12:17:55  ▪ gate fast-engine pass [session]  (1m36s)
 07-29 12:17:55  ▪ gate guards pass [session]  (1m16s)
+07-29 12:17:58  • session #14 G4 → Advanced · done G4.1 · 3 commit(s)  (31m02s)
+07-29 12:17:58  • session #15 G4 Deliver started (attempt 1/4)
+07-29 12:48:55  ▪ gate fast-engine pass [session]  (1m47s)
+07-29 12:48:55  ▪ gate guards pass [session]  (47.9s)
 ```
 
 ## Health
@@ -185,7 +187,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 14 · retries 5 (36 %) · overall Alert
+sessions 15 · retries 5 (33 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -210,10 +212,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s2 (G1 Deliver)** — 3 commit(s):
-  - [`27de288`](https://github.com/shaahink/DevContext2/commit/27de288) conductor: G1.2 handoff + the orchestrator's own plan edits from this run
-  - [`7c6eb5e`](https://github.com/shaahink/DevContext2/commit/7c6eb5e) G1.2: a library symbol gets a pack — member roots resolve, and the pack carries who uses it
-  - [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) conductor: telegram gets the one field without which it is a silent no-op
 - **s4 (G1 Resume)** — 4 commit(s):
   - [`56f2bcf`](https://github.com/shaahink/DevContext2/commit/56f2bcf) PLAN §2: R4 status through G1.3, and the verification-command trap that produced three sessions of phantom red
   - [`611dae3`](https://github.com/shaahink/DevContext2/commit/611dae3) conductor: G1.3 handoff + the orchestrator's own plan edits from this run
@@ -240,6 +238,11 @@ vs upstream: up to date
   - [`fa8ce07`](https://github.com/shaahink/DevContext2/commit/fa8ce07) G4.1: PLAN status + handoff for the next session
   - [`55e7cec`](https://github.com/shaahink/DevContext2/commit/55e7cec) G4.1: the R4 dogfood drive - 43 MCP calls on Hangfire, every one graded
   - [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) G4.1: ten dogfood questions, committed BEFORE the drive
+- **s15 (G4 Deliver)** — 4 commit(s):
+  - [`ebf5b3a`](https://github.com/shaahink/DevContext2/commit/ebf5b3a) G4 close: PLAN status + handoff for the next session
+  - [`8541958`](https://github.com/shaahink/DevContext2/commit/8541958) G4.3: the R4 dogfood REPORT - 81 calls graded, judged against the success bar
+  - [`e954c79`](https://github.com/shaahink/DevContext2/commit/e954c79) G4.2: dogfood Tasks 2+3 - a real change through MCP orientation, and DevContext on itself
+  - [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) G4.2: the Task 2 change spec, committed BEFORE the drive
 
 ## Last gate run
 
@@ -247,24 +250,28 @@ fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** G4.1 is claimed and pushed (`conductor task --done G4.1 --evidence eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md`, board verified DONE; commits `254fd36` → `55e7cec` → `fa8ce07` on `feat/graph-v2`). The R4 §2 Task 1 dogfood drive ran: ten architecture questions committed *before* the driver existed, then 43 MCP calls against `eval-repos/Hangfire` (unseen, archetype Library, 0 entries) with no grep and `read_source` never called — 44,712 response tokens, 12.9 s of tool wall time, graded HELPED 28 / NEUTRAL 7 / HURT 8, every grade re-checkable against the 43 raw responses the driver wrote. **The verdict is 8/10 against §3's bar, and 6/10 under the stricter reading wher…
+> SESSION-RESULT: Stage G4 is COMPLETE — G4.2 and G4.3 both claimed via `conductor task --done` with evidence (`eval-results/2026-07-29/mcp-dogfood/G4.2-EVIDENCE.md` and `REPORT.md`), four commits pushed on `feat/graph-v2` (546fb32 change-spec-before-the-drive · e954c79 Tasks 2+3 · 8541958 REPORT + call grades · ebf5b3a PLAN status + handoff), tree clean apart from a pre-existing one-line change in the battery's own `mcp-qa.md`, Hangfire pole reverted to clean, background server stopped. Task 2 delivered a compiling change in an unseen repo on MCP orientation alone (6/6 declared facts tool-asserted, red canary proving the build verdict); Task 3 measured away R4's `devcontext.json` premise (0 n…
 
 ## Tracker handoff
 
 ```
-**G4.1 CLAIMED — the dogfood drive is RUN and graded.** 43 MCP calls on Hangfire (unseen, Library,
-0 entries), questions committed BEFORE the drive (254fd36), no grep and `read_source` never called.
-**8/10 on §3's bar — 6/10 if "answered" must mean a TOOL asserted it** (Q4/Q5 fell to inference: the
-graph has NO inheritance edge kind, so "who implements this" cannot be asked). 44,712 tokens, of which
-`map` alone is 17,105. Evidence `eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md` + CALL-GRADES.md,
-commit 55e7cec. Four bugs filed: **#5** every tool ships `description:""` (MEASURED: the fix is
-`[System.ComponentModel.Description]`, NOT GenerateDocumentationFile — that changes nothing);
-**#6** `trace` + a nodeId → `found:true`, 0 steps, "Type: Type" (its focus resolver matches the token
-BEFORE the first colon and ignores the rest); **#7** a method registered as a Type node, 26 BCL
-`System.Type` refs bound to it, 5th wiring hub; **#8** calls inside a LAMBDA ARGUMENT make no edge, so
-the enqueue path's actual storage write is invisible while the trace looks complete.
-Next: **G4.2** (Tasks 2+3). Drive with `node eval/mcp-qa/dogfood.js <batch.json>`; START THE SERVER
-FIRST (the MCP kills a server it spawned, so handles die with each driver run). Use BARE NAMES in
-`query` — never a nodeId on `trace`. Before Task 3, R4 §2 warns the server ignores devcontext.json,
-so CLI and MCP see different file sets on this repo: measure that first, don't inherit the claim.
+**G4.2 + G4.3 CLAIMED — STAGE G4 IS COMPLETE; R4 §2 is run and REPORT.md is written.** Task 2 made a
+real change in Hangfire on MCP orientation alone: six facts committed BEFORE the drive (546fb32),
+**6/6 TOOL-asserted**, and the code compiles (red canary proved the build really compiles it). Task 3
+**corrected two inherited claims**. Commits e954c79 · 8541958. Totals across all three tasks: 81 calls
+· 72,664 tokens · HELPED 55 / NEUTRAL 13 / HURT 13.
+Findings the next owner should not re-derive: (a) `devcontext.json` costs **0 nodes and 0 edges** —
+solution scoping already did that job — so the real **+6 node / +15 edge CLI↔MCP divergence on this
+repo is still unexplained** and is worth a session; (b) **bug #8's lambda cause is REFUTED** (bug #11):
+lambda calls DO bind, and what never binds is a **static call with a type-name receiver** —
+`BodyFactExtractor`, `RazorCodeVirtualizer`, `ExtractorHelpers` all have **0 in-edges**, 80% of our own
+Calls edges are `approx`; (c) three new bugs **#9/#10/#11**, all one family — *a reply shaped like a
+complete answer with nothing on the wire saying it is partial*, which `contract-sweep.ps1` cannot catch.
+Next: **G5.1** (D-3 — why GitVersion's five `ICommand<TSettings>` verbs join no handler).
+Drive traps if you touch MCP again: start the server FIRST (ServerShim.cs:14 skips spawning when
+/health answers, so handles survive driver runs); bare names in `query`, never a nodeId on `trace`;
+`eval-repos/Hangfire` does NOT build (RazorGenerator `packages/` never restored — bypass with
+`-p:MSBuildCurrentFullPath=Z:\nope\MSBuild.exe -p:MSBuild14FullPath=Z:\nope\MSBuild.exe`, do not edit
+the pole); and PowerShell mangles `git commit -m @'...'@` when the message contains double quotes —
+write the message to a file and use `git commit -F`.
 ```
