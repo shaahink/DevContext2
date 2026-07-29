@@ -1,0 +1,55 @@
+﻿G6.2 ARITY SWEEP
+cli      : C:\code\DevContext2\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli mtime: 2026-07-29T16:34:14
+poles    : eShop, FluentValidation, AutoMapper, MediatR, CleanArchitecture
+
+===================================================================
+POLE eShop
+===================================================================
+  [graphdump] 379,183 chars / 0.8s - node TITLES with arity: 0   [control] node IDS with arity: 37
+  [map.md] 16,952 chars - arity markers: 0
+  [entrypoints.md] 40,944 chars - arity markers: 0
+  [stats.md] 7,519 chars - arity markers: 0
+  [analyze pack] 17,449 chars - arity markers: 0
+
+===================================================================
+POLE FluentValidation
+===================================================================
+  [graphdump] 73,258 chars / 0.8s - node TITLES with arity: 0   [control] node IDS with arity: 128
+  [map.md] 6,830 chars - arity markers: 0
+  [entrypoints.md] 49 chars - arity markers: 0
+  [stats.md] 2,348 chars - arity markers: 0
+  [analyze pack] 7,305 chars - arity markers: 0
+
+===================================================================
+POLE AutoMapper
+===================================================================
+  [graphdump] 95,432 chars / 0.9s - node TITLES with arity: 0   [control] node IDS with arity: 41
+  [map.md] 8,377 chars - arity markers: 0
+  [entrypoints.md] 49 chars - arity markers: 0
+  [stats.md] 2,624 chars - arity markers: 0
+  [analyze pack] 8,853 chars - arity markers: 0
+
+===================================================================
+POLE MediatR
+===================================================================
+  [graphdump] 32,614 chars / 0.8s - node TITLES with arity: 0   [control] node IDS with arity: 40
+  [map.md] 6,268 chars - arity markers: 0
+  [entrypoints.md] 370 chars - arity markers: 0
+  [stats.md] 3,342 chars - arity markers: 0
+  [analyze pack] 6,742 chars - arity markers: 0
+
+===================================================================
+POLE CleanArchitecture
+===================================================================
+  [graphdump] 35,670 chars / 1.1s - node TITLES with arity: 0   [control] node IDS with arity: 2
+  [map.md] 3,692 chars - arity markers: 0
+  [entrypoints.md] 3,111 chars - arity markers: 0
+  [stats.md] 5,349 chars - arity markers: 0
+  [analyze pack] 4,179 chars - arity markers: 0
+
+===================================================================
+node TITLES carrying arity      : 0   (must be 0)
+rendered-text arity markers     : 0    (must be 0)
+node IDS carrying arity [CONTROL]: 248     (must be > 0 - identity keeps its arity)
+VERDICT: CLEAN - no raw metadata arity reaches a rendered surface

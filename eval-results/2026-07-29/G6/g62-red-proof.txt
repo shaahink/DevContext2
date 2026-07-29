@@ -1,0 +1,146 @@
+﻿G6.2 RED-THEN-GREEN - loom-guards rule 8
+files under test: 7
+
+--- git stash push (revert the app-side fix, keep rule 8) ---
+Saved working directory and index state On graph-v2: g62-red-proof
+stash@{0} is mine: True
+
+=== LEG 1 - PRE-FIX SOURCES (expect BANNED lines) ===
+  BANNED: raw node id interpolated into a template in src\DevContext.App\src\app\features\explorer\stage.ts:227 -- use nodeIdLabel from core/format.ts
+  BANNED: a label falling back to a bare node id in src\DevContext.App\src\app\features\explorer\stage.ts:218 -- use nodeIdLabel from core/format.ts
+  BANNED: a label falling back to a bare node id in src\DevContext.App\src\app\features\explorer\stage.ts:239 -- use nodeIdLabel from core/format.ts
+  BANNED: a label falling back to a bare node id in src\DevContext.App\src\app\features\node-card\node-card.ts:69 -- use nodeIdLabel from core/format.ts
+  BANNED: a label falling back to a bare node id in src\DevContext.App\src\app\features\node-card\node-card.ts:76 -- use nodeIdLabel from core/format.ts
+  BANNED: 1 node-id surgery site(s) in src\DevContext.App\src\app\features\pages\workbench-page.ts (line(s) 427) -- use nodeIdLabel from core/format.ts
+  BANNED: raw node id interpolated into a template in src\DevContext.App\src\app\features\peek\node-peek.ts:31 -- use nodeIdLabel from core/format.ts
+  BANNED: a label falling back to a bare node id in src\DevContext.App\src\app\ui\graph-canvas\graph-canvas.ts:384 -- use nodeIdLabel from core/format.ts
+  rule-8 violations: 8
+
+--- git stash pop (restore the fix) ---
+On branch feat/graph-v2
+Your branch is up to date with 'origin/feat/graph-v2'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   GRAPH-V2-START.md
+	modified:   scripts/loom-guards.ps1
+	modified:   src/DevContext.App/src/app/core/format.ts
+	modified:   src/DevContext.App/src/app/features/explorer/stage.ts
+	modified:   src/DevContext.App/src/app/features/node-card/node-card.ts
+	modified:   src/DevContext.App/src/app/features/pages/workbench-page.ts
+	modified:   src/DevContext.App/src/app/features/peek/node-peek.ts
+	modified:   src/DevContext.App/src/app/state/trace.store.ts
+	modified:   src/DevContext.App/src/app/ui/graph-canvas/graph-canvas.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	eval-results/2026-07-19/
+	eval-results/2026-07-27/batchA-tests.txt
+	eval-results/2026-07-27/bench-s2-close.txt
+	eval-results/2026-07-27/bench-s2-dntsite.txt
+	eval-results/2026-07-27/gates-s1-close.err.txt
+	eval-results/2026-07-27/gates-s1-close.txt
+	eval-results/2026-07-27/gates-s2-close.err.txt
+	eval-results/2026-07-27/gates-s2-close.txt
+	eval-results/2026-07-27/gates-s2-close2.err.txt
+	eval-results/2026-07-27/gates-s2-close2.txt
+	eval-results/2026-07-27/graph-truth-batchA.err.txt
+	eval-results/2026-07-27/graph-truth-batchA.txt
+	eval-results/2026-07-27/graph-truth-s2-close.err.txt
+	eval-results/2026-07-27/graph-truth-s2-close.txt
+	eval-results/2026-07-27/graph-truth/raw/
+	eval-results/2026-07-27/mcp-qa.md
+	eval-results/2026-07-28/baseline-widen.txt
+	eval-results/2026-07-28/bench-s5-close.txt
+	eval-results/2026-07-28/gates-s10-close-app.exit.txt
+	eval-results/2026-07-28/gates-s10-close-app.txt
+	eval-results/2026-07-28/gates-s10-close.err.txt
+	eval-results/2026-07-28/gates-s10-close.exit.txt
+	eval-results/2026-07-28/gates-s10-close.txt
+	eval-results/2026-07-28/gates-s3-close.err.txt
+	eval-results/2026-07-28/gates-s3-close.txt
+	eval-results/2026-07-28/gates-s3-close2.err.txt
+	eval-results/2026-07-28/gates-s3-close2.txt
+	eval-results/2026-07-28/gates-s3-close3.err.txt
+	eval-results/2026-07-28/gates-s3-close3.exit.txt
+	eval-results/2026-07-28/gates-s3-close3.txt
+	eval-results/2026-07-28/gates-s4-close.exit.txt
+	eval-results/2026-07-28/gates-s4-close.txt
+	eval-results/2026-07-28/gates-s4-close.txt.err
+	eval-results/2026-07-28/gates-s4-close2.exit.txt
+	eval-results/2026-07-28/gates-s4-close2.txt
+	eval-results/2026-07-28/gates-s4-close2.txt.err
+	eval-results/2026-07-28/gates-s5-batchD.exit.txt
+	eval-results/2026-07-28/gates-s5-batchD.txt
+	eval-results/2026-07-28/gates-s5-close.exit.txt
+	eval-results/2026-07-28/gates-s5-close.txt
+	eval-results/2026-07-28/gates-s6-close.err.txt
+	eval-results/2026-07-28/gates-s6-close.txt
+	eval-results/2026-07-28/gates-s7-close.err.txt
+	eval-results/2026-07-28/gates-s7-close.txt
+	eval-results/2026-07-28/gates-s8-close.err.txt
+	eval-results/2026-07-28/gates-s8-close.exit.txt
+	eval-results/2026-07-28/gates-s8-close.txt
+	eval-results/2026-07-28/gates-s9-close.err.txt
+	eval-results/2026-07-28/gates-s9-close.txt
+	eval-results/2026-07-28/gates-s9-close2.err.txt
+	eval-results/2026-07-28/gates-s9-close2.txt
+	eval-results/2026-07-28/graph-truth-s4-baseline/
+	eval-results/2026-07-28/graph-truth-s4-denylist-probe/
+	eval-results/2026-07-28/graph-truth-s4-smoke/
+	eval-results/2026-07-28/graph-truth-s4/raw/
+	eval-results/2026-07-28/graph-truth-s4/verdicts/
+	eval-results/2026-07-28/graph-truth-s5-baseline/
+	eval-results/2026-07-28/graph-truth-s5-close/raw/
+	eval-results/2026-07-28/graph-truth-s5-close/verdicts/
+	eval-results/2026-07-28/graph-truth-s5-lambdafix/
+	eval-results/2026-07-28/graph-truth-s5/raw/
+	eval-results/2026-07-28/graph-truth-s5/verdicts/
+	eval-results/2026-07-28/graph-truth/raw/
+	eval-results/2026-07-28/gt-smoke/
+	eval-results/2026-07-28/matrix-s5-batchD.txt
+	eval-results/2026-07-28/matrix-s5-close.txt
+	eval-results/2026-07-28/mcp-qa.md
+	eval-results/2026-07-28/r3-current-state/
+	eval-results/2026-07-28/s10-home/
+	eval-results/2026-07-28/s10-triage/
+	eval-results/2026-07-28/s3-close-bench.txt
+	eval-results/2026-07-28/s3-close-matrix.txt
+	eval-results/2026-07-28/s3-close2-bench.txt
+	eval-results/2026-07-28/s3-close2-matrix.txt
+	eval-results/2026-07-28/s4-close-bench.txt
+	eval-results/2026-07-28/s4-close-bench.txt.err
+	eval-results/2026-07-28/s4-close-matrix.txt
+	eval-results/2026-07-28/s4-close-matrix.txt.err
+	eval-results/2026-07-28/s4-denylist-probe.txt
+	eval-results/2026-07-28/s4-denylist-probe.txt.err
+	eval-results/2026-07-28/s4-widen-baseline.txt
+	eval-results/2026-07-28/s4-widen-baseline.txt.err
+	eval-results/2026-07-28/s5-batchD-close.ps1
+	eval-results/2026-07-28/s5-close.ps1
+	eval-results/2026-07-28/s5-matrix-postD.ps1
+	eval-results/2026-07-28/s5-widen-baseline.ps1
+	eval-results/2026-07-28/s5-widen-baseline.txt
+	eval-results/2026-07-28/s9-contract-sweep/
+	eval-results/2026-07-29/G6/arity-sweep-before.txt
+	eval-results/2026-07-29/G6/arity-sweep.ps1
+	eval-results/2026-07-29/G6/dangling-edge-probe.ps1
+	eval-results/2026-07-29/G6/dangling-edge-probe.txt
+	eval-results/2026-07-29/G6/g62-red-proof.ps1
+	eval-results/2026-07-29/G6/g62-red-proof.txt
+	eval-results/2026-07-29/G6/label-mirror-fidelity.ps1
+	eval-results/2026-07-29/G6/label-mirror-fidelity.txt
+	src/DevContext.App/scripts/g62-arity-dom.mts
+	src/DevContext.App/src/app/core/format.spec.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (dbefc721812452a946c99ec8498fe229d15624aa)
+
+=== LEG 2 - FIXED SOURCES (expect zero) ===
+  rule-8 violations: 0
+
+  PASSED: 0 truth failures (skips are the pending ratchet)
+  == PASSED: no banned patterns ==
+
+VERDICT: RED THEN GREEN - the guard catches the pre-fix code and passes the fixed code

@@ -7,6 +7,7 @@ import { NodeLink } from '../../ui/node-link/node-link';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { copyToClipboard } from '../../core/clipboard';
+import { nodeIdLabel } from '../../core/format';
 
 @Component({
   selector: 'app-node-card',
@@ -66,14 +67,14 @@ import { copyToClipboard } from '../../core/clipboard';
               @if (incomingEdges().length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Called by</span>
                   @for (e of incomingEdges(); track e.from) {
-                    <app-node-link class="block" [nodeId]="e.from" [label]="e.otherTitle || e.from" />
+                    <app-node-link class="block" [nodeId]="e.from" [label]="e.otherTitle || nodeLabel(e.from)" />
                   }
                 </div>
               }
               @if (outgoingEdges().length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Calls</span>
                   @for (e of outgoingEdges(); track e.to) {
-                    <app-node-link class="block" [nodeId]="e.to" [label]="e.otherTitle || e.to" />
+                    <app-node-link class="block" [nodeId]="e.to" [label]="e.otherTitle || nodeLabel(e.to)" />
                   }
                 </div>
               }
@@ -100,6 +101,10 @@ export class NodeCard {
   readonly store = inject(NodeStore);
   readonly traceStore = inject(TraceStore);
   private readonly toast = inject(ToastService);
+
+  /** R3 D-4 (G6.2) — the one id-to-text rule, for an edge whose otherTitle came back empty.
+   * "Copy ID" still copies the RAW canonical id: that one is identity, not a name. */
+  protected readonly nodeLabel = nodeIdLabel;
 
   readonly nid = computed(() => this.store.nodeId());
   readonly incomingEdges = computed(() => {

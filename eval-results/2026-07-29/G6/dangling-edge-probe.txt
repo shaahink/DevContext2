@@ -1,0 +1,11 @@
+﻿G6.2 DANGLING-EDGE PROBE (GraphQuery.NeighborsView otherTitle fallback)
+cli mtime: 2026-07-29T16:34:14
+
+POLE eShop                nodes   1136   endpoints with NO node:     0   of those carrying arity:    0
+POLE FluentValidation     nodes    319   endpoints with NO node:     0   of those carrying arity:    0
+POLE AutoMapper           nodes    467   endpoints with NO node:     0   of those carrying arity:    0
+POLE MediatR              nodes    187   endpoints with NO node:     0   of those carrying arity:    0
+POLE CleanArchitecture    nodes    139   endpoints with NO node:     0   of those carrying arity:    0
+POLE dotnet-podcasts      nodes    344   endpoints with NO node:     0   of those carrying arity:    0
+
+TOTAL dangling endpoints: 0   of which arity-bearing: 0

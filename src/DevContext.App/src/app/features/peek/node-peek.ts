@@ -1,5 +1,6 @@
 import { Component, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { nodeIdLabel } from '../../core/format';
 import { NodePeekStore } from '../../state/node-peek.store';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 
@@ -28,7 +29,7 @@ import { Skeleton } from '../../ui/skeleton/skeleton';
           tabindex="-1"
         >
           <div class="flex items-center justify-between border-b border-line px-2 py-1">
-            <span class="truncate font-mono text-2xs text-ink-muted" [title]="id">{{ id }}</span>
+            <span class="truncate font-mono text-2xs text-ink-muted" [title]="nodeLabel(id)">{{ nodeLabel(id) }}</span>
             @if (store.pinned()) {
               <button class="px-1 text-ink-muted hover:text-ink" (click)="store.dismiss()" title="Close">✕</button>
             }
@@ -61,6 +62,12 @@ import { Skeleton } from '../../ui/skeleton/skeleton';
 export class NodePeek {
   protected readonly store = inject(NodePeekStore);
   private readonly router = inject(Router);
+
+  /** R3 D-4 (G6.2) — the header row is the node's IDENTITY, printed while the detail RPC is still
+   * in flight, so it is the one place with no title to fall back to. It went through raw, which is
+   * how a hover card came to read "Type:Microsoft.Extensions.Logging.ILogger" plus a metadata
+   * arity marker. Same rule as everywhere else now; the kind is on its own line below. */
+  protected readonly nodeLabel = nodeIdLabel;
 
   clampedX(x: number): number {
     return Math.max(4, Math.min(x, window.innerWidth - 264));

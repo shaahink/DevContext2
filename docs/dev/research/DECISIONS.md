@@ -309,7 +309,7 @@ analyzed solution — the rule the snapshot cache learned in Batch C and the ses
 | D-1 | Where the scope note lives | **Decided (delegated):** the identity strip, under the headline, with the alternatives as buttons — it is a fact about the analysis, and that is where analysis facts live. |
 | D-2 | Fit clamp on a tiny graph | **Open.** `MAX_FIT_ZOOM_FILL` 2.1 is right for twelve boxes and absurd for two. |
 | D-3 | `0/5 wired` on a CLI | **Open, and the brief's premise was wrong**: wiring is *not* meaningless for a CLI — a verb should reach its handler, and GitVersion's five reach none. It is a real engine gap (the entries are `ICommand<TSettings>` classes whose execute member never joined), now stated on the command surface where a reader is looking instead of only as a percentage on Home. C-3's suppression rule applies to the library, not here. |
-| D-4 | Two "service" vocabularies on the Atlas page | **Open.** |
+| D-4 | Two "service" vocabularies on the Atlas page | **Decided + landed, both halves (see below).** A service is a project the engine judged runnable and production (G6.1); a metadata arity marker belongs to a canonical id and nothing else (G6.2). Both are gated, not just fixed. |
 
 ---
 
@@ -381,7 +381,8 @@ above; the areas themselves were deliberately not briefed (owner: implement Home
   live find is on Atlas — **three vocabularies for "service" on one page**: the canvas excludes
   ClientApp/HybridApp, the per-service breakdown lists them as services, and Hub radar mixes services
   with types, one rendering as `` Logging.ILogger`1 `` (raw metadata arity reaching the UI). That is
-  D-4. **Its "service" half is DECIDED and LANDED (G6.1, 2026-07-29); the arity half is G6.2.**
+  D-4. **Both halves are now DECIDED and LANDED — the "service" half as G6.1 and the arity half as
+  G6.2, both 2026-07-29.**
 
 ### D-4 — one vocabulary for "service" on Atlas (DECIDED + LANDED, G6.1)
 
@@ -418,3 +419,38 @@ What landed:
    indistinguishable from the type rows beside it — **seven of eShop's ten hubs were Service nodes**.
    The server's `FlowIndexBuilder` now carries each row's title, kind, project and flow count, and the
    app renders the graph's own facts. The client's duplicate top-10 ranking is gone with it.
+
+### D-4's arity half — no metadata syntax in a name (DECIDED + LANDED, G6.2)
+
+**The rule, adopted:** *a metadata arity marker belongs to a canonical **id** and nothing else. Where
+an id must be shown, it is spelled the way C# spells an unbound generic — `ILogger<>`,
+`IDictionary<,>` — never the metadata marker.*
+
+**The engine already obeyed it, and that was measured, not read off the doc comment**
+(`eval-results/2026-07-29/G6/arity-sweep-before.txt`, five poles): 0 node **titles** carry arity,
+0 markers in `--format md` or the `analyze` pack, and 248 node **ids** do — which is correct.
+
+**The leak was the client, in eight places with eight rules**, each turning a raw id into a label when
+a title was missing or simply not threaded. One of them was `shortNodeTitle` in `workbench-page.ts` —
+*the same function G6.1 deleted from the hub radar*, still live in a second file, still rendering
+`` Logging.ILogger`1 `` and `Service.WebApp`.
+
+What landed:
+
+1. **Never derive when a title exists.** `TraceStore.titleFor` reads the graph's own title out of the
+   loaded trace tree (a walk, no RPC) and the trail crumb uses it; `shortNodeTitle` is deleted. This
+   is not a preference — `label-mirror-fidelity.txt` measured that a derivation **cannot** reproduce
+   the engine's titles (Member titles come back 343 owner-qualified vs 627 bare), so a derivation is
+   by construction a second vocabulary.
+2. **One fallback for when there genuinely is no title.** `nodeIdLabel` in `core/format.ts` drops the
+   node **kind** prefix and re-spells arity. Its doc comment says, in the code, that it must never be
+   preferred to a title.
+3. **The rule is a gate.** `scripts/loom-guards.ps1` rule 8 bans three shapes across the app's
+   TypeScript — id surgery, a bare id in a template, a title falling back to an id — with one
+   allow-listed matcher. Watched go red on all eight sites and green after
+   (`eval-results/2026-07-29/G6/g62-red-proof.txt`); the live app measures 0 across every route, text
+   nodes **and** `title=` attributes (`g62-arity-dom-eShop.txt`).
+
+Two engine-side vocabularies this uncovered are **not** fixed here and are filed as tracked bugs:
+Member titles that are sometimes `Owner.Method` and sometimes bare `Method`, and Type nodes built
+from lambda/expression text (one has a 20-line lambda body as its title).

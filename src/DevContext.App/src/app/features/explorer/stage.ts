@@ -1,6 +1,7 @@
 import { Component, computed, DestroyRef, effect, inject, model, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
+import { nodeIdLabel } from '../../core/format';
 import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { filterApproxTree, type EntryVm, type TraceNodeVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
@@ -215,7 +216,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [fill]="true"
-                [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
+                [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeLabel(nodeId), edges: trace.neighbors() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
                 [lensId]="'flow'"
@@ -224,7 +225,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               />
             } @else {
               <div class="p-2">
-                <p class="mb-2 truncate font-mono text-2xs text-ink-subtle" [title]="nodeId">{{ nodeId }}</p>
+                <p class="mb-2 truncate font-mono text-2xs text-ink-subtle" [title]="nodeLabel(nodeId)">{{ nodeLabel(nodeId) }}</p>
                 @for (edge of trace.neighbors(); track edge.to) {
                   <div
                     class="list-row"
@@ -236,7 +237,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
                     (keydown.space)="onNodeTap(edge.to); $event.preventDefault()"
                   >
                     <span class="chip shrink-0">{{ edge.kind }}</span>
-                    <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || edge.to }}</span>
+                    <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || nodeLabel(edge.to) }}</span>
                     <span
                       class="shrink-0 text-2xs"
                       [class.text-success]="edge.resolution === 'Semantic'"
@@ -413,4 +414,9 @@ export class Stage {
     if (pct >= 50) return 'accent';
     return 'warn';
   }
+
+  /** R3 D-4 (G6.2) — the one id-to-text rule, for the three spots here that have no title to
+   * render: the neighbours header (there IS no title for the centre until GetNode lands), the
+   * canvas centre label in that same window, and an edge whose otherTitle came back empty. */
+  protected readonly nodeLabel = nodeIdLabel;
 }

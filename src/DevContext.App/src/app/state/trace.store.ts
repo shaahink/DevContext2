@@ -133,6 +133,21 @@ export class TraceStore {
     return true;
   }
 
+  /** The graph's OWN title for a node already on screen, or null if it isn't in the loaded tree.
+   *
+   * R3 D-4 (G6.2): the trail used to name its crumbs by carving the node id up client-side, which
+   * printed metadata arity and let the node kind read as a namespace. The title is a fact the tree
+   * already holds — every TraceNodeVm carries it — so the crumb reads it instead of inventing one.
+   * A tree walk, no RPC; callers fall back to `nodeIdLabel` when this returns null. */
+  titleFor(nodeId: string): string | null {
+    const tabId = this.workspace.activeId();
+    if (!tabId) return null;
+    const tree = this.workspace.tabById(tabId)?.trace.tree;
+    if (!tree) return null;
+    const found = findNode(tree, nodeId);
+    return found?.title ?? null;
+  }
+
   async selectNode(nodeId: string, direction?: NeighborDirection): Promise<void> {
     const tabId = this.workspace.activeId();
     if (!tabId) return;

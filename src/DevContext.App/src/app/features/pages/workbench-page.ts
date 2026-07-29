@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { nodeIdLabel } from '../../core/format';
 import { AtlasStore } from '../../state/atlas.store';
 import { NodePeekStore } from '../../state/node-peek.store';
 import { PrefsStore } from '../../state/prefs.store';
@@ -249,11 +250,12 @@ export class WorkbenchPage implements OnDestroy {
 
   /** Stage node click — immediate select + trail push (no debounce: it's deliberate). */
   protected onNode(nodeId: string): void {
+    const title = this.crumbTitle(nodeId);
     void this.trace.selectNode(nodeId);
     this.trail.push({
       kind: 'node',
       id: nodeId,
-      title: shortNodeTitle(nodeId),
+      title,
       focus: this.trace.focus() ?? '',
     });
   }
@@ -263,8 +265,18 @@ export class WorkbenchPage implements OnDestroy {
    * (see `TraceStore.reroot`'s doc comment for why); a no-op if the node isn't in the
    * currently-loaded tree (stale click). */
   protected onRetrace(nodeId: string): void {
+    const title = this.crumbTitle(nodeId);
     if (!this.trace.reroot(nodeId)) return;
-    this.trail.push({ kind: 'reroot', id: nodeId, title: shortNodeTitle(nodeId), focus: '' });
+    this.trail.push({ kind: 'reroot', id: nodeId, title, focus: '' });
+  }
+
+  /** A trail crumb's text. R3 D-4 (G6.2): this used to be `shortNodeTitle(nodeId)` — the node id
+   * split on dot/colon, last two segments joined — the same string surgery G6.1 deleted from the
+   * hub radar, which printed metadata arity in a name and let the node kind read as a namespace
+   * ("Service.WebApp"). The clicked node is in the loaded tree and the tree carries the graph's own
+   * title, so read it; `nodeIdLabel` is only for the stale-click case where it is not. */
+  private crumbTitle(nodeId: string): string {
+    return this.trace.titleFor(nodeId) ?? nodeIdLabel(nodeId);
   }
 
   /** Trail undo/redo/jump — restore WITHOUT pushing (that would fork the history). */
@@ -421,11 +433,6 @@ export class WorkbenchPage implements OnDestroy {
     }
     this.prefs.setDockLevel(this.dockLevel());
   }
-}
-
-function shortNodeTitle(nodeId: string): string {
-  const parts = nodeId.split(/[./:]/).filter(Boolean);
-  return parts.length > 1 ? parts.slice(-2).join('.') : nodeId;
 }
 
 function isStageAltitude(value: string | null): value is StageAltitude {

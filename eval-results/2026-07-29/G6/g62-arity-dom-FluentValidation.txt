@@ -1,0 +1,19 @@
+REPO C:\code\DevContext2\eval-repos\FluentValidation
+
+[route /] text-node hits: 0   title-attribute hits: 0
+[route /explore] text-node hits: 0   title-attribute hits: 0
+[route /atlas] text-node hits: 0   title-attribute hits: 0
+[route /insights] text-node hits: 0   title-attribute hits: 0
+[route /context] text-node hits: 0   title-attribute hits: 0
+
+[trail] clicked 0 stage node(s) to push crumbs
+[explore + trail crumbs] text-node hits: 0   title-attribute hits: 0
+[trail] crumbs on screen (0): 
+
+[neighbours list] text-node hits: 0   title-attribute hits: 0
+[neighbours] header text: ""
+
+[peek] no app-node-link on screen to hover — not measured
+
+TOTAL arity hits — text nodes: 0   title attributes: 0
+VERDICT: CLEAN — no metadata arity anywhere a user can read it

@@ -1,40 +1,32 @@
-# DevContext graph-v2 — autonomous remainder Phase Tracker
+﻿# DevContext graph-v2 — autonomous remainder Phase Tracker
 
 **Plan:** DevContext graph-v2 — autonomous remainder | **Branch:** `feat/graph-v2` | **Design doc:** docs/dev/research/PLAN.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G6.1 CLAIMED** — commit `2fdd4cf`, evidence `eval-results/2026-07-29/G6/G6.1-EVIDENCE.md`.
-Definition adopted: *a service is a RUNNABLE PRODUCTION project* (`RunnableProjects` →
-`NodeKind.Service`). **MEASURE THE PAGE, NOT THE PROJECTION**: new probe
-`src/DevContext.App/scripts/g6-atlas-vocabulary.mts` reads the DRAWN cytoscape nodes via the
-container's `_cyreg` — canvas labels are pixels, not DOM. It also greps the page for arity, which is
-**G6.2's measurement for free**. DECISIONS.md D-H was WRONG on one point: canvas and breakdown were
-set-identical on eShop (9 boxes + 1 frame + 2 TRAYED = 12 = 12 cards) — the canvas trays
-ClientApp/HybridApp, it does not exclude them. But the divergence was real and latent: two membership
-predicates, the breakdown's keyed on the project NAME containing "shared"/"common" — red proof: 5
-runnable projects, it returned 2. Sweep then found a **fourth instance of the same class**:
-`model.SamplesAreTheProduct` was assigned only at graph-assembly time, AFTER the rollup reads it, so
-the rollup read `false` on **every repo ever analysed** (aspire-samples: 2 Service nodes, 0 rows;
-proven pre-existing by measuring both binaries). Hub radar: **7 of 10 rows were Service nodes**,
-titled by splitting the node id on `[./:]` — `Service:WebApp` printed "Service.WebApp".
-Invariant now 5/5 SAME SET across eShop/aspire-samples/CleanArchitecture/podcasts/bitwarden.
-Gates: build 0w/0e · sweep PASS · guards PASS · Server 104/104 · Core 717 pass/2 skip/**1 fail =
-bug #1** (warm re-run 2/2) · `pnpm check` PASS (130 tests). **Next = G6.2 (arity).** Do NOT patch display
-strings — find where arity survives in a node **Title**, and probe a generic-heavy library pole
-(FluentValidation / AutoMapper), not just eShop. **A gRPC driver importing `devcontext_pb.ts` cannot
-run under `node --experimental-strip-types`** (a TS `enum` in the generated file) — drive via
-Playwright. Traps unchanged, plus: `Copy-Item` PRESERVES LastWriteTime, so a red/green swap script
-restores a source file MSBuild thinks is up to date and the "green" leg silently re-runs the old
-binary — use `git stash push -- <file>` or reset the timestamp, and read the elapsed time.
-
+**G6.2 CLAIMED** — evidence `eval-results/2026-07-29/G6/G6.2-EVIDENCE.md`. **D-4 is now closed, both halves.**
+The engine was already clean and I MEASURED that rather than trusting SymbolCanon's doc comment: 0 node
+titles carry arity across 5 poles, 248 node IDS do (correct). **The leak was the client — 8 sites, 8 rules**,
+one of them `shortNodeTitle` in workbench-page.ts, i.e. the SAME function G6.1 deleted from the hub radar,
+alive in a second file. Rule now: never derive a name from an id — thread the graph's title
+(`TraceStore.titleFor`) — and where there truly is none, ONE fallback, `nodeIdLabel` in core/format.ts.
+This is not taste: `label-mirror-fidelity.ps1` measured that a derivation CANNOT reproduce engine titles
+(Member titles are 343 owner-qualified vs **627 bare** — filed as bug #17; bug #18 = Type nodes whose title
+is a 20-line lambda body). Enforced as **loom-guards rule 8** (3 shapes, 1 allow-listed matcher), watched
+RED 8 → GREEN 0. Gates: build 0w/0e · guards+truth PASS · `pnpm check` EXIT=0 (138 tests). **Next = G7.1 (C-2).**
+Reusable: `scripts/g62-arity-dom.mts` greps text nodes AND `title=` attributes (2 leaks lived in tooltips);
+its GAP, stated in the evidence: it does not reach the stage's node-altitude branch. A LIBRARY POLE CANNOT
+exercise interactive surfaces (FluentValidation: densest arity ids, but no trace → no trail/peek). New traps:
+a .ps1 must be ASCII (a UTF-8 em dash inside a "string" makes PS 5.1 fail to PARSE); `git stash pop` in a
+script must be gated on stash@{0} being YOURS (this repo carries 3 old stashes from other branches);
+`Get-ChildItem -Include` leaks DIRECTORIES into Select-String and kills a guard silently under -EA Stop.
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 14 |
+| Claimed (unconfirmed) | 15 |
 
 ## Checkpoints
 
@@ -84,7 +76,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | TODO | - | - |
+| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | DONE | 2fdd4cf | fast-app:OK · guards:OK |
 | G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | TODO | - | - |
 
 ### G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason
@@ -118,3 +110,4 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 ```
 (none — stages run sequentially by plan order)
 ```
+

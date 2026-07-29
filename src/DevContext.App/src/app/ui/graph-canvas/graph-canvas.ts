@@ -1,6 +1,7 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import cytoscape from 'cytoscape';
 
+import { nodeIdLabel } from '../../core/format';
 import type { ProjectNode, ServiceCard, TransportLink } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
@@ -381,7 +382,9 @@ function buildNeighborsElements(
   let counter = 0;
   for (const e of edges) {
     const other = e.from === centerId ? e.to : (e.from || e.to);
-    const otherTitle = e.otherTitle || other;
+    // R3 D-4 (G6.2): the fallback is an id becoming a LABEL, so it goes through the one id-to-text
+    // rule — a raw id here draws a canvas box reading "Type:Ns.ILogger" plus the metadata marker.
+    const otherTitle = e.otherTitle || nodeIdLabel(other);
     if (!seen.has(other)) {
       seen.add(other);
       els.push({ data: { id: other, nodeId: other, label: truncateLabel(otherTitle), fullLabel: otherTitle, seam: e.kind, truncated: false, depth: 1 } });

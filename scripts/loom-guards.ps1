@@ -22,6 +22,9 @@
 # graph-v2 G5 s18 rule:
 #   7. No test writes the process-wide DEVCONTEXT_CACHE_ROOT (a shared variable cannot isolate
 #      concurrent xUnit collections — pass ServerOptions.SnapshotCacheRoot instead).
+# graph-v2 G6.2 rule (R3 D-4):
+#   8. The desktop app may not derive a label from a canonical node id, nor print one raw. One
+#      fallback only: `nodeIdLabel` in src/DevContext.App/src/app/core/format.ts.
 
 param(
     [switch]$Quiet
@@ -107,6 +110,61 @@ foreach ($f in $testFiles) {
     foreach ($m in $hits) {
         $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
         if (-not $Quiet) { Write-Host "  BANNED: test writes the process-wide DEVCONTEXT_CACHE_ROOT in ${rel}:$($m.LineNumber) (use ServerOptions.SnapshotCacheRoot)" }
+        $script:failures++
+    }
+}
+
+# Rule 8 (graph-v2 G6.2, R3 D-4): the DESKTOP APP may not turn a canonical node id into a label by
+# itself. A node's display name is a fact the graph holds (GraphNode.Title) and the wire carries it;
+# when it genuinely is not on hand -- a GetNode still in flight -- there is exactly ONE fallback,
+# `nodeIdLabel` in src/app/core/format.ts. Before this rule there were eight rules in eight files,
+# two of which printed raw metadata: `split(/[./:]/).slice(-2).join('.')` rendered
+# Type:Microsoft.Extensions.Logging.ILogger`1 as "Logging.ILogger`1" and Service:WebApp as
+# "Service.WebApp" (the node KIND posing as a namespace), and two templates interpolated the id
+# verbatim. G6.1 deleted that surgery from the hub radar; a second copy of the SAME function was
+# still live in workbench-page.ts, which is why this is a gate and not a fix.
+#
+# Two banned shapes, both measured against the whole app on 2026-07-29:
+#   A. splitting a string on the id separators (dot/colon) -- id surgery
+#   B. interpolating a bare `id`/`nodeId` into a template
+# Allowances are per (file, reason) and must state why the string is NOT a label.
+$appSrc = Join-Path $repoRoot 'src/DevContext.App/src/app'
+$idSurgeryAllowed = @{
+    # normalizeEventName is a MATCHER, not a label: it lowercases and strips every non-alphanumeric
+    # (so an arity marker cannot survive it) to join an event name to a handler name.
+    'src\DevContext.App\src\app\state\atlas.store.ts' = 1
+}
+# -File -Filter, not -Include: with -LiteralPath -Recurse, -Include let DIRECTORIES through and
+# Select-String died on the first one ("Access to the path ... is denied"), taking the whole guard
+# with it under $ErrorActionPreference = 'Stop'. A guard that dies reports zero violations.
+$appFiles = Get-ChildItem -LiteralPath $appSrc -Recurse -File -Filter *.ts -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch '\\gen\\' -and $_.Name -notmatch '\.spec\.ts$' }
+foreach ($f in $appFiles) {
+    $rel = $f.FullName.Substring($repoRoot.ToString().Length + 1)
+
+    # A. split on the node-id separators: /[./:]/ and friends (a character class holding . or :).
+    $surgery = @(Select-String -LiteralPath $f.FullName -Pattern 'split\(/\[[^\]]*[.:][^\]]*\]/' 2>$null)
+    $allowed = if ($idSurgeryAllowed.ContainsKey($rel)) { $idSurgeryAllowed[$rel] } else { 0 }
+    if ($surgery.Count -gt $allowed) {
+        if (-not $Quiet) { Write-Host "  BANNED: $($surgery.Count - $allowed) node-id surgery site(s) in ${rel} (line(s) $(($surgery | ForEach-Object { $_.LineNumber }) -join ', ')) -- use nodeIdLabel from core/format.ts" }
+        $script:failures += ($surgery.Count - $allowed)
+    }
+
+    # B. a bare id interpolated straight into a template.
+    $bare = @(Select-String -LiteralPath $f.FullName -Pattern '\{\{\s*(nodeId|id)\s*\}\}' 2>$null)
+    foreach ($m in $bare) {
+        if (-not $Quiet) { Write-Host "  BANNED: raw node id interpolated into a template in ${rel}:$($m.LineNumber) -- use nodeIdLabel from core/format.ts" }
+        $script:failures++
+    }
+
+    # C. a title falling back to a bare id. Measured never to FIRE today (no edge endpoint on six
+    # real poles lacks a node -- eval-results/2026-07-29/G6/dangling-edge-probe.txt), but it is the
+    # shape that silently re-grows: five of the eight G6.2 sites were exactly this.
+    # The line must be about a TITLE: `const other = e.from === centerId ? e.to : (e.from || e.to)`
+    # picks WHICH endpoint is the other one, which is id selection and perfectly correct.
+    $fallback = @(Select-String -LiteralPath $f.FullName -Pattern '(?i)title.*(\|\||\?\?)\s*(nodeId|other|centerId|[\w]+\.(to|from))\b' 2>$null)
+    foreach ($m in $fallback) {
+        if (-not $Quiet) { Write-Host "  BANNED: a label falling back to a bare node id in ${rel}:$($m.LineNumber) -- use nodeIdLabel from core/format.ts" }
         $script:failures++
     }
 }

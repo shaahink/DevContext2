@@ -1,0 +1,21 @@
+REPO C:\code\DevContext2\eval-repos\eShop
+
+[route /] text-node hits: 0   title-attribute hits: 0
+[route /explore] text-node hits: 0   title-attribute hits: 0
+[route /atlas] text-node hits: 0   title-attribute hits: 0
+[route /insights] text-node hits: 0   title-attribute hits: 0
+[route /context] text-node hits: 0   title-attribute hits: 0
+
+[trail] clicked 8 stage node(s) to push crumbs
+[explore + trail crumbs] text-node hits: 0   title-attribute hits: 0
+[trail] crumbs on screen (11): ⟲ | ⟳ | PUT /api/catalog/items | PUT /api/catalog/items | CatalogApi.UpdateItemV1 | CatalogApi.UpdateItem | ProductPriceChangedIntegrationEvent | CatalogServices | CatalogContext | ICatalogAI | CatalogAI
+
+[neighbours list (node altitude)] text-node hits: 0   title-attribute hits: 0
+[neighbours] header text: "Ordering.API · Webhooks.API · Identity.API · PaymentProcessor · WebApp · Catalog.API · Basket.API"
+[neighbours] first rows: 
+
+[node peek (hover)] text-node hits: 0   title-attribute hits: 0
+[peek] card text: "PUT /api/catalog/itemsPUT /api/catalog/itemsEntryPointC:\code\DevContext2\eval-repos\eShop\src\Catalog.API\Apis\CatalogApi.csIn 0 · Out 1"
+
+TOTAL arity hits — text nodes: 0   title attributes: 0
+VERDICT: CLEAN — no metadata arity anywhere a user can read it
