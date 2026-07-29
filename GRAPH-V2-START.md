@@ -4,22 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**G7.1 (C-2) DELIVERED @ 55af763.** Evidence `eval-results/2026-07-29/G7/G7.1-EVIDENCE.md`; `pnpm check`
-`CHECK-EXIT=0`. MEASURED: FluentValidation renders 7 Atlas sections, 5 empty — C-2's "five" is exact, and
-Architecture + Cross-cutting FILL on a library (the brief never said which five). Two already said why; the
-other three failed three DIFFERENT ways — an instruction the reader cannot act on ("index flows" at 0 entries),
-an empty set described as a set ("The 0 services…") **plus a second notice under it**, and — the sharp one —
-a "nothing found" over inputs empty BY CONSTRUCTION: Data stores reads only per-service styles + ServiceMap
-cards, so on a library it examined NOTHING and reported "No data-store signals detected". **Nothing was looked
-at is not nothing was found.** Fix = S9's shape generalised, with three non-interchangeable reason classes
-(`archetype`/`none-found`/`not-computed`) rendered as DATA ATTRIBUTES — a text grep passes on a page that
-DELETED the section, which is the defect S9 named. **G7.2 (C-3) reuses `ui/withheld` + the pure-fn shape in
-`atlas-sections.vm.ts` (unit-tested in the battery) + `scripts/g71-atlas-empty-sections.mts` — retarget its
-`h2.section-h` selector.** Filed **bug #20**: AutoMapper (a LIBRARY) reads "1 service (1 drawn)" and cards
-`TestApp`, its demo exe — `ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same
-root cause as G9.1. **Two method rules paid for: run TWO poles of one archetype** (FV has 0 services, AutoMapper
-1 — different branches), and **a structural invariant cannot see a section that fills with the WRONG content**
-(the probe PASSED on AutoMapper before I read the dump). **Next = G7.2 (C-3).**
+**STAGE G7 COMPLETE — G7.1 (C-2) @ 55af763, G7.2 (C-3) @ 5ba0ec7.** Evidence `eval-results/2026-07-29/G7/
+G7.1-EVIDENCE.md` + `G7.2-EVIDENCE.md`; `pnpm check` `CHECK-EXIT=0` (19 files / **151** tests). C-2's "five"
+is EXACT (FluentValidation: 7 Atlas sections, 5 empty). The three unexplained ones each failed differently —
+an instruction the reader cannot act on, an empty set described as a set (**plus a second notice under it**),
+and — the sharp one — a "nothing found" over inputs empty BY CONSTRUCTION (Data stores reads only per-service
+styles + ServiceMap cards, so on a library it examined NOTHING). **Nothing was looked at is not nothing was
+found.** C-3 then found the same class twice more: the Studio picker told an **analyzed** repo to go analyze
+a repo, and Insights printed "Coverage" over nothing. Rule = S9's shape with three non-interchangeable reason
+classes (`archetype`/`none-found`/`not-computed`) as DATA ATTRIBUTES — a text grep passes on a page that
+DELETED the section. **Instruments to reuse: `ui/withheld` · pure-fn + spec (`atlas-sections.vm.ts`,
+`scopePickerWithheld`) · `scripts/g71-atlas-empty-sections.mts` + `g72-withhold-sweep.mts`.**
+**NAMED, NOT CLEARED:** the C-3 sweep drives 6 routes in their DEFAULT state — Inspector tabs / node card /
+peek / entry-browser were NOT driven and 3 carry unmarked empty states (`inspector.ts:184,217`,
+`node-card.ts:82`, `stage.ts:250`). Filed **bug #20**: AutoMapper (a LIBRARY) cards `TestApp` as a service —
+`ArchetypeDetector` excludes auxiliary samples, `RunnableProjects` does not; same root cause as G9.1.
+**Method, twice over: the full-text dump beat the verdict line both times** (the probe PASSED on AutoMapper
+before I read it; my own `/^no/` flagged the Hub radar's caption). **Next = G8.1 (HotChocolate profile).**
 
 
 ## Baseline numbers (from run.db)
