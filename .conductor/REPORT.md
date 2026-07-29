@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 12:02 UTC · branch `feat/graph-v2` · HEAD `235a98d`_
+_Updated 2026-07-29 12:29 UTC · branch `feat/graph-v2` · HEAD `961f239`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G4 — R4 dogfood drive — is the MCP a proper tool? · attempts used 0
-**Checkpoints:** 12/22 done · **Sessions run:** 15 · **Cost:** $172.2879 (agent $172.1057 + gates $0.1822) · **Tokens:** 2,477,549 in / 938,913 out
+**Stage:** G5 — D-3 — a CLI verb reaches its handler · attempts used 1 · working ▸ G5.2
+**Checkpoints:** 13/22 done · **Sessions run:** 16 · **Cost:** $183.2616 (agent $183.0694 + gates $0.1922) · **Tokens:** 2,676,333 in / 1,013,407 out
 **Confirmed phases:** G1, G2, G3, G4
 
 ## Stage progress
@@ -15,7 +15,7 @@ _Updated 2026-07-29 12:02 UTC · branch `feat/graph-v2` · HEAD `235a98d`_
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
-| G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
+| G5 | D-3 — a CLI verb reaches its handler | █████░░░░░ 1/2 | **← active** |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ░░░░░░░░░░ 0/2 | todo |
@@ -62,11 +62,11 @@ _Updated 2026-07-29 12:02 UTC · branch `feat/graph-v2` · HEAD `235a98d`_
 
 </details>
 
-<details><summary>G5 — D-3 — a CLI verb reaches its handler (0/2)</summary>
+<details><summary>G5 — D-3 — a CLI verb reaches its handler (1/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | ⬜ TODO | - |
+| G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | ✅ DONE | - |
 | G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ⬜ TODO | - |
 
 </details>
@@ -133,20 +133,13 @@ _Updated 2026-07-29 12:02 UTC · branch `feat/graph-v2` · HEAD `235a98d`_
 | 13 | G3 | Deliver | 1 | 07-29 10:03 | 0:29 | Advanced | G3.3 | 3 | fast-engine:OK · guards:OK | $14.4742 | $0.0140 | 210,692/81,557 |
 | 14 | G4 | Deliver | 1 | 07-29 10:46 | 0:28 | Advanced | G4.1 | 3 | fast-engine:OK · guards:OK | $12.9056 | $0.0173 | 404,013/93,678 |
 | 15 | G4 | Deliver | 1 | 07-29 11:17 | 0:28 | Advanced | G4.2 G4.3 | 4 | fast-engine:OK · guards:OK | $14.4902 | $0.0155 | 249,634/100,477 |
+| 16 | G5 | Deliver | 1 | 07-29 12:02 | 0:25 | GatesRed | G5.1 | 2 | fast-engine:FAIL · guards:OK | $10.9637 | $0.0100 | 198,784/74,494 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 07:23:06  • session #7 G3 Deliver started (attempt 1/4)
-07-29 07:54:04  ▪ gate fast-engine pass [session]  (1m29s)
-07-29 07:54:04  ▪ gate guards pass [session]  (42.9s)
-07-29 07:54:07  • session #7 G3 → Advanced · done G3.1 · 1 commit(s)  (31m00s)
-07-29 07:54:07  • session #8 G3 Deliver started (attempt 1/4)
-07-29 08:05:07  ▪ gate fast-engine FAIL [session]  (0.2s)
-07-29 08:05:07  ▪ gate guards FAIL [session]  (0.0s)
-07-29 08:05:08  • session #8 G3 → AgentError  (11m00s)
 07-29 08:05:08  • session #9 G3 Fix started (attempt 2/4)
 07-29 08:05:09  ▪ gate fast-engine FAIL [session]  (0.0s)
 07-29 08:05:09  ▪ gate guards FAIL [session]  (0.0s)
@@ -179,6 +172,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 12:48:55  ▪ gate fast-engine pass [session]  (1m47s)
 07-29 12:48:55  ▪ gate guards pass [session]  (47.9s)
 07-29 12:48:58  • session #15 G4 → Advanced · done G4.2,G4.3 · 4 commit(s)  (30m59s)
+07-29 13:02:10  ▪ gate fast-engine pass [phase]  (1m32s)
+07-29 13:02:10  ▪ gate guards pass [phase]  (38.6s)
+07-29 13:02:10  ▪ gate battery pass [phase]  (11m01s)
+07-29 13:02:10  ▸ stage G4 confirmed  (1h15m15s)
+07-29 13:02:13  ▸ stage G5 entered — D-3 — a CLI verb reaches its handler
+07-29 13:02:13  • session #16 G5 Deliver started (attempt 1/4)
+07-29 13:29:27  ▪ gate fast-engine FAIL [session]  (52.7s)
+07-29 13:29:27  ▪ gate guards pass [session]  (47.4s)
 ```
 
 ## Health
@@ -186,7 +187,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 15 · retries 5 (33 %) · overall Alert
+sessions 16 · retries 5 (31 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -196,7 +197,7 @@ sessions 15 · retries 5 (33 %) · overall Alert
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #7: 24,222,376 context tokens (≥ 20,000,000)
-⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 4x
+⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 5x
 ```
 
 ## Repo
@@ -205,17 +206,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
+working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+80 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s4 (G1 Resume)** — 4 commit(s):
-  - [`56f2bcf`](https://github.com/shaahink/DevContext2/commit/56f2bcf) PLAN §2: R4 status through G1.3, and the verification-command trap that produced three sessions of phantom red
-  - [`611dae3`](https://github.com/shaahink/DevContext2/commit/611dae3) conductor: G1.3 handoff + the orchestrator's own plan edits from this run
-  - [`2d27a6c`](https://github.com/shaahink/DevContext2/commit/2d27a6c) G1.3 evidence: before/after MCP responses, battery-style gate logs, and the driver runners
-  - [`75704f2`](https://github.com/shaahink/DevContext2/commit/75704f2) G1.3: a seam says what kind it is, a handle-less call stays in its own repo, and no tool throws a stack trace at an agent
 - **s5 (G1 Deliver)** — 3 commit(s):
   - [`53e79aa`](https://github.com/shaahink/DevContext2/commit/53e79aa) PLAN §2 + handoff: R4 §1 items 1-7 complete, and the vacuous-check lesson recorded
   - [`74a1d73`](https://github.com/shaahink/DevContext2/commit/74a1d73) G1.4 evidence: before/after MCP responses, the tightened driver cases, and the gate logs
@@ -242,35 +238,54 @@ vs upstream: up to date
   - [`8541958`](https://github.com/shaahink/DevContext2/commit/8541958) G4.3: the R4 dogfood REPORT - 81 calls graded, judged against the success bar
   - [`e954c79`](https://github.com/shaahink/DevContext2/commit/e954c79) G4.2: dogfood Tasks 2+3 - a real change through MCP orientation, and DevContext on itself
   - [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) G4.2: the Task 2 change spec, committed BEFORE the drive
+- **s16 (G5 Deliver)** — 2 commit(s):
+  - [`961f239`](https://github.com/shaahink/DevContext2/commit/961f239) chore(conductor): s16 G5.1 handoff - D-3 root-caused, G5.2 scoped
+  - [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) G5.1: root cause per verb - why GitVersion's five verbs join no handler
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:FAIL · guards:OK
+
+<details><summary>fast-engine — exit 1</summary>
+
+```
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+```
+</details>
 
 ## Last session result
 
-> SESSION-RESULT: Stage G4 is COMPLETE — G4.2 and G4.3 both claimed via `conductor task --done` with evidence (`eval-results/2026-07-29/mcp-dogfood/G4.2-EVIDENCE.md` and `REPORT.md`), four commits pushed on `feat/graph-v2` (546fb32 change-spec-before-the-drive · e954c79 Tasks 2+3 · 8541958 REPORT + call grades · ebf5b3a PLAN status + handoff), tree clean apart from a pre-existing one-line change in the battery's own `mcp-qa.md`, Hangfire pole reverted to clean, background server stopped. Task 2 delivered a compiling change in an unseen repo on MCP orientation alone (6/6 declared facts tool-asserted, red canary proving the build verdict); Task 3 measured away R4's `devcontext.json` premise (0 n…
+> SESSION-RESULT:** G5.1 is claimed (`conductor task --done G5.1 --evidence eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md`, board shows DONE) and pushed on `feat/graph-v2` as `d21e72b` (evidence) + `961f239` (handoff) — nothing is red, and `src/` is clean because this checkpoint was diagnosis only: two temporary env-gated probes were added to measure, then reverted, and the CLI was rebuilt from the reverted source before any reported number was re-read. What landed: `0/5 wired` re-derived on a fresh run rather than inherited, and the S8 brief's framing corrected — **the entry→handler edge is not missing**; all five `Calls[Join]` edges exist and land on the command **type**, which is a dead end…
 
 ## Tracker handoff
 
 ```
-**G4.2 + G4.3 CLAIMED — STAGE G4 IS COMPLETE; R4 §2 is run and REPORT.md is written.** Task 2 made a
-real change in Hangfire on MCP orientation alone: six facts committed BEFORE the drive (546fb32),
-**6/6 TOOL-asserted**, and the code compiles (red canary proved the build really compiles it). Task 3
-**corrected two inherited claims**. Commits e954c79 · 8541958. Totals across all three tasks: 81 calls
-· 72,664 tokens · HELPED 55 / NEUTRAL 13 / HURT 13.
-Findings the next owner should not re-derive: (a) `devcontext.json` costs **0 nodes and 0 edges** —
-solution scoping already did that job — so the real **+6 node / +15 edge CLI↔MCP divergence on this
-repo is still unexplained** and is worth a session; (b) **bug #8's lambda cause is REFUTED** (bug #11):
-lambda calls DO bind, and what never binds is a **static call with a type-name receiver** —
-`BodyFactExtractor`, `RazorCodeVirtualizer`, `ExtractorHelpers` all have **0 in-edges**, 80% of our own
-Calls edges are `approx`; (c) three new bugs **#9/#10/#11**, all one family — *a reply shaped like a
-complete answer with nothing on the wire saying it is partial*, which `contract-sweep.ps1` cannot catch.
-Next: **G5.1** (D-3 — why GitVersion's five `ICommand<TSettings>` verbs join no handler).
-Drive traps if you touch MCP again: start the server FIRST (ServerShim.cs:14 skips spawning when
-/health answers, so handles survive driver runs); bare names in `query`, never a nodeId on `trace`;
-`eval-repos/Hangfire` does NOT build (RazorGenerator `packages/` never restored — bypass with
-`-p:MSBuildCurrentFullPath=Z:\nope\MSBuild.exe -p:MSBuild14FullPath=Z:\nope\MSBuild.exe`, do not edit
-the pole); and PowerShell mangles `git commit -m @'...'@` when the message contains double quotes —
-write the message to a file and use `git commit -F`.
+**G5.1 CLAIMED (d21e72b) — D-3 is root-caused per verb, and G5.2 is now a checklist.** Read
+`eval-results/2026-07-29/G5.1/G5.1-EVIDENCE.md` §5 and build to it; do not re-derive §1–§4.
+The entry→handler edge is **NOT missing**: all five `Calls[Join]` edges exist and land on the command
+**TYPE**, which is a dead end. 17 invocation sites across the five verbs, **exactly 1 binds**, and it
+points at a framework `ILogger` that `ResolvePrimaryCall` filters out — so joining the execute member
+alone still gives 0/5. **Defect 1:** `this.<field>.<M>()` never binds — `RootIdentifier` walks to the
+`this` token so `ReceiverType` is null, and `CallGraphBinder.cs:250` treats it as a **self-call**,
+never consulting `ReceiverMember`. **Defect 2 (bug #12, OUT OF SCOPE for G5.2):**
+`SemanticLitePopulator.TryBindReceiverType` relocates by LINE SPAN then searches **ancestors**, so a
+one-line statement's invocation is a descendant and is never found — repo-wide, needs a matrix batch.
+**G5.2 = Defect 1 + join the execute MEMBER** (`CliCommandEntryPointBuilder.cs:29-40` drops the
+already-detected `ExecuteMethod`). The DI answer is already in the graph
+(`Resolves[Join] IService→Service`), so this lands `0/5 → 4/5`; `test` genuinely calls nothing and
+must stay honestly unwired. **Canary is safe by measurement**: the `this.<field>.` shape has 878 sites
+in GitVersion and **0 in CleanArchitecture / Hangfire / Polly / Serilog**.
+Traps paid for this session: `analyze --no-cache` then `query` serves the **stale** snapshot as `HIT`
+(bug #13) — analyse a fresh directory; PowerShell has no heredoc, write commit messages to a file and
+use `git commit -F`; a repro fixture belongs OUTSIDE the repo tree (a stray `.csproj` under
+`eval-results/` would be swept), archive its sources as `.txt`.
 ```
