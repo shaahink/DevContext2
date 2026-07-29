@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 09:29 UTC · branch `feat/graph-v2` · HEAD `8beb896`_
+_Updated 2026-07-29 10:03 UTC · branch `feat/graph-v2` · HEAD `d82d074`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 3 · working ▸ G3.2
-**Checkpoints:** 7/22 done · **Sessions run:** 11 · **Cost:** $113.4269 (agent $113.3048 + gates $0.1221) · **Tokens:** 1,372,760 in / 577,081 out
+**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0 · working ▸ G3.3
+**Checkpoints:** 8/22 done · **Sessions run:** 12 · **Cost:** $130.3711 (agent $130.2357 + gates $0.1353) · **Tokens:** 1,613,210 in / 663,201 out
 **Confirmed phases:** G1, G2
 
 ## Stage progress
@@ -13,7 +13,7 @@ _Updated 2026-07-29 09:29 UTC · branch `feat/graph-v2` · HEAD `8beb896`_
 |---|---|---|---|
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
-| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ███░░░░░░░ 1/3 | **← active** |
+| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ███████░░░ 2/3 | **← active** |
 | G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
@@ -42,12 +42,12 @@ _Updated 2026-07-29 09:29 UTC · branch `feat/graph-v2` · HEAD `8beb896`_
 
 </details>
 
-<details><summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (1/3)</summary>
+<details><summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (2/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) |
-| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | 🔄 IN PROGRESS | - |
+| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ✅ DONE | - |
 | G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ⬜ TODO | - |
 
 </details>
@@ -129,16 +129,13 @@ _Updated 2026-07-29 09:29 UTC · branch `feat/graph-v2` · HEAD `8beb896`_
 | 9 | G3 | Fix | 2 | 07-29 07:05 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:FAIL |  | $0.0000 |  |
 | 10 | G3 | Deliver | 3 | 07-29 07:05 | 2:22 | Interrupted |  | 0 |  |  |  |  |
 | 11 | G3 | Resume | 3r1 | 07-29 09:27 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:OK | $0.0000 | $0.0095 |  |
+| 12 | G3 | Deliver | 1 | 07-29 09:29 | 0:31 | Advanced | G3.2 | 1 | fast-engine:OK · guards:OK | $16.9310 | $0.0132 | 240,450/86,120 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 04:12:15  • session #4 G1 Resume started (attempt 2/6)
-07-29 05:28:29  ▪ gate fast-engine pass [session]  (1m38s)
-07-29 05:28:29  ▪ gate guards pass [session]  (48.0s)
-07-29 05:28:32  • session #4 G1 → Advanced · done G1.3 · 4 commit(s)  (1h16m17s)
 07-29 05:28:32  • session #5 G1 Deliver started (attempt 1/6)
 07-29 05:55:31  ▪ gate fast-engine pass [session]  (1m46s)
 07-29 05:55:31  ▪ gate guards pass [session]  (49.7s)
@@ -175,6 +172,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 10:27:54  • session #11 G3 Resume started (attempt 3/4)
 07-29 10:29:32  ▪ gate fast-engine FAIL [session]  (8.2s)
 07-29 10:29:32  ▪ gate guards pass [session]  (1m26s)
+07-29 10:29:36  • session #11 G3 → AgentError  (1m41s)
+07-29 10:29:58  • session #12 G3 Deliver started (attempt 1/4)
+07-29 11:03:24  ▪ gate fast-engine pass [session]  (1m17s)
+07-29 11:03:24  ▪ gate guards pass [session]  (55.5s)
 ```
 
 ## Health
@@ -182,14 +183,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 11 · retries 5 (45 %) · overall Alert
+sessions 12 · retries 5 (42 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
+⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #7: 24,222,376 context tokens (≥ 20,000,000)
-⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 3x
+⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 4x
 ```
 
 ## Repo
@@ -198,7 +200,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M .conductor/REPORT.md, M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.Cli/Commands/QueryCommand.cs, M src/DevContext.Cli/Settings/QuerySettings.cs, M src/DevContext.Core/Graph/GraphQuery.cs, M src/DevContext.Mcp/DevContextTools.cs (+91 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
@@ -227,46 +229,34 @@ vs upstream: up to date
   - [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) G2.1: 24 tools become 21, and the menu stops being told twice
 - **s7 (G3 Deliver)** — 1 commit(s):
   - [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) G3.1: the path between two symbols, and the roll-up that makes it real
+- **s12 (G3 Deliver)** — 1 commit(s):
+  - [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) G3.2: who writes this table, and the roll-up that makes it answerable
 
 ## Last gate run
 
-fast-engine:FAIL · guards:OK
-
-<details><summary>fast-engine — exit 1</summary>
-
-```
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 0 orphaned process(es)
-
---- Step 1: Build solution ---
-  Determining projects to restore...   All projects are up-to-date for restore.   DevContext.Contracts -> C:\code\DevContext2\src\DevContext.Contracts\bin\Debug\net10.0\DevContext.Contracts.dll   DevContext.Core -> C:\code\DevContext2\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll   DevContext.Mcp -> C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.dll   DevContext.Core.Tests -> C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll C:\code\DevContext2\src\DevContext.Cli\Commands\QueryCommand.cs(255,9): error CA1806: NeighborsOp calls TryParseEdgeKind but does not explicitly check whether the conversion succeeded. Either use the return value in a conditional statement or verify that the call site expects that the out argument will be set to the default value when the conversion fails. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1806) [C:\code\DevContext2\src\DevContext.Cli\DevContext.Cli.csproj]  Build FAILED.  C:\code\DevContext2\src\DevContext.Cli\Commands\QueryCommand.cs(255,9): error CA1806: NeighborsOp calls TryParseEdgeKind but does not explicitly check whether the conversion succeeded. Either use the return value in a conditional statement or verify that the call site expects that the out argument will be set to the default value when the conversion fails. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1806) [C:\code\DevContext2\src\DevContext.Cli\DevContext.Cli.csproj]     0 Warning(s)     1 Error(s)  Time Elapsed 00:00:04.60
-  FAIL  Build failed
-
-GATE: FAIL (step 1 - build)
-```
-</details>
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **G3.1 landed and claimed** (`baa5ffd`, pushed to `feat/graph-v2`; evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`). `seam(from, to)` now exists at all three layers — `GraphQuery.Seam` (BFS over rolled out-edges collecting every shortest-path predecessor, paths read back off that DAG), `rpc GetSeam` in the proto (RPC 26, regenerated into Contracts and the app), and an MCP `seam` tool (menu 21 → 22). It existed at no layer before: every other graph query is single-source, so "how does A reach B" had no answer. Three honesty decisions ride with it — shortest paths only with an *exact* `totalPaths` counted over the predecessor DAG rather than by enumeration; the reverse dire…
+> SESSION-RESULT: G3.2 (kind-filtered `neighbors`, R4 §1 item 9) CLAIMED done at commit d82d074 on feat/graph-v2, pushed, evidence at eval-results/2026-07-29/G3.2-EVIDENCE.md — resumed from session #11's uncommitted, non-compiling tree, whose implementation I verified rather than trusted and whose entire evidence half (20 Core + 15 Server tests, `pnpm gen:proto`, MCP drive 15/15, CLI drive on eShop, docs in the same commit) is new here; all gates green (build 0w/0e, Core 683→703, Server 85→100, McpQa alone, guards, contract-sweep 494 fields 0 NEW, `pnpm check` exit 0), and the C3-roll-up discriminator was watched going RED with 16 of 20 tests passing on the broken implementation. Nothing is re…
 
 ## Tracker handoff
 
 ```
-**G3.1 CLAIMED** — `seam(from,to)` at `GraphQuery` + proto (`GetSeam`, RPC 26) + tool (menu 21→**22**).
-Evidence `eval-results/2026-07-29/G3.1-EVIDENCE.md`. Test counts **Core 683 / Server 85** (was
-674/76, **+9 each**) — a passing test is not named in the log, so the delta is your only proof.
-Verify with `eval-results/2026-07-29/g3.1-verify.ps1`: the battery's OWN Step 2 filter
-(`Category!=Eval&Category!=CliSmoke&Category!=McpQa`) then `Category=McpQa` **alone** — never the
-bare `Category!=Eval`. Next: **G3.2** — and it is smaller than it looks: `GraphQuery.Neighbors`
-ALREADY takes an `EdgeKind?`; only `NeighborsRequest` and the tool don't expose it. The real work is
-the honesty half — what a kind matching nothing says, and whether the roll-up drops it. Then G3.3.
-**THE ROLL-UP IS WHAT A NEW TRAVERSAL GETS WRONG, and it is invisible until you test for it**: after
-Batch A a Type node carries almost no edges of its own, so anything written against
-`_graph.OutEdges` reports two types that collaborate every request as UNCONNECTED. Watched red
-3-of-9 — and **6 of the 9 passed on that broken state**, so a suite of the wrong 6 ships it.
-Traps re-paid: the MCP leaves a `DevContext.Server` alive that locks Core/Cli/Contracts.dll — kill it
-BY PID before the next build. `pnpm gen:proto` after any proto edit. My driver's ground truth was
-wrong once more (seam-vs-impact hop equality is a wrong premise on a Type target) — measure, 4-for-4.
-Still open from G2.2 §6: fold `TraceResponse.applied_budget_tokens` in on the next proto edit.
+**G3.2 CLAIMED** — kind-filtered `neighbors` at `GraphQuery.NeighborsView` + proto (5 fields +
+`EdgeKindCount`) + tool + CLI `--kind`. Evidence `eval-results/2026-07-29/G3.2-EVIDENCE.md`.
+Counts **Core 703 / Server 100** (was 683/85, **+20/+15**) — the delta is your only proof a new
+file ran. Verify: `eval-results/2026-07-29/g32/g3.2-verify.ps1` (battery's OWN Step 2 filter, then
+`Category=McpQa` ALONE — never bare `Category!=Eval`). All green + sweep PASS 494 fields 0 NEW.
+**I INHERITED SESSION #11's UNCOMMITTED TREE AND IT DID NOT COMPILE** — it had the whole
+implementation and not one test. Check `git diff` before assuming a dead session left nothing.
+Next: **G3.3** (cache truth; `AnalyzeCacheTruthTests` already exists from G1.4 — extend, don't add).
+**MEASURE THE SUBJECT BEFORE BLAMING THE QUERY**: my first eShop drive got totalEdges=0 everywhere
+and it was MY node choice (OrderingContext is a DbContext, outDegree 0/inDegree 43). `query node
+--focus X` shows degrees in one call. Traps re-paid: `Assert.Equal` on two `ImmutableArray<T>` binds
+the STRUCT overload (reference equality) and prints two IDENTICAL lines on failure — `.ToArray()`
+both sides. `dotnet test 2>&1 | Tee-Object` in PS 5.1 destroys the assertion text; capture via Bash.
+`query` OP is POSITIONAL (`query neighbors`, never `--op`). In an MCP driver read the field names the
+AGENT is handed, not the wire's (`stats.seams` is `{seam,count}` on the wire, `{kind,total}` in the
+tool). Still open from G2.2 §6: `TraceResponse.applied_budget_tokens` on the next proto edit.
 ```
