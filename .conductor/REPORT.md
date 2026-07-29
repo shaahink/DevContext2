@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 10:46 UTC · branch `feat/graph-v2` · HEAD `fcbf67a`_
+_Updated 2026-07-29 11:17 UTC · branch `feat/graph-v2` · HEAD `fa8ce07`_
 
 **Status:** Idle — advisor: human intervention required
-**Stage:** G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) · attempts used 0
-**Checkpoints:** 9/22 done · **Sessions run:** 13 · **Cost:** $144.8592 (agent $144.7099 + gates $0.1493) · **Tokens:** 1,823,902 in / 744,758 out
+**Stage:** G4 — R4 dogfood drive — is the MCP a proper tool? · attempts used 0 · working ▸ G4.2
+**Checkpoints:** 10/22 done · **Sessions run:** 14 · **Cost:** $157.7821 (agent $157.6155 + gates $0.1666) · **Tokens:** 2,227,915 in / 838,436 out
 **Confirmed phases:** G1, G2, G3
 
 ## Stage progress
@@ -14,7 +14,7 @@ _Updated 2026-07-29 10:46 UTC · branch `feat/graph-v2` · HEAD `fcbf67a`_
 | G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
 | G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
 | G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
-| G4 | R4 dogfood drive — is the MCP a proper tool? | ░░░░░░░░░░ 0/3 | todo |
+| G4 | R4 dogfood drive — is the MCP a proper tool? | ███░░░░░░░ 1/3 | **← active** |
 | G5 | D-3 — a CLI verb reaches its handler | ░░░░░░░░░░ 0/2 | todo |
 | G6 | D-4 — one vocabulary for "service" on Atlas | ░░░░░░░░░░ 0/2 | todo |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ░░░░░░░░░░ 0/2 | todo |
@@ -52,11 +52,11 @@ _Updated 2026-07-29 10:46 UTC · branch `feat/graph-v2` · HEAD `fcbf67a`_
 
 </details>
 
-<details><summary>G4 — R4 dogfood drive — is the MCP a proper tool? (0/3)</summary>
+<details><summary>G4 — R4 dogfood drive — is the MCP a proper tool? (1/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ⬜ TODO | - |
+| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ✅ DONE | - |
 | G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ⬜ TODO | - |
 | G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ⬜ TODO | - |
 
@@ -131,16 +131,13 @@ _Updated 2026-07-29 10:46 UTC · branch `feat/graph-v2` · HEAD `fcbf67a`_
 | 11 | G3 | Resume | 3r1 | 07-29 09:27 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:OK | $0.0000 | $0.0095 |  |
 | 12 | G3 | Deliver | 1 | 07-29 09:29 | 0:31 | Advanced | G3.2 | 1 | fast-engine:OK · guards:OK | $16.9310 | $0.0132 | 240,450/86,120 |
 | 13 | G3 | Deliver | 1 | 07-29 10:03 | 0:29 | Advanced | G3.3 | 3 | fast-engine:OK · guards:OK | $14.4742 | $0.0140 | 210,692/81,557 |
+| 14 | G4 | Deliver | 1 | 07-29 10:46 | 0:28 | Advanced | G4.1 | 3 | fast-engine:OK · guards:OK | $12.9056 | $0.0173 | 404,013/93,678 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 06:11:43  • session #6 G2 Deliver started (attempt 1/2)
-07-29 07:07:33  ▪ gate fast-engine pass [session]  (1m57s)
-07-29 07:07:33  ▪ gate guards pass [session]  (1m45s)
-07-29 07:07:37  • session #6 G2 → Advanced · done G2.1,G2.2 · 4 commit(s)  (55m54s)
 07-29 07:23:03  ▪ gate fast-engine pass [phase]  (1m39s)
 07-29 07:23:03  ▪ gate guards pass [phase]  (46.5s)
 07-29 07:23:03  ▪ gate battery pass [phase]  (12m59s)
@@ -177,6 +174,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 11:46:50  ▪ gate guards pass [phase]  (41.0s)
 07-29 11:46:50  ▪ gate battery pass [phase]  (9m30s)
 07-29 11:46:50  ▸ stage G3 confirmed  (4h23m43s)
+07-29 11:46:55  ▸ stage G4 entered — R4 dogfood drive — is the MCP a proper tool?
+07-29 11:46:55  • session #14 G4 Deliver started (attempt 1/4)
+07-29 12:17:55  ▪ gate fast-engine pass [session]  (1m36s)
+07-29 12:17:55  ▪ gate guards pass [session]  (1m16s)
 ```
 
 ## Health
@@ -184,7 +185,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 13 · retries 5 (38 %) · overall Alert
+sessions 14 · retries 5 (36 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -203,15 +204,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+82 more)
+working tree: M eval-results/2026-07-29/mcp-qa.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+81 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s1 (G1 Deliver)** — 2 commit(s):
-  - [`0f1a5fc`](https://github.com/shaahink/DevContext2/commit/0f1a5fc) conductor: orchestrator's own template + plan edits from this run
-  - [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) G1.1: the structured map the MCP dropped, and the flags it told agents to run
 - **s2 (G1 Deliver)** — 3 commit(s):
   - [`27de288`](https://github.com/shaahink/DevContext2/commit/27de288) conductor: G1.2 handoff + the orchestrator's own plan edits from this run
   - [`7c6eb5e`](https://github.com/shaahink/DevContext2/commit/7c6eb5e) G1.2: a library symbol gets a pack — member roots resolve, and the pack carries who uses it
@@ -238,32 +236,35 @@ vs upstream: up to date
   - [`1b3f7b4`](https://github.com/shaahink/DevContext2/commit/1b3f7b4) chore: mcp-qa report timing, rewritten by the McpQa gate run
   - [`9beb733`](https://github.com/shaahink/DevContext2/commit/9beb733) chore(G3.3): handoff for the next session
   - [`cf0fa62`](https://github.com/shaahink/DevContext2/commit/cf0fa62) G3.3: how old is this answer, and which commit is it about
+- **s14 (G4 Deliver)** — 3 commit(s):
+  - [`fa8ce07`](https://github.com/shaahink/DevContext2/commit/fa8ce07) G4.1: PLAN status + handoff for the next session
+  - [`55e7cec`](https://github.com/shaahink/DevContext2/commit/55e7cec) G4.1: the R4 dogfood drive - 43 MCP calls on Hangfire, every one graded
+  - [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) G4.1: ten dogfood questions, committed BEFORE the drive
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **G3.3 landed and is claimed (`conductor task --done`), completing stage G3** — R4 §1 items 1–12 are now all in. `AnalysisSummary` gained `from_cache`/`analyzed_at`/`git_head` and `SessionInfo` gained `from_cache`/`analyzed_at`, backed by a new `CreatedAtUtc` in the snapshot envelope (metadata, so no schema bump; `TryLoadAsync` keeps its shape and the CLI's three load sites are untouched), filled on all three `EngineRunner` return paths, read by MCP `analyze` + `list_sessions`, and rendered by the app's Freshness tile. The defect this closes is concrete: the tile was dated from `age_seconds`, which is the *session's* age, and a snapshot hit opens a brand-new session — so ever…
+> SESSION-RESULT:** G4.1 is claimed and pushed (`conductor task --done G4.1 --evidence eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md`, board verified DONE; commits `254fd36` → `55e7cec` → `fa8ce07` on `feat/graph-v2`). The R4 §2 Task 1 dogfood drive ran: ten architecture questions committed *before* the driver existed, then 43 MCP calls against `eval-repos/Hangfire` (unseen, archetype Library, 0 entries) with no grep and `read_source` never called — 44,712 response tokens, 12.9 s of tool wall time, graded HELPED 28 / NEUTRAL 7 / HURT 8, every grade re-checkable against the 43 raw responses the driver wrote. **The verdict is 8/10 against §3's bar, and 6/10 under the stricter reading wher…
 
 ## Tracker handoff
 
 ```
-**G3.3 CLAIMED — STAGE G3 IS COMPLETE.** `from_cache`/`analyzed_at`/`git_head` on AnalysisSummary
-(+`from_cache`/`analyzed_at` on SessionInfo), persisted in the snapshot envelope. Evidence
-`eval-results/2026-07-29/G3.3-EVIDENCE.md`, commit cf0fa62. Counts **Core 704 / Server 104**
-(+1/+4) — the delta is your only proof a new file ran. Verify `eval-results/2026-07-29/g33/
-g3.3-verify.ps1` (battery's OWN Step 2 filter, then `Category=McpQa` ALONE — never bare
-`Category!=Eval`). All green, sweep PASS **499 fields 0 NEW**, `pnpm check` exit 0.
-Next: **G4.1** — the R4 dogfood drive (§2), the strand's actual point. Unseen repo, MCP tools ONLY,
-every call graded. Hangfire and OrchardCore are both already in `eval-repos/`.
-**A TEST THAT CANNOT FAIL LOOKS EXACTLY LIKE ONE THAT PASSES**: asserting a rehydrate reports the
-original instant is vacuous unless you BACK-DATE the persisted stamp — `DateTime.UtcNow` has ~15.6ms
-granularity on Windows, so two calls milliseconds apart return bit-identical values. Traps re-paid:
-`DevContext.Server.Tests` has NO Xunit.SkippableFact (`Assert.Skip*` will not compile there — use the
-early-`return` guard SnapshotCacheTests uses). An MCP drive that needs a COLD cache cannot get one by
-setting DEVCONTEXT_CACHE_ROOT: ServerShim pings 127.0.0.1:5179 and reuses any live server, env and
-all — check whether the cold path ran, don't assume. Still open from G2.2 §6, and I did not fold it
-in: `TraceResponse.applied_budget_tokens` on the next proto edit.
+**G4.1 CLAIMED — the dogfood drive is RUN and graded.** 43 MCP calls on Hangfire (unseen, Library,
+0 entries), questions committed BEFORE the drive (254fd36), no grep and `read_source` never called.
+**8/10 on §3's bar — 6/10 if "answered" must mean a TOOL asserted it** (Q4/Q5 fell to inference: the
+graph has NO inheritance edge kind, so "who implements this" cannot be asked). 44,712 tokens, of which
+`map` alone is 17,105. Evidence `eval-results/2026-07-29/mcp-dogfood/G4.1-EVIDENCE.md` + CALL-GRADES.md,
+commit 55e7cec. Four bugs filed: **#5** every tool ships `description:""` (MEASURED: the fix is
+`[System.ComponentModel.Description]`, NOT GenerateDocumentationFile — that changes nothing);
+**#6** `trace` + a nodeId → `found:true`, 0 steps, "Type: Type" (its focus resolver matches the token
+BEFORE the first colon and ignores the rest); **#7** a method registered as a Type node, 26 BCL
+`System.Type` refs bound to it, 5th wiring hub; **#8** calls inside a LAMBDA ARGUMENT make no edge, so
+the enqueue path's actual storage write is invisible while the trace looks complete.
+Next: **G4.2** (Tasks 2+3). Drive with `node eval/mcp-qa/dogfood.js <batch.json>`; START THE SERVER
+FIRST (the MCP kills a server it spawned, so handles die with each driver run). Use BARE NAMES in
+`query` — never a nodeId on `trace`. Before Task 3, R4 §2 warns the server ignores devcontext.json,
+so CLI and MCP see different file sets on this repo: measure that first, don't inherit the claim.
 ```
