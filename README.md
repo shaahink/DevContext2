@@ -23,7 +23,7 @@ query it from whichever surface fits your workflow.
 
 | Surface | What it's for | Get it |
 |---------|---------------|--------|
-| **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); CI-verified on Windows, Linux, and macOS — see [Platform support](#platform-support)) |
+| **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | Download the `.nupkg` from [Releases](https://github.com/shaahink/DevContext2/releases), then `dotnet tool install -g DevContext.Cli --add-source <download-folder>` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); CI-verified on Windows, Linux, and macOS — see [Platform support](#platform-support); not yet published to NuGet.org) |
 | **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
 | **MCP server** (24 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
 | **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
@@ -146,7 +146,8 @@ Depth limit (default 6), fan-out cap (12), framework boundary detection, revisit
 ### CLI
 
 ```bash
-dotnet tool install -g DevContext.Cli
+# Download DevContext.Cli.*.nupkg from https://github.com/shaahink/DevContext2/releases, then:
+dotnet tool install -g DevContext.Cli --add-source <folder-containing-the-nupkg>
 devcontext analyze .                              # Map (architecture overview)
 devcontext analyze . --focus OrderService          # Trace from a type
 devcontext analyze . --focus "GET /api/orders"     # Trace from an endpoint
