@@ -4,26 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**STAGE G9 COMPLETE — G9.1 fix @ ea0dc3f, evidence @ 7d82108** (`eval-results/2026-07-29/G9/G9.1-EVIDENCE.md`).
-`CLI` and `MahApps.Metro` both read **Library / NotApplicable**; graph-truth `style=PASS` on both; expectations
-untouched. **It was TWO root causes, not one, and the stage note's "a demo exe outside samples/" was wrong for
-the pole it mattered on.** (1) MahApps = PATH SHAPE: all 25 entries came from `src/MahApps.Metro.Samples/` and
-NONE from the library, but `IsSamplePath` matched `samples` only as a slash-delimited segment — the char before
-`Samples` is `.`. It now also reads the dotted-compound **collection** (`*.Samples/.Examples/.Snippets/.Demos`);
-**plural only** — `OrchardCore.Demo` is a shipped module. (2) CLI = LADDER ORDER, no sample path: `dotnet-suggest`
-is a real `Exe`+`PackAsTool` under a production path, so the CliTool rung returned before the auxiliary-exe test
-the detector **already owned** was consulted. That test now runs once above the CliTool AND entries rungs
-(`DescribeLibraryShape`) and overrules them only on **symmetric declaration evidence**: `PackAsTool` on the exe
-loses to `<IsPackable>true</IsPackable>` on the library it references. `hasPublicSurface` would flip GitVersion —
-measured; that is the canary. **Dead end, do not retry:** filtering entries by auxiliary-project provenance
-FAILS here — CLI's 2nd entry is declared inside the library itself (`System.CommandLine/RootCommand.cs:21`).
-**Instrument: `g9-archetype-sweep.ps1`** (37 poles, `--no-cache` both sides, run BEFORE against a `bin/` copy so
-you can rebuild underneath it). 27/37 finished both sides; only the 2 targets moved archetype (`Desktop` pole's
-STYLE moved Unknown→SampleCollection — undeclared by design, it IS avalonia-samples). **TRAP: never overlap
-`dotnet test` with a bg analyze sweep — that is the McpQa load flake (bug #3/#1); green alone, 2/2 in 12s.**
-**Next = G10.1** (sweep for thresholds calibrated on pre-Batch-A starved-graph data). Bug #20 still open
-(`RunnableProjects` counts an auxiliary demo exe as a SERVICE — the render half of this same idea).
-
+**STAGE G10 COMPLETE — G10.1 @ 06fcae5 + 55293b5**, evidence `eval-results/2026-08-02/G10/G10.1-EVIDENCE.md`.
+Ten candidates found by two regex sweeps + **`git blame` against batchA `4e1292d` as the discriminator** — every
+one blames to 07-02..07-18. Re-measured with `g10-threshold-sweep.ps1`: 11 poles, one COLD analysis each.
+**The tool note that makes this cheap: `DEVCONTEXT_CACHE_ROOT` redirects the snapshot cache** — point it at a
+temp dir and the first `query` per pole runs cold against YOUR build, the second is a hit. 11 poles, 2 ops, 4 min.
+**Four of five stale thresholds no longer mean what their comment says.** CORRECTED: (1) START HERE filtered
+`nodeCount >= 4` **before** D-E's band rule, so it could delete the whole request-shaped band — red-then-green
+proof reproduces E-2 **verbatim** (`expected 'CheckoutViewModel.CheckoutAsync' to be 'POST /api/orders/draft'`)
+without any checkout title; `flow-ranking.ts` shipped with no spec, it has one now. (2) home-page read
+`unwired/entries > 0.2` as a rate at n=1 — GitVersion and MediatR each shipped a WARNING saying "1 of 1".
+JUSTIFIED + bug, measurement now stated at each site: **`graph.orphans` has NEVER fired** (Semantic share
+0.010–0.259 on every app; floor 0.5 unreachable — left there on purpose, see ledger CALL 1); **L3.4's sparse
+broadening never fires** on 11/11 incl. its own trigger repos, so identity-strip's hub-scope line has never
+rendered (cause is between line 199 and `k<5` — Dapper's Calls edges span 32 types, so k=16; **start there**);
+**deep-spine ratio is saturated** (1.000 on 5/11). Also: the engine ships **two definitions of a verified edge**
+(GraphStats approx = Syntactic only, so Join counts; GraphOrphansSource counts Semantic only; Join is the enum
+DEFAULT). Gates: Cli 0w/0e · loom-guards PASSED incl. Truth · app 159/159 · `ng build` EXIT 0. 4 bugs filed.
 
 ## Baseline numbers (from run.db)
 
@@ -31,11 +28,11 @@ STYLE moved Unknown→SampleCollection — undeclared by design, it IS avalonia-
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 20 |
+| Claimed (unconfirmed) | 21 |
 
 ## Checkpoints
 
-Status ∈ TODO · IN PROGRESS · DONE · DONE ✓ (confirmed) · BLOCKED. Evidence = artifact path produced by a run this
+Status ∈ TODO · IN PROGRESS · DONE · DONE ✓ (confirmed) · BLOCKED · SKIPPED. Evidence = artifact path produced by a run this
 phase (a code path is not evidence). Agent claims are marked DONE; engine confirms as DONE ✓.
 
 ### G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7)
@@ -102,7 +99,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | IN PROGRESS | - | - |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | DONE | ea0dc3f | eval-results/2026-07-29/G9/G9.1-EVIDENCE.md |
 
 ### G10 — Sweep for thresholds calibrated on pre-Batch-A data
 
