@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { DevContextApi } from '../data-access/devcontext-api';
 import { TrailStore, type TrailStep } from './trail.store';
@@ -18,6 +18,14 @@ function setup() {
   workspace.createTab('repo', 'repo');
   return { workspace, trail };
 }
+
+// WorkspaceStore persists tabs to localStorage in an effect and restore()s them in its
+// constructor, so a store built by one test can inherit the tabs of the last one. At six tabs
+// createTab() stops creating and returns the ACTIVE id instead, which silently makes two "tabs"
+// the same tab. Whether the effect has flushed before the next test constructs its store is a
+// scheduling detail that differs between machines — this failed on CI while passing locally.
+// Clearing storage per test removes the ordering dependency rather than betting on the timing.
+beforeEach(() => localStorage.clear());
 
 describe('TrailStore', () => {
   it('pushes steps and walks them with undo/redo', () => {

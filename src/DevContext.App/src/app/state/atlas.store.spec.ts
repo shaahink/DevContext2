@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DevContextApi } from '../data-access/devcontext-api';
 import { AtlasStore } from './atlas.store';
@@ -40,6 +40,10 @@ function hubRow(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+// See trail.store.spec.ts: WorkspaceStore restores persisted tabs in its constructor, so tabs can
+// leak between tests and createTab() silently no-ops at the six-tab cap. Keep each test hermetic.
+beforeEach(() => localStorage.clear());
 
 describe('AtlasStore server-side flow index (T7.4)', () => {
   function setup(getFlowIndex: ReturnType<typeof vi.fn>) {

@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DevContextApi } from '../data-access/devcontext-api';
 import { SessionStore } from './session.store';
 import { WorkspaceStore } from './workspace.store';
+
+// See trail.store.spec.ts: WorkspaceStore restores persisted tabs in its constructor, so tabs can
+// leak between tests and createTab() silently no-ops at the six-tab cap. Keep each test hermetic.
+beforeEach(() => localStorage.clear());
 
 describe('WorkspaceStore tab isolation (I10)', () => {
   it('writes analyze() completion into the tab that started it, not whichever tab is active when it resolves', async () => {
