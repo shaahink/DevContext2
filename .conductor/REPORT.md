@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 11:29 UTC · branch `feat/graph-v2` · HEAD `a8af4bd`_
+_Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
 
 **Status:** Idle
 **Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0
 **Checkpoints:** 21/22 done · **Sessions run:** 27 · **Cost:** $347.0772 (agent $346.7374 + gates $0.3398) · **Tokens:** 4,868,373 in / 1,872,465 out
-**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
-**Pending:** full-battery phase gate for G9
+**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9
 
 ## Stage progress
 
@@ -20,7 +19,7 @@ _Updated 2026-08-02 11:29 UTC · branch `feat/graph-v2` · HEAD `a8af4bd`_
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
-| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | gating… |
+| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | confirmed ✓ |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
 <details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
@@ -103,7 +102,7 @@ _Updated 2026-08-02 11:29 UTC · branch `feat/graph-v2` · HEAD `a8af4bd`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | ✅ DONE | - |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | ✅ DONE | [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) |
 
 </details>
 
@@ -152,11 +151,6 @@ _Updated 2026-08-02 11:29 UTC · branch `feat/graph-v2` · HEAD `a8af4bd`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 18:07:15  ▪ gate fast-app pass [session]  (1m27s)
-07-29 18:07:15  ▪ gate guards pass [session]  (45.3s)
-07-29 18:07:19  • session #22 G6 → Progress · 1 commit(s)  (36m31s)
-07-29 18:17:05  ▪ gate fast-app pass [phase]  (1m19s)
-07-29 18:17:05  ▪ gate guards pass [phase]  (40.0s)
 07-29 18:17:05  ▪ gate battery pass [phase]  (7m46s)
 07-29 18:17:05  ▸ stage G6 confirmed  (2h45m15s)
 07-29 18:17:09  ▸ stage G7 entered — C-2 / C-3 — a library's empty sections fill or withhold with a reason
@@ -192,6 +186,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-02 11:50:35  • session #27 G9 Resume started (attempt 1/2)
 08-02 12:29:07  ▪ gate fast-engine pass [session]  (2m06s)
 08-02 12:29:07  ▪ gate guards pass [session]  (1m33s)
+08-02 12:29:12  • session #27 G9 → Advanced · done G9.1 · 3 commit(s)  (38m37s)
+08-02 12:43:56  ▪ gate fast-engine pass [phase]  (1m54s)
+08-02 12:43:56  ▪ gate guards pass [phase]  (1m11s)
+08-02 12:43:56  ▪ gate battery pass [phase]  (11m37s)
+08-02 12:43:57  ✓ checkpoint G9.1 confirmed
 ```
 
 ## Health
@@ -223,7 +222,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M .conductor/REPORT.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+84 more)
+working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+84 more)
 vs upstream: up to date
 ```
 
@@ -262,7 +261,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
