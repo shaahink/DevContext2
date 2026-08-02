@@ -89,8 +89,34 @@
       <https://claude.ai/code/artifact/973a85a7-5ac5-43e4-8446-05762d0bbe82>.
       **Four defects fixed first, none needing a decision** — see the session log. **D-F/D-G/D-H
       remain open**, with their evidence captured (owner: implement Home first).
+- [x] **AUTONOMOUS REMAINDER — CLOSED 2026-08-02, 22/22 over 28 sessions ($358).** Stages G1–G10 all
+      confirmed by FULL battery (not by session gates). Tracker archived to
+      `docs/dev/archive/trackers/GRAPH-V2-START.md`; per-stage detail is in the R4 block below and
+      in `eval-results/2026-07-29/` + `eval-results/2026-08-02/`. Released as **v1.0.5**.
+      The four things worth carrying forward:
+      **(1) `docs/dev/research/BUG-BACKLOG.md` — 24 open findings (7 high).** Measured, evidenced,
+      and deliberately NOT fixed because each is a product decision rather than a correction. This
+      is the highest-value list in the strand. Start there, not from a fresh audit. The 7 high ones
+      are mostly G4's: every MCP tool ships an EMPTY description while 31 XML doc summaries sit in
+      the source; `trace()` given a nodeId returns `found:true` with an empty tree; static calls
+      with a type-name receiver produce no edge (which REFUTES the lambda explanation offered for
+      the sibling bug — read #8 and #11 together).
+      **(2) Three gates in the product have never fired on any measured repo** — `graph.orphans`
+      (Semantic-share floor 0.5, measured 0.010–0.259), L3.4's sparse broadening (`sparseGraph=false`
+      on 11/11 including its own trigger repos), and the deep-spine ratio (saturated at ~1.0). Each
+      now states its measurement at the site. They are backlog #22/#23/#24.
+      **(3) The engine ships two definitions of a verified edge** — `GraphStats` counts `Syntactic`
+      (so `Join`, the enum default, counts as verified) while `GraphOrphansSource` counts `Semantic`
+      only. Any number either produces is unsafe to compare until this is one definition (#25).
+      **(4) A threshold is only as good as its calibration data.** G10 re-measured five calibrated
+      on the pre-Batch-A starved graph; two had silently inverted. `git blame` against the Batch A
+      commit (`4e1292d`) is the discriminator that finds them.
 - [ ] S11 — R3 continued: D-F · D-G · D-H · C-2/C-3 + D-3/D-4 · render kernel built AFTER the
-      decisions it serves · re-point `screenshot-gate.mts` as pages land
+      decisions it serves · re-point `screenshot-gate.mts` as pages land.
+      **This is the next owner-interactive session.** C-2/C-3 and D-3/D-4 were delivered
+      autonomously as G5–G7, so what remains here is D-F (insight dedup, engine-side), D-G (Studio)
+      and D-H. RE-DRIVE the live app before any R3 work — a full-page screenshot cannot judge a
+      canvas (`r3-canvas-zoom.mts`).
 - [~] R4 (parallel lane) — now driven by conductor as stage **G1** (`docs/dev/archive/trackers/GRAPH-V2-START.md`).
       **§1 item 1 LANDED 2026-07-29**: `map` returns the structured surface (it was dropping the
       library surface, packages, aggregates, service styles and the archetype view *after* the server
