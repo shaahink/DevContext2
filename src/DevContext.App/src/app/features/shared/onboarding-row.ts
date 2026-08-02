@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { AtlasStore } from '../../state/atlas.store';
 import { SessionStore } from '../../state/session.store';
-import { rankFlows } from '../../core/flow-ranking';
+import { pickHeroFlow } from '../../core/flow-ranking';
 
 @Component({
   selector: 'app-onboarding-row',
@@ -78,8 +78,11 @@ export class OnboardingRow {
       // view-model command as the way into a twelve-service backend. A threshold calibrated on a
       // starved graph inverts when the graph stops being starved; the fix is to rank by what a
       // flow IS, not by what its title says.
-      const best = rankFlows(flows.filter((f) => f.nodeCount >= 4))[0] ?? rankFlows(flows)[0];
-      return { focus: best.focus, label: best.title };
+      //
+      // G10.1: the 4 itself was the last of that calibration and is gone too — it filtered BEFORE
+      // the band rule ran, so it could delete the whole request-shaped band first. See pickHeroFlow.
+      const best = pickHeroFlow(flows);
+      if (best) return { focus: best.focus, label: best.title };
     }
 
     let best: { focus: string; label: string; score: number } | null = null;

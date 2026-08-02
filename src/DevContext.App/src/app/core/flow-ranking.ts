@@ -73,3 +73,25 @@ export function compareFlows(a: RankableFlow, b: RankableFlow): number {
 export function rankFlows<T extends RankableFlow>(flows: readonly T[]): T[] {
   return [...flows].sort(compareFlows);
 }
+
+/**
+ * The one flow a first visit opens on (START HERE). Ranked by the rule above and nothing else.
+ *
+ * G10.1 — this used to read `rankFlows(flows.filter((f) => f.nodeCount >= 4))[0] ?? rankFlows(flows)[0]`:
+ * a DEPTH FILTER applied BEFORE the band rule, so it could delete the entire request-shaped band and
+ * then rank what was left. That 4 is the last surviving number from the same starved-graph
+ * calibration E-2 uncovered (the >=3-hop gate the retired checkout special case leaned on), and it
+ * inverts the same way: the deeper a repo's internal reactions get, the more likely a
+ * DomainEventHandler outranks the endpoint that a caller outside the process actually asks for.
+ *
+ * It is also redundant. compareFlows already prefers the deeper flow WITHIN a band, and the caller
+ * has already dropped 1-node flows, so depth still decides every comparison it should decide - it
+ * just stops deciding the ones it should not. Measured 2026-08-02 on the entry-kind mix the rule
+ * exists to arbitrate (eval-results/2026-08-02/G10/threshold-grid.txt): eShop 46 request-shaped
+ * entries / 42 UiEntry / 21 internal, DntSite 70 / 0 / 24, wolverine 22 / 0 / 29 - on all three the
+ * top band and the deepest flows are different populations, which is precisely when a depth
+ * pre-filter changes the answer.
+ */
+export function pickHeroFlow<T extends RankableFlow>(flows: readonly T[]): T | null {
+  return rankFlows(flows)[0] ?? null;
+}
