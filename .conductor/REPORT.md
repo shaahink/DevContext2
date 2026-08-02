@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 10:50 UTC · branch `feat/graph-v2` · HEAD `cded2ef`_
+_Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
 
-**Status:** Paused — advisor: human intervention required
-**Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0 · working ▸ G9.1
-**Checkpoints:** 20/22 done · **Sessions run:** 26 · **Cost:** $334.8297 (agent $334.5119 + gates $0.3179) · **Tokens:** 4,652,610 in / 1,799,093 out
-**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
+**Status:** Idle
+**Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0
+**Checkpoints:** 21/22 done · **Sessions run:** 27 · **Cost:** $347.0772 (agent $346.7374 + gates $0.3398) · **Tokens:** 4,868,373 in / 1,872,465 out
+**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9
 
 ## Stage progress
 
@@ -19,7 +19,7 @@ _Updated 2026-08-02 10:50 UTC · branch `feat/graph-v2` · HEAD `cded2ef`_
 | G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
-| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ░░░░░░░░░░ 0/1 | **← active** |
+| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | confirmed ✓ |
 | G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
 
 <details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
@@ -98,11 +98,11 @@ _Updated 2026-08-02 10:50 UTC · branch `feat/graph-v2` · HEAD `cded2ef`_
 
 </details>
 
-<details><summary>G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) (0/1)</summary>
+<details> ✅<summary>G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) (1/1)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | 🔄 IN PROGRESS | - |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | ✅ DONE | [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) |
 
 </details>
 
@@ -144,22 +144,13 @@ _Updated 2026-08-02 10:50 UTC · branch `feat/graph-v2` · HEAD `cded2ef`_
 | 24 | G8 | Deliver | 1 | 07-29 18:16 | 1:13 | Advanced | G8.1 G8.2 | 4 | fast-engine:OK · guards:OK | $22.1017 | $0.0120 | 262,531/119,875 |
 | 25 | G9 | Deliver | 1 | 07-29 19:43 | 0:15 | LimitBackoff |  | 0 |  | $2.5773 |  | 85,046/14,993 |
 | 26 | G9 | Resume | 1 | 07-29 20:29 | 0:03 | LimitBackoff |  | 0 |  | $0.0000 |  |  |
+| 27 | G9 | Resume | 1 | 08-02 10:50 | 0:34 | Advanced | G9.1 | 3 | fast-engine:OK · guards:OK | $12.2255 | $0.0219 | 215,763/73,372 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 17:17:20  • session #21 G6 → Advanced · done G6.2 · 1 commit(s)  (46m29s)
-07-29 17:30:44  ▪ gate fast-app pass [phase]  (1m26s)
-07-29 17:30:44  ▪ gate guards pass [phase]  (44.1s)
-07-29 17:30:44  ▪ gate battery FAIL [phase]  (11m12s)
-07-29 17:30:47  • session #22 G6 Fix started (attempt 2/2)
-07-29 18:07:15  ▪ gate fast-app pass [session]  (1m27s)
-07-29 18:07:15  ▪ gate guards pass [session]  (45.3s)
-07-29 18:07:19  • session #22 G6 → Progress · 1 commit(s)  (36m31s)
-07-29 18:17:05  ▪ gate fast-app pass [phase]  (1m19s)
-07-29 18:17:05  ▪ gate guards pass [phase]  (40.0s)
 07-29 18:17:05  ▪ gate battery pass [phase]  (7m46s)
 07-29 18:17:05  ▸ stage G6 confirmed  (2h45m15s)
 07-29 18:17:09  ▸ stage G7 entered — C-2 / C-3 — a library's empty sections fill or withhold with a reason
@@ -190,6 +181,16 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 21:29:10  • session #26 G9 Resume started (attempt 1/2)
 07-29 21:32:36  • session #26 G9 → LimitBackoff  (3m26s)
 08-02 11:38:44  ◆ run resumed · DevContext graph-v2 — autonomous remainder
+08-02 11:50:24  ◆ plan reloaded — v7 · 10 stages · 4 gates
+08-02 11:50:29  ◆ plan reloaded — v8 · 10 stages · 4 gates
+08-02 11:50:35  • session #27 G9 Resume started (attempt 1/2)
+08-02 12:29:07  ▪ gate fast-engine pass [session]  (2m06s)
+08-02 12:29:07  ▪ gate guards pass [session]  (1m33s)
+08-02 12:29:12  • session #27 G9 → Advanced · done G9.1 · 3 commit(s)  (38m37s)
+08-02 12:43:56  ▪ gate fast-engine pass [phase]  (1m54s)
+08-02 12:43:56  ▪ gate guards pass [phase]  (1m11s)
+08-02 12:43:56  ▪ gate battery pass [phase]  (11m37s)
+08-02 12:43:57  ✓ checkpoint G9.1 confirmed
 ```
 
 ## Health
@@ -197,7 +198,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 26 · retries 9 (35 %) · overall Alert
+sessions 27 · retries 9 (33 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -227,9 +228,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s17 (G5 Fix)** — 2 commit(s):
-  - [`45454e8`](https://github.com/shaahink/DevContext2/commit/45454e8) chore: MCP QA report regenerated by the s17 verification run (12/12, timing line only)
-  - [`68ad4ff`](https://github.com/shaahink/DevContext2/commit/68ad4ff) G5: the gate script was dying mid-step and reporting it as a test failure
 - **s18 (G5 Fix)** — 2 commit(s):
   - [`c1949ef`](https://github.com/shaahink/DevContext2/commit/c1949ef) chore: MCP QA report regenerated by the s18 verification run (12/12, timing line only)
   - [`5b401dd`](https://github.com/shaahink/DevContext2/commit/5b401dd) G5: fast-engine was a coin flip, not a red — five test classes owned one env var
@@ -256,29 +254,39 @@ vs upstream: up to date
   - [`73a03c2`](https://github.com/shaahink/DevContext2/commit/73a03c2) chore(conductor): s24 G8 handoff — scale wall profiled + fixed
   - [`d6be215`](https://github.com/shaahink/DevContext2/commit/d6be215) perf(G8.2): one per-file index kills the R1 scale wall — HotChocolate 1275s -> 64s
   - [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) perf(G8.1): profile HotChocolate — the scale wall is one file meeting a per-file quadratic
+- **s27 (G9 Resume)** — 3 commit(s):
+  - [`a8af4bd`](https://github.com/shaahink/DevContext2/commit/a8af4bd) docs(tracker): G9.1 handoff
+  - [`7d82108`](https://github.com/shaahink/DevContext2/commit/7d82108) docs(eval): G9.1 evidence - archetype vs auxiliary executable
+  - [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) fix(archetype): an auxiliary executable stops deciding a packable library's archetype (G9.1)
+
+## Last gate run
+
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
+> SESSION-RESULT: **G9.1 landed and claimed** — fix @ `ea0dc3f`, evidence @ `7d82108`, handoff @ `a8af4bd`, all pushed to `feat/graph-v2`; tree clean. `CLI` (dotnet/command-line-api) and `MahApps.Metro` now read **Library / NotApplicable** with `graph-truth style=PASS` on both, and **no expectation was touched** — the poles were pinned RED and the engine moved to meet them. The stage note's framing turned out to be wrong: it is **two root causes, not one**, and "a demo exe outside `samples/`" describes neither precisely. MahApps was a *path shape* — all 25 of its entry points came from `src/MahApps.Metro.Samples/` and none from the library, but `IsSamplePath` matched `samples` only as a slash-…
 
 ## Tracker handoff
 
 ```
-**STAGE G8 COMPLETE — G8.1 (profile) @ 59b17aa, G8.2 (fix) @ d6be215.** Evidence `eval-results/2026-07-29/G8/`.
-**R1's scale wall was never a big repo.** `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole
-file's syntax tree once per base-list entry — `baseEntries × nodes` **inside one file**. HotChocolate carries an
-11.3 MB generated client with 4,598 base lists: **1,216,998 ms of a 1,275 s run (95.4 %)**. One per-file index →
-**11,830 ms**, whole analysis **64.3 s**, `types=19456 detections=3889` **identical**. Timeout untouched, bug #21
-closed. **The class is large AND base-list dense, not large** — SignalR's 3.0 MB generated file has ONE base list
-and never engages it (121s→113s, and my first "196s→110s" was a cold-cache artefact I had to retract).
-**Instruments to reuse: `DEVCONTEXT_PROFILE=1`** (stderr stage/extractor stream + heartbeat naming what is still
-outstanding — both old observers report a hang as SILENCE) **· `dotnet-stack report --process-id`
-· `g82-capture*.ps1` + `g82-diff.ps1`** (15-pole SHA-256 differential, the acceptance instrument).
-**TRAPS PAID FOR:** any engine before/after MUST pass `--no-cache` — the snapshot key is the TARGET repo's git
-HEAD, *not* the DevContext build, so `graph-truth.ps1` would serve pre-change results; take BOTH sides of a
-timing comparison back-to-back or the ratio is fiction; `eval-repos/VerticalSlice` IS `CleanArchitecture`
-(identical dump hash), so never count it as a second pole. `McpQaGateTests` flaked once under load — bug #3/#1,
-green alone and on a quiet re-run, not a regression. **Next = G9.1** (archetype loses to an auxiliary exe:
-`CLI` + `MahApps.Metro` read CliTool/Desktop; same root cause as bug #20 — `ArchetypeDetector` excludes
-auxiliary samples, `RunnableProjects` does not).
+**STAGE G9 COMPLETE — G9.1 fix @ ea0dc3f, evidence @ 7d82108** (`eval-results/2026-07-29/G9/G9.1-EVIDENCE.md`).
+`CLI` and `MahApps.Metro` both read **Library / NotApplicable**; graph-truth `style=PASS` on both; expectations
+untouched. **It was TWO root causes, not one, and the stage note's "a demo exe outside samples/" was wrong for
+the pole it mattered on.** (1) MahApps = PATH SHAPE: all 25 entries came from `src/MahApps.Metro.Samples/` and
+NONE from the library, but `IsSamplePath` matched `samples` only as a slash-delimited segment — the char before
+`Samples` is `.`. It now also reads the dotted-compound **collection** (`*.Samples/.Examples/.Snippets/.Demos`);
+**plural only** — `OrchardCore.Demo` is a shipped module. (2) CLI = LADDER ORDER, no sample path: `dotnet-suggest`
+is a real `Exe`+`PackAsTool` under a production path, so the CliTool rung returned before the auxiliary-exe test
+the detector **already owned** was consulted. That test now runs once above the CliTool AND entries rungs
+(`DescribeLibraryShape`) and overrules them only on **symmetric declaration evidence**: `PackAsTool` on the exe
+loses to `<IsPackable>true</IsPackable>` on the library it references. `hasPublicSurface` would flip GitVersion —
+measured; that is the canary. **Dead end, do not retry:** filtering entries by auxiliary-project provenance
+FAILS here — CLI's 2nd entry is declared inside the library itself (`System.CommandLine/RootCommand.cs:21`).
+**Instrument: `g9-archetype-sweep.ps1`** (37 poles, `--no-cache` both sides, run BEFORE against a `bin/` copy so
+you can rebuild underneath it). 27/37 finished both sides; only the 2 targets moved archetype (`Desktop` pole's
+STYLE moved Unknown→SampleCollection — undeclared by design, it IS avalonia-samples). **TRAP: never overlap
+`dotnet test` with a bg analyze sweep — that is the McpQa load flake (bug #3/#1); green alone, 2/2 in 12s.**
+**Next = G10.1** (sweep for thresholds calibrated on pre-Batch-A starved-graph data). Bug #20 still open
+(`RunnableProjects` counts an auxiliary demo exe as a SERVICE — the render half of this same idea).
 ```
