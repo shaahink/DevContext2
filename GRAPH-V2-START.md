@@ -4,23 +4,25 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-**STAGE G8 COMPLETE — G8.1 (profile) @ 59b17aa, G8.2 (fix) @ d6be215.** Evidence `eval-results/2026-07-29/G8/`.
-**R1's scale wall was never a big repo.** `SyntaxStructureExtractor.ResolveTypeDeclaration` walked the whole
-file's syntax tree once per base-list entry — `baseEntries × nodes` **inside one file**. HotChocolate carries an
-11.3 MB generated client with 4,598 base lists: **1,216,998 ms of a 1,275 s run (95.4 %)**. One per-file index →
-**11,830 ms**, whole analysis **64.3 s**, `types=19456 detections=3889` **identical**. Timeout untouched, bug #21
-closed. **The class is large AND base-list dense, not large** — SignalR's 3.0 MB generated file has ONE base list
-and never engages it (121s→113s, and my first "196s→110s" was a cold-cache artefact I had to retract).
-**Instruments to reuse: `DEVCONTEXT_PROFILE=1`** (stderr stage/extractor stream + heartbeat naming what is still
-outstanding — both old observers report a hang as SILENCE) **· `dotnet-stack report --process-id`
-· `g82-capture*.ps1` + `g82-diff.ps1`** (15-pole SHA-256 differential, the acceptance instrument).
-**TRAPS PAID FOR:** any engine before/after MUST pass `--no-cache` — the snapshot key is the TARGET repo's git
-HEAD, *not* the DevContext build, so `graph-truth.ps1` would serve pre-change results; take BOTH sides of a
-timing comparison back-to-back or the ratio is fiction; `eval-repos/VerticalSlice` IS `CleanArchitecture`
-(identical dump hash), so never count it as a second pole. `McpQaGateTests` flaked once under load — bug #3/#1,
-green alone and on a quiet re-run, not a regression. **Next = G9.1** (archetype loses to an auxiliary exe:
-`CLI` + `MahApps.Metro` read CliTool/Desktop; same root cause as bug #20 — `ArchetypeDetector` excludes
-auxiliary samples, `RunnableProjects` does not).
+**STAGE G9 COMPLETE — G9.1 fix @ ea0dc3f, evidence @ 7d82108** (`eval-results/2026-07-29/G9/G9.1-EVIDENCE.md`).
+`CLI` and `MahApps.Metro` both read **Library / NotApplicable**; graph-truth `style=PASS` on both; expectations
+untouched. **It was TWO root causes, not one, and the stage note's "a demo exe outside samples/" was wrong for
+the pole it mattered on.** (1) MahApps = PATH SHAPE: all 25 entries came from `src/MahApps.Metro.Samples/` and
+NONE from the library, but `IsSamplePath` matched `samples` only as a slash-delimited segment — the char before
+`Samples` is `.`. It now also reads the dotted-compound **collection** (`*.Samples/.Examples/.Snippets/.Demos`);
+**plural only** — `OrchardCore.Demo` is a shipped module. (2) CLI = LADDER ORDER, no sample path: `dotnet-suggest`
+is a real `Exe`+`PackAsTool` under a production path, so the CliTool rung returned before the auxiliary-exe test
+the detector **already owned** was consulted. That test now runs once above the CliTool AND entries rungs
+(`DescribeLibraryShape`) and overrules them only on **symmetric declaration evidence**: `PackAsTool` on the exe
+loses to `<IsPackable>true</IsPackable>` on the library it references. `hasPublicSurface` would flip GitVersion —
+measured; that is the canary. **Dead end, do not retry:** filtering entries by auxiliary-project provenance
+FAILS here — CLI's 2nd entry is declared inside the library itself (`System.CommandLine/RootCommand.cs:21`).
+**Instrument: `g9-archetype-sweep.ps1`** (37 poles, `--no-cache` both sides, run BEFORE against a `bin/` copy so
+you can rebuild underneath it). 27/37 finished both sides; only the 2 targets moved archetype (`Desktop` pole's
+STYLE moved Unknown→SampleCollection — undeclared by design, it IS avalonia-samples). **TRAP: never overlap
+`dotnet test` with a bg analyze sweep — that is the McpQa load flake (bug #3/#1); green alone, 2/2 in 12s.**
+**Next = G10.1** (sweep for thresholds calibrated on pre-Batch-A starved-graph data). Bug #20 still open
+(`RunnableProjects` counts an auxiliary demo exe as a SERVICE — the render half of this same idea).
 
 
 ## Baseline numbers (from run.db)
@@ -29,7 +31,7 @@ auxiliary samples, `RunnableProjects` does not).
 |---|---|
 | Total checkpoints | 22 |
 | Done | 0 |
-| Claimed (unconfirmed) | 18 |
+| Claimed (unconfirmed) | 20 |
 
 ## Checkpoints
 
@@ -93,14 +95,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | TODO | - | - |
-| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | TODO | - | - |
+| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | DONE | 59b17aa | fast-engine:OK · guards:OK |
+| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | DONE | 59b17aa | fast-engine:OK · guards:OK |
 
 ### G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | TODO | - | - |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | IN PROGRESS | - | - |
 
 ### G10 — Sweep for thresholds calibrated on pre-Batch-A data
 
