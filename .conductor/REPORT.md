@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
+_Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `dcdb65d`_
 
 **Status:** Idle
-**Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0
-**Checkpoints:** 21/22 done · **Sessions run:** 27 · **Cost:** $347.0772 (agent $346.7374 + gates $0.3398) · **Tokens:** 4,868,373 in / 1,872,465 out
+**Stage:** G10 — Sweep for thresholds calibrated on pre-Batch-A data · attempts used 0
+**Checkpoints:** 22/22 done · **Sessions run:** 28 · **Cost:** $358.4167 (agent $358.0599 + gates $0.3568) · **Tokens:** 5,057,197 in / 1,962,410 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9
+**Pending:** full-battery phase gate for G10
 
 ## Stage progress
 
@@ -20,7 +21,7 @@ _Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | confirmed ✓ |
-| G10 | Sweep for thresholds calibrated on pre-Batch-A data | ░░░░░░░░░░ 0/1 | todo |
+| G10 | Sweep for thresholds calibrated on pre-Batch-A data | ██████████ 1/1 | gating… |
 
 <details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
 
@@ -106,11 +107,11 @@ _Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
 
 </details>
 
-<details><summary>G10 — Sweep for thresholds calibrated on pre-Batch-A data (0/1)</summary>
+<details> ✅<summary>G10 — Sweep for thresholds calibrated on pre-Batch-A data (1/1)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | ⬜ TODO | - |
+| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | ✅ DONE | - |
 
 </details>
 
@@ -145,17 +146,13 @@ _Updated 2026-08-02 11:43 UTC · branch `feat/graph-v2` · HEAD `3f67b46`_
 | 25 | G9 | Deliver | 1 | 07-29 19:43 | 0:15 | LimitBackoff |  | 0 |  | $2.5773 |  | 85,046/14,993 |
 | 26 | G9 | Resume | 1 | 07-29 20:29 | 0:03 | LimitBackoff |  | 0 |  | $0.0000 |  |  |
 | 27 | G9 | Resume | 1 | 08-02 10:50 | 0:34 | Advanced | G9.1 | 3 | fast-engine:OK · guards:OK | $12.2255 | $0.0219 | 215,763/73,372 |
+| 28 | G10 | Deliver | 1 | 08-02 11:44 | 0:34 | Advanced | G10.1 | 13 | fast-engine:OK · guards:OK | $11.3225 | $0.0170 | 188,824/89,945 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 18:17:05  ▪ gate battery pass [phase]  (7m46s)
-07-29 18:17:05  ▸ stage G6 confirmed  (2h45m15s)
-07-29 18:17:09  ▸ stage G7 entered — C-2 / C-3 — a library's empty sections fill or withhold with a reason
-07-29 18:17:09  • session #23 G7 Deliver started (attempt 1/4)
-07-29 19:03:36  ▪ gate fast-app pass [session]  (1m46s)
 07-29 19:03:36  ▪ gate guards pass [session]  (1m41s)
 07-29 19:03:40  • session #23 G7 → Advanced · done G7.1,G7.2 · 5 commit(s)  (46m30s)
 07-29 19:03:40  § owner approval requested — G7
@@ -191,6 +188,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-02 12:43:56  ▪ gate guards pass [phase]  (1m11s)
 08-02 12:43:56  ▪ gate battery pass [phase]  (11m37s)
 08-02 12:43:57  ✓ checkpoint G9.1 confirmed
+08-02 12:43:57  ▸ stage G9 confirmed  (88h00m45s)
+08-02 12:44:00  ▸ stage G10 entered — Sweep for thresholds calibrated on pre-Batch-A data
+08-02 12:44:00  • session #28 G10 Deliver started (attempt 1/2)
+08-02 13:21:18  ▪ gate fast-engine pass [session]  (1m35s)
+08-02 13:21:18  ▪ gate guards pass [session]  (1m14s)
 ```
 
 ## Health
@@ -198,7 +200,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 27 · retries 9 (33 %) · overall Alert
+sessions 28 · retries 9 (32 %) · overall Alert
 ⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
 ⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
 ⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
@@ -222,15 +224,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+84 more)
+working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+115 more)
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s18 (G5 Fix)** — 2 commit(s):
-  - [`c1949ef`](https://github.com/shaahink/DevContext2/commit/c1949ef) chore: MCP QA report regenerated by the s18 verification run (12/12, timing line only)
-  - [`5b401dd`](https://github.com/shaahink/DevContext2/commit/5b401dd) G5: fast-engine was a coin flip, not a red — five test classes owned one env var
 - **s19 (G5 Deliver)** — 4 commit(s):
   - [`e819b7d`](https://github.com/shaahink/DevContext2/commit/e819b7d) chore: s19 handoff - G5.2 claimed, G5 complete, blast radius corrected for G9.1
   - [`5805713`](https://github.com/shaahink/DevContext2/commit/5805713) chore: G5.2 evidence - measurement scripts, before/after dumps, red-then-green logs
@@ -258,35 +257,48 @@ vs upstream: up to date
   - [`a8af4bd`](https://github.com/shaahink/DevContext2/commit/a8af4bd) docs(tracker): G9.1 handoff
   - [`7d82108`](https://github.com/shaahink/DevContext2/commit/7d82108) docs(eval): G9.1 evidence - archetype vs auxiliary executable
   - [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) fix(archetype): an auxiliary executable stops deciding a packable library's archetype (G9.1)
+- **s28 (G10 Deliver)** — 13 commit(s):
+  - [`dcdb65d`](https://github.com/shaahink/DevContext2/commit/dcdb65d) chore(tracker): note the branch reconciliation in the G10.1 handoff
+  - [`91e2bca`](https://github.com/shaahink/DevContext2/commit/91e2bca) chore: reconcile feat/graph-v2 with its remote
+  - [`4cb1fab`](https://github.com/shaahink/DevContext2/commit/4cb1fab) chore(tracker): G10.1 handoff — five pre-Batch-A thresholds re-measured, two corrected
+  - [`55293b5`](https://github.com/shaahink/DevContext2/commit/55293b5) G10.1: re-measure every pre-Batch-A threshold; a rate that had no denominator
+  - [`06fcae5`](https://github.com/shaahink/DevContext2/commit/06fcae5) G10.1: the depth number E-2 left behind ran in front of the rule it was under
+  - [`0e07b83`](https://github.com/shaahink/DevContext2/commit/0e07b83) chore(conductor): s27 G9 Advanced — Idle
+  - [`3f67b46`](https://github.com/shaahink/DevContext2/commit/3f67b46) chore(conductor): s27 G9 Advanced — Idle
+  - [`a8af4bd`](https://github.com/shaahink/DevContext2/commit/a8af4bd) docs(tracker): G9.1 handoff
+  - [`7d82108`](https://github.com/shaahink/DevContext2/commit/7d82108) docs(eval): G9.1 evidence - archetype vs auxiliary executable
+  - [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) fix(archetype): an auxiliary executable stops deciding a packable library's archetype (G9.1)
+  - [`f022d55`](https://github.com/shaahink/DevContext2/commit/f022d55) chore(conductor): s26 G9 LimitBackoff — Paused
+  - [`cded2ef`](https://github.com/shaahink/DevContext2/commit/cded2ef) chore(conductor): s26 G9 LimitBackoff — Backoff
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **G9.1 landed and claimed** — fix @ `ea0dc3f`, evidence @ `7d82108`, handoff @ `a8af4bd`, all pushed to `feat/graph-v2`; tree clean. `CLI` (dotnet/command-line-api) and `MahApps.Metro` now read **Library / NotApplicable** with `graph-truth style=PASS` on both, and **no expectation was touched** — the poles were pinned RED and the engine moved to meet them. The stage note's framing turned out to be wrong: it is **two root causes, not one**, and "a demo exe outside `samples/`" describes neither precisely. MahApps was a *path shape* — all 25 of its entry points came from `src/MahApps.Metro.Samples/` and none from the library, but `IsSamplePath` matched `samples` only as a slash-…
+> SESSION-RESULT: **Stage G10 delivered — G10.1 claimed DONE** (`conductor task --done G10.1 --evidence eval-results/2026-08-02/G10/G10.1-EVIDENCE.md`), commits `06fcae5` · `55293b5` · `4cb1fab`, reconciled and pushed at `dcdb65d`. Ten threshold candidates were found by two regex sweeps with **`git blame` against batchA `4e1292d` as the discriminator** (every candidate blames to 07-02…07-18) and re-measured by a new instrument, `g10-threshold-sweep.ps1` — 11 poles, one cold analysis each, made cheap by redirecting `DEVCONTEXT_CACHE_ROOT` so the first `query` per pole runs cold against this build and the second is a cache hit (11 poles × 2 ops in 4 minutes, no stale-snapshot risk). **Four of th…
 
 ## Tracker handoff
 
 ```
-**STAGE G9 COMPLETE — G9.1 fix @ ea0dc3f, evidence @ 7d82108** (`eval-results/2026-07-29/G9/G9.1-EVIDENCE.md`).
-`CLI` and `MahApps.Metro` both read **Library / NotApplicable**; graph-truth `style=PASS` on both; expectations
-untouched. **It was TWO root causes, not one, and the stage note's "a demo exe outside samples/" was wrong for
-the pole it mattered on.** (1) MahApps = PATH SHAPE: all 25 entries came from `src/MahApps.Metro.Samples/` and
-NONE from the library, but `IsSamplePath` matched `samples` only as a slash-delimited segment — the char before
-`Samples` is `.`. It now also reads the dotted-compound **collection** (`*.Samples/.Examples/.Snippets/.Demos`);
-**plural only** — `OrchardCore.Demo` is a shipped module. (2) CLI = LADDER ORDER, no sample path: `dotnet-suggest`
-is a real `Exe`+`PackAsTool` under a production path, so the CliTool rung returned before the auxiliary-exe test
-the detector **already owned** was consulted. That test now runs once above the CliTool AND entries rungs
-(`DescribeLibraryShape`) and overrules them only on **symmetric declaration evidence**: `PackAsTool` on the exe
-loses to `<IsPackable>true</IsPackable>` on the library it references. `hasPublicSurface` would flip GitVersion —
-measured; that is the canary. **Dead end, do not retry:** filtering entries by auxiliary-project provenance
-FAILS here — CLI's 2nd entry is declared inside the library itself (`System.CommandLine/RootCommand.cs:21`).
-**Instrument: `g9-archetype-sweep.ps1`** (37 poles, `--no-cache` both sides, run BEFORE against a `bin/` copy so
-you can rebuild underneath it). 27/37 finished both sides; only the 2 targets moved archetype (`Desktop` pole's
-STYLE moved Unknown→SampleCollection — undeclared by design, it IS avalonia-samples). **TRAP: never overlap
-`dotnet test` with a bg analyze sweep — that is the McpQa load flake (bug #3/#1); green alone, 2/2 in 12s.**
-**Next = G10.1** (sweep for thresholds calibrated on pre-Batch-A starved-graph data). Bug #20 still open
-(`RunnableProjects` counts an auxiliary demo exe as a SERVICE — the render half of this same idea).
+**STAGE G10 COMPLETE — G10.1 @ 06fcae5 + 55293b5**, evidence `eval-results/2026-08-02/G10/G10.1-EVIDENCE.md`.
+Ten candidates found by two regex sweeps + **`git blame` against batchA `4e1292d` as the discriminator** — every
+one blames to 07-02..07-18. Re-measured with `g10-threshold-sweep.ps1`: 11 poles, one COLD analysis each.
+**The tool note that makes this cheap: `DEVCONTEXT_CACHE_ROOT` redirects the snapshot cache** — point it at a
+temp dir and the first `query` per pole runs cold against YOUR build, the second is a hit. 11 poles, 2 ops, 4 min.
+**Four of five stale thresholds no longer mean what their comment says.** CORRECTED: (1) START HERE filtered
+`nodeCount >= 4` **before** D-E's band rule, so it could delete the whole request-shaped band — red-then-green
+proof reproduces E-2 **verbatim** (`expected 'CheckoutViewModel.CheckoutAsync' to be 'POST /api/orders/draft'`)
+without any checkout title; `flow-ranking.ts` shipped with no spec, it has one now. (2) home-page read
+`unwired/entries > 0.2` as a rate at n=1 — GitVersion and MediatR each shipped a WARNING saying "1 of 1".
+JUSTIFIED + bug, measurement now stated at each site: **`graph.orphans` has NEVER fired** (Semantic share
+0.010–0.259 on every app; floor 0.5 unreachable — left there on purpose, see ledger CALL 1); **L3.4's sparse
+broadening never fires** on 11/11 incl. its own trigger repos, so identity-strip's hub-scope line has never
+rendered (cause is between line 199 and `k<5` — Dapper's Calls edges span 32 types, so k=16; **start there**);
+**deep-spine ratio is saturated** (1.000 on 5/11). Also: the engine ships **two definitions of a verified edge**
+(GraphStats approx = Syntactic only, so Join counts; GraphOrphansSource counts Semantic only; Join is the enum
+DEFAULT). Gates: Cli 0w/0e · loom-guards PASSED incl. Truth · app 159/159 · `ng build` EXIT 0. 4 bugs filed.
+**Branch was DIVERGED from origin** (all of G9 existed twice under different shas — infrastructure, not a red);
+reconciled by merge @ `91e2bca`, pushed. Don't rebase it — see the ledger trap. **Next = G10 is CLOSED; take the next stage.**
 ```
