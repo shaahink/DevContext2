@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-07-29 20:32 UTC · branch `feat/graph-v2` · HEAD `d06755f`_
+_Updated 2026-08-02 10:50 UTC · branch `feat/graph-v2` · HEAD `cded2ef`_
 
-**Status:** Backoff — advisor: human intervention required
+**Status:** Paused — advisor: human intervention required
 **Stage:** G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) · attempts used 0 · working ▸ G9.1
 **Checkpoints:** 20/22 done · **Sessions run:** 26 · **Cost:** $334.8297 (agent $334.5119 + gates $0.3179) · **Tokens:** 4,652,610 in / 1,799,093 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8
@@ -150,8 +150,6 @@ _Updated 2026-07-29 20:32 UTC · branch `feat/graph-v2` · HEAD `d06755f`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 17:17:17  ▪ gate fast-app pass [session]  (1m38s)
-07-29 17:17:17  ▪ gate guards pass [session]  (1m00s)
 07-29 17:17:20  • session #21 G6 → Advanced · done G6.2 · 1 commit(s)  (46m29s)
 07-29 17:30:44  ▪ gate fast-app pass [phase]  (1m26s)
 07-29 17:30:44  ▪ gate guards pass [phase]  (44.1s)
@@ -190,6 +188,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-29 20:43:11  • session #25 G9 Deliver started (attempt 1/2)
 07-29 20:59:12  • session #25 G9 → LimitBackoff  (16m00s)
 07-29 21:29:10  • session #26 G9 Resume started (attempt 1/2)
+07-29 21:32:36  • session #26 G9 → LimitBackoff  (3m26s)
+08-02 11:38:44  ◆ run resumed · DevContext graph-v2 — autonomous remainder
 ```
 
 ## Health
@@ -221,7 +221,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+83 more)
+working tree: M GRAPH-V2-START.md, M conductor.plan.json, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt (+84 more)
 vs upstream: up to date
 ```
 
@@ -256,10 +256,6 @@ vs upstream: up to date
   - [`73a03c2`](https://github.com/shaahink/DevContext2/commit/73a03c2) chore(conductor): s24 G8 handoff — scale wall profiled + fixed
   - [`d6be215`](https://github.com/shaahink/DevContext2/commit/d6be215) perf(G8.2): one per-file index kills the R1 scale wall — HotChocolate 1275s -> 64s
   - [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) perf(G8.1): profile HotChocolate — the scale wall is one file meeting a per-file quadratic
-
-## Last gate run
-
-fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
