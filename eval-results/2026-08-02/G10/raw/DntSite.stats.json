@@ -1,0 +1,176 @@
+{
+  "snapshotCache": "miss \u00B7 saved 8536dd6",
+  "nodeCount": 3174,
+  "edgeCount": 4168,
+  "entryCount": 94,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 70,
+  "entriesWithDeepSpine": 94,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 70,
+    "ScheduledJob": 24
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 4023,
+      "verified": 446,
+      "approx": 3577
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 16,
+      "verified": 0,
+      "approx": 16
+    },
+    {
+      "kind": "Resolves",
+      "total": 128,
+      "verified": 23,
+      "approx": 105
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    }
+  ],
+  "totalWallMs": 75150,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 290
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 16472
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 5802
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 26685
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 682
+    },
+    {
+      "stage": "Insights",
+      "ms": 227
+    },
+    {
+      "stage": "Compression",
+      "ms": 197
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 24561
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "62/70 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "evidence": [
+        "POST /api/JavaScriptErrorsReport/Log",
+        "GET /Exports/{type}/{name}.pdf",
+        "GET /Feed",
+        "GET /Feed/Index",
+        "POST /Feed/Posts"
+      ],
+      "confidence": 0.11,
+      "confidenceBasis": "8/70 endpoints have known auth"
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 8 protected, 62 unannotated of 70 API endpoints",
+      "evidence": [
+        "8 protected",
+        "GET /File/CommonFiles",
+        "POST /api/UploadFile/ImageUpload",
+        "62 no auth annotation"
+      ],
+      "confidence": 0.11428571428571428,
+      "confidenceBasis": "8/70 API endpoints have auth annotations"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 70/94 (74%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 35 Extension \u00B7 9 Singleton \u00B7 3 Scoped \u00B7 1 Bulk (48 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 70 HTTP \u00B7 24 scheduled",
+      "evidence": [
+        "70 HTTP",
+        "24 scheduled"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: DntSite.Web.Common.BlazorSsr (1 dependents) \u00B7 DntSite.Web (1 dependents)",
+      "evidence": [
+        "DntSite.Web.Common.BlazorSsr (1 dependents)",
+        "DntSite.Web (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 9 entities across 2 scopes",
+      "evidence": [
+        "DntSite.Web (8 entities)",
+        "ApplicationDbContext (1 entities)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Entity detection is name/heuristic-based \u2014 may miss some code-first models"
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ApplicationState (300) \u00B7 IUnitOfWork (250) \u00B7 IEmailsFactoryService (93) \u00B7 IFullTextSearchService (89) \u00B7 IUsersInfoService (54)",
+      "evidence": [
+        "ApplicationState (300)",
+        "IUnitOfWork (250)",
+        "IEmailsFactoryService (93)",
+        "IFullTextSearchService (89)",
+        "IUsersInfoService (54)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

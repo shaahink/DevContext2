@@ -1,0 +1,105 @@
+{
+  "snapshotCache": "miss \u00B7 saved 6d9fc0b",
+  "nodeCount": 204,
+  "edgeCount": 92,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 91,
+      "verified": 9,
+      "approx": 82
+    },
+    {
+      "kind": "Resolves",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    }
+  ],
+  "totalWallMs": 3225,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 132
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 717
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 260
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 1669
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 130
+    },
+    {
+      "stage": "Insights",
+      "ms": 63
+    },
+    {
+      "stage": "Compression",
+      "ms": 67
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 53
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: Serilog (5 dependents) \u00B7 TestDummies (1 dependents)",
+      "evidence": [
+        "Serilog (5 dependents)",
+        "TestDummies (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 14 interfaces, 92 classes (109 total public types)",
+      "evidence": [
+        "14 interfaces",
+        "92 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ILogger (13) \u00B7 ILogEventSink (7) \u00B7 PropertyValueConverter (5) \u00B7 LoggerDestructuringConfiguration (5) \u00B7 ILoggingFailureListener (5)",
+      "evidence": [
+        "ILogger (13)",
+        "ILogEventSink (7)",
+        "PropertyValueConverter (5)",
+        "LoggerDestructuringConfiguration (5)",
+        "ILoggingFailureListener (5)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

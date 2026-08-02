@@ -1,0 +1,135 @@
+{
+  "snapshotCache": "miss \u00B7 saved 6476e5c",
+  "nodeCount": 704,
+  "edgeCount": 583,
+  "entryCount": 1,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {
+    "CliCommand": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 495,
+      "verified": 45,
+      "approx": 450
+    },
+    {
+      "kind": "Resolves",
+      "total": 88,
+      "verified": 65,
+      "approx": 23
+    }
+  ],
+  "totalWallMs": 7293,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 150
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1146
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 1008
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 4084
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 278
+    },
+    {
+      "stage": "Insights",
+      "ms": 111
+    },
+    {
+      "stage": "Compression",
+      "ms": 109
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 85
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: GitVersion.Core (16 dependents) \u00B7 GitVersion.Configuration (8 dependents) \u00B7 GitVersion.Output (7 dependents)",
+      "evidence": [
+        "GitVersion.Core (16 dependents)",
+        "GitVersion.Configuration (8 dependents)",
+        "GitVersion.Output (7 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) \u00B7 IEnvironment (2 impls) \u00B7 ILog (2 impls)",
+      "evidence": [
+        "IDeploymentModeCalculator (3 impls)",
+        "IEnvironment (2 impls)",
+        "ILog (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "cli.command-tree",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Command tree: 1 CLI commands, 1 top-level groups",
+      "evidence": [
+        "GitVersion.App (1 commands)"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "CLI command detection requires framework base types (Spectre/System.CommandLine) \u2014 reliable once gated"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/1 (0%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 122 Singleton \u00B7 26 Extension (148 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ILog (66) \u00B7 MainlineCommit (27) \u00B7 IGitVersionConfiguration (24) \u00B7 IEnvironment (23) \u00B7 LambdaEqualityHelper (20)",
+      "evidence": [
+        "ILog (66)",
+        "MainlineCommit (27)",
+        "IGitVersionConfiguration (24)",
+        "IEnvironment (23)",
+        "LambdaEqualityHelper (20)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

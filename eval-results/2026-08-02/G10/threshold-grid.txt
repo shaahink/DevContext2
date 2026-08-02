@@ -1,0 +1,23 @@
+﻿| pole              | nodes | edges | ratio | entries | wired | wiredRatio | calls | callsVerifiedRatio | handles | sends | resolvesEdges | seats | maxSeat | deepSpine | deepSpineRatio     | sparseGraph | hubScopeNodes |
+|-------------------|-------|-------|-------|---------|-------|------------|-------|--------------------|---------|-------|---------------|-------|---------|-----------|--------------------|-------------|---------------|
+| CleanArchitecture | 139   | 64    | 0.46  | 7       | 5     | 0.714      | 27    | 0.519              | 7       | 6     | 13            | 0     | 1       | 7         | 1                  | false       | 0             |
+| MediatR           | 187   | 67    | 0.358 | 1       | 0     | 0          | 26    | 0.769              | 6       | 0     | 34            | 2     | 2       | 1         | 1                  | false       | 0             |
+| Dapper            | 203   | 62    | 0.305 | 0       | 0     | 0          | 61    | 0.41               | 0       | 0     | 1             | 0     | 1       | 0         | 0                  | false       | 0             |
+| Serilog           | 204   | 92    | 0.451 | 0       | 0     | 0          | 91    | 0.099              | 0       | 0     | 1             | 0     | 1       | 0         | 0                  | false       | 0             |
+| dotnet-podcasts   | 344   | 277   | 0.805 | 24      | 21    | 0.875      | 208   | 0.168              | 12      | 0     | 23            | 3     | 3       | 24        | 1                  | false       | 0             |
+| MahApps.Metro     | 389   | 117   | 0.301 | 0       | 0     | 0          | 105   | 0.495              | 0       | 0     | 12            | 0     | 1       | 0         | 0                  | false       | 0             |
+| GitVersion        | 704   | 583   | 0.828 | 1       | 0     | 0          | 495   | 0.091              | 0       | 0     | 88            | 2     | 10      | 0         | 0                  | false       | 0             |
+| eShop             | 1136  | 1084  | 0.954 | 109     | 64    | 0.587      | 699   | 0.21               | 36      | 9     | 74            | 7     | 4       | 107       | 0.981651376146789  | false       | 0             |
+| self              | 1262  | 1393  | 1.104 | 30      | 28    | 0.933      | 1377  | 0.195              | 0       | 0     | 15            | 1     | 2       | 30        | 1                  | false       | 0             |
+| DntSite           | 3174  | 4168  | 1.313 | 94      | 70    | 0.745      | 4023  | 0.111              | 0       | 0     | 128           | 2     | 2       | 94        | 1                  | false       | 0             |
+| wolverine         | 6276  | 4209  | 0.671 | 51      | 15    | 0.294      | 3688  | 0.174              | 0       | 6     | 411           | 34    | 26      | 49        | 0.9607843137254902 | false       | 0             |
+
+THRESHOLD OUTCOMES ON CURRENT DATA
+T-A GraphBuilder.Seams entries>=5 && ratio>=0.1  DENSE: CleanArchitecture, dotnet-podcasts, eShop, self, DntSite, wolverine
+T-A engine-reported sparseGraph=true            : (none)
+T-B GraphOrphans calls>=30 && verified>=.5 && wired>=.5 PASSES: (none)
+T-B  blocked by wiredRatio<0.5 alone            : (none)
+T-B2 handles>=5 || sends>=10                    : CleanArchitecture, MediatR, dotnet-podcasts, eShop
+T-C home-page unwired/entries>0.2 => 'warning'  : CleanArchitecture, MediatR, GitVersion, eShop, DntSite, wolverine
+T-D GraphStats deepSpineRatio == 1 (saturated)  : CleanArchitecture, MediatR, dotnet-podcasts, self, DntSite
+T-E GraphQuery seats(>=2 Resolves) > 20 (Take20 truncates): wolverine

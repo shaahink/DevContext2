@@ -1,0 +1,268 @@
+{
+  "snapshotCache": "miss \u00B7 saved 9b4f943",
+  "nodeCount": 1136,
+  "edgeCount": 1084,
+  "entryCount": 109,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 64,
+  "entriesWithDeepSpine": 107,
+  "deepSpineRatio": 0.981651376146789,
+  "entriesByKind": {
+    "HttpEndpoint": 43,
+    "UiEntry": 42,
+    "MessageConsumer": 13,
+    "DomainEventHandler": 7,
+    "GrpcService": 3,
+    "HostedService": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 699,
+      "verified": 147,
+      "approx": 552
+    },
+    {
+      "kind": "Sends",
+      "total": 9,
+      "verified": 9,
+      "approx": 0
+    },
+    {
+      "kind": "Handles",
+      "total": 36,
+      "verified": 36,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 21,
+      "verified": 11,
+      "approx": 10
+    },
+    {
+      "kind": "Consumes",
+      "total": 25,
+      "verified": 25,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 57,
+      "verified": 10,
+      "approx": 47
+    },
+    {
+      "kind": "Resolves",
+      "total": 74,
+      "verified": 66,
+      "approx": 8
+    },
+    {
+      "kind": "WrappedBy",
+      "total": 108,
+      "verified": 108,
+      "approx": 0
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 10,
+      "verified": 0,
+      "approx": 10
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 23,
+      "verified": 23,
+      "approx": 0
+    },
+    {
+      "kind": "DependsOn",
+      "total": 22,
+      "verified": 22,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 12291,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 718
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 4789
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 1386
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 4383
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 227
+    },
+    {
+      "stage": "Insights",
+      "ms": 415
+    },
+    {
+      "stage": "Compression",
+      "ms": 55
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 102
+    }
+  ],
+  "extractionFailures": [
+    {
+      "source": "ConfigDefaultsSource",
+      "category": "config-json",
+      "count": 2,
+      "sample": "JsonReaderException: \u0027/\u0027 is invalid after a value. Expected either \u0027,\u0027, \u0027}\u0027, or \u0027]\u0027. LineNumber: 9 | BytePositionInLine: 4."
+    }
+  ],
+  "insights": [
+    {
+      "id": "risk.unvalidated-endpoints",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Missing validation: 18/18 write endpoints have no FluentValidation validator",
+      "evidence": [
+        "PUT /api/catalog/items \u2192 CatalogApi",
+        "PUT /api/catalog/items/{id:int} \u2192 PublishThroughEventBusAsync",
+        "POST /api/catalog/items \u2192 CatalogContext",
+        "DELETE /api/catalog/items/{id:int} \u2192 CatalogContext",
+        "POST /Account \u2192 AccountController"
+      ],
+      "confidence": 0.65,
+      "confidenceBasis": "Validator detection from AbstractValidator\u003CT\u003E subclasses; target resolution from graph dispatch edges"
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "36/43 endpoints anonymous, incl. 14 POST/PUT/DELETE",
+      "evidence": [
+        "GET /api/catalog/items",
+        "GET /api/catalog/items",
+        "GET /api/catalog/items/by",
+        "GET /api/catalog/items/{id:int}",
+        "GET /api/catalog/items/by/{name:minlength(1)}"
+      ],
+      "confidence": 0.16,
+      "confidenceBasis": "7/43 endpoints have known auth"
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 7 protected, 36 unannotated of 43 API endpoints",
+      "evidence": [
+        "7 protected",
+        "GET /Consent",
+        "POST /Consent",
+        "36 no auth annotation"
+      ],
+      "confidence": 0.16279069767441862,
+      "confidenceBasis": "7/43 API endpoints have auth annotations"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: eShop.ServiceDefaults (9 dependents) \u00B7 EventBusRabbitMQ (7 dependents) \u00B7 IntegrationEventLogEF (4 dependents)",
+      "evidence": [
+        "eShop.ServiceDefaults (9 dependents)",
+        "EventBusRabbitMQ (7 dependents)",
+        "IntegrationEventLogEF (4 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 20 events (13 integration), 13 cross-service, 0 orphan",
+      "evidence": [
+        "GracePeriodConfirmedIntegrationEvent: OrderProcessor \u2192 Ordering.API",
+        "OrderPaymentFailedIntegrationEvent: PaymentProcessor \u2192 Ordering.API",
+        "OrderPaymentSucceededIntegrationEvent: PaymentProcessor \u2192 Ordering.API",
+        "OrderStartedIntegrationEvent: Ordering.API \u2192 Basket.API",
+        "OrderStatusChangedToAwaitingValidationIntegrationEvent: Ordering.API \u2192 Catalog.API, WebApp",
+        "OrderStatusChangedToCancelledIntegrationEvent: Ordering.API \u2192 WebApp",
+        "OrderStatusChangedToPaidIntegrationEvent: Ordering.API \u2192 Webhooks.API, Catalog.API, WebApp",
+        "OrderStatusChangedToShippedIntegrationEvent: Ordering.API \u2192 Webhooks.API, WebApp",
+        "OrderStatusChangedToStockConfirmedIntegrationEvent: Ordering.API \u2192 PaymentProcessor, WebApp",
+        "OrderStatusChangedToSubmittedIntegrationEvent: Ordering.API \u2192 WebApp",
+        "OrderStockConfirmedIntegrationEvent: Catalog.API \u2192 Ordering.API",
+        "OrderStockRejectedIntegrationEvent: Catalog.API \u2192 Ordering.API"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "Publisher\u2192event\u2192consumer join over Raises\u002BConsumes seams; events matched by type name within the detected event set"
+    },
+    {
+      "id": "wiring.external-events",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "External event contracts: 1 consumed but never produced internally",
+      "evidence": [
+        "BeforeStartEvent"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IIntegrationEventLogService (2 impls)",
+      "evidence": [
+        "IIntegrationEventLogService (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.middleware-pipeline",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Middleware pipeline: 3 behaviours",
+      "evidence": [
+        "LoggingBehavior",
+        "TransactionBehavior",
+        "ValidatorBehavior"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "Pipeline/handler detection is structural \u2014 reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 64/109 (58%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 43 HTTP \u00B7 42 UI \u00B7 13 Bus \u00B7 7 DomainEventHandler",
+      "evidence": [
+        "43 HTTP",
+        "42 UI",
+        "13 Bus",
+        "7 DomainEventHandler"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

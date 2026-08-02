@@ -1,0 +1,9 @@
+﻿
+ RUN  v4.1.9 C:/Code/DevContext2/src/DevContext.App
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  13:03:16
+   Duration  311ms (transform 57ms, setup 0ms, import 104ms, tests 4ms, environment 0ms)
+

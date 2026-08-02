@@ -1,0 +1,17 @@
+﻿
+> devcontext-app@0.0.0 test C:\code\DevContext2\src\DevContext.App
+> ng test --watch=false
+
+❯ Building...
+✔ Building...
+Application bundle generation complete. [4.725 seconds] - 2026-08-02T12:10:27.631Z
+
+
+ RUN  v4.1.9 C:/Code/DevContext2/src/DevContext.App
+
+
+ Test Files  20 passed (20)
+      Tests  159 passed (159)
+   Start at  13:10:28
+   Duration  30.25s (transform 3.56s, setup 7.85s, import 10.66s, tests 4.56s, environment 500.19s)
+

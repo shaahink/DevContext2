@@ -39,6 +39,26 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
         if (handlesCount < 5 && sendsCount < 10) yield break;
 
         // I1 coverage floor — a dead-code claim is only as good as the walk that produced the zero.
+        //
+        // G10.1 RE-MEASURED 2026-08-02, 11 poles, cold analysis
+        // (eval-results/2026-08-02/G10/threshold-grid.txt). THIS FLOOR IS CURRENTLY UNREACHABLE: no
+        // pole clears all three clauses, so `graph.orphans` emits nothing on any of them. The clause
+        // that shuts it is verifiedRatio. Semantic share of Calls edges, measured: podcasts 0.010,
+        // eShop 0.057, DntSite 0.088, GitVersion 0.091, Serilog 0.099, wolverine 0.161, self 0.173,
+        // CleanArchitecture 0.259, Dapper 0.410, MahApps 0.495, MediatR 0.731 — and the two above
+        // 0.4 are libraries, which line 35 has already excluded, or fall under the 30-call floor.
+        // Counting Join as verified too (what GraphStats/SeamStat means by the word — its "approx"
+        // is Syntactic ONLY, so the engine ships two definitions of "verified") lifts eShop to 0.21
+        // and still clears nothing. The other two clauses do still discriminate: wiredRatio spans
+        // 0.294 (wolverine) to 0.933 (self), calls.Count 26 (MediatR) to 4023 (DntSite).
+        //
+        // Left AT 0.5 and Semantic-only deliberately. This is the one claim in the product that gets
+        // live code deleted when it is wrong (the audit's podcasts round: 3/5 orphans FALSE), so it
+        // asks for Roslyn-verified inbound edges specifically, not the dashboard's looser
+        // not-approximate — Resolution.Join is also the enum's default value, so an edge nobody
+        // labelled reads as high confidence. Recalibrating a floor DOWNWARDS to make a destructive
+        // claim start firing is not a threshold correction; whether this source earns its keep is an
+        // owner call, tracked as a conductor bug, not something to settle by moving the number.
         var calls = graph.AllEdges.Where(e => e.Kind == EdgeKind.Calls).ToList();
         var verified = calls.Count(e => e.Resolution == Resolution.Semantic);
         var verifiedRatio = calls.Count > 0 ? (double)verified / calls.Count : 0;

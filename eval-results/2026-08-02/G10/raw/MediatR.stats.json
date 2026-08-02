@@ -1,0 +1,142 @@
+{
+  "snapshotCache": "miss \u00B7 saved 1fd25f5",
+  "nodeCount": 187,
+  "edgeCount": 67,
+  "entryCount": 1,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 1,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "DomainEventHandler": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 26,
+      "verified": 20,
+      "approx": 6
+    },
+    {
+      "kind": "Handles",
+      "total": 6,
+      "verified": 6,
+      "approx": 0
+    },
+    {
+      "kind": "Consumes",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    },
+    {
+      "kind": "Resolves",
+      "total": 34,
+      "verified": 29,
+      "approx": 5
+    }
+  ],
+  "totalWallMs": 3007,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 278
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 712
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 193
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 1294
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 190
+    },
+    {
+      "stage": "Insights",
+      "ms": 66
+    },
+    {
+      "stage": "Compression",
+      "ms": 27
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 61
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: typeof(IPipelineBehavior\u003C,\u003E) (2 impls) \u00B7 IStreamPipelineBehavior\u003CStreamPing, Pong\u003E (2 impls)",
+      "evidence": [
+        "typeof(IPipelineBehavior\u003C,\u003E) (2 impls)",
+        "IStreamPipelineBehavior\u003CStreamPing, Pong\u003E (2 impls)"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "DI registration detection is established \u2014 counts are reliable for collected registrations"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: MediatR (5 dependents)",
+      "evidence": [
+        "MediatR (5 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IStreamPipelineBehavior\u003CStreamPing, Pong\u003E (2 impls)",
+      "evidence": [
+        "IStreamPipelineBehavior\u003CStreamPing, Pong\u003E (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 19 interfaces, 20 classes (41 total public types)",
+      "evidence": [
+        "19 interfaces",
+        "20 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/1 (0%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 103 Extension \u00B7 40 Singleton \u00B7 16 Transient \u00B7 5 Scoped (164 total)",
+      "evidence": [],
+      "confidence": 0.5
+    }
+  ]
+}

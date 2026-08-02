@@ -1,0 +1,224 @@
+{
+  "snapshotCache": "miss \u00B7 saved 5ee8be2",
+  "nodeCount": 344,
+  "edgeCount": 277,
+  "entryCount": 24,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 21,
+  "entriesWithDeepSpine": 24,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 12,
+    "UiEntry": 10,
+    "HostedService": 1,
+    "SignalRHub": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 208,
+      "verified": 35,
+      "approx": 173
+    },
+    {
+      "kind": "Handles",
+      "total": 12,
+      "verified": 12,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    },
+    {
+      "kind": "Consumes",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 23,
+      "verified": 3,
+      "approx": 20
+    },
+    {
+      "kind": "Resolves",
+      "total": 23,
+      "verified": 20,
+      "approx": 3
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 8,
+      "verified": 0,
+      "approx": 8
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 3623,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 127
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 410
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 679
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 1736
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 179
+    },
+    {
+      "stage": "Insights",
+      "ms": 155
+    },
+    {
+      "stage": "Compression",
+      "ms": 31
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 73
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "10/12 endpoints anonymous, incl. 1 POST/PUT/DELETE",
+      "evidence": [
+        "GET /",
+        "GET /version",
+        "GET /categories/",
+        "GET /episodes/{id}",
+        "POST /feeds/"
+      ],
+      "confidence": 0.17,
+      "confidenceBasis": "2/12 endpoints have known auth"
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 2 protected, 10 unannotated of 12 API endpoints",
+      "evidence": [
+        "2 protected",
+        "PUT /feeds/{id}",
+        "DELETE /feeds/{id}",
+        "10 no auth annotation"
+      ],
+      "confidence": 0.16666666666666666,
+      "confidenceBasis": "2/12 API endpoints have auth annotations"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "evidence": [
+        "OrleansStorage",
+        "Storage:Images"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 1 events (1 integration), 1 cross-service, 0 orphan",
+      "evidence": [
+        "feed-queue [AzureStorageQueue]: Podcast.API \u2192 Podcast.Ingestion.Worker"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "Publisher\u2192event\u2192consumer join over Raises\u002BConsumes seams; events matched by type name within the detected event set"
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IAudioInterop (2 impls)",
+      "evidence": [
+        "IAudioInterop (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 21/24 (87%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 27 Scoped \u00B7 25 Extension \u00B7 22 Singleton \u00B7 8 Transient \u00B7 3 HttpClient (85 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 12 HTTP \u00B7 10 UI \u00B7 1 hosted \u00B7 1 SignalRHub",
+      "evidence": [
+        "12 HTTP",
+        "10 UI",
+        "1 hosted",
+        "1 SignalRHub"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: ListenTogether.Domain (3 dependents) \u00B7 Podcast.Infrastructure (3 dependents) \u00B7 Podcast.Shared (2 dependents)",
+      "evidence": [
+        "ListenTogether.Domain (3 dependents)",
+        "Podcast.Infrastructure (3 dependents)",
+        "Podcast.Shared (2 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 11 entities across 2 scopes",
+      "evidence": [
+        "Podcast.Infrastructure (6 entities)",
+        "ListenTogetherDbContext (5 entities)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Entity detection is name/heuristic-based \u2014 may miss some code-first models"
+    }
+  ]
+}

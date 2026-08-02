@@ -1,0 +1,232 @@
+{
+  "snapshotCache": "miss \u00B7 saved 7019b7d",
+  "nodeCount": 6276,
+  "edgeCount": 4209,
+  "entryCount": 51,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 15,
+  "entriesWithDeepSpine": 49,
+  "deepSpineRatio": 0.9607843137254902,
+  "entriesByKind": {
+    "MessageConsumer": 22,
+    "HttpEndpoint": 17,
+    "HostedService": 7,
+    "GrpcService": 4,
+    "SignalRHub": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 3688,
+      "verified": 642,
+      "approx": 3046
+    },
+    {
+      "kind": "Sends",
+      "total": 6,
+      "verified": 6,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 48,
+      "verified": 7,
+      "approx": 41
+    },
+    {
+      "kind": "Consumes",
+      "total": 24,
+      "verified": 24,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 28,
+      "verified": 3,
+      "approx": 25
+    },
+    {
+      "kind": "Resolves",
+      "total": 411,
+      "verified": 312,
+      "approx": 99
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 4,
+      "verified": 0,
+      "approx": 4
+    }
+  ],
+  "totalWallMs": 28889,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 698
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 3970
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 8404
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 11650
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1421
+    },
+    {
+      "stage": "Insights",
+      "ms": 449
+    },
+    {
+      "stage": "Compression",
+      "ms": 750
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 276
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "risk.unvalidated-endpoints",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Missing validation: 8/14 write endpoints have no FluentValidation validator",
+      "evidence": [
+        "POST / \u2192 FetchDeadLetterEnvelopesAsync",
+        "POST /replay \u2192 ReplayDeadLettersAsync",
+        "DELETE / \u2192 DiscardDeadLettersAsync",
+        "POST /batch/{queue} \u2192 ExecuteBatchAsync",
+        "POST /invoke \u2192 InvokeAsync"
+      ],
+      "confidence": 0.65,
+      "confidenceBasis": "Validator detection from AbstractValidator\u003CT\u003E subclasses; target resolution from graph dispatch edges"
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "17/17 endpoints anonymous, incl. 14 POST/PUT/DELETE",
+      "evidence": [
+        "GET /api/nodes",
+        "GET /views/nodes",
+        "POST /",
+        "POST /replay",
+        "DELETE /"
+      ],
+      "confidence": 0,
+      "confidenceBasis": "0/17 endpoints have known auth"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 8 consumed keys have no appsettings default",
+      "evidence": [
+        "azureservicebus1",
+        "azureservicebus2",
+        "mqtt_server",
+        "postgres",
+        "rabbit",
+        "rabbitmq",
+        "sqlite",
+        "sqlserver"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 5 heavily-referenced internal types",
+      "evidence": [
+        "TrackedSession (40 refs)",
+        "FailureActions (9 refs)",
+        "Executor (9 refs)",
+        "RabbitMqListener (6 refs)",
+        "TenantIdDetection (5 refs)"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Reference counting is body-scan approximate \u2014 hubs are likely correct, counts approximate"
+    },
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: IWolverineExtension (9 impls) \u00B7 IMissingHandler (5 impls) \u00B7 Migrator (4 impls)",
+      "evidence": [
+        "IWolverineExtension (9 impls)",
+        "IMissingHandler (5 impls)",
+        "Migrator (4 impls)"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "DI registration detection is established \u2014 counts are reliable for collected registrations"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: Wolverine (27 dependents) \u00B7 Wolverine.Marten (21 dependents) \u00B7 Wolverine.Marten (17 dependents)",
+      "evidence": [
+        "Wolverine (27 dependents)",
+        "Wolverine.Marten (21 dependents)",
+        "Wolverine.Marten (17 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IWolverineExtension (9 impls) \u00B7 IMissingHandler (5 impls) \u00B7 IDatabase (3 impls)",
+      "evidence": [
+        "IWolverineExtension (9 impls)",
+        "IMissingHandler (5 impls)",
+        "IDatabase (3 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 259 interfaces, 1079 classes (1496 total public types)",
+      "evidence": [
+        "259 interfaces",
+        "1079 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 15/51 (29%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 1225 Extension \u00B7 461 Singleton \u00B7 113 Scoped \u00B7 11 Transient \u00B7 1 Bulk (1811 total)",
+      "evidence": [],
+      "confidence": 0.5
+    }
+  ]
+}

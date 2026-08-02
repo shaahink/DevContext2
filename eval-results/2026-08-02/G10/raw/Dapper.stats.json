@@ -1,0 +1,105 @@
+{
+  "snapshotCache": "miss \u00B7 saved 72a54c4",
+  "nodeCount": 203,
+  "edgeCount": 62,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 61,
+      "verified": 25,
+      "approx": 36
+    },
+    {
+      "kind": "Resolves",
+      "total": 1,
+      "verified": 0,
+      "approx": 1
+    }
+  ],
+  "totalWallMs": 3442,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 204
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1045
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 343
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 1418
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 139
+    },
+    {
+      "stage": "Insights",
+      "ms": 62
+    },
+    {
+      "stage": "Compression",
+      "ms": 43
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 49
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 8 interfaces, 31 classes (40 total public types)",
+      "evidence": [
+        "8 interfaces",
+        "31 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Dapper (3 dependents) \u00B7 Dapper.EntityFramework (2 dependents) \u00B7 * (1 dependents)",
+      "evidence": [
+        "Dapper (3 dependents)",
+        "Dapper.EntityFramework (2 dependents)",
+        "* (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: CommandDefinition (18) \u00B7 Database (6) \u00B7 Identity (6) \u00B7 DynamicParameters (5)",
+      "evidence": [
+        "CommandDefinition (18)",
+        "Database (6)",
+        "Identity (6)",
+        "DynamicParameters (5)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

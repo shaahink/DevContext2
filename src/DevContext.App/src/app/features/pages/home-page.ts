@@ -199,7 +199,15 @@ export class HomePage {
     const s = this.session.summary();
     if (s && s.entries > 0 && s.entriesWithTarget < s.entries) {
       const unwired = s.entries - s.entriesWithTarget;
-      const severity = unwired / s.entries > 0.2 ? 'warning' : 'notable';
+      // G10.1 — a rate needs a denominator. The 0.2 predates Batch A and was read as a rate on any
+      // repo with at least one entry, so measured 2026-08-02
+      // (eval-results/2026-08-02/G10/threshold-grid.txt) GitVersion and MediatR both raised a
+      // WARNING that says "1 of 1 entries have no resolved target" — 100% of one. The floor is 5
+      // because that is already the engine's bar for "enough entries to judge a graph by"
+      // (GraphBuilder.Seams AddHubScopeEdges). Effect on the 11 measured poles: those two drop to
+      // notable; CleanArchitecture 2/7, DntSite 24/94, eShop 45/109 and wolverine 36/51 stay
+      // warnings, podcasts 3/24 and self 2/30 stay notable. Nothing else moves.
+      const severity = s.entries >= 5 && unwired / s.entries > 0.2 ? 'warning' : 'notable';
       real.unshift({ id: 'unwired-entries', severity, title: `${unwired} of ${s.entries} entries have no resolved target` });
     }
     return real;

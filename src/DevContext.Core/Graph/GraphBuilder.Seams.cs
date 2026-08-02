@@ -196,6 +196,18 @@ public sealed partial class GraphBuilder
         var edgeCount = g.EdgeCount;
         var ratio = nodeCount > 0 ? (double)edgeCount / nodeCount : 0;
 
+        // G10.1 RE-MEASURED 2026-08-02, 11 poles (eval-results/2026-08-02/G10/threshold-grid.txt):
+        // THIS BROADENING NEVER FIRES. `query stats` reported sparseGraph=false and hubScopeNodes=0
+        // on all eleven — including the four this method exists for (Dapper, Serilog, MahApps.Metro
+        // and MediatR: 0-1 entries, edge/node ratio 0.30-0.45, so they pass the gate below and
+        // should come out sparse). Its one UI surface, identity-strip's hub-scope line, has
+        // therefore never rendered on a measured pole. The gate below is not what shuts it — the
+        // k < 5 return further down is the only other exit, and on Dapper the Calls edges alone
+        // span 32 distinct types, which puts k at 16. Something between the two is eating it.
+        //
+        // Deliberately not chased or "fixed" here: making it fire adds up to 500 synthesised Calls
+        // edges to every library-shaped repo, which is a product change with a matrix behind it,
+        // not a threshold correction. Tracked as a conductor bug with this measurement attached.
         if (entries.Length >= 5 && ratio >= 0.1) return (false, 0);
 
         // Compute degree centrality for all types with a FilePath (in-scope, production code).

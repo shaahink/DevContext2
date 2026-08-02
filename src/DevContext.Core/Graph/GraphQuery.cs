@@ -403,6 +403,12 @@ public sealed class GraphQuery
         {
             if (!seen.Add(n.Id)) continue;
             var resolveCount = _graph.OutEdges(n.Id).Count(e => e.Kind == EdgeKind.Resolves);
+            // G10.1 checked 2026-08-02 and this 2 is NOT a calibrated threshold: it only sizes the
+            // candidate pool, because the list is ordered by Score (degree) before Take(20) below —
+            // a seat with 26 implementations cannot be pushed out by one with 2. Measured seat
+            // counts across 11 poles: 0-7 everywhere except wolverine's 34
+            // (eval-results/2026-08-02/G10/threshold-grid.txt), so even the widest pool is ranked,
+            // not truncated by arrival order.
             if (resolveCount >= 2)
                 results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
                     $"Seat: {resolveCount} implementations", n.Tags));

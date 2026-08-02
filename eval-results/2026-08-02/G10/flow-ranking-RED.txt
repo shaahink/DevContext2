@@ -1,0 +1,55 @@
+﻿
+ RUN  v4.1.9 C:/Code/DevContext2/src/DevContext.App
+
+ ❯ src/app/core/flow-ranking.spec.ts (8 tests | 2 failed) 10ms
+     × opens on a shallow request-shaped flow rather than a deep internal reaction 5ms
+     × prefers a UI surface over an internal reaction, and a request over both 1ms
+node.exe : 
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/core/flow-ranking.spec.ts > pickHeroFlow > opens on a shallow request-shaped flow rather than a deep 
+internal reaction
+AssertionError: expected 'OrderPaidHandler' to be 'POST /api/orders/draft' // Object.is equality
+
+Expected: "POST /api/orders/draft"
+Received: "OrderPaidHandler"
+
+ ❯ src/app/core/flow-ranking.spec.ts:61:40
+     59|       { kind: 'HttpEndpoint', nodeCount: 3, focus: 'POST /api/orders/d…
+     60|     ];
+     61|     expect(pickHeroFlow(flows)?.focus).toBe('POST /api/orders/draft');
+       |                                        ^
+     62|   });
+     63|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/app/core/flow-ranking.spec.ts > pickHeroFlow > prefers a UI surface over an internal reaction, and a 
+request over both
+AssertionError: expected 'CheckoutViewModel.CheckoutAsync' to be 'POST /api/orders/draft' // Object.is equality
+
+Expected: "POST /api/orders/draft"
+Received: "CheckoutViewModel.CheckoutAsync"
+
+ ❯ src/app/core/flow-ranking.spec.ts:77:55
+     75|     expect(pickHeroFlow([internal, ui])?.focus).toBe('CheckoutViewMode…
+     76|     const http = { kind: 'HttpEndpoint', nodeCount: 2, focus: 'POST /a…
+     77|     expect(pickHeroFlow([internal, ui, http])?.focus).toBe('POST /api/…
+       |                                                       ^
+     78|   });
+     79|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 passed (8)
+   Start at  13:03:01
+   Duration  1.06s (transform 128ms, setup 0ms, import 197ms, tests 10ms, environment 0ms)
+

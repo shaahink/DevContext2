@@ -35,6 +35,18 @@ public static class GraphStats
             ? 0
             : entries.Count(e => !string.IsNullOrEmpty(e.Target));
 
+        // G10.1 RE-MEASURED 2026-08-02, 11 poles (eval-results/2026-08-02/G10/threshold-grid.txt):
+        // THIS RATIO IS SATURATED. It reads 1.000 on CleanArchitecture, MediatR, dotnet-podcasts,
+        // self and DntSite, 0.982 on eShop (107/109) and 0.961 on wolverine (49/51). A >=2-step
+        // spine means "the entry reaches one thing", which was a real distinction when entries
+        // routinely resolved to nothing and is now true of very nearly every entry that exists — so
+        // the number the report prints as coverage ("Deep spine (>=2) | 107/109 (98%)",
+        // ReportRenderer) is the same on every repo and separates none of them.
+        //
+        // The bar is NOT raised here. Where a useful one sits is a question about the step
+        // distribution, which no surface currently exposes, and inventing a 3 or a 4 to make the row
+        // look discriminating would be re-calibrating a shipped metric by eye. Tracked as a
+        // conductor bug; measured here so the next reader does not mistake 100% for good news.
         var flows = graph.Flows;
         var totalEntries = entries.IsDefaultOrEmpty ? 0 : entries.Length;
         var deepCount = totalEntries == 0

@@ -1,0 +1,34 @@
+﻿
+> devcontext-app@0.0.0 ng C:\code\DevContext2\src\DevContext.App
+> ng "build"
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names           |  Raw size | Estimated transfer size
+main-6SLNEA36.js    | main            | 270.94 kB |                73.15 kB
+styles-MOR3SQWE.css | styles          |  52.49 kB |                 8.52 kB
+
+                    | Initial total   | 323.43 kB |                81.67 kB
+
+Lazy chunk files    | Names           |  Raw size | Estimated transfer size
+chunk-y71VbhgZ.js   | elk-bundled     |   1.46 MB |               338.90 kB
+chunk-DgUcxQLJ.js   | -               | 472.83 kB |               127.75 kB
+chunk-DcqgkBjW.js   | -               | 127.83 kB |                32.55 kB
+chunk-B7xgzAjO.js   | workbench-page  | 115.99 kB |                26.28 kB
+chunk-Dlwjf2ov.js   | workspace-shell |  55.62 kB |                13.25 kB
+chunk-Ded-Cme8.js   | home-page       |  50.73 kB |                12.88 kB
+chunk-D2_baFpd.js   | context-studio  |  49.99 kB |                12.09 kB
+chunk-B0wkf0_6.js   | -               |  39.24 kB |                 8.62 kB
+chunk-3ZCG8iVH.js   | atlas-page      |  28.98 kB |                 7.78 kB
+chunk-DWlK3yIy.js   | -               |  28.17 kB |                 9.44 kB
+chunk-CkHCDEzQ.js   | -               |  19.92 kB |                 5.94 kB
+chunk-vTnW87-R.js   | window          |  14.04 kB |                 3.06 kB
+chunk-DwsfmvQJ.js   | mcp-page        |  14.01 kB |                 4.18 kB
+chunk-CdG-mI0n.js   | settings-view   |  13.46 kB |                 3.68 kB
+chunk-SE7NGZAo.js   | insights-page   |   8.79 kB |                 2.86 kB
+...and 18 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [23.858 seconds] - 2026-08-02T12:11:38.450Z
+
+Output location: C:\Code\DevContext2\src\DevContext.App\dist\devcontext-app
+
