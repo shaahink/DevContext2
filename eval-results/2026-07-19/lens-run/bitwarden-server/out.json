@@ -1,0 +1,313 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-19T00:45:35.3672093+00:00",
+  "archetype": "App",
+  "architectureStyle": "Microservices",
+  "styleConfidence": 0.82,
+  "projectCount": 64,
+  "projectNames": [
+    "Admin",
+    "Admin.Test",
+    "Api",
+    "Api.IntegrationTest",
+    "Api.Test",
+    "AppHost",
+    "Billing",
+    "Billing.IntegrationTest",
+    "Billing.Test",
+    "Commercial.Core",
+    "Commercial.Core.Test",
+    "Commercial.Infrastructure.EntityFramework",
+    "Common",
+    "Core",
+    "Core.IntegrationTest",
+    "Core.Test",
+    "Data",
+    "Data.Test",
+    "Events",
+    "Events.IntegrationTest",
+    "Events.Test",
+    "EventsProcessor",
+    "EventsProcessor.Test",
+    "HttpExtensions",
+    "HttpExtensions.Test",
+    "Icons",
+    "Icons.Test",
+    "Identity",
+    "Identity.IntegrationTest",
+    "Identity.Test",
+    "Infrastructure.Dapper",
+    "Infrastructure.Dapper.Test",
+    "Infrastructure.EFIntegration.Test",
+    "Infrastructure.EntityFramework",
+    "Infrastructure.IntegrationTest",
+    "IntegrationTestCommon",
+    "MicroBenchmarks",
+    "Migrator",
+    "MsSqlMigratorUtility",
+    "MySqlMigrations",
+    "Notifications",
+    "Notifications.Test",
+    "Pam",
+    "Pam.Test",
+    "PostgresMigrations",
+    "RustSdk",
+    "Scim",
+    "Scim.IntegrationTest",
+    "Scim.Test",
+    "Seeder",
+    "SeederApi",
+    "SeederApi.IntegrationTest",
+    "SeederUtility",
+    "Server",
+    "Server.IntegrationTest",
+    "Setup",
+    "Setup.Test",
+    "SharedWeb",
+    "SharedWeb.Test",
+    "SqliteMigrations",
+    "SqlServerEFScaffold",
+    "Sso",
+    "Sso.IntegrationTest",
+    "SSO.Test"
+  ],
+  "typeCount": 5441,
+  "entryCount": 676,
+  "topologyProjectCount": 33,
+  "graphNodeCount": 16322,
+  "graphEdgeCount": 24782,
+  "signals": [
+    {
+      "key": "aspire",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "automapper",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "azure-servicebus",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "dapper",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "healthchecks",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "quartz",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "signalr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "swagger",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "87/662 endpoints anonymous, incl. 21 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "GET /alive",
+        "GET /now",
+        "GET /version",
+        "GET /access-requests/inbox",
+        "GET /access-requests/history"
+      ]
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Auth surface: 544 protected, 87 unannotated of 662 API endpoints",
+      "detail": "",
+      "evidence": [
+        "544 protected",
+        "GET /v2/{organizationId}/groups/{id}",
+        "GET /v2/{organizationId}/groups",
+        "31 explicitly public",
+        "87 no auth annotation"
+      ]
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 3 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "adminSettings:role",
+        "Logging:PathFormat",
+        "seederSettings"
+      ]
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 4 events (4 integration), 1 cross-service, 1 orphan",
+      "detail": "",
+      "evidence": [
+        "AzureStorageQueue queue: Core \u2192 Admin, EventsProcessor, Notifications",
+        "ServiceBusMessage \u2190 Core (no consumer)",
+        "AzureServiceBus queue \u2192 Core",
+        "RabbitMQ queue \u2192 Core"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IAuthorizationHandler (16 impls) \u00B7 IPolicyUpdateEvent (14 impls) \u00B7 IPolicyRequirementFactory\u003CIPolicyRequirement\u003E (10 impls)",
+      "detail": "",
+      "evidence": [
+        "IAuthorizationHandler (16 impls)",
+        "IPolicyUpdateEvent (14 impls)",
+        "IPolicyRequirementFactory\u003CIPolicyRequirement\u003E (10 impls)"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 675/676 (99%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 468 Extension \u00B7 351 Scoped \u00B7 314 Singleton \u00B7 76 Transient \u00B7 2 HttpClient (1211 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 662 HTTP \u00B7 7 hosted \u00B7 5 Bus \u00B7 2 SignalRHub",
+      "detail": "",
+      "evidence": [
+        "662 HTTP",
+        "7 hosted",
+        "5 Bus",
+        "2 SignalRHub"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Core (15 dependents) \u00B7 Core (11 dependents) \u00B7 SharedWeb (8 dependents)",
+      "detail": "",
+      "evidence": [
+        "Core (15 dependents)",
+        "Core (11 dependents)",
+        "SharedWeb (8 dependents)"
+      ]
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 67 entities across 3 scopes",
+      "detail": "",
+      "evidence": [
+        "Infrastructure.EntityFramework (64 entities)",
+        "Core (1 entities)",
+        "DatabaseContext (1 entities)"
+      ]
+    }
+  ],
+  "eventWiring": {
+    "total": 4,
+    "integration": 4,
+    "crossService": 1,
+    "orphan": 1,
+    "events": [
+      {
+        "event": "AzureStorageQueue queue",
+        "integration": true,
+        "crossService": true,
+        "publishers": [
+          "Core"
+        ],
+        "consumers": [
+          "Admin",
+          "EventsProcessor",
+          "Notifications"
+        ]
+      },
+      {
+        "event": "AzureServiceBus queue",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Core"
+        ],
+        "consumers": [
+          "Core"
+        ]
+      },
+      {
+        "event": "RabbitMQ queue",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Core"
+        ],
+        "consumers": [
+          "Core"
+        ]
+      },
+      {
+        "event": "ServiceBusMessage",
+        "integration": true,
+        "crossService": false,
+        "publishers": [
+          "Core"
+        ],
+        "consumers": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+AbstractValidator
+consumer path
+close
+Entry
+AbstractValidator
+
+/// <summary> /// Base class for object validators. /// </summary>
+
+Call
+GetEnumerator
+
+public IEnumerator<IValidationRule> GetEnumerator() => Rules.GetEnumerator();
+
+Call
+TrackingCollection
+
+internal class TrackingCollection<T> : IEnumerable<T> { readonly List<T> _innerCollection = new(); public event Action<T> ItemAdded;
+
+approx
+Call
+Include
+
+public void Include(IValidator<T> rulesToInclude) { ArgumentNullException.ThrowIfNull(rulesToInclude); var rule = IncludeRule<T>.Create(rulesToInclude, () => RuleLevelCascadeMode);
+
+Call
+TrackingCollection
+
+internal class TrackingCollection<T> : IEnumerable<T> { readonly List<T> _innerCollection = new(); public event Action<T> ItemAdded;
+
+approx
+Call
+RuleFor
+
+public IRuleBuilderInitial<T, TProperty> RuleFor<TProperty>(Expression<Func<T, TProperty>> expression) { ArgumentNullException.ThrowIfNull(expression); var rule = PropertyRule<T, TProperty>.Create(expression, () => RuleLevelCascadeMode);
+
+Call
+TrackingCollection
+
+internal class TrackingCollection<T> : IEnumerable<T> { readonly List<T> _innerCollection = new(); public event Action<T> ItemAdded;
+
+approx
+Call
+RuleForEach
+
+public IRuleBuilderInitialCollection<T, TElement> RuleForEach<TElement>(Expression<Func<T, IEnumerable<TElement>>> expression) { ArgumentNullException.ThrowIfNull(expression); var rule = CollectionPropertyRule<T, TElement>.Create(expression, () => RuleLevelCascadeMode);
+
+Call
+TrackingCollection
+
+internal class TrackingCollection<T> : IEnumerable<T> { readonly List<T> _innerCollection = new(); public event Action<T> ItemAdded;
+
+approx
+Call
+RuleSet
+
+public void RuleSet(string ruleSetName, Action action) { ExtensionsInternal.ThrowIfNullOrEmpty(ruleSetName); ArgumentNullException.ThrowIfNull(action);
+
+Call
+TrackingCollection
+
+internal class TrackingCollection<T> : IEnumerable<T> { readonly List<T> _innerCollection = new(); public event Action<T> ItemAdded;
+
+approx
+Call
+SetExecutedRuleSets
+
+private void SetExecutedRuleSets(ValidationResult result, ValidationContext<T> context) { if (context.RootContextData.TryGetValue("_FV_RuleSetsExecuted", out var obj) && obj is HashSet<string> set) { result.RuleSetsExecuted = set.ToArray();
+
+Call
+ValidationContext
+
+/// <summary> /// Validation context /// </summary>
+
+approx
+Call
+Validate
+
+ValidationResult IValidator.Validate(IValidationContext context) { ArgumentNullException.ThrowIfNull(context); return Validate(ValidationContext<T>.GetFromNonGenericContext(context));
+
+Call
+ValidationContext
+
+/// <summary> /// Validation context /// </summary>
+
+approx

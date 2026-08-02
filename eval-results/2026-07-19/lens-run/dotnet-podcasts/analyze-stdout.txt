@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-19\lens-run\dotnet-podcasts\map.md
+analyzed 192 files · 402 nodes · 246 edges · 24 entries · 22/24 target · ~1468 
+tokens · 9.3s stage2 x2.0 stage3 x1.6
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      NetPodcast      │
+│   Time   │        9614ms        │
+│  Tokens  │ ~1468 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.337 │
+└──────────┴──────────────────────┘

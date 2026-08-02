@@ -1,0 +1,13 @@
+eShop · app.
+
+Analyzed eShop.slnx — 1 of 3 solutions in this repo.
+Switch to
+src/ClientApp/ClientApp.sln
+tests/ClientApp.UnitTests/ClientApp.UnitTests.sln
+109 entries
+19 projects
+1.2K types
+64/109 wired
+edge confidence
+App
+Microservices · high

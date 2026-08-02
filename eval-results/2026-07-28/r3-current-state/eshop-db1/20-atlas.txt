@@ -1,0 +1,249 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+Atlas
+Export one-pager
+Download .md
+eShop
+App
+Microservices · high
+Architecture
+
+19 projects · 36 dependency edges · 23 transport links
+
+Services
+All projects
+HTTP
+queue
+gRPC
+deploy ref
+store
+in no relationship · 3ClientApp · eShop.AppHost · HybridApp
++
+−
+⊡
+Top flows
+OrderCancelledDomainEventHandler
+48 steps
+·
+3 deep
+·
+33 cross-service
+·
+1 data
+·
+Domain events
+OrderShippedDomainEventHandler
+48 steps
+·
+3 deep
+·
+33 cross-service
+·
+1 data
+·
+Domain events
+ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+43 steps
+·
+3 deep
+·
+33 cross-service
+·
+3 data
+·
+Domain events
+OrderStatusChangedToAwaitingValidationDomainEventHandler
+44 steps
+·
+3 deep
+·
+29 cross-service
+·
+Domain events
+OrderStatusChangedToPaidDomainEventHandler
+44 steps
+·
+3 deep
+·
+29 cross-service
+·
+Domain events
+Event & queue board
+OrderProcessor
+bus-publish→consume
+→
+Ordering.API
+PaymentProcessor
+bus-publish→consume
+→
+Ordering.API
+Ordering.API
+bus-publish→consume
+→
+Basket.API
+Ordering.API
+bus-publish→consume
+→
+Catalog.API
+Ordering.API
+bus-publish→consume
+→
+WebApp
+Ordering.API
+bus-publish→consume
+→
+Webhooks.API
+Ordering.API
+bus-publish→consume
+→
+PaymentProcessor
+Catalog.API
+bus-publish→consume
+→
+Ordering.API
+Catalog.API
+bus-publish→consume
+→
+Webhooks.API
+PUBLISHER	EVENT	CONSUMER
+VerifyOrAddPaymentMethod	BuyerAndPaymentMethodVerifiedDomainEvent	UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
+CheckConfirmedGracePeriodOrders	GracePeriodConfirmedIntegrationEvent cross-service	GracePeriodConfirmedIntegrationEventHandler
+SetCancelledStatus	OrderCancelledDomainEvent	OrderCancelledDomainEventHandler
+Handle	OrderPaymentFailedIntegrationEvent cross-service	OrderPaymentFailedIntegrationEventHandler
+Handle	OrderPaymentSucceededIntegrationEvent cross-service	OrderPaymentSucceededIntegrationEventHandler
+SetShippedStatus	OrderShippedDomainEvent	OrderShippedDomainEventHandler
+AddOrderStartedDomainEvent	OrderStartedDomainEvent	ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+Handle	OrderStartedIntegrationEvent cross-service	OrderStartedIntegrationEventHandler
+SetAwaitingValidationStatus	OrderStatusChangedToAwaitingValidationDomainEvent	OrderStatusChangedToAwaitingValidationDomainEventHandler
+Handle	OrderStatusChangedToAwaitingValidationIntegrationEvent cross-service	OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+Handle	OrderStatusChangedToAwaitingValidationIntegrationEvent cross-service	OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+Handle	OrderStatusChangedToCancelledIntegrationEvent cross-service	OrderStatusChangedToCancelledIntegrationEventHandler
+SetPaidStatus	OrderStatusChangedToPaidDomainEvent	OrderStatusChangedToPaidDomainEventHandler
+Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+Handle	OrderStatusChangedToPaidIntegrationEvent cross-service	OrderStatusChangedToPaidIntegrationEventHandler
+Handle	OrderStatusChangedToShippedIntegrationEvent cross-service	OrderStatusChangedToShippedIntegrationEventHandler
+Handle	OrderStatusChangedToShippedIntegrationEvent cross-service	OrderStatusChangedToShippedIntegrationEventHandler
+SetStockConfirmedStatus	OrderStatusChangedToStockConfirmedDomainEvent	OrderStatusChangedToStockConfirmedDomainEventHandler
+Handle	OrderStatusChangedToStockConfirmedIntegrationEvent cross-service	OrderStatusChangedToStockConfirmedIntegrationEventHandler
+Handle	OrderStatusChangedToStockConfirmedIntegrationEvent cross-service	OrderStatusChangedToStockConfirmedIntegrationEventHandler
+Handle	OrderStatusChangedToSubmittedIntegrationEvent cross-service	OrderStatusChangedToSubmittedIntegrationEventHandler
+Handle	OrderStockConfirmedIntegrationEvent cross-service	OrderStockConfirmedIntegrationEventHandler
+Handle	OrderStockRejectedIntegrationEvent cross-service	OrderStockRejectedIntegrationEventHandler
+CatalogApi.UpdateItem	ProductPriceChangedIntegrationEvent cross-service	ProductPriceChangedIntegrationEventHandler
+Data stores
+Catalog.API
+EF Core
+Ordering.API
+EF Core
+Webhooks.API
+EF Core
+Per-service breakdown
+Basket.API
+gRPC Service
+3 gRPC
+1 Bus consumers
+gRPC
+Catalog.API
+Web API
+16 HTTP
+2 Bus consumers
+EF Core
+ClientApp
+MAUI App
+28 UI
+.NET MAUI
+eShop.AppHost
+Aspire AppHost
+Aspire
+HybridApp
+MAUI App
+3 UI
+.NET MAUI
+Identity.API
+Identity provider
+14 HTTP
+IdentityServer
+Ordering.API
+Web API
+7 HTTP
+7 Domain events
+5 Bus consumers
+EF Core
+FluentValidation
+OrderProcessor
+Worker Service
+1 Hosted services
+Worker
+PaymentProcessor
+Worker Service
+1 Bus consumers
+Worker
+WebApp
+Blazor
+7 UI
+3 Bus consumers
+Blazor
+YARP
+WebhookClient
+Blazor
+4 UI
+2 HTTP
+Blazor
+Webhooks.API
+Web API
+4 HTTP
+1 Bus consumers
+EF Core
+Cross-cutting
+PIPELINE BEHAVIORS
+LoggingBehavior
+TransactionBehavior
+ValidatorBehavior
+PACKAGES
+Web/API (14)
+ORM/Data (6)
+Mediator/CQRS (1)
+Messaging (2)
+Validation (2)
+Logging (5)
+Testing (3)
+Cloud (2)
+Other (35)
+Hub radar
+
+Nodes appearing in the most distinct flows across the repo.
+
+Webhooks.API
+38 flows · in 4 · out 3
+Identity.API
+35 flows · in 5 · out 6
+Basket.API
+30 flows · in 3 · out 3
+Catalog.API
+28 flows · in 2 · out 4
+Ordering.API
+27 flows · in 5 · out 8
+Service.WebApp
+25 flows · in 2 · out 5
+Service.PaymentProcessor
+23 flows · in 1 · out 2
+Infrastructure.CatalogContext
+9 flows · in 13 · out 0
+Logging.ILogger`1
+9 flows · in 10 · out 0
+Infrastructure.OrderingContext
+9 flows · in 18 · out 0
+eShop
+eShop — 1152 nodes, 1089 edges, 109 entries
+1.0.0
+modern

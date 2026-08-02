@@ -1,0 +1,9 @@
+[warning] http://localhost:4200/ :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/ :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/ :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/ :: You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine.
+[warning] http://localhost:4200/ :: You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine.
+[warning] http://localhost:4200/atlas :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/atlas :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/atlas :: The 'allowSignalWrites' flag is deprecated and no longer impacts effect() (writes are always allowed)
+[warning] http://localhost:4200/atlas :: You have set a custom wheel sensitivity.  This will make your app zoom unnaturally when using mainstream mice.  You should change this value from the default only if you can guarantee that all your users will use the same hardware and OS configuration as your current machine.

@@ -1,0 +1,88 @@
+﻿== baseline widen run (pre-Batch-B binaries) ==
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:06.62
+
+== signalr-app ==
+  wall=2.8s nodes=5 edges=2
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== company-functions ==
+  wall=1.4s nodes=3 edges=1
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== TodoApi ==
+  wall=3.2s nodes=124 edges=73
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== YARP ==
+  wall=6s nodes=788 edges=434
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 1 dup-name types touched by cross-project edges: ForwarderMetricsConsumer [ReverseProxy.Code]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== Ocelot ==
+  wall=16.2s nodes=758 edges=606
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 7 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== Blazor ==
+  wall=30.3s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 70 slns on disk silently scoped to one analysis (142 projects) with no indicator/picker
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== wolverine ==
+  wall=51.8s nodes=6528 edges=4519
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=FAIL
+    FAIL handler-join: 1 of 6 send targets have no Handles edge: Envelope
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (215 projects) with no indicator/picker
+    FAIL dup-name: 4 dup-name types touched by cross-project edges: MapEventTypeMessages [Wolverine.Marten], MapEventTypeMessages [Wolverine.Polecat], OutboxedSessionFactory [Wolverine.Marten], WolverineProjectionCoordinator [Wolverine.Marten]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== AzureFunctions ==
+  wall=12.8s nodes=761 edges=497
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 4 slns on disk silently scoped to one analysis (66 projects) with no indicator/picker
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== RazorPages ==
+  wall=61.7s nodes=33 edges=27
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 12 slns on disk silently scoped to one analysis (622 projects) with no indicator/picker
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== SignalR ==
+  wall=185.4s nodes=16330 edges=11642
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=FAIL dup-name=FAIL
+    FAIL sln-scope: 2 slns on disk silently scoped to one analysis (616 projects) with no indicator/picker
+    FAIL dup-name: 12 dup-name types touched by cross-project edges: CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions], FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core], HttpConnection [Microsoft.AspNetCore.Http.Connections.Client], HttpConnectionContext [Microsoft.AspNetCore.Http.Connections], HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+== baseline widen DONE ==

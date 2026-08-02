@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-19\lens-run\Newtonsoft.Json\map.md
+analyzed 945 files · 1406 nodes · 1259 edges · 0 entries · ~2354 tokens · 20.0s 
+stage2 x3.0 stage3 x1.9
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   Newtonsoft.Json    │
+│   Time   │       21077ms        │
+│  Tokens  │ ~2354 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.337 │
+└──────────┴──────────────────────┘

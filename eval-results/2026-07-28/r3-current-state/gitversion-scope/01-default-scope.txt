@@ -1,0 +1,13 @@
+GitVersion · clitool · 1 entries · 11 projects · 609 types · analyzed in 1.3s.
+
+Analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo.
+Switch to
+build/CI.slnx
+new-cli/GitVersion.slnx
+1 entries
+11 projects
+609 types
+0/1 wired
+11% verified
+CliTool
+NotApplicable

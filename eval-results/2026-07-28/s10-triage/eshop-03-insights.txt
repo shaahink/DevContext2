@@ -1,0 +1,112 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+Insights
+
+Repo-specific findings — what's notable, risky, or wired in interesting ways.
+
+ACT ON THIS
+Missing validation: 18/18 write endpoints have no FluentValidation validator
+warning
+moderate confidence
+
+Unvalidated input is the #1 injection surface — every write endpoint needs a validator.
+
+PUT /api/catalog/items → CatalogApi
+PUT /api/catalog/items/{id:int} → PublishThroughEventBusAsync
+POST /api/catalog/items → CatalogContext
+DELETE /api/catalog/items/{id:int} → CatalogContext
+POST /Account → AccountController
+Trace it →
+36/43 endpoints anonymous, incl. 14 POST/PUT/DELETE
+warning
+low confidence
+
+Unauthenticated write endpoints are a security risk — verify each is intentionally public.
+
+GET /api/catalog/items
+GET /api/catalog/items/by
+GET /api/catalog/items/{id:int}
+GET /api/catalog/items/by/{name:minlength(1)}
+Trace it →
+Auth surface: 7 protected, 36 unannotated of 43 API endpoints
+warning
+low confidence
+
+Every unauthenticated write endpoint may be a security gap — verify intent.
+
+7 protected
+GET /Consent
+POST /Consent
+36 no auth annotation
+Trace it →
+Most depended-upon: eShop.ServiceDefaults (9 dependents) · EventBusRabbitMQ (7 dependents) · IntegrationEventLogEF (4 dependents)
+notable
+moderate confidence
+eShop.ServiceDefaults (9 dependents)
+EventBusRabbitMQ (7 dependents)
+IntegrationEventLogEF (4 dependents)
+Event wiring: 20 events (13 integration), 13 cross-service, 0 orphan
+notable
+moderate confidence
+
+Cross-service events are the integration contract between services; orphan events may signal dead notifications or a consumer outside the repo.
+
+GracePeriodConfirmedIntegrationEvent: OrderProcessor → Ordering.API
+OrderPaymentFailedIntegrationEvent: PaymentProcessor → Ordering.API
+OrderPaymentSucceededIntegrationEvent: PaymentProcessor → Ordering.API
+OrderStartedIntegrationEvent: Ordering.API → Basket.API
+OrderStatusChangedToAwaitingValidationIntegrationEvent: Ordering.API → Catalog.API, WebApp
+OrderStatusChangedToCancelledIntegrationEvent: Ordering.API → WebApp
+OrderStatusChangedToPaidIntegrationEvent: Ordering.API → Webhooks.API, Catalog.API, WebApp
+OrderStatusChangedToShippedIntegrationEvent: Ordering.API → Webhooks.API, WebApp
+OrderStatusChangedToStockConfirmedIntegrationEvent: Ordering.API → PaymentProcessor, WebApp
+OrderStatusChangedToSubmittedIntegrationEvent: Ordering.API → WebApp
+OrderStockConfirmedIntegrationEvent: Catalog.API → Ordering.API
+OrderStockRejectedIntegrationEvent: Catalog.API → Ordering.API
+Open node →
+External event contracts: 1 consumed but never produced internally
+notable
+moderate confidence
+BeforeStartEvent
+Multi-implementation interfaces: IIntegrationEventLogService (2 impls)
+notable
+moderate confidence
+IIntegrationEventLogService (2 impls)
+KNOW THIS
+Middleware pipeline: 3 behaviours
+info
+high confidence
+
+Pipeline behaviours apply cross-cutting concerns to every request — they affect all endpoints.
+
+LoggingBehavior
+TransactionBehavior
+ValidatorBehavior
+Entry targets resolved 64/109 (58%) — trace any entry for its full path
+info
+moderate confidence
+Entry surface: 43 HTTP · 42 UI · 13 Bus · 7 DomainEventHandler
+info
+moderate confidence
+43 HTTP
+42 UI
+13 Bus
+7 DomainEventHandler
+COVERAGE
+
+64/109 entries have resolved targets
+
+Engine details
+eShop
+Shift+E opens the full entry audit table
+1.0.0
+modern

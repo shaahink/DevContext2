@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "Orleans",
+    "run":  "2026-07-28 13:13:43",
+    "wallSec":  34,
+    "snapshotCache":  "HIT · cff8fbe",
+    "nodeCount":  5106,
+    "edgeCount":  3539,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "1 of 1 send targets have no Handles edge: Message",
+                                        "metrics":  {
+                                                        "sendsTotal":  1,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  1,
+                                                        "sample":  [
+                                                                       "Message"
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: GrainId(64), SiloAddress(59), DiagnosticListener(56), List(47), IServiceCollection(43)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "GrainId",
+                                                                       "id":  "Type:Orleans.Runtime.GrainId::GrainId(2)",
+                                                                       "degree":  64
+                                                                   },
+                                                                   {
+                                                                       "title":  "SiloAddress",
+                                                                       "id":  "Type:Orleans.Runtime.SiloAddress::SiloAddress(2)",
+                                                                       "degree":  59
+                                                                   },
+                                                                   {
+                                                                       "title":  "DiagnosticListener",
+                                                                       "id":  "Type:System.Diagnostics.DiagnosticListener",
+                                                                       "degree":  56
+                                                                   },
+                                                                   {
+                                                                       "title":  "List",
+                                                                       "id":  "Type:System.Collections.Generic.List`1",
+                                                                       "degree":  47
+                                                                   },
+                                                                   {
+                                                                       "title":  "IServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.IServiceCollection",
+                                                                       "degree":  43
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/37 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  66,
+                                                        "withTarget":  37,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (Orleans.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "Orleans.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  133,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "Orleans.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Orleans"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  233,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

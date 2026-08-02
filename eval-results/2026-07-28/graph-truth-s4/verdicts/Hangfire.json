@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "Hangfire",
+    "run":  "2026-07-28 03:28:59",
+    "wallSec":  8.1,
+    "snapshotCache":  "HIT · 333bd8e",
+    "nodeCount":  928,
+    "edgeCount":  599,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: SqlServerStorage(84), ILog(78), IStorageConnection(29), JobStorage(26), Type(26)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "SqlServerStorage",
+                                                                       "id":  "Type:Hangfire.SqlServer.SqlServerStorage",
+                                                                       "degree":  84
+                                                                   },
+                                                                   {
+                                                                       "title":  "ILog",
+                                                                       "id":  "Type:Hangfire.Logging.ILog",
+                                                                       "degree":  78
+                                                                   },
+                                                                   {
+                                                                       "title":  "IStorageConnection",
+                                                                       "id":  "Type:Hangfire.Storage.IStorageConnection",
+                                                                       "degree":  29
+                                                                   },
+                                                                   {
+                                                                       "title":  "JobStorage",
+                                                                       "id":  "Type:Hangfire.JobStorage",
+                                                                       "degree":  26
+                                                                   },
+                                                                   {
+                                                                       "title":  "Type",
+                                                                       "id":  "Type:Hangfire.StackTraceHtmlFragments::Type(1)",
+                                                                       "degree":  26
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (Hangfire.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "Hangfire.sln"
+                                                                  ],
+                                                     "analyzedProjects":  10,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "Hangfire.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Hangfire"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  17,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

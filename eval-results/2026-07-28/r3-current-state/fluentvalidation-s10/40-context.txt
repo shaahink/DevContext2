@@ -1,0 +1,57 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+Change-impact pack
+
+seeds flow · bodies · contracts · tests for one entry, by kind
+
+From current trail
+Analyze a repo to see its services and entries.
+0 of 0 selected
+Add to context
+No cards yet. Pick items from the scope picker to build context.
+0 cards
+0 tok
+LIVE PREVIEW
+— exactly what Copy copies
+
+Add cards from the scope picker — the assembled pack renders here as you shape it.
+
+BUDGET
+Token budget
+4000 tok
+1k
+2k
+4k
+8k
+12k
+16k
+PER-CARD METER
+
+No cards to meter.
+
+Total
+~0 / 4000 tok
+INTENT
+Trace
+Explain
+Review
+BODIES
+All bodies shown
+FORMAT
+markdown
+plain
+json
+Copy
+Save
+FluentValidation
+FluentValidation — 319 nodes, 169 edges, 0 entries
+1.0.0
+modern

@@ -1,0 +1,65 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+  split: A=21+other eval classes, B=24 repos, two test hosts
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~shamshir-pole|DisplayName~screentogif|DisplayName~newtonsoft-json|DisplayName~stackexchange-redis|DisplayName~dogfood-microservices|DisplayName~automapper|DisplayName~blazor-app|DisplayName~catalog|DisplayName~communitytoolkit|Di...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:02:26.86]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+[xUnit.net 00:04:48.68]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Passed!  - Failed:     0, Passed:    57, Skipped:     2, Total:    59, Duration: 6 m 27 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+[xUnit.net 00:00:00.89]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+A total of 1 test files matched the specified pattern.
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+No test matches the given testcase filter `Category=Eval&(DisplayName~bitwarden-server|DisplayName~dntsite|DisplayName~wolverine|DisplayName~dotnet-podcasts|DisplayName~eshop|DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~blazor-surface|DisplayName~cli-app|DisplayName~company-fun...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+
+Passed!  - Failed:     0, Passed:    27, Skipped:     1, Total:    28, Duration: 12 m 32 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=0 B=0
+  PASS  Eval tests passed (stamp written)
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 16 nodes, 2 entries, 9 waterfall stages
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check (pnpm check) ---
+ All files pass linting.   > devcontext-app@0.0.0 test C:\Code\DevContext2\src\DevContext.App > ng test --watch=false  ❯ Building... ✔ Building... Application bundle generation complete. [11.245 seconds] - 2026-07-27T22:30:13.217Z    RUN  v4.1.9 C:/Code/DevContext2/src/DevContext.App   ❯ |devcontext-app| src/app/ui/graph-canvas/graph-layout.spec.ts (8 tests | 1 failed) 6825ms      × same input twice → identical geometry 5052ms System.Management.Automation.RemoteException ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ System.Management.Automation.RemoteException  FAIL  |devcontext-app| src/app/ui/graph-canvas/graph-layout.spec.ts > graph-layout (D4.1 determinism + no-clip contract) > same input twice → identical geometry Error: Test timed out in 5000ms. If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".  ❯ src/app/ui/graph-canvas/graph-layout.spec.ts:41:3      39|      40| describe('graph-layout (D4.1 determinism + no-clip contract)', () => {      41|   it('same input twice → identical geometry', async () => {        |   ^      42|     const { nodes, edges } = bigFixture();      43|     const a = await layoutGraph(nodes, edges); System.Management.Automation.RemoteException ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯ System.Management.Automation.RemoteException   Test Files  1 failed | 13 passed (14)       Tests  1 failed | 85 passed (86)    Start at  23:30:14    Duration  72.45s (transform 7.96s, setup 25.35s, import 165.39s, tests 8.83s, environment 285.95s)   ELIFECYCLE  Test failed. See above for more details.  ELIFECYCLE  Command failed with exit code 1.
+  FAIL  pnpm check failed
+
+GATE: FAIL (step 5 - app check)

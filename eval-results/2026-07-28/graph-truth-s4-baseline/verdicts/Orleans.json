@@ -1,0 +1,119 @@
+﻿{
+    "repo":  "Orleans",
+    "run":  "2026-07-28 02:41:04",
+    "wallSec":  53.1,
+    "snapshotCache":  "HIT · cff8fbe",
+    "nodeCount":  7278,
+    "edgeCount":  5921,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "1 of 1 send targets have no Handles edge: Message",
+                                        "metrics":  {
+                                                        "sendsTotal":  1,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  1,
+                                                        "sample":  [
+                                                                       "Message"
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top-5 clean: Reader(169), ISiloBuilder(119), Writer(116), IFieldCodec(107), IDeepCopier(65)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "Reader",
+                                                                       "id":  "Type:Orleans.Serialization.Buffers.Reader`1",
+                                                                       "degree":  169
+                                                                   },
+                                                                   {
+                                                                       "title":  "ISiloBuilder",
+                                                                       "id":  "Type:Orleans.Hosting.ISiloBuilder",
+                                                                       "degree":  119
+                                                                   },
+                                                                   {
+                                                                       "title":  "Writer",
+                                                                       "id":  "Type:Orleans.Serialization.Buffers.Writer`1",
+                                                                       "degree":  116
+                                                                   },
+                                                                   {
+                                                                       "title":  "IFieldCodec",
+                                                                       "id":  "Type:Orleans.Serialization.Codecs.IFieldCodec`1",
+                                                                       "degree":  107
+                                                                   },
+                                                                   {
+                                                                       "title":  "IDeepCopier",
+                                                                       "id":  "Type:Orleans.Serialization.Cloning.IDeepCopier`1",
+                                                                       "degree":  65
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "12/62 targets are bare DI interfaces (19.4% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  82,
+                                                        "withTarget":  62,
+                                                        "diInterfaceTargets":  12,
+                                                        "diInterfacePct":  19.4,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+                                                                       "GET /DashboardCounters -\u003e IDashboardClient",
+                                                                       "GET /ClusterStats -\u003e IDashboardClient",
+                                                                       "GET /HistoricalStats/{*path} -\u003e IDashboardClient",
+                                                                       "GET /SiloProperties/{*address} -\u003e IDashboardClient",
+                                                                       "GET /SiloMetadata/{*address} -\u003e IDashboardClient"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "SKIP",
+                                 "detail":  "no style truth declared (got Library/Microservices)",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "Microservices",
+                                                 "confidence":  0.82
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 133 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "Orleans.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  133
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "1 dup-name types touched by cross-project edges: Apple [TestGrains]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  396,
+                                                    "dupNameTypesTouched":  1,
+                                                    "sample":  [
+                                                                   "Apple [TestGrains]"
+                                                               ]
+                                                }
+                                }
+               }
+}

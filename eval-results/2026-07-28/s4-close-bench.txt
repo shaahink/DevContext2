@@ -1,0 +1,62 @@
+[run ] DntSite (Map)…
+[run ] DntSite (Trace: FeedController)…
+[run ] TodoApi (Map)…
+[run ] TodoApi (Trace: POST /todos/)…
+[run ] VerticalSlice (Map)…
+[run ] VerticalSlice (Trace: POST /Products)…
+[run ] eShop.Ordering.API (Map)…
+[run ] eShop.Ordering.API (Trace: POST /api/orders/)…
+[run ] AutoMapper (Map)…
+[run ] OrchardCore (Map)…
+[run ] CompositionApp (Map)…
+[run ] CompositionApp (Trace: POST /api/addons/packs)…
+[run ] GrpcAggregator (Map)…
+[run ] GrpcAggregator (Trace: AggregatorService)…
+[run ] AspireSamples (Map)…
+
+# DevContext performance — 2026-07-28 04:29
+
+Real pipeline (incl. call graph) over the standing eval repos. Median of 3 timed iterations after 1 warm-up. Wall time is the full `AnalyzeAsync`.
+
+| Repo | Mode | Median | Min–Max | Files | Nodes | Edges | Entries | Stage2 | Stage3 | Top extractors (ms) |
+|---|---|--:|--:|--:|--:|--:|--:|--:|--:|---|
+| DntSite | Map | 26.0s | 25.8–31.4s | 1342 | 3174 | 4168 | 94 | 3727ms | 5814ms | EndpointExtractor 4471ms, SyntaxStructureExtractor 3727ms, ProgramCsFlowExtractor 3554ms |
+| DntSite | Trace (FeedController) | 27.9s | 27.1–30.0s | 1342 | 2732 | 2242 | 94 | 3017ms | 4720ms | EndpointExtractor 3256ms, SyntaxStructureExtractor 3017ms, DiRegistrationExtractor 2876ms |
+| TodoApi | Map | 0.2s | 0.2–0.3s | 40 | 124 | 74 | 12 | 8ms | 39ms | EndpointExtractor 32ms, FileTreeExtractor 23ms, ProjectStructure 11ms |
+| TodoApi | Trace (POST /todos/) | 0.2s | 0.2–0.3s | 40 | 118 | 67 | 12 | 9ms | 38ms | FileTreeExtractor 23ms, EndpointExtractor 20ms, SourceBodyExtractor 18ms |
+| VerticalSlice | Map | 0.2s | 0.2–0.2s | 76 | 156 | 54 | 5 | 23ms | 37ms | SyntaxStructureExtractor 23ms, DiRegistrationExtractor 23ms, ProgramCsFlowExtractor 23ms |
+| VerticalSlice | Trace (POST /Products) | 0.2s | 0.2–0.4s | 76 | 151 | 49 | 5 | 27ms | 28ms | SyntaxStructureExtractor 27ms, DiRegistrationExtractor 26ms, ProgramCsFlowExtractor 25ms |
+| eShop.Ordering.API | Map | 0.6s | 0.5–0.6s | 141 | 313 | 384 | 19 | 40ms | 88ms | EndpointExtractor 71ms, SolutionDiscovery 59ms, FileTreeExtractor 41ms |
+| eShop.Ordering.API | Trace (POST /api/orders/) | 0.5s | 0.5–0.5s | 141 | 305 | 376 | 19 | 40ms | 42ms | SolutionDiscovery 40ms, SyntaxStructureExtractor 40ms, DiRegistrationExtractor 39ms |
+| AutoMapper | Map | 2.2s | 2.2–2.7s | 510 | 467 | 225 | 0 | 975ms | 449ms | SyntaxStructureExtractor 975ms, ProgramCsFlowExtractor 531ms, DiRegistrationExtractor 531ms |
+| OrchardCore | Map | 13.5s | 13.0–14.0s | 5247 | 10187 | 9889 | 286 | 1744ms | 2309ms | SyntaxStructureExtractor 1744ms, ProgramCsFlowExtractor 1728ms, DiRegistrationExtractor 1728ms |
+| CompositionApp | Map | 0.1s | 0.1–0.1s | 13 | 34 | 21 | 6 | 1ms | 1ms | FileTreeExtractor 3ms, ProjectStructure 2ms, SolutionDiscovery 1ms |
+| CompositionApp | Trace (POST /api/addons/packs) | 0.1s | 0.1–0.1s | 13 | 33 | 20 | 6 | 8ms | 1ms | SyntaxStructureExtractor 8ms, ProgramCsFlowExtractor 8ms, DiRegistrationExtractor 8ms |
+| GrpcAggregator | Map | 0.1s | 0.0–0.1s | 6 | 17 | 10 | 6 | 1ms | 1ms | ProjectStructure 2ms, FileTreeExtractor 1ms, EndpointExtractor 1ms |
+| GrpcAggregator | Trace (AggregatorService) | 0.1s | 0.1–0.1s | 6 | 16 | 8 | 6 | 1ms | 2ms | FileTreeExtractor 2ms, ProjectStructure 2ms, EndpointExtractor 1ms |
+| AspireSamples | Map | 0.6s | 0.6–0.8s | 151 | 48 | 20 | 5 | 85ms | 122ms | SyntaxStructureExtractor 85ms, FileTreeExtractor 73ms, EndpointExtractor 61ms |
+
+## Call-graph phase breakdown (Trace runs)
+
+
+## Stage waterfall per run (T7.3 rows — SemanticLite/GraphAssembly/… aren't extractors)
+
+- **DntSite** Map: DiscoveryAndCacheWarmup 508ms | GenericExtraction 3727ms | SpecificExtraction 5814ms | SemanticLite 15313ms | GraphAssembly 254ms | Insights 31ms | Compression 96ms | Snapshot 218ms
+- **DntSite** Trace (FeedController): DiscoveryAndCacheWarmup 298ms | GenericExtraction 3017ms | SpecificExtraction 4720ms | SemanticLite 19396ms | GraphAssembly 212ms | Insights 11ms | Compression 69ms | Snapshot 173ms
+- **TodoApi** Map: DiscoveryAndCacheWarmup 43ms | GenericExtraction 8ms | SpecificExtraction 39ms | SemanticLite 51ms | GraphAssembly 19ms | Insights 17ms | Compression 1ms | Snapshot 49ms
+- **TodoApi** Trace (POST /todos/): DiscoveryAndCacheWarmup 41ms | GenericExtraction 9ms | SpecificExtraction 38ms | SemanticLite 51ms | GraphAssembly 11ms | Insights 17ms | Compression 1ms | Snapshot 53ms
+- **VerticalSlice** Map: DiscoveryAndCacheWarmup 15ms | GenericExtraction 23ms | SpecificExtraction 37ms | SemanticLite 45ms | GraphAssembly 4ms | Insights 13ms | Compression 16ms | Snapshot 60ms
+- **VerticalSlice** Trace (POST /Products): DiscoveryAndCacheWarmup 22ms | GenericExtraction 27ms | SpecificExtraction 28ms | SemanticLite 48ms | GraphAssembly 14ms | Insights 14ms | Compression 2ms | Snapshot 82ms
+- **eShop.Ordering.API** Map: DiscoveryAndCacheWarmup 110ms | GenericExtraction 40ms | SpecificExtraction 88ms | SemanticLite 197ms | GraphAssembly 13ms | Insights 59ms | Compression 2ms | Snapshot 70ms
+- **eShop.Ordering.API** Trace (POST /api/orders/): DiscoveryAndCacheWarmup 73ms | GenericExtraction 40ms | SpecificExtraction 42ms | SemanticLite 191ms | GraphAssembly 16ms | Insights 53ms | Compression 2ms | Snapshot 67ms
+- **AutoMapper** Map: DiscoveryAndCacheWarmup 32ms | GenericExtraction 975ms | SpecificExtraction 449ms | SemanticLite 597ms | GraphAssembly 54ms | Insights 12ms | Compression 67ms | Snapshot 59ms
+- **OrchardCore** Map: DiscoveryAndCacheWarmup 1288ms | GenericExtraction 1744ms | SpecificExtraction 2309ms | SemanticLite 4697ms | GraphAssembly 1958ms | Insights 687ms | Compression 221ms | Snapshot 523ms
+- **CompositionApp** Map: DiscoveryAndCacheWarmup 6ms | SpecificExtraction 1ms | SemanticLite 3ms | Snapshot 38ms
+- **CompositionApp** Trace (POST /api/addons/packs): DiscoveryAndCacheWarmup 4ms | GenericExtraction 8ms | SpecificExtraction 1ms | SemanticLite 4ms | GraphAssembly 1ms | Snapshot 41ms
+- **GrpcAggregator** Map: DiscoveryAndCacheWarmup 4ms | SpecificExtraction 1ms | SemanticLite 4ms | Snapshot 39ms
+- **GrpcAggregator** Trace (AggregatorService): DiscoveryAndCacheWarmup 5ms | SpecificExtraction 2ms | SemanticLite 3ms | Snapshot 48ms
+- **AspireSamples** Map: DiscoveryAndCacheWarmup 138ms | GenericExtraction 85ms | SpecificExtraction 122ms | SemanticLite 110ms | GraphAssembly 31ms | Insights 32ms | Compression 8ms | Snapshot 55ms
+
+
+Wrote C:\code\DevContext2\benchmarks\results\PERF-2026-07-28-0429.md
+#### BENCH DONE exit=0

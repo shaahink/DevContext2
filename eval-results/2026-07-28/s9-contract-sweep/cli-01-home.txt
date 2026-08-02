@@ -1,0 +1,128 @@
+♦
+DevContext
+System.CommandLine
+search or jump…
+Ctrl+K
+New
+System.CommandLine
+✕
++
+2
+4
+
+System.CommandLine · clitool.
+
+2 entries
+2 projects
+242 types
+0/2 wired
+edge confidence
+CliTool
+What it does
+COMMAND SURFACE
+2 commands · 2 with no resolved handler
+
+dotnet-suggest
+[Infrastructure]
+1
+
+dotnet-suggest (Main)
+no resolved handler
+
+System.CommandLine
+[Shared]
+1
+
+RootCommand —settings object
+no resolved handler
+1 hops
+ENTRIES BY KIND
+CLI
+2
+
+1 kind of entry point
+
+WIRING HEALTH
+0%
+entries targeted
+
+2 unwired
+
+FRESHNESS
+
+Analyzed just now in 4.3s
+
+173 edges · HEAD 95cdac6
+
+Current
+Top flows
+RootCommand —settings object
+System.CommandLine
+CLI
+dotnet-suggest (Main)
+dotnet-suggest
+CLI
+Needs attention
+warning
+2 of 2 entries have no resolved target
+notable
+Most depended-upon: System.CommandLine (4 dependents) · dotnet-suggest (1 dependents) · dotnet-suggest (1 dependents)
+START HERE
+Trace RootCommand —settings object
+Open atlas
+Point your agent here
+See all 4 insights →
+Run report
+Total wall time
+4.0s
+Log entries
+6
+STAGE TIMELINE
+DiscoveryAndCacheWarmup
+278ms
+GenericExtraction
+1.2s
+SignalSealing
+0ms
+SpecificExtraction
+317ms
+SemanticLite
+2.0s
+GraphAssembly
+116ms
+Insights
+58ms
+Compression
+33ms
+Snapshot
+44ms
+FUNNEL
+Types
+0 → 0
+Tokens
+0 / 8.0K budget
+Raw in
+0 raw tokens
+CACHE
+text
+80% hit
+(138 hits / 35 misses)
+syntax
+77% hit
+(1082 hits / 331 misses)
+EXTRACTORS
+Extractor	Time
+ProgramCsFlowExtractor	1.16s
+SyntaxStructureExtractor	1.15s
+DiRegistrationExtractor	1.15s
+SourceBodyExtractor	0.19s
+ProjectStructure	0.18s
+BodyFactsExtractor	0.13s
+CliCommandExtractor	0.12s
+InMemoryEventBusExtractor	0.12s
+FileTreeExtractor	0.05s
+SolutionDiscovery	0.04s
+System.CommandLine
+System.CommandLine — 242 nodes, 173 edges, 2 entries
+1.0.0
+modern

@@ -1,0 +1,199 @@
+=== matrix (47 poles, post-Batch-E, timeout 600s) started 12:38:52 ===
+
+== aspire-samples ==
+  wall=4.1s nodes=48 edges=20
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== AutoMapper ==
+  wall=7.7s nodes=467 edges=225
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== AzureFunctions ==
+  wall=8.5s nodes=686 edges=411
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== bitwarden-server ==
+  wall=69s nodes=9216 edges=11945
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Blazor ==
+  wall=29.4s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== blazor-samples ==
+  wall=19.3s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+== CleanArchitecture ==
+  wall=4.2s nodes=139 edges=64
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== CLI ==
+  wall=5.6s nodes=242 edges=173
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype CliTool not in [Library]
+
+== CommunityToolkit.Mvvm ==
+  wall=8s nodes=448 edges=249
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== company-functions ==
+  wall=1.6s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Dapper ==
+  wall=5s nodes=203 edges=62
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Desktop ==
+  wall=5.4s nodes=168 edges=102
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+== DntSite ==
+  wall=34.4s nodes=3174 edges=4168
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== dotnet-podcasts ==
+  wall=6.2s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== eShop ==
+  wall=8.2s nodes=1136 edges=1075
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== FluentValidation ==
+  wall=4.9s nodes=319 edges=169
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== functions-app ==
+  wall=1.7s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== GitVersion ==
+  --sln new-cli/GitVersion.slnx
+  wall=10.2s nodes=67 edges=15
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gitversion-default ==
+  wall=7.4s nodes=609 edges=396
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gRPC ==
+  wall=9.2s nodes=708 edges=396
+  transport=FAIL handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL transport: grpc=0 below min 1
+
+== Hangfire ==
+  wall=9s nodes=928 edges=599
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== HotChocolate ==
+  TIMEOUT: analyze exceeded 600s -- pole recorded as TIMEOUT, not scored
+
+== MahApps.Metro ==
+  wall=6.9s nodes=453 edges=153
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype Desktop not in [Library]; style Unknown not in [NotApplicable]
+
+== MassTransit ==
+  wall=41.2s nodes=10178 edges=7384
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== MassTransit-Sample ==
+  wall=2.6s nodes=16 edges=10
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== MediatR ==
+  wall=4.6s nodes=187 edges=67
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Newtonsoft.Json ==
+  wall=11.9s nodes=485 edges=363
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Ocelot ==
+  wall=14.5s nodes=754 edges=604
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== OrchardCore ==
+  wall=34.3s nodes=10188 edges=9890
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Orleans ==
+  wall=41.8s nodes=5106 edges=3539
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 1 of 1 send targets have no Handles edge: Message
+    FAIL entry-target: 32.4% of entry targets are bare DI interfaces (max 25%): GET /DashboardCounters -> IDashboardClient; GET /ClusterStats -> IDashboardClient; GET /HistoricalStats/{*path} -> IDashboardClient; GET /SiloProperties/{*address} -> IDashboardClient; GET /SiloMetadata/{*address} -> IDashboardClient
+
+== Polly ==
+  wall=13.2s nodes=670 edges=322
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== PowerToys ==
+  wall=37.5s nodes=8444 edges=6448
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Quartz.NET ==
+  wall=9.8s nodes=1780 edges=1322
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== RazorPages ==
+  wall=61.4s nodes=85 edges=128
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== razorpages-app ==
+  wall=1.8s nodes=4 edges=1
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== refit ==
+  wall=7.7s nodes=324 edges=135
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== RestSharp ==
+  wall=5.1s nodes=283 edges=162
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== ScreenToGif ==
+  wall=8.8s nodes=1227 edges=720
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Serilog ==
+  wall=5.5s nodes=204 edges=92
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== SignalR ==
+  wall=187.5s nodes=14352 edges=10241
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== signalr-app ==
+  wall=2.2s nodes=5 edges=2
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Spectre.Console ==
+  wall=7.6s nodes=603 edges=289
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== StackExchange.Redis ==
+  wall=14.9s nodes=1296 edges=816
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== TodoApi ==
+  wall=4.2s nodes=124 edges=74
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== wolverine ==
+  wall=46.9s nodes=6274 edges=4207
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 1 of 6 send targets have no Handles edge: Envelope
+
+== xUnit ==
+  wall=14.8s nodes=953 edges=575
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== YARP ==
+  wall=11.4s nodes=773 edges=435
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-close\MATRIX.md
+GRAPH-TRUTH: ERR (1 harness error(s))
+=== matrix finished 13:06:48 exit=1 ===

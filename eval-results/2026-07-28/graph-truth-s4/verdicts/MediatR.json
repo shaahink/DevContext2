@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "MediatR",
+    "run":  "2026-07-28 03:29:12",
+    "wallSec":  4.4,
+    "snapshotCache":  "HIT · 1fd25f5",
+    "nodeCount":  184,
+    "edgeCount":  62,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  1,
+                                                        "consumesTotal":  1,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IEnumerable(10), IMediator(3), IStreamPipelineBehavior(3), NotificationHandler(3), MediatRServiceConfiguration(3)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IEnumerable",
+                                                                       "id":  "Type:System.Collections.Generic.IEnumerable`1",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "IMediator",
+                                                                       "id":  "Type:MediatR.IMediator",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "IStreamPipelineBehavior",
+                                                                       "id":  "Type:MediatR.IStreamPipelineBehavior`2",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "NotificationHandler",
+                                                                       "id":  "Type:MediatR.NotificationHandler`1",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "MediatRServiceConfiguration",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.MediatRServiceConfiguration",
+                                                                       "degree":  3
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/0 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  1,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (MediatR.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "MediatR.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  15,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "MediatR.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed MediatR"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  6,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

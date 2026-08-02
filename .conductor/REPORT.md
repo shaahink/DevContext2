@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `3f0bc65`_
+_Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `8bdf44c`_
 
-**Status:** Idle
+**Status:** Completed
 **Stage:** G10 — Sweep for thresholds calibrated on pre-Batch-A data · attempts used 0
 **Checkpoints:** 22/22 done · **Sessions run:** 28 · **Cost:** $358.4167 (agent $358.0599 + gates $0.3568) · **Tokens:** 5,057,197 in / 1,962,410 out
 **Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9, G10
@@ -152,7 +152,6 @@ _Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `3f0bc65`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 19:16:50  ▪ gate fast-app pass [phase]  (1m37s)
 07-29 19:16:50  ▪ gate guards pass [phase]  (41.0s)
 07-29 19:16:50  ▪ gate battery pass [phase]  (8m52s)
 07-29 19:16:50  ▸ stage G7 confirmed  (59m40s)
@@ -192,6 +191,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-02 13:35:00  ▪ gate guards pass [phase]  (1m17s)
 08-02 13:35:00  ▪ gate battery pass [phase]  (10m23s)
 08-02 13:35:00  ✓ checkpoint G10.1 confirmed
+08-02 13:35:00  ▸ stage G10 confirmed  (50m59s)
 ```
 
 ## Health

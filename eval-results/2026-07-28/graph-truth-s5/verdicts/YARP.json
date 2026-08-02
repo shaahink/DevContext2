@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "YARP",
+    "run":  "2026-07-28 11:57:35",
+    "wallSec":  16.8,
+    "snapshotCache":  "HIT · 49b23da",
+    "nodeCount":  773,
+    "edgeCount":  435,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: TransformBuilderContext(39), RouteConfig(27), IReverseProxyBuilder(19), ProcessAsync(12), RunAsync(10)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "TransformBuilderContext",
+                                                                       "id":  "Type:Yarp.ReverseProxy.Transforms.Builder.TransformBuilderContext",
+                                                                       "degree":  39
+                                                                   },
+                                                                   {
+                                                                       "title":  "RouteConfig",
+                                                                       "id":  "Type:Yarp.ReverseProxy.Configuration.RouteConfig",
+                                                                       "degree":  27
+                                                                   },
+                                                                   {
+                                                                       "title":  "IReverseProxyBuilder",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.IReverseProxyBuilder",
+                                                                       "degree":  19
+                                                                   },
+                                                                   {
+                                                                       "title":  "ProcessAsync",
+                                                                       "id":  "Member:Yarp.Kubernetes.Controller.Services.Reconciler::ProcessAsync",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "RunAsync",
+                                                                       "id":  "Member:Yarp.Kubernetes.Protocol.Receiver::RunAsync",
+                                                                       "degree":  10
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/1 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  10,
+                                                        "withTarget":  1,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Gateway/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "Gateway",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.72
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (YARP.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "YARP.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  36,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "YARP.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed YARP"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  10,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

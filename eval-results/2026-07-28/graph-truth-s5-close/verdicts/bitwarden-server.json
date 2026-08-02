@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "bitwarden-server",
+    "run":  "2026-07-28 12:40:46",
+    "wallSec":  69,
+    "snapshotCache":  "HIT · 3e79593",
+    "nodeCount":  9216,
+    "edgeCount":  11945,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  3,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  4,
+                                                     "eventWiringCrossService":  1
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  7,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IUserService(305), IOrganizationRepository(234), ICurrentContext(180), IOrganizationUserRepository(175), User(166)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IUserService",
+                                                                       "id":  "Type:Bit.Core.Services.IUserService",
+                                                                       "degree":  305
+                                                                   },
+                                                                   {
+                                                                       "title":  "IOrganizationRepository",
+                                                                       "id":  "Type:Bit.Core.Repositories.IOrganizationRepository",
+                                                                       "degree":  234
+                                                                   },
+                                                                   {
+                                                                       "title":  "ICurrentContext",
+                                                                       "id":  "Type:Bit.Core.Context.ICurrentContext",
+                                                                       "degree":  180
+                                                                   },
+                                                                   {
+                                                                       "title":  "IOrganizationUserRepository",
+                                                                       "id":  "Type:Bit.Core.Repositories.IOrganizationUserRepository",
+                                                                       "degree":  175
+                                                                   },
+                                                                   {
+                                                                       "title":  "User",
+                                                                       "id":  "Type:Bit.Core.Entities.User",
+                                                                       "degree":  166
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/635 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  676,
+                                                        "withTarget":  635,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/Microservices",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "Microservices",
+                                                 "confidence":  0.82
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (bitwarden-server.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "bitwarden-server.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  64,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "bitwarden-server.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed bitwarden-server"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  1560,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

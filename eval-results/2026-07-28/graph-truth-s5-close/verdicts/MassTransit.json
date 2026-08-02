@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "MassTransit",
+    "run":  "2026-07-28 12:55:34",
+    "wallSec":  41.2,
+    "snapshotCache":  "HIT · 62ab339",
+    "nodeCount":  10178,
+    "edgeCount":  7384,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  5,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  39,
+                                                     "eventWiringCrossService":  4
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  47,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: ProbeContext(312), IPipe(189), IBehavior(115), ConsumeContext(100), IBehavior(84)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "ProbeContext",
+                                                                       "id":  "Type:MassTransit.ProbeContext",
+                                                                       "degree":  312
+                                                                   },
+                                                                   {
+                                                                       "title":  "IPipe",
+                                                                       "id":  "Type:MassTransit.IPipe`1",
+                                                                       "degree":  189
+                                                                   },
+                                                                   {
+                                                                       "title":  "IBehavior",
+                                                                       "id":  "Type:MassTransit.IBehavior`2",
+                                                                       "degree":  115
+                                                                   },
+                                                                   {
+                                                                       "title":  "ConsumeContext",
+                                                                       "id":  "Type:MassTransit.ConsumeContext",
+                                                                       "degree":  100
+                                                                   },
+                                                                   {
+                                                                       "title":  "IBehavior",
+                                                                       "id":  "Type:MassTransit.IBehavior`1",
+                                                                       "degree":  84
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/0 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  42,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (MassTransit.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "MassTransit.sln"
+                                                                  ],
+                                                     "analyzedProjects":  59,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "MassTransit.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed MassTransit"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  2948,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

@@ -1,0 +1,17 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Steps 2-4b: engine suites - SKIPPED (-Scope app) ---
+  fast tests / MCP QA / eval / CLI matrix skipped; the full battery must still run at the boundary
+
+--- Step 5: App check (pnpm check) ---
+  PASS  pnpm check passed
+
+GATE: PASS (APP scope - engine suites skipped; not a merge gate)

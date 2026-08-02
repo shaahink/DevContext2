@@ -1,0 +1,1 @@
+GitVersion.App (Main)	GitVersion.App (Main)

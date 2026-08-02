@@ -1,0 +1,70 @@
+♦
+DevContext
+MinimalApiProject
+search or jump…
+Ctrl+K
+New
+MinimalApiProject
+✕
++
+2
+3
+Atlas
+Export one-pager
+Download .md
+MinimalApiProject
+App
+CleanArchitecture · moderate
+Architecture
+
+3 projects · 2 dependency edges
+
+Legend
++
+−
+⊡
+Top flows
+POST /orders
+4 steps
+·
+3 deep
+·
+2 cross-service
+·
+HTTP
+GET /orders
+3 steps
+·
+2 deep
+·
+1 cross-service
+·
+HTTP
+Event & queue board
+
+No events detected — every indexed flow stays in-process.
+
+Data stores
+
+No data-store signals detected.
+
+Per-service breakdown
+Api
+CQRS
+2 HTTP
+MediatR
+Cross-cutting
+PACKAGES
+Web/API (1)
+ORM/Data (2)
+Mediator/CQRS (1)
+Hub radar
+
+Nodes appearing in the most distinct flows across the repo.
+
+No hubs indexed — index flows from the Explore page.
+
+MinimalApiProject
+Escape backs out one step at a time: cancel, close, deselect, clear
+1.0.0
+modern

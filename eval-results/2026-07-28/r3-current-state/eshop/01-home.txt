@@ -1,0 +1,96 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+
+eShop · app · 109 entries · 19 projects · 1.2K types · analyzed in 17.3s.
+
+109 entries
+19 projects
+1.2K types
+64/109 wired
+8% verified
+App
+Microservices · high
+What runs
+Services
+All projects
+bus-publish→consume
+ENTRIES BY KIND
+HTTP
+43
+Bus consumers
+13
+Domain events
+7
+Hosted services
+1
+UI
+42
+gRPC
+3
+
+109 entries across 19 projects
+
+WIRING HEALTH
+59%
+entries targeted
+
+64/109 entries have resolved targets — 45 unwired
+
+FRESHNESS
+
+Analyzed just now in 17s
+
+1152 types · 1089 edges · 19 projects · HEAD 9b4f943
+
+Current
+Top flows
+PUT
+/api/catalog/items
+Catalog.API
+HTTP
+PUT
+/api/catalog/items/{id:int}
+Catalog.API
+HTTP
+POST
+/api/orders/
+Ordering.API
+HTTP
+GET
+/api/catalog/items/withsemanticrelevance/{text:minlength(1)}
+Catalog.API
+HTTP
+GET
+/api/catalog/items/withsemanticrelevance
+Catalog.API
+HTTP
+PUT
+/api/orders/cancel
+Ordering.API
+HTTP
+PUT
+/api/orders/ship
+Ordering.API
+HTTP
+Needs attention
+warning
+45 of 109 entries have no resolved target
+START HERE
+Trace [RelayCommand] C…el.CheckoutAsync
+Open atlas
+Point your agent here
+See all 10 insights →
+Run report
+eShop
+Escape backs out one step at a time: cancel, close, deselect, clear
+1.0.0
+modern

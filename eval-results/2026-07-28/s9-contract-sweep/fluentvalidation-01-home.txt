@@ -1,0 +1,109 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+
+FluentValidation · library · 96 public types · 2 projects · 319 types · analyzed in 0.6s.
+
+96 public types
+5 namespaces
+2 projects
+319 types
+16% verified
+Library
+What runs
+SURFACE BY NAMESPACE
+FluentValidation.Validators
+55
+FluentValidation
+32
+FluentValidation.TestHelper
+5
+FluentValidation.Resources
+2
+FluentValidation.Results
+2
+
+96 public types across 5 namespaces
+
+CONSUMER FRONT DOORS
+register
+3
+derive
+3
+implement
+1
+extend
+3
+
+Browse the library surface →
+
+FRESHNESS
+
+Analyzed just now in 0.6s
+
+319 types · 169 edges · 2 projects · HEAD 9439790
+
+Current
+START HERE
+Open atlas
+Point your agent here
+See all 3 insights →
+Run report
+Total wall time
+5.8s
+STAGE TIMELINE
+DiscoveryAndCacheWarmup
+116ms
+GenericExtraction
+1.1s
+SignalSealing
+0ms
+SpecificExtraction
+94ms
+SemanticLite
+4.4s
+GraphAssembly
+35ms
+Insights
+10ms
+Compression
+32ms
+Snapshot
+65ms
+FUNNEL
+Types
+0 → 0
+Tokens
+0 / 8.0K budget
+Raw in
+0 raw tokens
+CACHE
+text
+91% hit
+(197 hits / 20 misses)
+syntax
+75% hit
+(1139 hits / 383 misses)
+EXTRACTORS
+Extractor	Time
+SyntaxStructureExtractor	1.06s
+ProgramCsFlowExtractor	1.06s
+DiRegistrationExtractor	1.06s
+ProjectStructure	0.08s
+SourceBodyExtractor	0.06s
+InMemoryEventBusExtractor	0.04s
+BodyFactsExtractor	0.03s
+SolutionDiscovery	0.02s
+FileTreeExtractor	0.01s
+IndirectWiringDetector	0.01s
+FluentValidation
+FluentValidation — 319 nodes, 169 edges, 0 entries
+1.0.0
+modern

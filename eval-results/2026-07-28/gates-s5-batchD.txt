@@ -1,0 +1,11 @@
+=== gates (full) started 11:00:47 ===
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  Determining projects to restore...   All projects are up-to-date for restore.   DevContext.Contracts -> C:\code\DevContext2\src\DevContext.Contracts\bin\Debug\net10.0\DevContext.Contracts.dll   DevContext.Core -> C:\code\DevContext2\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll   DevContext.Mcp -> C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.dll   DevContext.Core.Tests -> C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll   DevContext.Cli -> C:\code\DevContext2\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.dll   DevContext.Server -> C:\code\DevContext2\src\DevContext.Server\bin\Debug\net10.0\DevContext.Server.dll C:\code\DevContext2\benchmarks\DevContext.Benchmarks\Program.cs(76,25): error CS1729: 'DiscoveryPipeline' does not contain a constructor that takes 5 arguments [C:\code\DevContext2\benchmarks\DevContext.Benchmarks\DevContext.Benchmarks.csproj]   DevContext.Server.Tests -> C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll  Build FAILED.  C:\code\DevContext2\benchmarks\DevContext.Benchmarks\Program.cs(76,25): error CS1729: 'DiscoveryPipeline' does not contain a constructor that takes 5 arguments [C:\code\DevContext2\benchmarks\DevContext.Benchmarks\DevContext.Benchmarks.csproj]     0 Warning(s)     1 Error(s)  Time Elapsed 00:00:15.37
+  FAIL  Build failed
+
+GATE: FAIL (step 1 - build)
+=== gates finished 11:01:04 exit=1 ===

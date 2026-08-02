@@ -1,0 +1,50 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+1
+GitVersion.App (Main)
+GitVersion
+○
+jk scrub
+Browse all entries
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Services
+All projects
++
+−
+⊡
+▾
+Details
+
+Select an entry, node, or insight to inspect.
+
+▸
+Code
+▸
+Insights
+6
+▸
+Call Stack
+▾
+Trail
+
+Your exploration path collects here — pins seed the export pack.
+
+GitVersion
+Press p to pin a trail step into your export pack
+1.0.0
+modern

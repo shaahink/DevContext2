@@ -1,0 +1,52 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+1
+GitVersion.App (Main)
+GitVersion
+○
+jk scrub
+Browse all entries
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Tree
+Graph
+approx only
+POST /api/orders/
+Trace not found for this focus.
+▾
+Details
+
+POST /api/orders/
+
+Entry focus — click a node in the trace for detail.
+
+▸
+Code
+▸
+Insights
+6
+▸
+Call Stack
+▾
+Trail
+
+Your exploration path collects here — pins seed the export pack.
+
+GitVersion
+Escape backs out one step at a time: cancel, close, deselect, clear
+1.0.0
+modern

@@ -1,0 +1,83 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+
+LIBRARY SURFACE
+
+Entry API
+10
+Abstractions
+10
+Generators
+0
+Public surface
+96
+Consumer paths
+6
+FluentValidation
+96 public types · 5 namespaces · 16 internal
+register
+ServiceCollectionExtensions.AddValidatorsFromAssemblies
+ServiceCollectionExtensions.cs
+
+Adds all validators in specified assemblies
+
+register
+ServiceCollectionExtensions.AddValidatorsFromAssembly
+ServiceCollectionExtensions.cs
+
+Adds all validators in specified assembly
+
+register
+ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining
+ServiceCollectionExtensions.cs
+
+Adds all validators in the assembly of the specified type
+
+derive
+AbstractValidator
+AbstractValidator.cs
+
+Base class for object validators.
+
+implement
+IPropertyValidator
+IPropertyValidator.cs
+
+A custom property validator.
+
+derive
+InlineValidator
+InlineValidator.cs
+
+Validator implementation that allows rules to be defined without inheriting from AbstractValidator.
+
+derive
+PropertyValidator
+PropertyValidator.cs
+extend
+DefaultValidatorExtensions
+DefaultValidatorExtensions.cs
+
+Extension methods that provide the default set of validators.
+
+extend
+DefaultValidatorOptions
+DefaultValidatorOptions.cs
+
+Default options that can be used to configure a validator.
+
+extend
+ValidationTestExtension
+ValidatorTestExtensions.cs
+FluentValidation
+Press p to pin a trail step into your export pack
+1.0.0
+modern

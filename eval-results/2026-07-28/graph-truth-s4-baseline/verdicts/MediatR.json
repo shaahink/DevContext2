@@ -1,0 +1,115 @@
+﻿{
+    "repo":  "MediatR",
+    "run":  "2026-07-28 02:41:20",
+    "wallSec":  8.1,
+    "snapshotCache":  "HIT · 1fd25f5",
+    "nodeCount":  239,
+    "edgeCount":  130,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  1,
+                                                        "consumesTotal":  1,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "FAIL",
+                                      "detail":  "test/fixture hubs in top-5: CreateStream(10)",
+                                      "metrics":  {
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "Send",
+                                                                       "id":  "Member:MediatR.Mediator::Send",
+                                                                       "degree":  29
+                                                                   },
+                                                                   {
+                                                                       "title":  "CreateStream",
+                                                                       "id":  "Member:MediatR.Mediator::CreateStream",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "IEnumerable",
+                                                                       "id":  "Type:System.Collections.Generic.IEnumerable`1",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "MediatRServiceConfiguration.RegisterServicesFromAssemblyContaining",
+                                                                       "id":  "Member:Microsoft.Extensions.DependencyInjection.MediatRServiceConfiguration::RegisterServicesFromAssemblyContaining",
+                                                                       "degree":  8
+                                                                   },
+                                                                   {
+                                                                       "title":  "PublishNotification",
+                                                                       "id":  "Member:MediatR.Mediator::PublishNotification",
+                                                                       "degree":  6
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/1 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  1,
+                                                        "withTarget":  1,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "SKIP",
+                                 "detail":  "no style truth declared (got Library/SampleCollection)",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.75
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "1 sln on disk, 15 projects analyzed",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "MediatR.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  15
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  6,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

@@ -1,0 +1,231 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+Change-impact pack
+
+seeds flow · bodies · contracts · tests for one entry, by kind
+
+From current trail
+Catalog.API
+18
+GET
+/api/catalog/items
+GET
+/api/catalog/items
+GET
+/api/catalog/items/by
+GET
+/api/catalog/items/{id:int}
+GET
+/api/catalog/items/by/{name:minlength(1)}
+GET
+/api/catalog/items/{id:int}/pic
+GET
+/api/catalog/items/withsemanticrelevance/{text:minlength(1)}
+GET
+/api/catalog/items/withsemanticrelevance
+GET
+/api/catalog/items/type/{typeId}/brand/{brandId?}
+GET
+/api/catalog/items/type/all/brand/{brandId:int?}
+GET
+/api/catalog/catalogtypes
+GET
+/api/catalog/catalogbrands
+PUT
+/api/catalog/items
+PUT
+/api/catalog/items/{id:int}
+POST
+/api/catalog/items
+DELETE
+/api/catalog/items/{id:int}
+OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+OrderStatusChangedToPaidIntegrationEventHandler
+Identity.API
+14
+GET
+/Account
+POST
+/Account
+GET
+/Account
+POST
+/Account
+GET
+/Account
+GET
+/External
+GET
+/External
+GET
+/Consent
+POST
+/Consent
+GET
+/Device
+POST
+/Device
+POST
+/Device
+GET
+/Grants
+POST
+/Grants
+Ordering.API
+19
+PUT
+/api/orders/cancel
+PUT
+/api/orders/ship
+GET
+/api/orders/{orderId:int}
+GET
+/api/orders/
+GET
+/api/orders/cardtypes
+POST
+/api/orders/draft
+POST
+/api/orders/
+GracePeriodConfirmedIntegrationEventHandler
+OrderPaymentFailedIntegrationEventHandler
+OrderPaymentSucceededIntegrationEventHandler
+OrderStockConfirmedIntegrationEventHandler
+OrderStockRejectedIntegrationEventHandler
+OrderCancelledDomainEventHandler
+OrderShippedDomainEventHandler
+OrderStatusChangedToAwaitingValidationDomainEventHandler
+OrderStatusChangedToPaidDomainEventHandler
+OrderStatusChangedToStockConfirmedDomainEventHandler
+UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
+ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+WebhookClient
+6
+POST
+/logout
+POST
+/webhook-received
+/add-webhook
+/Error
+/
+/login
+Webhooks.API
+5
+GET
+/api/webhooks/
+GET
+/api/webhooks/{id:int}
+POST
+/api/webhooks/
+DELETE
+/api/webhooks/{id:int}
+ProductPriceChangedIntegrationEventHandler
+Basket.API
+4
+OrderStartedIntegrationEventHandler
+Basket.GetBasket
+Basket.UpdateBasket
+Basket.DeleteBasket
+PaymentProcessor
+1
+OrderStatusChangedToStockConfirmedIntegrationEventHandler
+WebApp
+10
+OrderStatusChangedToCancelledIntegrationEventHandler
+OrderStatusChangedToShippedIntegrationEventHandler
+OrderStatusChangedToSubmittedIntegrationEventHandler
+/cart
+/
+/checkout
+/item/{itemId:int}
+/user/login
+/user/logout
+/user/orders
+OrderProcessor
+1
+GracePeriodManagerService
+HybridApp
+3
+/
+/item/{itemId:int}
+MainPage
+ClientApp
+28
+AppShell
+[RelayCommand] BasketViewModel.AddAsync
+[RelayCommand] BasketViewModel.DeleteAsync
+[RelayCommand] BasketViewModel.CheckoutAsync
+[RelayCommand] CatalogItemViewModel.AddCatalogItemAsync
+[RelayCommand] CatalogItemViewModel.DismissAsync
+[RelayCommand] CatalogViewModel.ViewCatalogItemAsync
+[RelayCommand] CatalogViewModel.Filter
+[RelayCommand] CatalogViewModel.SelectCatalogBrand
+[RelayCommand] CatalogViewModel.SelectCatalogType
+[RelayCommand] CatalogViewModel.ApplyFilterAsync
+[RelayCommand] CatalogViewModel.ClearFilterAsync
+[RelayCommand] CatalogViewModel.ViewBasket
+[RelayCommand] CheckoutViewModel.CheckoutAsync
+[RelayCommand] LoginViewModel.MockSignInAsync
+[RelayCommand] LoginViewModel.SignInAsync
+[RelayCommand] LoginViewModel.RegisterAsync
+[RelayCommand] LoginViewModel.PerformLogoutAsync
+[RelayCommand] LoginViewModel.SettingsAsync
+[RelayCommand] LoginViewModel.Validate
+[RelayCommand] MainViewModel.SettingsAsync
+[RelayCommand] OrderDetailViewModel.ToggleCancelOrderAsync
+[RelayCommand] ProfileViewModel.LogoutAsync
+[RelayCommand] ProfileViewModel.RefreshAsync
+[RelayCommand] ProfileViewModel.OrderDetailAsync
+ContentPageBase
+FiltersView
+SettingsView
+0 of 109 selected
+Add to context
+No cards yet. Pick items from the scope picker to build context.
+0 cards
+0 tok
+LIVE PREVIEW
+— exactly what Copy copies
+
+Add cards from the scope picker — the assembled pack renders here as you shape it.
+
+BUDGET
+Token budget
+4000 tok
+1k
+2k
+4k
+8k
+12k
+16k
+PER-CARD METER
+
+No cards to meter.
+
+Total
+~0 / 4000 tok
+INTENT
+Trace
+Explain
+Review
+BODIES
+All bodies shown
+FORMAT
+markdown
+plain
+json
+Copy
+Save
+eShop
+eShop — 1152 nodes, 1089 edges, 109 entries
+1.0.0
+modern

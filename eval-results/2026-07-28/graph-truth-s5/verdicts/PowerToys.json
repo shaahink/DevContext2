@@ -1,0 +1,137 @@
+﻿{
+    "repo":  "PowerToys",
+    "run":  "2026-07-28 11:44:44",
+    "wallSec":  83,
+    "snapshotCache":  "HIT · 5c9c93d",
+    "nodeCount":  8444,
+    "edgeCount":  6448,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: List(100), OobePowerToysModule(93), Task(88), SettingsUtils(81), FrmMatrix(44)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "List",
+                                                                       "id":  "Type:System.Collections.Generic.List`1",
+                                                                       "degree":  100
+                                                                   },
+                                                                   {
+                                                                       "title":  "OobePowerToysModule",
+                                                                       "id":  "Type:Microsoft.PowerToys.Settings.UI.OOBE.ViewModel.OobePowerToysModule",
+                                                                       "degree":  93
+                                                                   },
+                                                                   {
+                                                                       "title":  "Task",
+                                                                       "id":  "Type:System.Threading.Tasks.Task",
+                                                                       "degree":  88
+                                                                   },
+                                                                   {
+                                                                       "title":  "SettingsUtils",
+                                                                       "id":  "Type:Microsoft.PowerToys.Settings.UI.Library.SettingsUtils",
+                                                                       "degree":  81
+                                                                   },
+                                                                   {
+                                                                       "title":  "FrmMatrix",
+                                                                       "id":  "EntryPoint:ui:FrmMatrix",
+                                                                       "degree":  44
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "4/23 targets are bare DI interfaces (17.4% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  243,
+                                                        "withTarget":  23,
+                                                        "diInterfaceTargets":  4,
+                                                        "diInterfacePct":  17.4,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+                                                                       "[RelayCommand] MainViewModel.LoadAsync -\u003e IMainView",
+                                                                       "[RelayCommand] InputViewModel.Cancel -\u003e IMainView",
+                                                                       "[RelayCommand] ProgressViewModel.Stop -\u003e IMainView",
+                                                                       "[RelayCommand] ResultsViewModel.Close -\u003e IMainView"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Desktop/ModularMonolith",
+                                 "metrics":  {
+                                                 "archetype":  "Desktop",
+                                                 "style":  "ModularMonolith",
+                                                 "confidence":  1
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed PowerToys.slnx — 1 of 12 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  12,
+                                                     "slnNames":  [
+                                                                      "installer\\PowerToysSetup.slnx",
+                                                                      "src\\modules\\cmdpal\\ExtensionTemplate\\TemplateCmdPalExtension\\TemplateCmdPalExtension.sln",
+                                                                      "src\\modules\\fancyzones\\editor\\FancyZonesEditor.sln",
+                                                                      "src\\modules\\MouseUtils\\CursorWrap\\CursorWrapTests\\CursorLog\\CursorLog.slnx",
+                                                                      "tools\\BugReportTool\\BugReportTool.sln",
+                                                                      "tools\\FancyZones_DrawLayoutTest\\FancyZones_DrawLayoutTest.sln",
+                                                                      "tools\\FancyZones_zonable_tester\\FancyZones_zonable_tester.sln",
+                                                                      "tools\\FancyZone_HitTest\\FancyZone_HitTest.sln",
+                                                                      "tools\\MonitorReportTool\\MonitorReportTool.sln",
+                                                                      "tools\\project_template\\PowerToyTemplate.sln"
+                                                                  ],
+                                                     "analyzedProjects":  208,
+                                                     "noteSolutionsOnDisk":  12,
+                                                     "noteAnalyzed":  "PowerToys.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed PowerToys.slnx — 1 of 12 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "8 dup-name types touched by cross-project edges: App [Peek.UI], Helper [Settings.UI.Library], Logger [ManagedCommon], MonitorInfo [Settings.UI.Library], NativeEventWaiter [Common.UI]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  677,
+                                                    "dupNameTypesTouched":  8,
+                                                    "sample":  [
+                                                                   "App [Peek.UI]",
+                                                                   "Helper [Settings.UI.Library]",
+                                                                   "Logger [ManagedCommon]",
+                                                                   "MonitorInfo [Settings.UI.Library]",
+                                                                   "NativeEventWaiter [Common.UI]"
+                                                               ]
+                                                }
+                                }
+               }
+}

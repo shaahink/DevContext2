@@ -1,0 +1,122 @@
+﻿{
+    "repo":  "Polly",
+    "run":  "2026-07-28 12:58:07",
+    "wallSec":  13.2,
+    "snapshotCache":  "HIT · 7a1d10f",
+    "nodeCount":  670,
+    "edgeCount":  322,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: AsyncPolicy(25), Policy(22), ResilienceStrategyTelemetry(19), PolicyBuilder(14), PolicyBuilder(14)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "AsyncPolicy",
+                                                                       "id":  "Type:Polly.AsyncPolicy",
+                                                                       "degree":  25
+                                                                   },
+                                                                   {
+                                                                       "title":  "Policy",
+                                                                       "id":  "Type:Polly.Policy",
+                                                                       "degree":  22
+                                                                   },
+                                                                   {
+                                                                       "title":  "ResilienceStrategyTelemetry",
+                                                                       "id":  "Type:Polly.Telemetry.ResilienceStrategyTelemetry",
+                                                                       "degree":  19
+                                                                   },
+                                                                   {
+                                                                       "title":  "PolicyBuilder",
+                                                                       "id":  "Type:Polly.PolicyBuilder",
+                                                                       "degree":  14
+                                                                   },
+                                                                   {
+                                                                       "title":  "PolicyBuilder",
+                                                                       "id":  "Type:Polly.PolicyBuilder`1",
+                                                                       "degree":  14
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed Polly.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  2,
+                                                     "slnNames":  [
+                                                                      "samples\\Samples.slnx",
+                                                                      "Polly.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  21,
+                                                     "noteSolutionsOnDisk":  2,
+                                                     "noteAnalyzed":  "Polly.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Polly.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  83,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

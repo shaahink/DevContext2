@@ -1,0 +1,126 @@
+﻿{
+    "repo":  "SignalR",
+    "run":  "2026-07-28 11:54:34",
+    "wallSec":  242.8,
+    "snapshotCache":  "HIT · 360e42c",
+    "nodeCount":  14352,
+    "edgeCount":  10241,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IServiceCollection(229), HttpContext(201), UserManager(122), TUser(104), GetUserAsync(93)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IServiceCollection",
+                                                                       "id":  "Type:Microsoft.AspNetCore.Analyzers.SymbolNames.IServiceCollection",
+                                                                       "degree":  229
+                                                                   },
+                                                                   {
+                                                                       "title":  "HttpContext",
+                                                                       "id":  "Type:Microsoft.AspNetCore.Http.HttpContext",
+                                                                       "degree":  201
+                                                                   },
+                                                                   {
+                                                                       "title":  "UserManager",
+                                                                       "id":  "Type:Microsoft.AspNetCore.Identity.UserManager`1",
+                                                                       "degree":  122
+                                                                   },
+                                                                   {
+                                                                       "title":  "TUser",
+                                                                       "id":  "Type:TUser",
+                                                                       "degree":  104
+                                                                   },
+                                                                   {
+                                                                       "title":  "GetUserAsync",
+                                                                       "id":  "Member:Microsoft.AspNetCore.Identity.UserManager`1::GetUserAsync",
+                                                                       "degree":  93
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/79 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  91,
+                                                        "withTarget":  79,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed AspNetCore.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  2,
+                                                     "slnNames":  [
+                                                                      "src\\ProjectTemplates\\Web.ProjectTemplates\\content\\BlazorWeb-CSharp\\BlazorWebCSharp.1.sln",
+                                                                      "AspNetCore.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  616,
+                                                     "noteSolutionsOnDisk":  2,
+                                                     "noteAnalyzed":  "AspNetCore.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed AspNetCore.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "FAIL",
+                                    "detail":  "12 dup-name types touched by cross-project edges: CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions], FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core], HttpConnection [Microsoft.AspNetCore.Http.Connections.Client], HttpConnectionContext [Microsoft.AspNetCore.Http.Connections], HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  2640,
+                                                    "dupNameTypesTouched":  12,
+                                                    "sample":  [
+                                                                   "CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions]",
+                                                                   "FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core]",
+                                                                   "HttpConnection [Microsoft.AspNetCore.Http.Connections.Client]",
+                                                                   "HttpConnectionContext [Microsoft.AspNetCore.Http.Connections]",
+                                                                   "HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]"
+                                                               ]
+                                                }
+                                }
+               }
+}

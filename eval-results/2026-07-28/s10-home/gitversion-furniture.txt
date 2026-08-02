@@ -1,0 +1,31 @@
+GitVersion · clitool.
+
+Analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo.
+Switch to
+build/CI.slnx
+new-cli/GitVersion.slnx
+1 entry
+11 projects
+609 types
+0/1 wired
+edge confidence
+CliTool
+ENTRIES BY KIND
+CLI
+1
+
+1 kind of entry point
+
+WIRING HEALTH
+0%
+entries targeted
+
+1 unwired
+
+FRESHNESS
+
+Analyzed just now in 3.5s
+
+396 edges · HEAD 6476e5c
+
+Current

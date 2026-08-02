@@ -1,0 +1,70 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+Atlas
+Export one-pager
+Download .md
+GitVersion
+CliTool
+NotApplicable
+Architecture
+
+11 projects · 16 dependency edges
+
+Services
+All projects
++
+−
+⊡
+Top flows
+GitVersion.App (Main)
+1 steps
+·
+0 deep
+·
+CLI
+Event & queue board
+
+No events detected — every indexed flow stays in-process.
+
+Data stores
+
+No data-store signals detected.
+
+Per-service breakdown
+Cli
+CLI
+CLI
+Core.Tester
+Unknown
+No stack signals detected
+App
+Unknown
+1 CLI
+Schema
+Unknown
+No stack signals detected
+Cross-cutting
+PACKAGES
+Logging (4)
+Testing (6)
+Utilities (1)
+Other (38)
+Hub radar
+
+Nodes appearing in the most distinct flows across the repo.
+
+No hubs indexed — index flows from the Explore page.
+
+GitVersion
+GitVersion — 609 nodes, 396 edges, 1 entries
+1.0.0
+modern

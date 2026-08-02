@@ -1,0 +1,63 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+
+GitVersion · clitool · 1 entries · 11 projects · 609 types · analyzed in 5.7s.
+
+Analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo.
+Switch to
+build/CI.slnx
+new-cli/GitVersion.slnx
+1 entries
+11 projects
+609 types
+0/1 wired
+11% verified
+CliTool
+NotApplicable
+What runs
+Services
+All projects
+ENTRIES BY KIND
+CLI
+1
+
+1 entries across 11 projects
+
+WIRING HEALTH
+0%
+entries targeted
+
+0/1 entries have resolved targets — 1 unwired
+
+FRESHNESS
+
+Analyzed just now in 5.7s
+
+609 types · 396 edges · 11 projects · HEAD 6476e5c
+
+Current
+Top flows
+GitVersion.App (Main)
+App
+CLI
+Needs attention
+warning
+1 of 1 entries have no resolved target
+START HERE
+Open atlas
+Point your agent here
+See all 6 insights →
+Run report
+GitVersion
+Shift+E opens the full entry audit table
+1.0.0
+modern

@@ -1,0 +1,128 @@
+﻿{
+    "repo":  "CleanArchitecture",
+    "run":  "2026-07-28 03:25:45",
+    "wallSec":  5,
+    "snapshotCache":  "HIT · a064d0b",
+    "nodeCount":  139,
+    "edgeCount":  59,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "FAIL",
+                                        "detail":  "5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand",
+                                        "metrics":  {
+                                                        "sendsTotal":  6,
+                                                        "handlesTotal":  2,
+                                                        "consumesTotal":  2,
+                                                        "unhandledTargets":  5,
+                                                        "sample":  [
+                                                                       "CreateContributorCommand",
+                                                                       "DeleteContributorCommand",
+                                                                       "GetContributorQuery",
+                                                                       "ListContributorsQuery",
+                                                                       "UpdateContributorCommand"
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: Contributor(6), IServiceCollection(5), Handle(3), List.HandleAsync(3), ContributorDeletedEvent(3)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "Contributor",
+                                                                       "id":  "Type:Clean.Architecture.Core.ContributorAggregate.Contributor",
+                                                                       "degree":  6
+                                                                   },
+                                                                   {
+                                                                       "title":  "IServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.IServiceCollection",
+                                                                       "degree":  5
+                                                                   },
+                                                                   {
+                                                                       "title":  "Handle",
+                                                                       "id":  "Member:Clean.Architecture.Core.ContributorAggregate.Handlers.ContributorNameUpdatedEmailNotificationHandler::Handle",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "List.HandleAsync",
+                                                                       "id":  "Member:Clean.Architecture.Web.Contributors.List::HandleAsync",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "ContributorDeletedEvent",
+                                                                       "id":  "Type:Clean.Architecture.Core.ContributorAggregate.Events.ContributorDeletedEvent",
+                                                                       "degree":  3
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/5 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  7,
+                                                        "withTarget":  5,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/CleanArchitecture",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "CleanArchitecture",
+                                                 "confidence":  0.7
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed Clean.Architecture.slnx — 1 of 4 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  4,
+                                                     "slnNames":  [
+                                                                      "MinimalClean\\MinimalClean.Architecture.slnx",
+                                                                      "sample\\NimblePros.SampleToDo.slnx",
+                                                                      "src\\Clean.Architecture.Core\\Clean.Architecture.Core.sln",
+                                                                      "Clean.Architecture.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  22,
+                                                     "noteSolutionsOnDisk":  4,
+                                                     "noteAnalyzed":  "Clean.Architecture.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Clean.Architecture.slnx — 1 of 4 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  11,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

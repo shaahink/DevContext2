@@ -1,0 +1,42 @@
+COMMAND SURFACE
+5 commands · 5 with no resolved handler
+
+GitVersion.Calculation
+[Contracts]
+1
+
+calculate (CalculateCommand)
+no resolved handler
+1 hops
+
+GitVersion.Cli
+[Infrastructure]
+1
+
+test (TestCommand)
+no resolved handler
+1 hops
+
+GitVersion.Configuration
+[Contracts]
+1
+
+config (ConfigCommand)
+no resolved handler
+1 hops
+
+GitVersion.Normalization
+[Contracts]
+1
+
+normalize (NormalizeCommand)
+no resolved handler
+1 hops
+
+GitVersion.Output
+[Contracts]
+1
+
+output (OutputCommand)
+no resolved handler
+1 hops

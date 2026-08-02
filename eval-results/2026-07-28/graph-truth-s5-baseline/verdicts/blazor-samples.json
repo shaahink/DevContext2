@@ -1,0 +1,130 @@
+﻿{
+    "repo":  "blazor-samples",
+    "run":  "2026-07-28 10:23:14",
+    "wallSec":  29.3,
+    "snapshotCache":  "HIT · 567732e",
+    "nodeCount":  12,
+    "edgeCount":  4,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "SKIP",
+                                      "detail":  "no node reaches degree 3 -- graph too small to have hubs",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  0,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "GetSearchResults",
+                                                                       "id":  "Member:BlazorWebAssemblyXrefGenerator.Pages.Home::GetSearchResults",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "GET /",
+                                                                       "id":  "EntryPoint:GET /",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "SearchResults.Take",
+                                                                       "id":  "Member:BlazorWebAssemblyXrefGenerator.Pages.Home.SearchResults::Take",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "Home.OnInitialized",
+                                                                       "id":  "Member:BlazorWebAssemblyXrefGenerator.Pages.Home::OnInitialized",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "\"APIClient\"",
+                                                                       "id":  "Type:\"APIClient\"",
+                                                                       "degree":  1
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/1 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  2,
+                                                        "withTarget":  1,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "SKIP",
+                                 "detail":  "no style truth declared (got App/SampleCollection)",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.62
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed BlazorWebAssemblyXrefGenerator/BlazorWebAssemblyXrefGenerator.sln — 1 of 70 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  70,
+                                                     "slnNames":  [
+                                                                      "10.0\\BlazorSample_BlazorWebApp\\BlazorSample.sln",
+                                                                      "10.0\\BlazorSample_BlazorWebAssembly\\BlazorSample.sln",
+                                                                      "10.0\\BlazorSignalRApp\\BlazorSignalRApp.sln",
+                                                                      "10.0\\BlazorWebAppAreaOfStaticSsrComponents\\BlazorWebAppAreaOfStaticSsrComponents.sln",
+                                                                      "10.0\\BlazorWebAppCallWebApi\\BlazorApp.sln",
+                                                                      "10.0\\BlazorWebAppCallWebApi_Weather\\BlazorApp.sln",
+                                                                      "10.0\\BlazorWebAppEntraBff\\BlazorWebAppEntra.sln",
+                                                                      "10.0\\BlazorWebAppEntraBffYarpAspire\\BlazorWebAppEntra.sln",
+                                                                      "10.0\\BlazorWebAppMovies\\BlazorWebAppMovies.slnx",
+                                                                      "10.0\\BlazorWebAppOidcBffAuto\\BlazorWebAppOidc.sln"
+                                                                  ],
+                                                     "analyzedProjects":  142,
+                                                     "noteSolutionsOnDisk":  70,
+                                                     "noteAnalyzed":  "BlazorWebAssemblyXrefGenerator/BlazorWebAssemblyXrefGenerator.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed BlazorWebAssemblyXrefGenerator/BlazorWebAssemblyXrefGenerator.sln — 1 of 70 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

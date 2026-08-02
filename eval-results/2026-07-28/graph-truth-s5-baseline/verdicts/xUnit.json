@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "xUnit",
+    "run":  "2026-07-28 10:24:32",
+    "wallSec":  16.3,
+    "snapshotCache":  "HIT · 3ffec7b",
+    "nodeCount":  953,
+    "edgeCount":  575,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "FAIL",
+                                      "detail":  "test/fixture hubs in top-5: ITestFrameworkExecutionOptions(61), ITestFrameworkDiscoveryOptions(41)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "ITestFrameworkExecutionOptions",
+                                                                       "id":  "Type:Xunit.Sdk.ITestFrameworkExecutionOptions",
+                                                                       "degree":  61
+                                                                   },
+                                                                   {
+                                                                       "title":  "MessageMetadataCache",
+                                                                       "id":  "Type:Xunit.Runner.Common.MessageMetadataCache",
+                                                                       "degree":  60
+                                                                   },
+                                                                   {
+                                                                       "title":  "ITestFrameworkDiscoveryOptions",
+                                                                       "id":  "Type:Xunit.Sdk.ITestFrameworkDiscoveryOptions",
+                                                                       "degree":  41
+                                                                   },
+                                                                   {
+                                                                       "title":  "IRunnerLogger",
+                                                                       "id":  "Type:Xunit.Runner.Common.IRunnerLogger",
+                                                                       "degree":  33
+                                                                   },
+                                                                   {
+                                                                       "title":  "String",
+                                                                       "id":  "Type:Xunit1.EqualTests.StringTests::String(0)",
+                                                                       "degree":  29
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (xunit.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "xunit.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  47,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "xunit.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed xunit"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  216,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

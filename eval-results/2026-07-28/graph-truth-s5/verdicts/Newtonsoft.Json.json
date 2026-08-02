@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "Newtonsoft.Json",
+    "run":  "2026-07-28 11:38:42",
+    "wallSec":  16.6,
+    "snapshotCache":  "HIT · 4f73e74",
+    "nodeCount":  485,
+    "edgeCount":  363,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: JsonWriter(50), JsonReader(44), JsonTextWriter(18), JToken(18), JsonSerializer(14)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "JsonWriter",
+                                                                       "id":  "Type:Newtonsoft.Json.JsonWriter",
+                                                                       "degree":  50
+                                                                   },
+                                                                   {
+                                                                       "title":  "JsonReader",
+                                                                       "id":  "Type:Newtonsoft.Json.JsonReader",
+                                                                       "degree":  44
+                                                                   },
+                                                                   {
+                                                                       "title":  "JsonTextWriter",
+                                                                       "id":  "Type:Newtonsoft.Json.JsonTextWriter",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "JToken",
+                                                                       "id":  "Type:Newtonsoft.Json.Linq.JToken",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "JsonSerializer",
+                                                                       "id":  "Type:Newtonsoft.Json.JsonSerializer",
+                                                                       "degree":  14
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (Src/Newtonsoft.Json.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "Src\\Newtonsoft.Json.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  4,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "Src/Newtonsoft.Json.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Newtonsoft.Json"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

@@ -1,0 +1,123 @@
+﻿{
+    "repo":  "refit",
+    "run":  "2026-07-28 11:49:20",
+    "wallSec":  18.4,
+    "snapshotCache":  "HIT · 71634f2",
+    "nodeCount":  324,
+    "edgeCount":  135,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: ValueStringBuilder(17), AddKeyedRefitClient(14), AddRefitClient(12), RefitSettings(11), RestMethodInfoInternal(8)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "ValueStringBuilder",
+                                                                       "id":  "Type:Refit.ValueStringBuilder",
+                                                                       "degree":  17
+                                                                   },
+                                                                   {
+                                                                       "title":  "AddKeyedRefitClient",
+                                                                       "id":  "Type:AddKeyedRefitClient",
+                                                                       "degree":  14
+                                                                   },
+                                                                   {
+                                                                       "title":  "AddRefitClient",
+                                                                       "id":  "Type:AddRefitClient",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "RefitSettings",
+                                                                       "id":  "Type:Refit.RefitSettings",
+                                                                       "degree":  11
+                                                                   },
+                                                                   {
+                                                                       "title":  "RestMethodInfoInternal",
+                                                                       "id":  "Type:Refit.RestMethodInfoInternal",
+                                                                       "degree":  8
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed src/Refit.slnx — 1 of 3 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  3,
+                                                     "slnNames":  [
+                                                                      "src\\examples\\Meow.sln",
+                                                                      "src\\examples\\SampleUsingLocalApi.sln",
+                                                                      "src\\Refit.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  28,
+                                                     "noteSolutionsOnDisk":  3,
+                                                     "noteAnalyzed":  "src/Refit.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed src/Refit.slnx — 1 of 3 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  22,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

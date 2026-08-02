@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "ScreenToGif",
+    "run":  "2026-07-28 13:00:54",
+    "wallSec":  8.8,
+    "snapshotCache":  "HIT · 27a49c3",
+    "nodeCount":  1227,
+    "edgeCount":  720,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: ProjectInfo(44), ExportPanel(34), StorageSettings(20), TranslatorWindow(14), EditorViewModel(14)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "ProjectInfo",
+                                                                       "id":  "Type:ScreenToGif.Model.ProjectInfo",
+                                                                       "degree":  44
+                                                                   },
+                                                                   {
+                                                                       "title":  "ExportPanel",
+                                                                       "id":  "EntryPoint:ui:ExportPanel",
+                                                                       "degree":  34
+                                                                   },
+                                                                   {
+                                                                       "title":  "StorageSettings",
+                                                                       "id":  "EntryPoint:ui:StorageSettings",
+                                                                       "degree":  20
+                                                                   },
+                                                                   {
+                                                                       "title":  "TranslatorWindow",
+                                                                       "id":  "EntryPoint:ui:TranslatorWindow",
+                                                                       "degree":  14
+                                                                   },
+                                                                   {
+                                                                       "title":  "EditorViewModel",
+                                                                       "id":  "Type:ScreenToGif.ViewModel.EditorViewModel",
+                                                                       "degree":  14
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/1 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  35,
+                                                        "withTarget":  1,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Desktop/DesktopMvvm",
+                                 "metrics":  {
+                                                 "archetype":  "Desktop",
+                                                 "style":  "DesktopMvvm",
+                                                 "confidence":  0.7
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (GifRecorder.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "GifRecorder.sln"
+                                                                  ],
+                                                     "analyzedProjects":  7,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "GifRecorder.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed GifRecorder"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  95,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

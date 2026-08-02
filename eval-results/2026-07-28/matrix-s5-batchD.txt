@@ -1,0 +1,207 @@
+=== matrix (47 poles, post-Batch-D, timeout 600s) started 11:16:37 ===
+
+== aspire-samples ==
+  wall=1.3s nodes=48 edges=20
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== AutoMapper ==
+  wall=15s nodes=467 edges=225
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== AzureFunctions ==
+  wall=18.7s nodes=686 edges=411
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== bitwarden-server ==
+  wall=214.4s nodes=9216 edges=11945
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 99 dup-name types touched by cross-project edges: ApiKeyRepository [Infrastructure.Dapper], ApiKeyRepository [Infrastructure.EntityFramework], AuthRequestRepository [Infrastructure.Dapper], AuthRequestRepository [Infrastructure.EntityFramework], CipherRepository [Infrastructure.Dapper]
+
+== Blazor ==
+  wall=35.6s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== blazor-samples ==
+  wall=22.6s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+== CleanArchitecture ==
+  wall=12s nodes=139 edges=59
+  transport=PASS handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand
+
+== CLI ==
+  wall=7.3s nodes=242 edges=173
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype CliTool not in [Library]
+
+== CommunityToolkit.Mvvm ==
+  wall=12.4s nodes=448 edges=249
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 1 dup-name types touched by cross-project edges: HashCode [CommunityToolkit.Mvvm]
+
+== company-functions ==
+  wall=2.2s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Dapper ==
+  wall=6.2s nodes=203 edges=62
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Desktop ==
+  wall=7.5s nodes=168 edges=102
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+== DntSite ==
+  wall=50.3s nodes=3174 edges=4168
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== dotnet-podcasts ==
+  wall=8.1s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== eShop ==
+  wall=13.7s nodes=1136 edges=1003
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== FluentValidation ==
+  wall=6.7s nodes=319 edges=169
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== functions-app ==
+  wall=2.3s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== GitVersion ==
+  --sln new-cli/GitVersion.slnx
+  wall=11.9s nodes=67 edges=15
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gitversion-default ==
+  wall=10s nodes=609 edges=396
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gRPC ==
+  wall=18s nodes=708 edges=396
+  transport=FAIL handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL transport: grpc=0 below min 1
+
+== Hangfire ==
+  wall=12.7s nodes=928 edges=599
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== HotChocolate ==
+  TIMEOUT: analyze exceeded 600s -- pole recorded as TIMEOUT, not scored
+
+== MahApps.Metro ==
+  wall=8.8s nodes=453 edges=153
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype Desktop not in [Library]; style Unknown not in [NotApplicable]
+
+== MassTransit ==
+  wall=55.9s nodes=10178 edges=7384
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 3 dup-name types touched by cross-project edges: Batch [MassTransit.Abstractions], ScheduleMessageConsumer [MassTransit.HangfireIntegration], ScheduleMessageConsumer [MassTransit.QuartzIntegration]
+
+== MassTransit-Sample ==
+  wall=3.6s nodes=16 edges=10
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== MediatR ==
+  wall=6.3s nodes=184 edges=62
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Newtonsoft.Json ==
+  wall=16.6s nodes=485 edges=363
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Ocelot ==
+  wall=27.8s nodes=754 edges=604
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== OrchardCore ==
+  wall=113.4s nodes=10187 edges=9889
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Orleans ==
+  wall=58.8s nodes=5106 edges=3539
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 1 of 1 send targets have no Handles edge: Message
+    FAIL entry-target: 32.4% of entry targets are bare DI interfaces (max 25%): GET /DashboardCounters -> IDashboardClient; GET /ClusterStats -> IDashboardClient; GET /HistoricalStats/{*path} -> IDashboardClient; GET /SiloProperties/{*address} -> IDashboardClient; GET /SiloMetadata/{*address} -> IDashboardClient
+
+== Polly ==
+  wall=18.1s nodes=670 edges=322
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== PowerToys ==
+  wall=83s nodes=8444 edges=6448
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 8 dup-name types touched by cross-project edges: App [Peek.UI], Helper [Settings.UI.Library], Logger [ManagedCommon], MonitorInfo [Settings.UI.Library], NativeEventWaiter [Common.UI]
+
+== Quartz.NET ==
+  wall=28.8s nodes=1780 edges=1322
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== RazorPages ==
+  wall=178.8s nodes=85 edges=128
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== razorpages-app ==
+  wall=3.9s nodes=4 edges=1
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== refit ==
+  wall=18.4s nodes=324 edges=135
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== RestSharp ==
+  wall=8.6s nodes=283 edges=162
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== ScreenToGif ==
+  wall=13.9s nodes=1227 edges=720
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Serilog ==
+  wall=5.3s nodes=204 edges=92
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== SignalR ==
+  wall=242.8s nodes=14352 edges=10241
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 12 dup-name types touched by cross-project edges: CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions], FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core], HttpConnection [Microsoft.AspNetCore.Http.Connections.Client], HttpConnectionContext [Microsoft.AspNetCore.Http.Connections], HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]
+
+== signalr-app ==
+  wall=2.7s nodes=5 edges=2
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Spectre.Console ==
+  wall=9.3s nodes=603 edges=289
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== StackExchange.Redis ==
+  wall=16.6s nodes=1296 edges=816
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== TodoApi ==
+  wall=3.8s nodes=124 edges=74
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== wolverine ==
+  wall=56.3s nodes=6274 edges=4207
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL handler-join: 1 of 6 send targets have no Handles edge: Envelope
+    FAIL dup-name: 4 dup-name types touched by cross-project edges: MapEventTypeMessages [Wolverine.Marten], MapEventTypeMessages [Wolverine.Polecat], OutboxedSessionFactory [Wolverine.Marten], WolverineProjectionCoordinator [Wolverine.Marten]
+
+== xUnit ==
+  wall=26.3s nodes=953 edges=575
+  transport=SKIP handler-join=SKIP hub-sanity=FAIL entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: ITestFrameworkExecutionOptions(61), ITestFrameworkDiscoveryOptions(41)
+
+== YARP ==
+  wall=16.8s nodes=773 edges=435
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5\MATRIX.md
+GRAPH-TRUTH: ERR (1 harness error(s))
+=== matrix finished 11:57:35 exit=1 ===

@@ -1,0 +1,125 @@
+﻿{
+    "repo":  "dotnet-podcasts",
+    "run":  "2026-07-28 03:50:13",
+    "wallSec":  5.7,
+    "snapshotCache":  "HIT · 5ee8be2",
+    "nodeCount":  344,
+    "edgeCount":  277,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  1,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  1,
+                                                     "eventWiringCrossService":  1
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  12,
+                                                        "consumesTotal":  1,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: AddFeedAsync(12), PodcastDbContext(10), IAudioInterop(9), Feed(9), Show(9)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "AddFeedAsync",
+                                                                       "id":  "Member:Podcast.Infrastructure.Http.Feeds.FeedClient::AddFeedAsync",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "PodcastDbContext",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.PodcastDbContext",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "IAudioInterop",
+                                                                       "id":  "Type:Podcast.Components.IAudioInterop",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "Feed",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.Models.Feed",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "Show",
+                                                                       "id":  "Type:Podcast.Infrastructure.Data.Models.Show",
+                                                                       "degree":  9
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/21 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  24,
+                                                        "withTarget":  21,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/Microservices",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "Microservices",
+                                                 "confidence":  0.91
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed NetPodcast.sln — 1 of 5 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  5,
+                                                     "slnNames":  [
+                                                                      "src\\Mobile\\Podcasts.DotnetMaui.sln",
+                                                                      "src\\MobileBlazor\\Podcast.DotnetMaui.Blazor.sln",
+                                                                      "NetPodcast.Services.sln",
+                                                                      "NetPodcast.sln",
+                                                                      "Podcast.Web.sln"
+                                                                  ],
+                                                     "analyzedProjects":  16,
+                                                     "noteSolutionsOnDisk":  5,
+                                                     "noteAnalyzed":  "NetPodcast.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed NetPodcast.sln — 1 of 5 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  32,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

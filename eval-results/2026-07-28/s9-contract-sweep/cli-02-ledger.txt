@@ -1,0 +1,29 @@
+System.CommandLine · clitool.
+
+2 entries
+2 projects
+242 types
+0/2 wired
+edge confidence
+CliTool
+
+Confidence Ledger
+
+Verified edges
+27% of 173
+Approximate edges
+99% of 173
+Entry targets
+0/2
+
+Sparse graph · call-edge binding was broadened over 9 central types to connect a repo with few entry points. Edges found that way are reported as approximate.
+
+Per seam
+Calls
+172
+47✓
+171~
+Resolves
+1
+0✓
+1~

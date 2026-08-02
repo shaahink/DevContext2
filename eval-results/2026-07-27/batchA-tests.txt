@@ -1,0 +1,43 @@
+﻿Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:05.74]     DevContext.Core.Tests.PipelineTests.RunPruningAsync_ReportsPerPrunerBeforeCounts [SKIP]
+  Skipped DevContext.Core.Tests.PipelineTests.RunPruningAsync_ReportsPerPrunerBeforeCounts [1 ms]
+[xUnit.net 00:00:07.25]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+[xUnit.net 00:00:09.00]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+dotnet : [xUnit.net 00:00:17.83]     
+DevContext.Core.Tests.Graph2.SymbolTableTests.GetNamespace_extracts_namespace_for_unregistered_fqn [FAIL]
+At line:1 char:1
++ dotnet test tests/DevContext.Core.Tests --no-build --nologo 2>&1 | Ou ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...ered_fqn [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed DevContext.Core.Tests.Graph2.SymbolTableTests.GetNamespace_extracts_namespace_for_unregistered_fqn [14 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+Expected: "DevContext.Core.Graph"
+Actual:   "DevContext.Core.Graph.GraphBuilder"
+                                Γåæ (pos 21)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.SymbolTableTests.GetNamespace_extracts_namespace_for_unregistered_fqn() in C:\code\DevContext2\tests\DevContext.Core.Tests\Graph2\SymbolTableTests.cs:line 228
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:17.86]     
+DevContext.Core.Tests.Graph2.SymbolTableTests.Type_and_member_with_same_short_name_are_ambiguous [FAIL]
+  Failed DevContext.Core.Tests.Graph2.SymbolTableTests.Type_and_member_with_same_short_name_are_ambiguous [17 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Ambiguous
+Actual:   GlobalUnique
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.SymbolTableTests.Type_and_member_with_same_short_name_are_ambiguous() in C:\code\DevContext2\tests\DevContext.Core.Tests\Graph2\SymbolTableTests.cs:line 324
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:41.69]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+The active test run was aborted. Reason: Test host process crashed
+
+Failed!  - Failed:     2, Passed:   662, Skipped:     4, Total:   668, Duration: 5 m 43 s - DevContext.Core.Tests.dll (net10.0)
+Test Run Aborted.

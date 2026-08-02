@@ -1,0 +1,519 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+109
+HTTP
+43
+Bus consumers
+13
+Domain events
+7
+Hosted services
+1
+UI
+42
+gRPC
+3
+PUT
+/api/catalog/itemsCatalogApi
+catalog
+PUT
+/api/catalog/items/{id:int}CatalogIntegrationEventService.PublishThroughEventBusAsync
+catalog
+POST
+/api/orders/IdentifiedCommand
+orders
+GET
+/api/catalog/items/w…evance/{text:minlength(1)}CatalogApi
+catalog
+GET
+/api/catalog/items/withsemanticrelevanceCatalogAI.GetEmbeddingAsync
+catalog
+PUT
+/api/orders/cancelIdentifiedCommand
+orders
+PUT
+/api/orders/shipIdentifiedCommand
+orders
+POST
+/api/orders/draftCreateOrderDraftCommand
+orders
+POST
+/api/catalog/itemsCatalogContext
+catalog
+GET
+/api/orders/OrderQueries.GetOrdersFromUserAsync
+orders
+[RelayCommand] CheckoutViewModel.CheckoutAsyncDialogService.ShowAlertAsync
+eShop/ClientApp/ViewModels
+Basket.UpdateBasketRedisBasketRepository.UpdateBasketAsync
+eShop/Basket/API/Grpc
+GET
+/api/catalog/itemsCatalogApi
+catalog
+GET
+/api/catalog/items/{id:int}CatalogServices
+catalog
+GET
+/api/catalog/items/by/{name:minlength(1)}CatalogApi
+catalog
+GET
+/api/catalog/items/t…/{typeId}/brand/{brandId?}CatalogApi
+catalog
+GET
+/api/catalog/items/type/all/brand/{brandId:int?}CatalogApi
+catalog
+GET
+/api/catalog/itemsCatalogApi
+catalog
+POST
+/DeviceDeviceController
+device
+🔒
+GET
+/api/orders/{orderId:int}OrderQueries.GetOrderAsync
+orders
+GET
+/api/orders/cardtypesOrderQueries.GetCardTypesAsync
+orders
+/cartBasketState.GetBasketItemsAsync
+eShop/WebApp/Components/Pages/Cart
+Basket.GetBasketRedisBasketRepository.GetBasketAsync
+eShop/Basket/API/Grpc
+GET
+/DeviceDeviceController
+device
+🔒
+POST
+/DeviceDeviceController
+device
+🔒
+[RelayCommand] BasketViewModel.DeleteAsyncObservableCollectionEx
+eShop/ClientApp/ViewModels
+[RelayCommand] Catal…wModel.AddCatalogItemAsyncIBasketService.GetBasketAsync
+eShop/ClientApp/ViewModels
+[RelayCommand] CatalogViewModel.ClearFilterAsyncICatalogService.GetCatalogAsync
+eShop/ClientApp/ViewModels
+DELETE
+/api/catalog/items/{id:int}CatalogContext
+catalog
+GET
+/ConsentConsentController
+consent
+🔒
+POST
+/ConsentConsentController
+consent
+🔒
+Basket.DeleteBasketRedisBasketRepository.DeleteBasketAsync
+eShop/Basket/API/Grpc
+GET
+/api/catalog/items/{id:int}/picCatalogContext
+catalog
+[RelayCommand] CatalogViewModel.ApplyFilterAsyncICatalogService.FilterAsync
+eShop/ClientApp/ViewModels
+[RelayCommand] Order…del.ToggleCancelOrderAsyncIOrderService.CancelOrderAsync
+eShop/ClientApp/ViewModels
+[RelayCommand] ProfileViewModel.RefreshAsyncIOrderService.GetOrdersAsync
+eShop/ClientApp/ViewModels
+GET
+/api/catalog/items/byCatalogServices
+catalog
+GET
+/ExternalExternalController
+external
+POST
+/api/webhooks/WebhooksContext
+webhooks
+/CatalogService.GetCatalogItems
+eShop/HybridApp/Components/Pages/Catalog
+[RelayCommand] LoginViewModel.RegisterAsyncOpenUrlService.OpenUrl
+eShop/ClientApp/ViewModels
+GET
+/AccountAccountController
+account
+POST
+/AccountAccountController
+account
+/item/{itemId:int}CatalogService.GetCatalogItem
+eShop/HybridApp/Components/Pages/Item
+/user/ordersOrderingService.GetOrders
+eShop/WebApp/Components/Pages/User
+[RelayCommand] LoginViewModel.SignInAsyncIIdentityService.SignInAsync
+eShop/ClientApp/ViewModels
+[RelayCommand] LoginViewModel.PerformLogoutAsyncIIdentityService.SignOutAsync
+eShop/ClientApp/ViewModels
+GET
+/api/catalog/catalogtypesCatalogContext
+catalog
+GET
+/api/catalog/catalogbrandsCatalogContext
+catalog
+GET
+/AccountAccountController
+account
+POST
+/AccountAccountController
+account
+GET
+/GrantsGrantsController
+grants
+🔒
+POST
+/webhook-receivedHooksRepository.AddNew
+webhook-received
+GET
+/api/webhooks/WebhooksContext
+webhooks
+GET
+/api/webhooks/{id:int}WebhooksContext
+webhooks
+DELETE
+/api/webhooks/{id:int}WebhooksContext
+webhooks
+/checkoutCheckout
+eShop/WebApp/Components/Pages/Checkout
+GET
+/AccountAccountController
+account
+GET
+/ExternalExternalController
+external
+POST
+/GrantsGrantsController
+grants
+🔒
+POST
+/logoutAuthenticationEndpoints
+logout
+/user/loginLogIn
+eShop/WebApp/Components/Pages/User
+/add-webhookAddWebhook
+eShop/WebhookClient/Components/Pages
+/loginLogIn
+eShop/WebhookClient/Components/Pages
+/item/{itemId:int}
+eShop/WebApp/Components/Pages/Item
+○
+[RelayCommand] BasketViewModel.AddAsync
+eShop/ClientApp/ViewModels
+○
+AppShell
+eShop/ClientApp
+○
+[RelayCommand] ProfileViewModel.OrderDetailAsync
+eShop/ClientApp/ViewModels
+○
+OrderStartedIntegrationEventHandler
+eShop/Basket/API/IntegrationEvents/EventHandling
+○
+OrderStatusChangedTo…ionIntegrationEventHandler
+eShop/Catalog/API/IntegrationEvents/EventHandling
+○
+OrderStatusChangedToPaidIntegrationEventHandler
+eShop/Catalog/API/IntegrationEvents/EventHandling
+○
+GracePeriodConfirmedIntegrationEventHandler
+eShop/Ordering/API/Application/IntegrationEvents/EventHandling
+○
+OrderPaymentFailedIntegrationEventHandler
+eShop/Ordering/API/Application/IntegrationEvents/EventHandling
+○
+OrderPaymentSucceededIntegrationEventHandler
+eShop/Ordering/API/Application/IntegrationEvents/EventHandling
+○
+OrderStockConfirmedIntegrationEventHandler
+eShop/Ordering/API/Application/IntegrationEvents/EventHandling
+○
+OrderStockRejectedIntegrationEventHandler
+eShop/Ordering/API/Application/IntegrationEvents/EventHandling
+○
+OrderStatusChangedTo…medIntegrationEventHandler
+eShop/PaymentProcessor/IntegrationEvents/EventHandling
+○
+OrderStatusChangedTo…ledIntegrationEventHandler
+eShop/WebApp/Services/OrderStatus/IntegrationEvents
+○
+OrderStatusChangedTo…pedIntegrationEventHandler
+eShop/WebApp/Services/OrderStatus/IntegrationEvents
+○
+OrderStatusChangedTo…tedIntegrationEventHandler
+eShop/WebApp/Services/OrderStatus/IntegrationEvents
+○
+ProductPriceChangedIntegrationEventHandler
+IntegrationEvents
+○
+OrderCancelledDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+OrderShippedDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+OrderStatusChangedTo…lidationDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+OrderStatusChangedToPaidDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+OrderStatusChangedTo…onfirmedDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+UpdateOrderWhenBuyer…VerifiedDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+ValidateOrAddBuyerAg…rStartedDomainEventHandler
+eShop/Ordering/API/Application/DomainEventHandlers
+○
+GracePeriodManagerService
+eShop/OrderProcessor/Services
+○
+/
+eShop/WebApp/Components/Pages/Catalog
+○
+/Error
+eShop/WebhookClient/Components/Pages
+○
+[RelayCommand] BasketViewModel.CheckoutAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] CatalogItemViewModel.DismissAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] Catal…Model.ViewCatalogItemAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] CatalogViewModel.Filter
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] Catal…ewModel.SelectCatalogBrand
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] Catal…iewModel.SelectCatalogType
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] CatalogViewModel.ViewBasket
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] LoginViewModel.MockSignInAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] LoginViewModel.SettingsAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] LoginViewModel.Validate
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] MainViewModel.SettingsAsync
+eShop/ClientApp/ViewModels
+○
+[RelayCommand] ProfileViewModel.LogoutAsync
+eShop/ClientApp/ViewModels
+○
+ContentPageBase
+eShop/ClientApp/Views
+○
+FiltersView
+eShop/ClientApp/Views
+○
+SettingsView
+eShop/ClientApp/Views
+○
+MainPage
+eShop/HybridApp
+○
+/user/logout
+WebApp
+○
+/
+WebhookClient
+○
+jk scrub
+Browse all entries
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Tree
+Graph
+approx only
+7%
+POST /api/orders/
+Entry
+POST /api/orders/
+Call
+OrdersApi.CreateOrderAsync
+
+public static async Task<Results<Ok, BadRequest<string>>> CreateOrderAsync( [FromHeader(Name = "x-requestid")] Guid requestId, CreateOrderRequest request,
+
+truncated
+1 omitted
+Send
+IdentifiedCommand
+
+public class IdentifiedCommand<T, R> : IRequest<R> where T : IRequest<R> public T Command { get; }
+
+verified
+Handle
+IdentifiedCommandHandler
+
+/// <summary> /// Provides a base implementation for handling duplicate request and ensuring idempotent updates, in the cases where /// a requestid sent by client is used to detect duplicate requests.
+
+CrossService
+▸ crosses 8 services · 15 hops · 37 omitted
+
+Basket.API · Catalog.API · WebApp · Webhooks.API · PaymentProcessor · Identity.API · Ordering.API · WebhookClient
+
+Call
+IRequestManager
+
+public interface IRequestManager Task<bool> ExistAsync(Guid id); Task CreateRequestForCommandAsync<T>(Guid id);
+
+approx
+Resolve
+RequestManager
+
+public class RequestManager : IRequestManager private readonly OrderingContext _context; public RequestManager(OrderingContext context)
+
+Call
+ILogger
+verified
+Call
+ExistAsync
+
+public async Task<bool> ExistAsync(Guid id) var request = await _context. FindAsync<ClientRequest>(id);
+
+approx
+Call
+OrderingContext
+
+/// <remarks> /// Add migrations using the following command inside the 'Ordering.Infrastructure' project directory: ///
+
+approx
+Call
+OrderingContext.FindAsync
+approx
+Call
+IdentifiedCommandHandler.CreateResultForDuplicateRequest
+
+protected abstract R CreateResultForDuplicateRequest();
+
+approx
+Call
+CreateRequestForCommandAsync
+
+public async Task CreateRequestForCommandAsync<T>(Guid id) var exists = await ExistAsync(id); var request = exists ?
+
+approx
+Call
+OrderingContext
+
+/// <remarks> /// Add migrations using the following command inside the 'Ordering.Infrastructure' project directory: ///
+
+approx
+Call
+ExistAsync
+
+public async Task<bool> ExistAsync(Guid id) var request = await _context. FindAsync<ClientRequest>(id);
+
+approx
+truncated
+2 omitted
+Call
+OrderingContext.Add
+approx
+Call
+OrderingContext.SaveChangesAsync
+approx
+CrossService
+▸ crosses 6 services · 6 hops · 14 omitted
+
+Basket.API · Catalog.API · WebApp · Webhooks.API · PaymentProcessor · Identity.API
+
+Call
+OrderServices
+
+public class OrderServices( IMediator mediator, IOrderQueries queries,
+
+approx
+CrossService
+▸ crosses 6 services · 6 hops · 14 omitted
+
+Basket.API · Catalog.API · WebApp · Webhooks.API · PaymentProcessor · Identity.API
+
+Call
+CreateOrderRequest
+
+public record CreateOrderRequest( string UserId, string UserName,
+
+approx
+CrossService
+▸ crosses 6 services · 6 hops · 14 omitted
+
+Basket.API · Catalog.API · WebApp · Webhooks.API · PaymentProcessor · Identity.API
+
+Call
+ILogger
+verified
+Call
+IdentifiedCommand
+
+public class IdentifiedCommand<T, R> : IRequest<R> where T : IRequest<R> public T Command { get; }
+
+verified
+truncated
+7 omitted
+Call
+OrderServices.LogInformation
+approx
+Call
+CreateOrderRequest.GetGenericTypeName
+approx
+Call
+OrderServices.LogWarning
+approx
+Call
+OrderServices.BeginScope
+approx
+Call
+CreateOrderRequest.PadLeft
+approx
+Call
+CreateOrderRequest.Substring
+approx
+Call
+IdentifiedCommand.GetGenericTypeName
+approx
+▾
+Details
+
+POST /api/orders/
+
+Entry focus — click a node in the trace for detail.
+
+▸
+Code
+▸
+Insights
+10
+▸
+Call Stack
+▾
+Trail
+
+Your exploration path collects here — pins seed the export pack.
+
+eShop
+Press p to pin a trail step into your export pack
+1.0.0
+modern

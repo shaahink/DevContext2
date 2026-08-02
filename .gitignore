@@ -13,9 +13,30 @@ eval-results/**/fresh-develop-*
 eval-results/**/full-eval-*
 eval-results/**/FULL-EVALUATION-*
 eval-results/DEVELOP-*-ITERATION-PLAN.md
+
+# Eval evidence: keep the VERDICT, drop the regenerable bulk (2026-08-02).
+# An eval run writes ~135 MB per strand, of which ~2.6 MB is the evidence anyone reads.
+# The graph dumps are pure engine output — recreate them by re-running the instrument named
+# in the matching *-EVIDENCE.md (e.g. eval-results/2026-08-02/G10/g10-threshold-sweep.ps1).
+eval-results/**/raw/**
+!eval-results/**/raw/*.stats.json
+eval-results/**/*.graphdump.json
+
+# Screenshots from a UI drive are working artifacts. Checked 2026-08-02: of 466 PNGs under
+# eval-results/, the 20 that an EVIDENCE.md actually links were already tracked and stay tracked
+# (.gitignore does not untrack); not one of the 96 then-uncommitted PNGs was referenced by any
+# doc. If a future evidence doc needs one, `git add -f` it. Curated product screenshots live in
+# docs/screenshots/ and are unaffected by this rule.
+eval-results/**/*.png
 .claude/*
 !.claude/skills/
 .opencode/
+
+# A conductor session launched from a subdirectory writes its own .conductor/ there
+# (one appeared under src/DevContext.App/ on 2026-07-29 and carried a crash log into `git add -A`).
+# The repo-root .conductor/ has its own .gitignore and deliberately tracks only REPORT.md;
+# anything nested is a stray. Anchored so the root one is untouched.
+/*/**/.conductor/
 
 # Eval artifacts
 _eval-dntsite/

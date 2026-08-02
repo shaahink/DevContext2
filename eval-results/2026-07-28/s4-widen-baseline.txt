@@ -1,0 +1,83 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:15.49
+#### Hangfire
+
+== Hangfire ==
+  wall=9.8s nodes=928 edges=588
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### Quartz.NET
+
+== Quartz.NET ==
+  wall=16s nodes=1780 edges=1310
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### Orleans
+
+== Orleans ==
+  wall=53.1s nodes=7278 edges=5921
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=FAIL
+    FAIL handler-join: 1 of 1 send targets have no Handles edge: Message
+    FAIL dup-name: 1 dup-name types touched by cross-project edges: Apple [TestGrains]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### MediatR
+
+== MediatR ==
+  wall=8.1s nodes=239 edges=130
+  transport=SKIP handler-join=PASS hub-sanity=FAIL entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: CreateStream(10)
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### Serilog
+
+== Serilog ==
+  wall=4.7s nodes=204 edges=90
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### AutoMapper
+
+== AutoMapper ==
+  wall=11.7s nodes=467 edges=225
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### Newtonsoft.Json
+
+== Newtonsoft.Json ==
+  wall=14.4s nodes=485 edges=359
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### refit
+
+== refit ==
+  wall=12.7s nodes=337 edges=139
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (28 projects) with no indicator/picker
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### RestSharp
+
+== RestSharp ==
+  wall=4.9s nodes=283 edges=157
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+#### BASELINE DONE

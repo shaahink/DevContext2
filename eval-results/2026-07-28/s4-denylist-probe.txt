@@ -1,0 +1,49 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.09
+
+== eShop ==
+  wall=13.1s nodes=1136 edges=1003
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-denylist-probe\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== CleanArchitecture ==
+  wall=7.1s nodes=139 edges=59
+  transport=PASS handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-denylist-probe\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== dotnet-podcasts ==
+  wall=5.7s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-denylist-probe\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== TodoApi ==
+  wall=3.7s nodes=124 edges=74
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-denylist-probe\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+== OrchardCore ==
+  wall=36.8s nodes=10187 edges=9889
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4-denylist-probe\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.98
+#### PROBE DONE (source reverted, rebuilt)

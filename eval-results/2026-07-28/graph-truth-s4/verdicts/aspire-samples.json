@@ -1,0 +1,130 @@
+﻿{
+    "repo":  "aspire-samples",
+    "run":  "2026-07-28 03:26:34",
+    "wallSec":  1.3,
+    "snapshotCache":  "HIT · 4cd8939",
+    "nodeCount":  48,
+    "edgeCount":  20,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IdentityAuthenticationStateProvider.SetUserInfo(3), IdentityAuthenticationStateProvider(3)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  2,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IdentityAuthenticationStateProvider.SetUserInfo",
+                                                                       "id":  "Member:MetricsApp.Client.Auth.IdentityAuthenticationStateProvider::SetUserInfo",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "IdentityAuthenticationStateProvider",
+                                                                       "id":  "Type:MetricsApp.Client.Auth.IdentityAuthenticationStateProvider",
+                                                                       "degree":  3
+                                                                   },
+                                                                   {
+                                                                       "title":  "LoginUser",
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Auth::LoginUser",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "Logout",
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Auth::Logout",
+                                                                       "degree":  2
+                                                                   },
+                                                                   {
+                                                                       "title":  "Weather.LoadWeatherAsync",
+                                                                       "id":  "Member:MetricsApp.Client.Pages.Weather::LoadWeatherAsync",
+                                                                       "degree":  2
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/5 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  5,
+                                                        "withTarget":  5,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.62
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed samples/Metrics/Metrics.slnx — 1 of 13 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  13,
+                                                     "slnNames":  [
+                                                                      "samples\\aspire-shop\\AspireShop.slnx",
+                                                                      "samples\\aspire-with-azure-functions\\ImageGallery.slnx",
+                                                                      "samples\\aspire-with-javascript\\AspireJavaScript.slnx",
+                                                                      "samples\\aspire-with-node\\AspireWithNode.slnx",
+                                                                      "samples\\client-apps-integration\\ClientAppsIntegration.slnx",
+                                                                      "samples\\custom-resources\\CustomResources.slnx",
+                                                                      "samples\\database-containers\\DatabaseContainers.slnx",
+                                                                      "samples\\database-migrations\\DatabaseMigrations.slnx",
+                                                                      "samples\\health-checks-ui\\HealthChecksUI.slnx",
+                                                                      "samples\\Metrics\\Metrics.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  52,
+                                                     "noteSolutionsOnDisk":  13,
+                                                     "noteAnalyzed":  "samples/Metrics/Metrics.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed samples/Metrics/Metrics.slnx — 1 of 13 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

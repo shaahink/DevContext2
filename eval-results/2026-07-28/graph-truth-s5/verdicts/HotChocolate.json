@@ -1,0 +1,56 @@
+﻿{
+    "repo":  "HotChocolate",
+    "wallSec":  600.5,
+    "error":  "timeout",
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "TIMEOUT",
+                                     "detail":  "analyze exceeded 600s",
+                                     "metrics":  {
+
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "TIMEOUT",
+                                        "detail":  "analyze exceeded 600s",
+                                        "metrics":  {
+
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "TIMEOUT",
+                                      "detail":  "analyze exceeded 600s",
+                                      "metrics":  {
+
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "TIMEOUT",
+                                        "detail":  "analyze exceeded 600s",
+                                        "metrics":  {
+
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "TIMEOUT",
+                                 "detail":  "analyze exceeded 600s",
+                                 "metrics":  {
+
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "TIMEOUT",
+                                     "detail":  "analyze exceeded 600s",
+                                     "metrics":  {
+
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "TIMEOUT",
+                                    "detail":  "analyze exceeded 600s",
+                                    "metrics":  {
+
+                                                }
+                                }
+               }
+}

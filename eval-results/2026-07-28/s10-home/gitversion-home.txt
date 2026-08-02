@@ -1,0 +1,73 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+
+GitVersion · clitool.
+
+Analyzed src/GitVersion.slnx — 1 of 3 solutions in this repo.
+Switch to
+build/CI.slnx
+new-cli/GitVersion.slnx
+1 entry
+11 projects
+609 types
+0/1 wired
+edge confidence
+CliTool
+What it does
+COMMAND SURFACE
+1 command · 1 with no resolved handler
+
+GitVersion.App
+[Infrastructure]
+1
+
+GitVersion.App (Main)
+no resolved handler
+ENTRIES BY KIND
+CLI
+1
+
+1 kind of entry point
+
+WIRING HEALTH
+0%
+entries targeted
+
+1 unwired
+
+FRESHNESS
+
+Analyzed just now in 3.5s
+
+396 edges · HEAD 6476e5c
+
+Current
+Top flows
+GitVersion.App (Main)
+App
+CLI
+Needs attention
+warning
+1 of 1 entries have no resolved target
+notable
+Most depended-upon: GitVersion.Core (16 dependents) · GitVersion.Configuration (8 dependents) · GitVersion.Output (7 dependents)
+notable
+Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) · IEnvironment (2 impls) · ILog (2 impls)
+START HERE
+Open atlas
+Point your agent here
+See all 6 insights →
+Run report
+GitVersion
+GitVersion — 609 nodes, 396 edges, 1 entries
+1.0.0
+modern

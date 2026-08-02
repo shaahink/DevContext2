@@ -1,0 +1,69 @@
+eShop · app.
+
+Analyzed eShop.slnx — 1 of 3 solutions in this repo.
+Switch to
+src/ClientApp/ClientApp.sln
+tests/ClientApp.UnitTests/ClientApp.UnitTests.sln
+109 entries
+19 projects
+1.2K types
+64/109 wired
+edge confidence
+App
+Microservices · high
+
+Confidence Ledger
+
+Verified edges
+8% of 1098
+Approximate edges
+69% of 1098
+Auth coverage
+7/43
+Entry targets
+64/109
+Per seam
+Calls
+713
+54✓
+606~
+WrappedBy
+108
+0✓
+0~
+Resolves
+74
+0✓
+8~
+ReadsWrites
+57
+10✓
+57~
+Handles
+36
+0✓
+0~
+Consumes
+25
+0✓
+0~
+ServiceLink
+23
+0✓
+23~
+DependsOn
+22
+0✓
+22~
+Raises
+21
+11✓
+21~
+EntityRelation
+10
+0✓
+10~
+Sends
+9
+9✓
+9~

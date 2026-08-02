@@ -1,0 +1,130 @@
+﻿{
+    "repo":  "RazorPages",
+    "run":  "2026-07-28 03:34:23",
+    "wallSec":  73.9,
+    "snapshotCache":  "HIT · d46a8f3",
+    "nodeCount":  85,
+    "edgeCount":  128,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: SchoolContext.AsNoTracking(17), SchoolContext.FirstOrDefaultAsync(17), SchoolContext.SaveChangesAsync(17), StudentsController.Edit(11), SchoolContext.Include(11)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "SchoolContext.AsNoTracking",
+                                                                       "id":  "Member:ContosoUniversity.SchoolContext::AsNoTracking",
+                                                                       "degree":  17
+                                                                   },
+                                                                   {
+                                                                       "title":  "SchoolContext.FirstOrDefaultAsync",
+                                                                       "id":  "Member:ContosoUniversity.SchoolContext::FirstOrDefaultAsync",
+                                                                       "degree":  17
+                                                                   },
+                                                                   {
+                                                                       "title":  "SchoolContext.SaveChangesAsync",
+                                                                       "id":  "Member:ContosoUniversity.SchoolContext::SaveChangesAsync",
+                                                                       "degree":  17
+                                                                   },
+                                                                   {
+                                                                       "title":  "StudentsController.Edit",
+                                                                       "id":  "Member:ContosoUniversity.Controllers.StudentsController::Edit",
+                                                                       "degree":  11
+                                                                   },
+                                                                   {
+                                                                       "title":  "SchoolContext.Include",
+                                                                       "id":  "Member:ContosoUniversity.SchoolContext::Include",
+                                                                       "degree":  11
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/3 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  3,
+                                                        "withTarget":  3,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/SampleCollection",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "SampleCollection",
+                                                 "confidence":  0.62
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed aspnetcore/data/entity-framework-6/3.xsample/MVCCore.sln — 1 of 12 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  12,
+                                                     "slnNames":  [
+                                                                      "aspnetcore\\data\\entity-framework-6\\3.xsample\\MVCCore.sln",
+                                                                      "aspnetcore\\data\\entity-framework-6\\sample\\EF6MVCCore.sln",
+                                                                      "aspnetcore\\fundamentals\\openapi\\samples\\10.x\\aspnet-openapi-xml\\aspnet-openapi-xml.sln",
+                                                                      "aspnetcore\\fundamentals\\owin\\sample\\OwinSample.sln",
+                                                                      "aspnetcore\\mvc\\views\\dependency-injection\\sample\\ViewInjectSample.sln",
+                                                                      "aspnetcore\\razor-pages\\ui-class\\samples\\cli\\RazorUIClassLib\\RazorUIClassLib.sln",
+                                                                      "aspnetcore\\security\\authentication\\social\\additional-claims\\samples\\6.x\\ClaimsSample\\WebGoogOauth.slnx",
+                                                                      "aspnetcore\\security\\ip-safelist\\samples\\2.x\\AspNetCore2.x.sln",
+                                                                      "aspnetcore\\security\\ip-safelist\\samples\\3.x\\AspNetCore3.x.sln",
+                                                                      "aspnetcore\\signalr\\background-service\\samples\\6.0\\SignalRBackgroundServiceSample6.sln"
+                                                                  ],
+                                                     "analyzedProjects":  622,
+                                                     "noteSolutionsOnDisk":  12,
+                                                     "noteAnalyzed":  "aspnetcore/data/entity-framework-6/3.xsample/MVCCore.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed aspnetcore/data/entity-framework-6/3.xsample/MVCCore.sln — 1 of 12 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

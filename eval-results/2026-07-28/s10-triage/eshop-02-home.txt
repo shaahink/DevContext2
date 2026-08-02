@@ -1,0 +1,111 @@
+♦
+DevContext
+eShop
+search or jump…
+Ctrl+K
+New
+eShop
+✕
++
+99+
+10
+
+eShop · app.
+
+Analyzed eShop.slnx — 1 of 3 solutions in this repo.
+Switch to
+src/ClientApp/ClientApp.sln
+tests/ClientApp.UnitTests/ClientApp.UnitTests.sln
+109 entries
+19 projects
+1.2K types
+64/109 wired
+edge confidence
+App
+Microservices · high
+What runs
+Services
+All projects
+bus-publish→consume
+ENTRIES BY KIND
+HTTP
+43
+Bus consumers
+13
+Domain events
+7
+Hosted services
+1
+UI
+42
+gRPC
+3
+
+6 kinds of entry point
+
+WIRING HEALTH
+59%
+entries targeted
+
+45 unwired
+
+FRESHNESS
+
+Analyzed just now in 0.9s
+
+1098 edges · HEAD 9b4f943
+
+Current
+Top flows
+PUT
+/api/catalog/items
+Catalog.API
+HTTP
+PUT
+/api/catalog/items/{id:int}
+Catalog.API
+HTTP
+POST
+/api/orders/
+Ordering.API
+HTTP
+GET
+/api/catalog/items/withsemanticrelevance/{text:minlength(1)}
+Catalog.API
+HTTP
+GET
+/api/catalog/items/withsemanticrelevance
+Catalog.API
+HTTP
+PUT
+/api/orders/cancel
+Ordering.API
+HTTP
+PUT
+/api/orders/ship
+Ordering.API
+HTTP
+Needs attention
+warning
+45 of 109 entries have no resolved target
+warning
+Missing validation: 18/18 write endpoints have no FluentValidation validator
+Trace →
+warning
+36/43 endpoints anonymous, incl. 14 POST/PUT/DELETE
+Trace →
+warning
+Auth surface: 7 protected, 36 unannotated of 43 API endpoints
+Trace →
+notable
+Most depended-upon: eShop.ServiceDefaults (9 dependents) · EventBusRabbitMQ (7 dependents) · IntegrationEventLogEF (4 dependents)
+START HERE
+Trace POST /api/orders/
+Open atlas
+Point your agent here
+See all 10 insights →
+Run report
+eShop
+eShop — 1152 nodes, 1098 edges, 109 entries
+1.0.0
+modern

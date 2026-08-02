@@ -1,0 +1,20 @@
+EF6MVCCore · app · 6 types · analyzed in 26.0s.
+
+Analyzed aspnetcore/data/entity-framework-6/sample/EF6MVCCore.sln — 1 of 12 solutions in this repo.
+Switch to
+aspnetcore/data/entity-framework-6/3.xsample/MVCCore.sln
+aspnetcore/fundamentals/owin/sample/OwinSample.sln
+aspnetcore/signalr/dotnet-client/sample/SignalRChat.sln
+aspnetcore/mvc/views/dependency-injection/sample/ViewInjectSample.sln
+aspnetcore/security/ip-safelist/samples/2.x/AspNetCore2.x.sln
+aspnetcore/security/ip-safelist/samples/3.x/AspNetCore3.x.sln
+aspnetcore/signalr/background-service/samples/6.0/SignalRBackgroundServiceSample6.sln
+aspnetcore/test/dev-tunnels/sample/DevTunnelsDemo/DevTunnelsDemo.sln
+aspnetcore/fundamentals/openapi/samples/10.x/aspnet-openapi-xml/aspnet-openapi-xml.sln
+aspnetcore/razor-pages/ui-class/samples/cli/RazorUIClassLib/RazorUIClassLib.sln
+aspnetcore/security/authentication/social/additional-claims/samples/6.x/ClaimsSample/WebGoogOauth.slnx
+0 entries
+1 projects
+6 types
+App
+SampleCollection · moderate

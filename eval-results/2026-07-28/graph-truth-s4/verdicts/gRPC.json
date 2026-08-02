@@ -1,0 +1,130 @@
+﻿{
+    "repo":  "gRPC",
+    "run":  "2026-07-28 03:28:48",
+    "wallSec":  16,
+    "snapshotCache":  "HIT · be802f5",
+    "nodeCount":  708,
+    "edgeCount":  396,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "FAIL",
+                                     "detail":  "grpc=0 below min 1",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: AsyncCallState(14), ConsoleService(13), GrpcCall(13), CallInvoker(12), Program.Log(10)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "AsyncCallState",
+                                                                       "id":  "Type:Grpc.Core.AsyncCallState",
+                                                                       "degree":  14
+                                                                   },
+                                                                   {
+                                                                       "title":  "ConsoleService",
+                                                                       "id":  "Type:Grpc.Dotnet.Cli.Internal.ConsoleService",
+                                                                       "degree":  13
+                                                                   },
+                                                                   {
+                                                                       "title":  "GrpcCall",
+                                                                       "id":  "Type:Grpc.Net.Client.Internal.GrpcCall`2",
+                                                                       "degree":  13
+                                                                   },
+                                                                   {
+                                                                       "title":  "CallInvoker",
+                                                                       "id":  "Type:Grpc.Core.CallInvoker",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "Program.Log",
+                                                                       "id":  "Member:GrpcClient.Program::Log",
+                                                                       "degree":  10
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/6 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  7,
+                                                        "withTarget":  6,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed Grpc.DotNet.slnx — 1 of 30 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  30,
+                                                     "slnNames":  [
+                                                                      "examples\\Aggregator\\Aggregator.slnx",
+                                                                      "examples\\Blazor\\Blazor.slnx",
+                                                                      "examples\\Browser\\Browser.slnx",
+                                                                      "examples\\Certifier\\Certifier.slnx",
+                                                                      "examples\\Channeler\\Channeler.slnx",
+                                                                      "examples\\Coder\\Coder.slnx",
+                                                                      "examples\\Compressor\\Compressor.slnx",
+                                                                      "examples\\Container\\Container.slnx",
+                                                                      "examples\\Counter\\Counter.slnx",
+                                                                      "examples\\Definer\\Definer.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  106,
+                                                     "noteSolutionsOnDisk":  30,
+                                                     "noteAnalyzed":  "Grpc.DotNet.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed Grpc.DotNet.slnx — 1 of 30 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  33,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

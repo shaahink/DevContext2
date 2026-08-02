@@ -1,0 +1,60 @@
+GET /api/catalog/items	/api/catalog/items — GET /api/catalog/items
+GET /api/catalog/items	/api/catalog/items — GET /api/catalog/items [GetAllItems]
+GET /api/catalog/items/by	/api/catalog/items/by — GET /api/catalog/items/by
+GET /api/catal…/items/{id:int}	/api/catalog/items/{id:int} — GET /api/catalog/items/{id:int}
+GET /api/catal…e:minlength(1)}	/api/catalog/items/by/{name:minlength(1)} — GET /api/catalog/items/by/{name:minlength(1)}
+GET /api/catal…ms/{id:int}/pic	/api/catalog/items/{id:int}/pic — GET /api/catalog/items/{id:int}/pic
+GET /api/catal…t:minlength(1)}	/api/catalog/items/withsemanticrelevance/{text:minlength(1)} — GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}
+GET /api/catal…manticrelevance	/api/catalog/items/withsemanticrelevance — GET /api/catalog/items/withsemanticrelevance
+GET /api/catal…rand/{brandId?}	/api/catalog/items/type/{typeId}/brand/{brandId?} — GET /api/catalog/items/type/{typeId}/brand/{brandId?}
+GET /api/catal…/{brandId:int?}	/api/catalog/items/type/all/brand/{brandId:int?} — GET /api/catalog/items/type/all/brand/{brandId:int?}
+GET /api/catalog/catalogtypes	/api/catalog/catalogtypes — GET /api/catalog/catalogtypes
+GET /api/catalog/catalogbrands	/api/catalog/catalogbrands — GET /api/catalog/catalogbrands
+PUT /api/catalog/items	/api/catalog/items — PUT /api/catalog/items
+PUT /api/catal…/items/{id:int}	/api/catalog/items/{id:int} — PUT /api/catalog/items/{id:int}
+POST /api/catalog/items	/api/catalog/items — POST /api/catalog/items
+DELETE /api/catal…/items/{id:int}	/api/catalog/items/{id:int} — DELETE /api/catalog/items/{id:int}
+OrderStatusChangedTo…ndler	OrderStatusChangedToAwaitingValidationIntegrationEventHandler
+OrderStatusChangedTo…ndler	OrderStatusChangedToPaidIntegrationEventHandler
+GET /Account	/Account — GET /Account
+POST /Account	/Account — POST /Account
+GET /Account	/Account — GET /Account [Logout]
+POST /Account	/Account — POST /Account [Logout]
+GET /Account	/Account — GET /Account [AccessDenied]
+GET /External	/External — GET /External
+GET /External	/External — GET /External [Callback]
+GET /Consent	/Consent — GET /Consent
+POST /Consent	/Consent — POST /Consent
+GET /Device	/Device — GET /Device
+POST /Device	/Device — POST /Device
+POST /Device	/Device — POST /Device [Callback]
+GET /Grants	/Grants — GET /Grants
+POST /Grants	/Grants — POST /Grants
+PUT /api/orders/cancel	/api/orders/cancel — PUT /api/orders/cancel
+PUT /api/orders/ship	/api/orders/ship — PUT /api/orders/ship
+GET /api/orders/{orderId:int}	/api/orders/{orderId:int} — GET /api/orders/{orderId:int}
+GET /api/orders/	/api/orders/ — GET /api/orders/
+GET /api/orders/cardtypes	/api/orders/cardtypes — GET /api/orders/cardtypes
+POST /api/orders/draft	/api/orders/draft — POST /api/orders/draft
+POST /api/orders/	/api/orders/ — POST /api/orders/
+GracePeriodConfirmed…ndler	GracePeriodConfirmedIntegrationEventHandler
+OrderPaymentFailedIn…ndler	OrderPaymentFailedIntegrationEventHandler
+OrderPaymentSucceede…ndler	OrderPaymentSucceededIntegrationEventHandler
+OrderStockConfirmedI…ndler	OrderStockConfirmedIntegrationEventHandler
+OrderStockRejectedIn…ndler	OrderStockRejectedIntegrationEventHandler
+OrderCancelledDomain…ndler	OrderCancelledDomainEventHandler
+OrderShippedDomainEv…ndler	OrderShippedDomainEventHandler
+OrderStatusChangedTo…ndler	OrderStatusChangedToAwaitingValidationDomainEventHandler
+OrderStatusChangedTo…ndler	OrderStatusChangedToPaidDomainEventHandler
+OrderStatusChangedTo…ndler	OrderStatusChangedToStockConfirmedDomainEventHandler
+UpdateOrderWhenBuyer…ndler	UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
+ValidateOrAddBuyerAg…ndler	ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+POST /logout	/logout — POST /logout
+POST /webhook-received	/webhook-received — POST /webhook-received
+/add-webhook	/add-webhook — GET /add-webhook
+/Error	/Error — GET /Error
+/	/ — GET / [Home]
+/login	/login — GET /login
+GET /api/webhooks/	/api/webhooks/ — GET /api/webhooks/
+GET /api/webhooks/{id:int}	/api/webhooks/{id:int} — GET /api/webhooks/{id:int}
+POST /api/webhooks/	/api/webhooks/ — POST /api/webhooks/

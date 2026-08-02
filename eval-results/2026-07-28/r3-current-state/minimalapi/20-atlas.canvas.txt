@@ -1,0 +1,44 @@
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg (transition-transform) 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="currentColor" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 3 paths
+LABELS: 
+EDGE STYLES:
+  3x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 3 paths
+LABELS: 
+EDGE STYLES:
+  3x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 12 paths
+LABELS: 
+EDGE STYLES:
+  12x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""
+--- svg () 0 texts / 1 paths
+LABELS: 
+EDGE STYLES:
+  1x  path cls="" stroke="" dash="" marker=""

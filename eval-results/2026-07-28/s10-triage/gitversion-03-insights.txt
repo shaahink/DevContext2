@@ -1,0 +1,60 @@
+♦
+DevContext
+GitVersion
+search or jump…
+Ctrl+K
+New
+GitVersion
+✕
++
+1
+6
+Insights
+
+Repo-specific findings — what's notable, risky, or wired in interesting ways.
+
+ACT ON THIS
+Most depended-upon: GitVersion.Core (16 dependents) · GitVersion.Configuration (8 dependents) · GitVersion.Output (7 dependents)
+notable
+moderate confidence
+GitVersion.Core (16 dependents)
+GitVersion.Configuration (8 dependents)
+GitVersion.Output (7 dependents)
+Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) · IEnvironment (2 impls) · ILog (2 impls)
+notable
+moderate confidence
+IDeploymentModeCalculator (3 impls)
+IEnvironment (2 impls)
+ILog (2 impls)
+KNOW THIS
+Command tree: 1 CLI commands, 1 top-level groups
+info
+high confidence
+
+The command tree is a CLI app's user interface — it shows what the tool can do.
+
+GitVersion.App (1 commands)
+Trace it →
+Entry targets resolved 0/1 (0%) — trace any entry for its full path
+info
+moderate confidence
+DI: 122 Singleton · 26 Extension (148 total)
+info
+moderate confidence
+Wiring hubs: MainlineCommit (27) · IGitVersionConfiguration (24) · ILog (24) · LambdaEqualityHelper (20) · MainlineContext (20)
+info
+moderate confidence
+MainlineCommit (27)
+IGitVersionConfiguration (24)
+ILog (24)
+LambdaEqualityHelper (20)
+MainlineContext (20)
+COVERAGE
+
+0/1 entries have resolved targets
+
+Engine details
+GitVersion
+Shift+E opens the full entry audit table
+1.0.0
+modern

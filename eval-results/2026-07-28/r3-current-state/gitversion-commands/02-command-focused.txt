@@ -1,0 +1,22 @@
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Tree
+Graph
+approx only
+33%
+calculate (CalculateCommand)
+Entry
+calculate (CalculateCommand)
+Call
+CalculateCommand
+
+[Command("calculate", "Calculates the version object from the git history.")] public class CalculateCommand(ILogger<CalculateCommand> logger, IService service, IGitRepository repository) : ICommand<CalculateSettings> private readonly ILogger logger = logger.NotNull();
+
+Call
+ILogger
+verified

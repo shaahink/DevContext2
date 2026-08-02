@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "TodoApi",
+    "run":  "2026-07-28 03:21:40",
+    "wallSec":  3.7,
+    "snapshotCache":  "HIT · 307a1ea",
+    "nodeCount":  124,
+    "edgeCount":  74,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=1 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  1,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: MapTodos(13), TodoDbContext(8), TodoClient(6), MapAuth(5), Todo(4)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "MapTodos",
+                                                                       "id":  "Member:TodoApi.TodoApi::MapTodos",
+                                                                       "degree":  13
+                                                                   },
+                                                                   {
+                                                                       "title":  "TodoDbContext",
+                                                                       "id":  "Type:TodoApi.TodoDbContext",
+                                                                       "degree":  8
+                                                                   },
+                                                                   {
+                                                                       "title":  "TodoClient",
+                                                                       "id":  "Type:Todo.Web.Client.TodoClient",
+                                                                       "degree":  6
+                                                                   },
+                                                                   {
+                                                                       "title":  "MapAuth",
+                                                                       "id":  "Member:Todo.Web.Server.AuthApi::MapAuth",
+                                                                       "degree":  5
+                                                                   },
+                                                                   {
+                                                                       "title":  "Todo",
+                                                                       "id":  "Type:global.Todo",
+                                                                       "degree":  4
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/12 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  12,
+                                                        "withTarget":  12,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/MinimalApi",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "MinimalApi",
+                                                 "confidence":  0.65
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (TodoApp.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "TodoApp.sln"
+                                                                  ],
+                                                     "analyzedProjects":  7,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "TodoApp.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed TodoApp"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  1,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

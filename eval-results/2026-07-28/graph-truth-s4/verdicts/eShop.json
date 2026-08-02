@@ -1,0 +1,123 @@
+﻿{
+    "repo":  "eShop",
+    "run":  "2026-07-28 03:27:51",
+    "wallSec":  1.2,
+    "snapshotCache":  "HIT · 9b4f943",
+    "nodeCount":  1136,
+    "edgeCount":  1003,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=9 grpc=1 http=3 refit=0 aspire=10",
+                                     "metrics":  {
+                                                     "bus":  9,
+                                                     "grpc":  1,
+                                                     "http":  3,
+                                                     "refit":  0,
+                                                     "aspire":  10,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  13,
+                                                     "eventWiringCrossService":  13
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "9 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  9,
+                                                        "handlesTotal":  18,
+                                                        "consumesTotal":  25,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: LoggingBehavior(18), TransactionBehavior(18), ValidatorBehavior(18), OrderingContext(18), GetAsync(17)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "LoggingBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.LoggingBehavior`2",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "TransactionBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.TransactionBehavior`2",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "ValidatorBehavior",
+                                                                       "id":  "Type:eShop.Ordering.API.Application.Behaviors.ValidatorBehavior`2",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "OrderingContext",
+                                                                       "id":  "Type:eShop.Ordering.Infrastructure.OrderingContext",
+                                                                       "degree":  18
+                                                                   },
+                                                                   {
+                                                                       "title":  "GetAsync",
+                                                                       "id":  "Member:eShop.Ordering.Infrastructure.Repositories.OrderRepository::GetAsync",
+                                                                       "degree":  17
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/64 targets are bare DI interfaces (0% \u003c= 10%)",
+                                        "metrics":  {
+                                                        "entries":  109,
+                                                        "withTarget":  64,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/Microservices",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "Microservices",
+                                                 "confidence":  0.91
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed eShop.slnx — 1 of 3 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  3,
+                                                     "slnNames":  [
+                                                                      "src\\ClientApp\\ClientApp.sln",
+                                                                      "tests\\ClientApp.UnitTests\\ClientApp.UnitTests.sln",
+                                                                      "eShop.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  24,
+                                                     "noteSolutionsOnDisk":  3,
+                                                     "noteAnalyzed":  "eShop.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed eShop.slnx — 1 of 3 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "1 dup-name types on cross-project edges (max 1)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  141,
+                                                    "dupNameTypesTouched":  1,
+                                                    "sample":  [
+                                                                   "ProductImageUrlProvider [WebApp]"
+                                                               ]
+                                                }
+                                }
+               }
+}

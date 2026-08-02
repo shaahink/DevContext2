@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "OrchardCore",
+    "run":  "2026-07-28 13:14:38",
+    "wallSec":  32.7,
+    "snapshotCache":  "HIT · c078dba",
+    "nodeCount":  10188,
+    "edgeCount":  9890,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "bus=0 grpc=0 http=0 refit=0 aspire=0",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0 sends, 0 unhandled (max 0)",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  1,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IContentDefinitionManager(208), INotifier(189), IServiceCollection(157), UpdateEditorContext(146), ISiteService(144)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IContentDefinitionManager",
+                                                                       "id":  "Type:OrchardCore.ContentManagement.Metadata.IContentDefinitionManager",
+                                                                       "degree":  208
+                                                                   },
+                                                                   {
+                                                                       "title":  "INotifier",
+                                                                       "id":  "Type:OrchardCore.DisplayManagement.Notify.INotifier",
+                                                                       "degree":  189
+                                                                   },
+                                                                   {
+                                                                       "title":  "IServiceCollection",
+                                                                       "id":  "Type:Microsoft.Extensions.DependencyInjection.IServiceCollection",
+                                                                       "degree":  157
+                                                                   },
+                                                                   {
+                                                                       "title":  "UpdateEditorContext",
+                                                                       "id":  "Type:OrchardCore.DisplayManagement.Handlers.UpdateEditorContext",
+                                                                       "degree":  146
+                                                                   },
+                                                                   {
+                                                                       "title":  "ISiteService",
+                                                                       "id":  "Type:OrchardCore.Settings.ISiteService",
+                                                                       "degree":  144
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/274 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  286,
+                                                        "withTarget":  274,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/ModularMonolith",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "ModularMonolith",
+                                                 "confidence":  1
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (OrchardCore.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "OrchardCore.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  233,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "OrchardCore.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed OrchardCore"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 10)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  3906,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

@@ -1,0 +1,65 @@
+
+== aspire-samples ==
+  wall=10.6s nodes=48 edges=20
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 14 slns on disk silently scoped to one analysis (52 projects) with no indicator/picker
+
+== CleanArchitecture ==
+  wall=9.7s nodes=143 edges=53
+  transport=PASS handler-join=FAIL hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=FAIL dup-name=PASS
+    FAIL handler-join: 5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand
+    FAIL style: style VerticalSlices not in [CleanArchitecture]
+    FAIL sln-scope: 4 slns on disk silently scoped to one analysis (22 projects) with no indicator/picker
+
+== dotnet-podcasts ==
+  wall=1.5s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=FAIL dup-name=PASS
+    FAIL style: style CleanArchitecture not in [Microservices]
+    FAIL sln-scope: 5 slns on disk silently scoped to one analysis (16 projects) with no indicator/picker
+
+== eShop ==
+  wall=1.2s nodes=1102 edges=910
+  transport=FAIL handler-join=PASS hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL transport: grpc=0 below min 1; http=0 below min 1
+    FAIL entry-target: 12.1% of entry targets are bare DI interfaces (max 10%): POST /api/orders/ -> IdentifiedCommand; PUT /api/orders/cancel -> IdentifiedCommand; PUT /api/orders/ship -> IdentifiedCommand; GET /item/{itemId:int} [ItemPage] -> ItemPage; [RelayCommand] CheckoutViewModel.CheckoutAsync -> IAppEnvironmentService
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (24 projects) with no indicator/picker
+
+== FluentValidation ==
+  wall=5.7s nodes=323 edges=163
+  transport=PASS handler-join=SKIP hub-sanity=FAIL entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: ITestValidationContinuation(9)
+
+== functions-app ==
+  wall=3.1s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== GitVersion ==
+  wall=11.9s nodes=610 edges=382
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (36 projects) with no indicator/picker
+
+== gRPC ==
+  wall=10.1s nodes=835 edges=495
+  transport=FAIL handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL transport: grpc=0 below min 1
+    FAIL sln-scope: 30 slns on disk silently scoped to one analysis (106 projects) with no indicator/picker
+
+== MassTransit-Sample ==
+  wall=2.9s nodes=16 edges=10
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== OrchardCore ==
+  wall=64.4s nodes=10178 edges=9839
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Polly ==
+  wall=1.1s nodes=674 edges=323
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 2 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker
+
+== Spectre.Console ==
+  wall=6.6s nodes=617 edges=285
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-27\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (12 repo(s) scored)

@@ -1,0 +1,125 @@
+﻿{
+    "repo":  "DntSite",
+    "run":  "2026-07-28 10:24:10",
+    "wallSec":  48.9,
+    "snapshotCache":  "HIT · 8536dd6",
+    "nodeCount":  3174,
+    "edgeCount":  4168,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: ApplicationState(300), IUnitOfWork(250), ApplicationDbContext.SaveChangesAsync(159), IEmailsFactoryService(93), IFullTextSearchService(89)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "ApplicationState",
+                                                                       "id":  "Type:DntSite.Web.Features.AppConfigs.Components.ApplicationState",
+                                                                       "degree":  300
+                                                                   },
+                                                                   {
+                                                                       "title":  "IUnitOfWork",
+                                                                       "id":  "Type:DntSite.Web.Features.Persistence.UnitOfWork.IUnitOfWork",
+                                                                       "degree":  250
+                                                                   },
+                                                                   {
+                                                                       "title":  "ApplicationDbContext.SaveChangesAsync",
+                                                                       "id":  "Member:DntSite.Web.Features.Persistence.UnitOfWork.ApplicationDbContext::SaveChangesAsync",
+                                                                       "degree":  159
+                                                                   },
+                                                                   {
+                                                                       "title":  "IEmailsFactoryService",
+                                                                       "id":  "Type:DntSite.Web.Features.Common.Services.Contracts.IEmailsFactoryService",
+                                                                       "degree":  93
+                                                                   },
+                                                                   {
+                                                                       "title":  "IFullTextSearchService",
+                                                                       "id":  "Type:DntSite.Web.Features.Searches.Services.Contracts.IFullTextSearchService",
+                                                                       "degree":  89
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "7/70 targets are bare DI interfaces (10% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  94,
+                                                        "withTarget":  70,
+                                                        "diInterfaceTargets":  7,
+                                                        "diInterfacePct":  10,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+                                                                       "GET /Sitemap/Get -\u003e IBlogPostsService",
+                                                                       "GET /sitemap -\u003e IBlogPostsService",
+                                                                       "GET /sitemap.xml -\u003e IBlogPostsService",
+                                                                       "POST /api/JavaScriptErrorsReport/Log -\u003e IAppAntiXssService",
+                                                                       "GET /Feed/ShowBriefDescriptionAsync -\u003e ICachedAppSettingsProvider"
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/ControllerBased",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "ControllerBased",
+                                                 "confidence":  0.55
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (DntSite.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "DntSite.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  3,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "DntSite.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed DntSite"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  23,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

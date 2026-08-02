@@ -1,0 +1,122 @@
+﻿{
+    "repo":  "Desktop",
+    "run":  "2026-07-28 12:42:32",
+    "wallSec":  5.4,
+    "snapshotCache":  "HIT · 08b578f",
+    "nodeCount":  168,
+    "edgeCount":  102,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: EditCategoryViewModel.SaveAsync(10), EditToDoItemViewModel.SaveAsync(10), ShowOverlayDialogAsync(7), ReturnResultFromOverlayDialog(6), IDialogService(6)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "EditCategoryViewModel.SaveAsync",
+                                                                       "id":  "Member:AdvancedToDoList.ViewModels.EditCategoryViewModel::SaveAsync",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "EditToDoItemViewModel.SaveAsync",
+                                                                       "id":  "Member:AdvancedToDoList.ViewModels.EditToDoItemViewModel::SaveAsync",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "ShowOverlayDialogAsync",
+                                                                       "id":  "Member:AdvancedToDoList.Services.DialogService::ShowOverlayDialogAsync",
+                                                                       "degree":  7
+                                                                   },
+                                                                   {
+                                                                       "title":  "ReturnResultFromOverlayDialog",
+                                                                       "id":  "Member:AdvancedToDoList.Services.DialogService::ReturnResultFromOverlayDialog",
+                                                                       "degree":  6
+                                                                   },
+                                                                   {
+                                                                       "title":  "IDialogService",
+                                                                       "id":  "Type:AdvancedToDoList.Services.IDialogService",
+                                                                       "degree":  6
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/9 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  25,
+                                                        "withTarget":  9,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "SKIP",
+                                 "detail":  "no style truth declared (got Desktop/Unknown)",
+                                 "metrics":  {
+                                                 "archetype":  "Desktop",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "analyzed src/Avalonia.Samples/CompleteApps/AdvancedToDoList/AdvancedToDoList.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e",
+                                     "metrics":  {
+                                                     "slnOnDisk":  2,
+                                                     "slnNames":  [
+                                                                      "src\\Avalonia.Samples\\CompleteApps\\AdvancedToDoList\\AdvancedToDoList.slnx",
+                                                                      "src\\Avalonia.Samples\\Avalonia.Samples.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  29,
+                                                     "noteSolutionsOnDisk":  2,
+                                                     "noteAnalyzed":  "src/Avalonia.Samples/CompleteApps/AdvancedToDoList/AdvancedToDoList.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed src/Avalonia.Samples/CompleteApps/AdvancedToDoList/AdvancedToDoList.slnx — 1 of 2 solutions in this repo; analyze another with --sln \u003cname\u003e"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  2,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

@@ -1,0 +1,53 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+Atlas
+Export one-pager
+Download .md
+FluentValidation
+Library
+Architecture
+
+2 projects · 1 dependency edges
+
++
+−
+⊡
+Top flows
+
+No entry points — a library exposes surface, not flows.
+
+Event & queue board
+
+No entry points — event wiring does not apply to a pure library surface.
+
+Data stores
+
+No data-store signals detected.
+
+Per-service breakdown
+
+No service styles resolved.
+
+Cross-cutting
+PACKAGES
+Testing (3)
+Utilities (1)
+Other (9)
+Hub radar
+
+Nodes appearing in the most distinct flows across the repo.
+
+No hubs indexed — index flows from the Explore page.
+
+FluentValidation
+Escape backs out one step at a time: cancel, close, deselect, clear
+1.0.0
+modern

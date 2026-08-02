@@ -1,0 +1,60 @@
+♦
+DevContext
+MinimalApiProject
+search or jump…
+Ctrl+K
+New
+MinimalApiProject
+✕
++
+2
+3
+
+MinimalApiProject · app · 2 entries · 3 projects · 16 types · analyzed in 2.9s.
+
+2 entries
+3 projects
+16 types
+2/2 wired
+0% verified
+App
+CleanArchitecture · moderate
+What runs
+ENTRIES BY KIND
+HTTP
+2
+
+2 entries across 3 projects
+
+WIRING HEALTH
+100%
+entries targeted
+
+2/2 entries
+
+FRESHNESS
+
+Analyzed just now in 2.9s
+
+16 types · 9 edges · 3 projects · HEAD 8d0685f
+
+Current
+Top flows
+POST
+/orders
+Api
+HTTP
+GET
+/orders
+Api
+HTTP
+START HERE
+Trace POST /orders
+Open atlas
+Point your agent here
+See all 3 insights →
+Run report
+MinimalApiProject
+MinimalApiProject — 16 nodes, 9 edges, 2 entries
+1.0.0
+modern

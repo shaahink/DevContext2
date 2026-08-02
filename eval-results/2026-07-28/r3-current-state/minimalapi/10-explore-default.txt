@@ -1,0 +1,52 @@
+♦
+DevContext
+MinimalApiProject
+search or jump…
+Ctrl+K
+New
+MinimalApiProject
+✕
++
+2
+3
+2
+POST
+/ordersCreateOrderCommand
+orders
+GET
+/ordersGetOrdersQuery
+orders
+jk scrub
+Browse all entries
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Legend
++
+−
+⊡
+▾
+Details
+
+Select an entry, node, or insight to inspect.
+
+▸
+Code
+▸
+Insights
+3
+▸
+Call Stack
+▾
+Trail
+
+Your exploration path collects here — pins seed the export pack.
+
+MinimalApiProject
+Shift+E opens the full entry audit table
+1.0.0
+modern

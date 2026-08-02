@@ -1,0 +1,58 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+
+FluentValidation · library.
+
+96 public types
+5 namespaces
+2 projects
+319 types
+edge confidence
+Library
+SURFACE BY NAMESPACE
+Fluent…tion.Validators
+55
+FluentValidation
+32
+Fluent…tion.TestHelper
+5
+Fluent…ation.Resources
+2
+Fluent…idation.Results
+2
+CONSUMER FRONT DOORS
+register
+3
+derive
+3
+implement
+1
+extend
+3
+
+Browse the library surface →
+
+FRESHNESS
+
+Analyzed just now in 2.9s
+
+169 edges · HEAD 9439790
+
+Current
+START HERE
+Open atlas
+Point your agent here
+See all 3 insights →
+Run report
+FluentValidation
+FluentValidation — 319 nodes, 169 edges, 0 entries
+1.0.0
+modern

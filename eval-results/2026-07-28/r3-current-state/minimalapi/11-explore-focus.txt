@@ -1,0 +1,55 @@
+♦
+DevContext
+MinimalApiProject
+search or jump…
+Ctrl+K
+New
+MinimalApiProject
+✕
++
+2
+3
+2
+POST
+/ordersCreateOrderCommand
+orders
+GET
+/ordersGetOrdersQuery
+orders
+jk scrub
+Browse all entries
+▩
+Service
+Layer
+Feature
+Flow
+☰
+Entries
+Tree
+Graph
+approx only
+GET /todos
+Trace not found for this focus.
+▾
+Details
+
+GET /todos
+
+Entry focus — click a node in the trace for detail.
+
+▸
+Code
+▸
+Insights
+3
+▸
+Call Stack
+▾
+Trail
+
+Your exploration path collects here — pins seed the export pack.
+
+MinimalApiProject
+Press p to pin a trail step into your export pack
+1.0.0
+modern

@@ -1,0 +1,123 @@
+﻿== S3 close RUN 2 (final binary: lazy alias map + lazy System.CommandLine scan) ==
+
+== aspire-samples ==
+  wall=13.4s nodes=48 edges=20
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 14 slns on disk silently scoped to one analysis (52 projects) with no indicator/picker
+
+== AzureFunctions ==
+  wall=19s nodes=761 edges=497
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 4 slns on disk silently scoped to one analysis (66 projects) with no indicator/picker
+
+== Blazor ==
+  wall=37.7s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 70 slns on disk silently scoped to one analysis (142 projects) with no indicator/picker
+
+== CleanArchitecture ==
+  wall=5.9s nodes=143 edges=53
+  transport=PASS handler-join=FAIL hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=FAIL dup-name=PASS
+    FAIL handler-join: 5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand
+    FAIL style: style VerticalSlices not in [CleanArchitecture]
+    FAIL sln-scope: 4 slns on disk silently scoped to one analysis (22 projects) with no indicator/picker
+
+== company-functions ==
+  wall=1.6s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== dotnet-podcasts ==
+  wall=8.4s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=FAIL dup-name=PASS
+    FAIL style: style CleanArchitecture not in [Microservices]
+    FAIL sln-scope: 5 slns on disk silently scoped to one analysis (16 projects) with no indicator/picker
+
+== eShop ==
+  wall=11.3s nodes=1108 edges=937
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL entry-target: 12.1% of entry targets are bare DI interfaces (max 10%): POST /api/orders/ -> IdentifiedCommand; PUT /api/orders/cancel -> IdentifiedCommand; PUT /api/orders/ship -> IdentifiedCommand; GET /item/{itemId:int} [ItemPage] -> ItemPage; [RelayCommand] CheckoutViewModel.CheckoutAsync -> IAppEnvironmentService
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (24 projects) with no indicator/picker
+
+== FluentValidation ==
+  wall=5.9s nodes=323 edges=163
+  transport=PASS handler-join=SKIP hub-sanity=FAIL entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: ITestValidationContinuation(9)
+
+== functions-app ==
+  wall=2.2s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== GitVersion ==
+  wall=11.7s nodes=610 edges=382
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL entry-target: 1 entries detected, expected at least 5 (entry surface missing -- DC8)
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (36 projects) with no indicator/picker
+
+== new-cli ==
+  wall=3s nodes=67 edges=15
+  transport=PASS handler-join=SKIP hub-sanity=FAIL entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: test (TestCommand)(1)
+
+== gRPC ==
+  wall=16.9s nodes=835 edges=495
+  transport=FAIL handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL transport: grpc=0 below min 1
+    FAIL sln-scope: 30 slns on disk silently scoped to one analysis (106 projects) with no indicator/picker
+
+== MassTransit-Sample ==
+  wall=2.6s nodes=16 edges=10
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Ocelot ==
+  wall=14.9s nodes=758 edges=606
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 7 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker
+
+== OrchardCore ==
+  wall=36.8s nodes=10178 edges=9839
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Polly ==
+  wall=15.2s nodes=674 edges=323
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 2 slns on disk silently scoped to one analysis (21 projects) with no indicator/picker
+
+== RazorPages ==
+  wall=63.5s nodes=33 edges=27
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 12 slns on disk silently scoped to one analysis (622 projects) with no indicator/picker
+
+== SignalR ==
+  wall=223.6s nodes=16330 edges=11642
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=FAIL
+    FAIL sln-scope: 2 slns on disk silently scoped to one analysis (616 projects) with no indicator/picker
+    FAIL dup-name: 12 dup-name types touched by cross-project edges: CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions], FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core], HttpConnection [Microsoft.AspNetCore.Http.Connections.Client], HttpConnectionContext [Microsoft.AspNetCore.Http.Connections], HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]
+
+== signalr-app ==
+  wall=2.2s nodes=5 edges=2
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Spectre.Console ==
+  wall=6.6s nodes=617 edges=285
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== TodoApi ==
+  wall=3.6s nodes=124 edges=74
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== wolverine ==
+  wall=60.4s nodes=6528 edges=4519
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=FAIL dup-name=FAIL
+    FAIL handler-join: 1 of 6 send targets have no Handles edge: Envelope
+    FAIL sln-scope: 3 slns on disk silently scoped to one analysis (215 projects) with no indicator/picker
+    FAIL dup-name: 4 dup-name types touched by cross-project edges: MapEventTypeMessages [Wolverine.Marten], MapEventTypeMessages [Wolverine.Polecat], OutboxedSessionFactory [Wolverine.Marten], WolverineProjectionCoordinator [Wolverine.Marten]
+
+== YARP ==
+  wall=13.9s nodes=788 edges=434
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 1 dup-name types touched by cross-project edges: ForwarderMetricsConsumer [ReverseProxy.Code]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth\MATRIX.md
+GRAPH-TRUTH: OK (23 repo(s) scored)
+== matrix done, bench rider (quiet machine) ==
+== S3 CLOSE RUN 2 DONE ==

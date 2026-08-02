@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "RestSharp",
+    "run":  "2026-07-28 11:49:33",
+    "wallSec":  8.6,
+    "snapshotCache":  "HIT · 6a50821",
+    "nodeCount":  283,
+    "edgeCount":  162,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: IRestClient(51), RestRequest(33), SerializerConfig(9), WebPairCollection(7), RequestParameters(6)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "IRestClient",
+                                                                       "id":  "Type:RestSharp.IRestClient",
+                                                                       "degree":  51
+                                                                   },
+                                                                   {
+                                                                       "title":  "RestRequest",
+                                                                       "id":  "Type:RestSharp.RestRequest",
+                                                                       "degree":  33
+                                                                   },
+                                                                   {
+                                                                       "title":  "SerializerConfig",
+                                                                       "id":  "Type:RestSharp.Serializers.SerializerConfig",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "WebPairCollection",
+                                                                       "id":  "Type:RestSharp.Authenticators.OAuth.WebPairCollection",
+                                                                       "degree":  7
+                                                                   },
+                                                                   {
+                                                                       "title":  "RequestParameters",
+                                                                       "id":  "Type:RestSharp.RequestParameters",
+                                                                       "degree":  6
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no entries detected (see style/DC8)",
+                                        "metrics":  {
+                                                        "entries":  0,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "Library/NotApplicable",
+                                 "metrics":  {
+                                                 "archetype":  "Library",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (RestSharp.slnx)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "RestSharp.slnx"
+                                                                  ],
+                                                     "analyzedProjects":  15,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "RestSharp.slnx",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed RestSharp"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  4,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

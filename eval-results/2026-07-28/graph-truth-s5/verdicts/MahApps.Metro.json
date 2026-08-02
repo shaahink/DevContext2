@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "MahApps.Metro",
+    "run":  "2026-07-28 11:36:55",
+    "wallSec":  8.8,
+    "snapshotCache":  "HIT · 72099e3",
+    "nodeCount":  453,
+    "edgeCount":  153,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: MetroWindow(40), MathConverter(8), ButtonsExample(4), HamburgerMenuDefault(4), BaseMetroDialog(4)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "MetroWindow",
+                                                                       "id":  "Type:MahApps.Metro.Controls.MetroWindow",
+                                                                       "degree":  40
+                                                                   },
+                                                                   {
+                                                                       "title":  "MathConverter",
+                                                                       "id":  "Type:MahApps.Metro.Converters.MathConverter",
+                                                                       "degree":  8
+                                                                   },
+                                                                   {
+                                                                       "title":  "ButtonsExample",
+                                                                       "id":  "EntryPoint:ui:ButtonsExample",
+                                                                       "degree":  4
+                                                                   },
+                                                                   {
+                                                                       "title":  "HamburgerMenuDefault",
+                                                                       "id":  "EntryPoint:ui:HamburgerMenuDefault",
+                                                                       "degree":  4
+                                                                   },
+                                                                   {
+                                                                       "title":  "BaseMetroDialog",
+                                                                       "id":  "Type:MahApps.Metro.Controls.Dialogs.BaseMetroDialog",
+                                                                       "degree":  4
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/0 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  25,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "FAIL",
+                                 "detail":  "archetype Desktop not in [Library]; style Unknown not in [NotApplicable]",
+                                 "metrics":  {
+                                                 "archetype":  "Desktop",
+                                                 "style":  "Unknown",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (src/MahApps.Metro.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "src\\MahApps.Metro.sln"
+                                                                  ],
+                                                     "analyzedProjects":  4,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "src/MahApps.Metro.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed MahApps.Metro"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  6,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

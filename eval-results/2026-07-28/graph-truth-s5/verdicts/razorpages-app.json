@@ -1,0 +1,106 @@
+﻿{
+    "repo":  "razorpages-app",
+    "run":  "2026-07-28 11:48:56",
+    "wallSec":  3.9,
+    "snapshotCache":  "miss · saved 4a90b98",
+    "nodeCount":  4,
+    "edgeCount":  1,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "SKIP",
+                                      "detail":  "no node reaches degree 3 -- graph too small to have hubs",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  0,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "GET /products",
+                                                                       "id":  "EntryPoint:GET /products",
+                                                                       "degree":  1
+                                                                   },
+                                                                   {
+                                                                       "title":  "ProductsModel.OnGet",
+                                                                       "id":  "Member:RazorPagesApp.Pages.ProductsModel::OnGet",
+                                                                       "degree":  1
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/1 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  1,
+                                                        "withTarget":  1,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "PASS",
+                                 "detail":  "App/MinimalApi",
+                                 "metrics":  {
+                                                 "archetype":  "App",
+                                                 "style":  "MinimalApi",
+                                                 "confidence":  0.9
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "no solution file on disk (folder-mode analysis)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  0,
+                                                     "slnNames":  [
+
+                                                                  ],
+                                                     "analyzedProjects":  1,
+                                                     "noteSolutionsOnDisk":  0,
+                                                     "noteAnalyzed":  "",
+                                                     "noteRequested":  false,
+                                                     "note":  ""
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-project edges (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  0,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

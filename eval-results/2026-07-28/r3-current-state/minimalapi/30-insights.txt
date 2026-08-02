@@ -1,0 +1,40 @@
+♦
+DevContext
+MinimalApiProject
+search or jump…
+Ctrl+K
+New
+MinimalApiProject
+✕
++
+2
+3
+Insights
+
+Repo-specific findings — what's notable, risky, or wired in interesting ways.
+
+KNOW THIS
+2/2 endpoints anonymous, incl. 1 POST/PUT/DELETE
+Warning
+
+Unauthenticated write endpoints are a security risk — verify each is intentionally public.
+
+GET /orders
+POST /orders
+Trace it →
+Entry targets resolved 2/2 (100%) — trace any entry for its full path
+Info
+moderate confidence
+Most depended-upon: Core (2 dependents)
+Info
+moderate confidence
+Core (2 dependents)
+COVERAGE
+
+2/2 entries have resolved targets
+
+Engine details
+MinimalApiProject
+MinimalApiProject — 16 nodes, 9 edges, 2 entries
+1.0.0
+modern

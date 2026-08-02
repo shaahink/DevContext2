@@ -1,0 +1,42 @@
+♦
+DevContext
+FluentValidation
+search or jump…
+Ctrl+K
+New
+FluentValidation
+✕
++
+3
+Insights
+
+Repo-specific findings — what's notable, risky, or wired in interesting ways.
+
+KNOW THIS
+Public surface: 45 interfaces, 67 classes (112 total public types)
+Info
+high confidence
+
+The public surface is the library's contract — its size and shape sets the learning curve.
+
+45 interfaces
+67 classes
+Most depended-upon: FluentValidation (2 dependents) · FluentValidation.DependencyInjectionExtensions (1 dependents)
+Info
+moderate confidence
+FluentValidation (2 dependents)
+FluentValidation.DependencyInjectionExtensions (1 dependents)
+Wiring hubs: IRuleBuilder (28) · ValidationContext (14) · TrackingCollection (10) · IValidator (9) · MessageFormatter (9)
+Info
+moderate confidence
+IRuleBuilder (28)
+ValidationContext (14)
+TrackingCollection (10)
+IValidator (9)
+MessageFormatter (9)
+COVERAGE
+Engine details
+FluentValidation
+FluentValidation — 319 nodes, 169 edges, 0 entries
+1.0.0
+modern

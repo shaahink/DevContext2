@@ -1,0 +1,25 @@
+﻿[run ] DntSite (Map)…
+[run ] DntSite (Trace: FeedController)…
+[run ] OrchardCore (Map)…
+
+# DevContext performance — 2026-07-28 01:41
+
+Real pipeline (incl. call graph) over the standing eval repos. Median of 3 timed iterations after 1 warm-up. Wall time is the full `AnalyzeAsync`.
+
+| Repo | Mode | Median | Min–Max | Files | Nodes | Edges | Entries | Stage2 | Stage3 | Top extractors (ms) |
+|---|---|--:|--:|--:|--:|--:|--:|--:|--:|---|
+| DntSite | Map | 26.3s | 23.0–28.9s | 1342 | 3174 | 4164 | 94 | 2856ms | 5023ms | EndpointExtractor 3630ms, SyntaxStructureExtractor 2856ms, DiRegistrationExtractor 2709ms |
+| DntSite | Trace (FeedController) | 27.2s | 26.7–36.0s | 1342 | 2732 | 2238 | 94 | 2584ms | 4596ms | EndpointExtractor 2930ms, SyntaxStructureExtractor 2584ms, DiRegistrationExtractor 2355ms |
+| OrchardCore | Map | 15.0s | 14.7–16.6s | 5247 | 10178 | 9839 | 286 | 2027ms | 3190ms | SyntaxStructureExtractor 2027ms, EndpointExtractor 2014ms, DiRegistrationExtractor 2009ms |
+
+## Call-graph phase breakdown (Trace runs)
+
+
+## Stage waterfall per run (T7.3 rows — SemanticLite/GraphAssembly/… aren't extractors)
+
+- **DntSite** Map: DiscoveryAndCacheWarmup 263ms | GenericExtraction 2856ms | SpecificExtraction 5023ms | SemanticLite 17553ms | GraphAssembly 266ms | Insights 24ms | Compression 88ms | Snapshot 227ms
+- **DntSite** Trace (FeedController): DiscoveryAndCacheWarmup 238ms | GenericExtraction 2584ms | SpecificExtraction 4596ms | SemanticLite 19399ms | GraphAssembly 131ms | Insights 6ms | Compression 43ms | Snapshot 156ms
+- **OrchardCore** Map: DiscoveryAndCacheWarmup 2277ms | GenericExtraction 2027ms | SpecificExtraction 3190ms | SemanticLite 4708ms | GraphAssembly 1495ms | Insights 510ms | Compression 205ms | Snapshot 406ms
+
+
+Wrote C:\code\DevContext2\benchmarks\results\PERF-2026-07-28-0141.md

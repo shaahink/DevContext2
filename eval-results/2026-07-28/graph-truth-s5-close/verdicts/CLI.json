@@ -1,0 +1,121 @@
+﻿{
+    "repo":  "CLI",
+    "run":  "2026-07-28 12:41:59",
+    "wallSec":  5.6,
+    "snapshotCache":  "HIT · 95cdac6",
+    "nodeCount":  242,
+    "edgeCount":  173,
+    "checks":  {
+                   "transport":  {
+                                     "verdict":  "SKIP",
+                                     "detail":  "no transport truth declared",
+                                     "metrics":  {
+                                                     "bus":  0,
+                                                     "grpc":  0,
+                                                     "http":  0,
+                                                     "refit":  0,
+                                                     "aspire":  0,
+                                                     "untagged":  0,
+                                                     "eventWiringIntegration":  0,
+                                                     "eventWiringCrossService":  0
+                                                 }
+                                 },
+                   "handler-join":  {
+                                        "verdict":  "SKIP",
+                                        "detail":  "no Sends/Handles wiring in graph",
+                                        "metrics":  {
+                                                        "sendsTotal":  0,
+                                                        "handlesTotal":  0,
+                                                        "consumesTotal":  0,
+                                                        "unhandledTargets":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "hub-sanity":  {
+                                      "verdict":  "PASS",
+                                      "detail":  "top hubs clean: GetCompletions(12), ParseResult(12), SymbolResultTree(10), Get(9), Argument(8)",
+                                      "metrics":  {
+                                                      "minDegree":  3,
+                                                      "hubsScored":  5,
+                                                      "top5":  [
+                                                                   {
+                                                                       "title":  "GetCompletions",
+                                                                       "id":  "Member:System.CommandLine.ParseResult::GetCompletions",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "ParseResult",
+                                                                       "id":  "Type:System.CommandLine.ParseResult",
+                                                                       "degree":  12
+                                                                   },
+                                                                   {
+                                                                       "title":  "SymbolResultTree",
+                                                                       "id":  "Type:System.CommandLine.Parsing.SymbolResultTree",
+                                                                       "degree":  10
+                                                                   },
+                                                                   {
+                                                                       "title":  "Get",
+                                                                       "id":  "Member:System.CommandLine.Suggest.SuggestionDispatcher::Get",
+                                                                       "degree":  9
+                                                                   },
+                                                                   {
+                                                                       "title":  "Argument",
+                                                                       "id":  "Type:System.CommandLine.Argument`1",
+                                                                       "degree":  8
+                                                                   }
+                                                               ]
+                                                  }
+                                  },
+                   "entry-target":  {
+                                        "verdict":  "PASS",
+                                        "detail":  "0/0 targets are bare DI interfaces (0% \u003c= 25%)",
+                                        "metrics":  {
+                                                        "entries":  2,
+                                                        "withTarget":  0,
+                                                        "diInterfaceTargets":  0,
+                                                        "diInterfacePct":  0,
+                                                        "minEntries":  0,
+                                                        "sample":  [
+
+                                                                   ]
+                                                    }
+                                    },
+                   "style":  {
+                                 "verdict":  "FAIL",
+                                 "detail":  "archetype CliTool not in [Library]",
+                                 "metrics":  {
+                                                 "archetype":  "CliTool",
+                                                 "style":  "NotApplicable",
+                                                 "confidence":  0
+                                             }
+                             },
+                   "sln-scope":  {
+                                     "verdict":  "PASS",
+                                     "detail":  "single solution (System.CommandLine.sln)",
+                                     "metrics":  {
+                                                     "slnOnDisk":  1,
+                                                     "slnNames":  [
+                                                                      "System.CommandLine.sln"
+                                                                  ],
+                                                     "analyzedProjects":  10,
+                                                     "noteSolutionsOnDisk":  1,
+                                                     "noteAnalyzed":  "System.CommandLine.sln",
+                                                     "noteRequested":  false,
+                                                     "note":  "analyzed System.CommandLine"
+                                                 }
+                                 },
+                   "dup-name":  {
+                                    "verdict":  "PASS",
+                                    "detail":  "0 dup-name types on cross-service links (max 0)",
+                                    "metrics":  {
+                                                    "crossProjectEdges":  9,
+                                                    "dupNameTypesTouched":  0,
+                                                    "sample":  [
+
+                                                               ]
+                                                }
+                                }
+               }
+}

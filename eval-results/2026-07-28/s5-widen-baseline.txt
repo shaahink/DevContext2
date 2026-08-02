@@ -1,0 +1,117 @@
+=== S5 widen baseline (pre-Batch-D) started 2026-07-28 10:20:00 ===
+--- razorpages-app ---
+
+== razorpages-app ==
+  wall=4.7s nodes=4 edges=1
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- razorpages-app done in 12s (exit 0) ---
+--- Desktop ---
+
+== Desktop ==
+  wall=6.1s nodes=168 edges=102
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- Desktop done in 12s (exit 0) ---
+--- CLI ---
+
+== CLI ==
+  wall=5.9s nodes=242 edges=173
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype CliTool not in [Library]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- CLI done in 11s (exit 0) ---
+--- Dapper ---
+
+== Dapper ==
+  wall=5.2s nodes=203 edges=62
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- Dapper done in 9s (exit 0) ---
+--- StackExchange.Redis ---
+
+== StackExchange.Redis ==
+  wall=13.9s nodes=1296 edges=816
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- StackExchange.Redis done in 18s (exit 0) ---
+--- CommunityToolkit.Mvvm ---
+
+== CommunityToolkit.Mvvm ==
+  wall=7.2s nodes=448 edges=249
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 1 dup-name types touched by cross-project edges: HashCode [CommunityToolkit.Mvvm]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- CommunityToolkit.Mvvm done in 11s (exit 0) ---
+--- MahApps.Metro ---
+
+== MahApps.Metro ==
+  wall=6.9s nodes=453 edges=153
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: archetype Desktop not in [Library]; style Unknown not in [NotApplicable]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- MahApps.Metro done in 11s (exit 0) ---
+--- MassTransit ---
+
+== MassTransit ==
+  wall=44.9s nodes=10178 edges=7384
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 3 dup-name types touched by cross-project edges: Batch [MassTransit.Abstractions], ScheduleMessageConsumer [MassTransit.HangfireIntegration], ScheduleMessageConsumer [MassTransit.QuartzIntegration]
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- MassTransit done in 56s (exit 0) ---
+--- ScreenToGif ---
+
+== ScreenToGif ==
+  wall=11.4s nodes=1227 edges=720
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- ScreenToGif done in 17s (exit 0) ---
+--- blazor-samples ---
+
+== blazor-samples ==
+  wall=29.3s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=SKIP sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- blazor-samples done in 36s (exit 0) ---
+--- DntSite ---
+
+== DntSite ==
+  wall=48.9s nodes=3174 edges=4168
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- DntSite done in 56s (exit 0) ---
+--- xUnit ---
+
+== xUnit ==
+  wall=16.3s nodes=953 edges=575
+  transport=SKIP handler-join=SKIP hub-sanity=FAIL entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+    FAIL hub-sanity: test/fixture hubs in top-5: ITestFrameworkExecutionOptions(61), ITestFrameworkDiscoveryOptions(41)
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s5-baseline\MATRIX.md
+GRAPH-TRUTH: OK (1 repo(s) scored)
+--- xUnit done in 22s (exit 0) ---
+--- HotChocolate ---
+
+== HotChocolate ==

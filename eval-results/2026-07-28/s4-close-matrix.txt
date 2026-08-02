@@ -1,0 +1,150 @@
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.09
+
+== aspire-samples ==
+  wall=1.3s nodes=48 edges=20
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== AutoMapper ==
+  wall=12.4s nodes=467 edges=225
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== AzureFunctions ==
+  wall=16.4s nodes=686 edges=411
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Blazor ==
+  wall=11.7s nodes=12 edges=4
+  transport=SKIP handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== CleanArchitecture ==
+  wall=1.5s nodes=139 edges=59
+  transport=PASS handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 5 of 6 send targets have no Handles edge: CreateContributorCommand, DeleteContributorCommand, GetContributorQuery, ListContributorsQuery, UpdateContributorCommand
+
+== company-functions ==
+  wall=2s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 0 sln(s) on disk but the analysis emits no scope note
+
+== dotnet-podcasts ==
+  wall=4s nodes=344 edges=277
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== eShop ==
+  wall=1.2s nodes=1136 edges=1003
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== FluentValidation ==
+  wall=4s nodes=319 edges=169
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== functions-app ==
+  wall=2.1s nodes=3 edges=1
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 0 sln(s) on disk but the analysis emits no scope note
+
+== GitVersion ==
+  --sln new-cli/GitVersion.slnx
+  wall=8.7s nodes=67 edges=15
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gitversion-default ==
+  wall=7.2s nodes=609 edges=396
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== gRPC ==
+  wall=16s nodes=708 edges=396
+  transport=FAIL handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+    FAIL transport: grpc=0 below min 1
+
+== Hangfire ==
+  wall=8.1s nodes=928 edges=599
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== MassTransit-Sample ==
+  wall=2.3s nodes=16 edges=10
+  transport=PASS handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== MediatR ==
+  wall=4.4s nodes=184 edges=62
+  transport=SKIP handler-join=PASS hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== Newtonsoft.Json ==
+  wall=11s nodes=485 edges=363
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Ocelot ==
+  wall=13.7s nodes=754 edges=604
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== OrchardCore ==
+  wall=82.1s nodes=10187 edges=9889
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=FAIL sln-scope=PASS dup-name=PASS
+    FAIL style: style ControllerBased not in [ModularMonolith]
+
+== Orleans ==
+  wall=51.8s nodes=5106 edges=3539
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=FAIL style=PASS sln-scope=PASS dup-name=PASS
+    FAIL handler-join: 1 of 1 send targets have no Handles edge: Message
+    FAIL entry-target: 32.4% of entry targets are bare DI interfaces (max 25%): GET /DashboardCounters -> IDashboardClient; GET /ClusterStats -> IDashboardClient; GET /HistoricalStats/{*path} -> IDashboardClient; GET /SiloProperties/{*address} -> IDashboardClient; GET /SiloMetadata/{*address} -> IDashboardClient
+
+== Polly ==
+  wall=15.1s nodes=670 edges=322
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Quartz.NET ==
+  wall=18.9s nodes=1780 edges=1322
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== RazorPages ==
+  wall=73.9s nodes=85 edges=128
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== refit ==
+  wall=10.8s nodes=324 edges=135
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== RestSharp ==
+  wall=7.4s nodes=283 edges=162
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== Serilog ==
+  wall=4.8s nodes=204 edges=92
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== SignalR ==
+  wall=358.6s nodes=14352 edges=10241
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL dup-name: 12 dup-name types touched by cross-project edges: CryptoUtil [Microsoft.AspNetCore.DataProtection.Abstractions], FromBodyAttribute [Microsoft.AspNetCore.Mvc.Core], HttpConnection [Microsoft.AspNetCore.Http.Connections.Client], HttpConnectionContext [Microsoft.AspNetCore.Http.Connections], HttpProtocol [Microsoft.AspNetCore.Server.Kestrel.Core]
+
+== signalr-app ==
+  wall=2.3s nodes=5 edges=2
+  transport=PASS handler-join=SKIP hub-sanity=SKIP entry-target=PASS style=PASS sln-scope=FAIL dup-name=PASS
+    FAIL sln-scope: 0 sln(s) on disk but the analysis emits no scope note
+
+== Spectre.Console ==
+  wall=6.6s nodes=603 edges=289
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=SKIP style=PASS sln-scope=PASS dup-name=PASS
+
+== TodoApi ==
+  wall=3.6s nodes=124 edges=74
+  transport=PASS handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+== wolverine ==
+  wall=53.9s nodes=6274 edges=4207
+  transport=SKIP handler-join=FAIL hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=FAIL
+    FAIL handler-join: 1 of 6 send targets have no Handles edge: Envelope
+    FAIL dup-name: 4 dup-name types touched by cross-project edges: MapEventTypeMessages [Wolverine.Marten], MapEventTypeMessages [Wolverine.Polecat], OutboxedSessionFactory [Wolverine.Marten], WolverineProjectionCoordinator [Wolverine.Marten]
+
+== YARP ==
+  wall=9.3s nodes=773 edges=435
+  transport=SKIP handler-join=SKIP hub-sanity=PASS entry-target=PASS style=PASS sln-scope=PASS dup-name=PASS
+
+MATRIX: C:\code\DevContext2\eval-results\2026-07-28\graph-truth-s4\MATRIX.md
+GRAPH-TRUTH: OK (32 repo(s) scored)
+#### MATRIX DONE exit=0
