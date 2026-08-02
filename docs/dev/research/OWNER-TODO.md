@@ -40,18 +40,28 @@ either way, so users are never blocked.
 
 ## 2. The v1.0.5 release — check it landed
 
-The tag was pushed from this session. It triggers `release.yml`, which builds on `windows-latest`
-and takes a while (Tauri bundling dominates).
+**Done — but it caught a real bug on the way out. Read this one.**
 
-- Watch: `gh run list --workflow=release.yml` · `gh run watch <id>`
-- Expect: CLI job (build → fast test suite → pack), Desktop job (NSIS + MSI installers, versioned
-  from the tag), then a GitHub Release with the `.nupkg` and both installers attached.
-- **Verify the installer version reads `1.0.5`, not `0.1.0`.** That was a real defect once
-  (Prism H3): the version came from `tauri.conf.json`'s default instead of the tag. The workflow
-  now runs `scripts/set-tauri-version.mjs` from the tag, but it is worth one look on a real release.
+The run (`30749883156`) went green on all three jobs and published
+<https://github.com/shaahink/DevContext2/releases/tag/v1.0.5>. The Prism H3 concern is clear: the
+installers are versioned from the tag (`DevContext_1.0.5_x64-setup.exe`), not `tauri.conf.json`'s
+default.
 
-If the run fails, nothing is published — the Release job only runs for a tag and after both build
-jobs succeed. Fix and re-tag; no cleanup needed on nuget.org because nothing was pushed there.
+**A green release shipped without its installers.** v1.0.5 was published with only the `.nupkg`
+attached, while both installers sat in the run's artifacts — and nothing failed, because attaching
+zero files was not an error. The cause: `upload-artifact` roots an artifact at the *least common
+ancestor* of its path list. The CLI job passes one glob (`nupkg/*.nupkg`) so its file lands flat;
+the desktop job passes two (`bundle/nsis/*.exe` and `bundle/msi/*.msi`) so the artifact keeps
+`nsis/` and `msi/` as directories. The release step's flat `artifacts/*.exe` matched neither.
+
+Fixed in `.github/workflows/release.yml`: recursive globs, plus `fail_on_unmatched_files: true` so
+a missing installer fails the release instead of shipping quietly. **The fix is not in the v1.0.5
+tag** — it landed after it. The two installers were uploaded to v1.0.5 by hand, so that release is
+complete; the next tag exercises the fixed path.
+
+This is worth one look on your side, because it is the class of failure this project keeps finding:
+the surface reported success while the thing it promised was absent, and the README tells people to
+download exactly those installers.
 
 ---
 
@@ -59,13 +69,18 @@ jobs succeed. Fix and re-tag; no cleanup needed on nuget.org because nothing was
 
 | Branch | State |
 |---|---|
-| `feat/graph-v2` | pushed, merged |
-| `develop` | **merged and pushed** — the default branch, 121+ commits of graph-v2 |
-| `main` | **fast-forwarded to develop and pushed** — it had been 379 commits behind since the WPF era, with nothing unique |
-| `v1.0.5` | tagged and pushed |
+| `feat/graph-v2` | pushed — tip `aec54d7` |
+| `develop` | **merged and pushed** — clean fast-forward, gained **141 commits**. Default branch. |
+| `main` | **fast-forwarded to develop and pushed** — gained **521 commits**; it had nothing of its own |
+| `v1.0.5` | annotated tag at `aec54d7`, pushed — triggered the Release workflow |
 
-You asked for the full sync, so develop and main both moved. Note that `main` had been stale since
-2026-06 and its old tip (`b633746`) is still reachable from the tag history if you ever need it.
+You asked for the full sync, so develop and main both moved. `main` had been stranded at
+`b633746` since the WPF era (2026-06); that commit is still reachable if you ever need it
+(`git log b633746`), and nothing was rewritten to get there — it was a pure fast-forward.
+
+**The full gate battery was run green on the merged tree before any of this** (`eval/gates.ps1`,
+exit 0, eval included) — evidence at `eval-results/2026-08-02/wrapup/gates-full.txt`. The
+conductor's own final phase gate was also green, but that was on the pre-wrap-up tree.
 
 **Stale branches worth deleting when you're ready** — there are ~20 local branches, several already
 merged (`feat/github-ready`, `feat/lighthouse-*`, `feat/library-surface-fv-polly`, `audit/*`,

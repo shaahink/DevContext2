@@ -126,11 +126,20 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      # Globs must be recursive. `upload-artifact` roots an artifact at the least common ancestor
+      # of its path list: the CLI job passes one glob (nupkg/*.nupkg) so its file lands flat, but
+      # the desktop job passes two (bundle/nsis/*.exe + bundle/msi/*.msi) so the artifact keeps
+      # nsis/ and msi/ as directories. Flat `artifacts/*.exe` matched neither, and v1.0.5 shipped
+      # with only the .nupkg attached while both installers sat in the run's artifacts — a green
+      # release missing the very files the README tells people to download.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # `**` matches zero or more segments, so these cover the flat .nupkg and the nested
+          # installers with one form each.
           files: |
-            artifacts/*.nupkg
-            artifacts/*.exe
-            artifacts/*.msi
+            artifacts/**/*.nupkg
+            artifacts/**/*.exe
+            artifacts/**/*.msi
+          fail_on_unmatched_files: true # a missing installer must fail the release, not ship quietly
           generate_release_notes: true

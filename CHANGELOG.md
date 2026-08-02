@@ -4,7 +4,16 @@ All notable changes to DevContext are documented here.
 
 ## [Unreleased]
 
-Nothing yet.
+- **Release workflow: a green release could ship without its installers.** v1.0.5 published with
+  only the `.nupkg` attached while both Windows installers sat in the run's artifacts, and nothing
+  failed — attaching zero files was not an error. `upload-artifact` roots an artifact at the least
+  common ancestor of its path list, so the desktop job's two globs kept `nsis/` and `msi/` as
+  directories while the release step matched a flat `artifacts/*.exe`. Globs are now recursive, and
+  `fail_on_unmatched_files` makes a missing installer fail the release. (v1.0.5's installers were
+  attached by hand, so that release is complete.)
+- **NuGet push would have stayed silently skipped after the key was added** — the step's guard read
+  `env.NUGET_API_KEY` from its own `env:` block, which GitHub does not expose to that step's own
+  `if:`. Moved to job level, and a skip now emits a `::notice::` explaining itself.
 
 ## v1.0.5 (2026-08-02)
 

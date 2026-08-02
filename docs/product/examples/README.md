@@ -13,7 +13,7 @@ narrative Map/Trace from the kernel, post-Universal-Lens Phases 0–6 (updated 2
 | [TodoApi](https://github.com/davidfowl/TodoApi) | David Fowler | MinimalApi | Map |
 | [AutoMapper](https://github.com/AutoMapper/AutoMapper) | Jimmy Bogard | Library (class library) | Map (library surface) |
 | [DntSite](https://github.com/VahidN/DntSite) | Vahid Nasiri | ControllerBased | Map + Trace |
-| [ControllerApp](tests/fixtures/ControllerApp) | (fixture) | MinimalApi | Map + Trace |
+| [ControllerApp](../../../tests/fixtures/ControllerApp) | (fixture) | MinimalApi | Map + Trace |
 
 ## File naming
 
