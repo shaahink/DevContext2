@@ -21,6 +21,8 @@ rendered (cause is between line 199 and `k<5` — Dapper's Calls edges span 32 t
 **deep-spine ratio is saturated** (1.000 on 5/11). Also: the engine ships **two definitions of a verified edge**
 (GraphStats approx = Syntactic only, so Join counts; GraphOrphansSource counts Semantic only; Join is the enum
 DEFAULT). Gates: Cli 0w/0e · loom-guards PASSED incl. Truth · app 159/159 · `ng build` EXIT 0. 4 bugs filed.
+**Branch was DIVERGED from origin** (all of G9 existed twice under different shas — infrastructure, not a red);
+reconciled by merge @ `91e2bca`, pushed. Don't rebase it — see the ledger trap. **Next = G10 is CLOSED; take the next stage.**
 
 ## Baseline numbers (from run.db)
 
