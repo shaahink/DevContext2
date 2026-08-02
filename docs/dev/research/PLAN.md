@@ -93,6 +93,10 @@
       confirmed by FULL battery (not by session gates). Tracker archived to
       `docs/dev/archive/trackers/GRAPH-V2-START.md`; per-stage detail is in the R4 block below and
       in `eval-results/2026-07-29/` + `eval-results/2026-08-02/`. Released as **v1.0.5**.
+      **CI is green on both `develop` and `main` at `0bddb3f`** — the hermetic-spec fix holds on the
+      Linux app leg that was failing, so the branches are identical and both verified. The green run
+      surfaced one non-blocking issue, logged as `OWNER-TODO.md` §6: every action in all three
+      workflows targets the deprecated Node 20 and is being force-run on Node 24.
       The four things worth carrying forward:
       **(1) `docs/dev/research/BUG-BACKLOG.md` — 24 open findings (7 high).** Measured, evidenced,
       and deliberately NOT fixed because each is a product decision rather than a correction. This
