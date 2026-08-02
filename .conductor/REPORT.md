@@ -1,6 +1,6 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `dcdb65d`_
+_Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `b24da29`_
 
 **Status:** Idle
 **Stage:** G10 — Sweep for thresholds calibrated on pre-Batch-A data · attempts used 0
@@ -111,7 +111,7 @@ _Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `dcdb65d`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | ✅ DONE | - |
+| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | ✅ DONE | [`d06755f`](https://github.com/shaahink/DevContext2/commit/d06755f) |
 
 </details>
 
@@ -153,7 +153,6 @@ _Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `dcdb65d`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 19:03:36  ▪ gate guards pass [session]  (1m41s)
 07-29 19:03:40  • session #23 G7 → Advanced · done G7.1,G7.2 · 5 commit(s)  (46m30s)
 07-29 19:03:40  § owner approval requested — G7
 07-29 19:03:43  ◆ plan reloaded — v5 · 10 stages · 4 gates
@@ -193,6 +192,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-02 12:44:00  • session #28 G10 Deliver started (attempt 1/2)
 08-02 13:21:18  ▪ gate fast-engine pass [session]  (1m35s)
 08-02 13:21:18  ▪ gate guards pass [session]  (1m14s)
+08-02 13:21:22  • session #28 G10 → Advanced · done G10.1 · 13 commit(s)  (37m21s)
 ```
 
 ## Health
@@ -224,7 +224,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/graph-v2
-working tree: ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt, ?? eval-results/2026-07-27/gates-s2-close.txt (+115 more)
+working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+116 more)
 vs upstream: up to date
 ```
 
