@@ -23,6 +23,11 @@ jobs:
   cli:
     name: CLI — pack & publish
     runs-on: windows-latest
+    # JOB-level, deliberately. A step's own `env:` block is NOT visible to that step's own `if:`,
+    # so the guard on "Push to NuGet" read an undefined value and the step would have stayed
+    # skipped even after NUGET_API_KEY was added — a silent no-op with a green tick.
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,11 +47,16 @@ jobs:
       - name: Pack CLI
         run: dotnet pack src/DevContext.Cli --configuration Release --no-build -o nupkg
 
+      # No NUGET_API_KEY secret is configured yet and the DevContext.Cli id is unclaimed on
+      # nuget.org, so this step is skipped and the .nupkg reaches users via the GitHub Release
+      # (README documents `--add-source`). Adding the secret is all that is needed to turn it on.
       - name: Push to NuGet
         if: github.ref_type == 'tag' && env.NUGET_API_KEY != ''
         run: dotnet nuget push nupkg/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Note when the NuGet push was skipped
+        if: github.ref_type == 'tag' && env.NUGET_API_KEY == ''
+        run: echo "::notice::NUGET_API_KEY is not set — skipped publishing to NuGet.org. The .nupkg is attached to the GitHub Release instead."
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4

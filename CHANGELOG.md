@@ -4,7 +4,15 @@ All notable changes to DevContext are documented here.
 
 ## [Unreleased]
 
-Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`):
+Nothing yet.
+
+## v1.0.5 (2026-08-02)
+
+Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`). v1.0.1–v1.0.4 were
+packaging iterations of the v1.0.0 engine and carry no entries of their own; this is the first
+release to describe the work that followed.
+
+640 commits since v1.0.4, of which 202 are `feat` / `fix` / `perf`.
 
 - **Lighthouse — repo intelligence (L0–L7)** — truth-gate test battery over real-world eval repos;
   ratcheted expectations that lock detection quality per repo.
@@ -19,13 +27,14 @@ Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`):
   replaced by an Angular 22 (zoneless, signals) + Tauri 2 app (`DevContext.App`) over a gRPC-Web
   server: Home, Explore workbench (Service/Layer/Feature/Flow lenses + table lens), Atlas,
   Insights, MCP management page, Context Studio, Settings.
-- **Tapestry (in progress, T0–T4 landed)** — T0 gate hardening + eval fixtures; T1 universal entry
+- **Tapestry — T0–T8, complete 2026-07-17** — T0 gate hardening + eval fixtures; T1 universal entry
   coverage (entry-surface catalog: HTTP, gRPC, SignalR, GraphQL, Azure Functions, Orleans, workers,
   consumers; gateway archetype; per-service style); T2 graph quality (production-first DI edges,
   member line stamping, type-focus trace shaping, unified event wiring); T3 MCP v3 (ambiguity-honest
   addressing, budgeted envelopes); T4 context generation v2 (pack identity header, spine-first
-  budget fill, real contracts/config/tests sections, per-section provenance, and `verify_context` —
-  the 24th MCP tool — for staleness checks against analyze-time file fingerprints).
+  budget fill, real contracts/config/tests sections, per-section provenance, and `verify_context`
+  for staleness checks against analyze-time file fingerprints); T5–T8 Context Studio, the Explore
+  workbench, RPC budgeting, and render honesty for sample collections.
 - **GitHub readiness** — CI re-enabled mirroring the local gate battery (engine + app jobs); release
   workflow fixed (CLI → NuGet; the dead WPF job removed); README restructured around the four
   surfaces; new `docs/product/mcp-reference.md`; reference docs re-verified against source.
@@ -33,6 +42,40 @@ Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`):
   (spawned via `dotnet`, .NET 10 runtime required) and `v*` tags now attach Windows installers to
   the GitHub Release alongside the CLI package. New weekly/manual `eval.yml` workflow runs the full
   gate battery (`eval/gates.ps1 -SkipMcpQa`) against the pinned eval-repo set.
+- **Prism — determinism, caching and the release pipeline (D1–D5)** — analysis output made
+  reproducible run-to-run (the decisive fix: a call edge is canonicalised by its **call site**, not
+  by resolution order), a snapshot cache with an explicit release path for the engine host, and a
+  Windows-only release pipeline whose installer version derives from the tag rather than a checked-in
+  default. DntSite Map down to 34.5 s.
+- **graph-v2 — graph truth, then the surfaces that read it** — the largest track. Batches A–E
+  rebuilt identity and resolution (structural symbol ids, the call-graph binder routed through
+  `SymbolTable`, one compilation per analysis, honest call edges), then a 47-pole truth matrix was
+  used to hold every subsequent change to measured evidence. Notable outcomes:
+  - **The MCP became a usable tool** — `map` had been dropping the library surface, packages,
+    aggregates and the archetype view *after* computing them; seven of ten seam kinds rendered as
+    the same mute dot; the session picker answered "whatever repo was touched last". Added `seam`
+    (path-between), kind-filtered `neighbors`, and cache truth (`from_cache` / `analyzed_at` /
+    `git_head`). The tool menu is now seeded from the SDK's own registered collection instead of a
+    second hand-maintained list that had already drifted — **22 tools**, asserted by a test.
+  - **Three fields that were read with the wrong key, or never assigned** — `Insight.Severity`
+    shipped `"Warning"` while the app matched `"warning"` and MCP filtered `"WARNING"`, so the
+    Insights page had never rendered its primary section on any repo; `AnalysisSummary.archetype`
+    was assigned nowhere, so every analysis ever served carried `""`. A contract sweep
+    (`eval/contract-sweep.ps1`) is now a gate, and four genuinely dead fields were removed.
+  - **Performance: 1,275 s → 64.3 s on HotChocolate**, with output identical on 15 poles by
+    SHA-256. The cause was not repo size — `SyntaxStructureExtractor` re-walked an entire file's
+    syntax tree once per base-list entry, so one 11.3 MB generated client with 4,598 base lists cost
+    1,216,998 ms on its own. Fixed with a per-file index, not by raising the timeout.
+  - **Archetype and vocabulary honesty** — an auxiliary demo executable no longer decides a packable
+    library's archetype; Atlas, the per-service breakdown and the Hub radar agree on what a service
+    is; a library's empty sections now fill or state why they are withheld; raw generic arity
+    (`` Logging.ILogger`1 ``) never reaches a rendered surface.
+  - **Thresholds re-measured against the rebuilt graph** — five calibrated on the pre-Batch-A
+    starved graph were re-run over 11 poles. Two were wrong and are corrected (a hero-flow depth
+    filter that ran ahead of the rule it was under; a rate that fired at n=1, so two repos shipped a
+    warning reading "1 of 1"). Three are left at their current values with the measurement stated at
+    the site, because moving them would have been a product decision rather than a correction.
+  - 24 measured-but-unfixed findings are recorded in `docs/dev/research/BUG-BACKLOG.md`.
 
 ## v1.0.0 (2026-06-11)
 
