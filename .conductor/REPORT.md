@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
 
-_Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `b24da29`_
+_Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `3f0bc65`_
 
 **Status:** Idle
 **Stage:** G10 — Sweep for thresholds calibrated on pre-Batch-A data · attempts used 0
 **Checkpoints:** 22/22 done · **Sessions run:** 28 · **Cost:** $358.4167 (agent $358.0599 + gates $0.3568) · **Tokens:** 5,057,197 in / 1,962,410 out
-**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9
-**Pending:** full-battery phase gate for G10
+**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9, G10
 
 ## Stage progress
 
@@ -21,7 +20,7 @@ _Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `b24da29`_
 | G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
 | G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
 | G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | confirmed ✓ |
-| G10 | Sweep for thresholds calibrated on pre-Batch-A data | ██████████ 1/1 | gating… |
+| G10 | Sweep for thresholds calibrated on pre-Batch-A data | ██████████ 1/1 | confirmed ✓ |
 
 <details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
 
@@ -153,11 +152,6 @@ _Updated 2026-08-02 12:21 UTC · branch `feat/graph-v2` · HEAD `b24da29`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 19:03:40  • session #23 G7 → Advanced · done G7.1,G7.2 · 5 commit(s)  (46m30s)
-07-29 19:03:40  § owner approval requested — G7
-07-29 19:03:43  ◆ plan reloaded — v5 · 10 stages · 4 gates
-07-29 19:05:21  ◆ plan reloaded — v6 · 10 stages · 4 gates
-07-29 19:05:39  § owner approval granted — G7
 07-29 19:16:50  ▪ gate fast-app pass [phase]  (1m37s)
 07-29 19:16:50  ▪ gate guards pass [phase]  (41.0s)
 07-29 19:16:50  ▪ gate battery pass [phase]  (8m52s)
@@ -193,6 +187,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-02 13:21:18  ▪ gate fast-engine pass [session]  (1m35s)
 08-02 13:21:18  ▪ gate guards pass [session]  (1m14s)
 08-02 13:21:22  • session #28 G10 → Advanced · done G10.1 · 13 commit(s)  (37m21s)
+08-02 13:21:22  ◆ plan reloaded — v9 · 10 stages · 4 gates
+08-02 13:35:00  ▪ gate fast-engine pass [phase]  (1m54s)
+08-02 13:35:00  ▪ gate guards pass [phase]  (1m17s)
+08-02 13:35:00  ▪ gate battery pass [phase]  (10m23s)
+08-02 13:35:00  ✓ checkpoint G10.1 confirmed
 ```
 
 ## Health
@@ -273,7 +272,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
