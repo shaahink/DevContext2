@@ -1,0 +1,103 @@
+﻿{
+  "snapshotCache": "HIT \u00B7 72099e3",
+  "nodeCount": 389,
+  "edgeCount": 117,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 105,
+      "verified": 52,
+      "approx": 53
+    },
+    {
+      "kind": "Resolves",
+      "total": 12,
+      "verified": 0,
+      "approx": 12
+    }
+  ],
+  "totalWallMs": 12227,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 167
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1112
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 1
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 967
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 7338
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 544
+    },
+    {
+      "stage": "Insights",
+      "ms": 160
+    },
+    {
+      "stage": "Compression",
+      "ms": 248
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 482
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 10 interfaces, 191 classes (202 total public types)",
+      "evidence": [
+        "10 interfaces",
+        "191 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: MahApps.Metro (2 dependents) \u00B7 MahApps.Metro (1 dependents)",
+      "evidence": [
+        "MahApps.Metro (2 dependents)",
+        "MahApps.Metro (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: MetroWindow (37) \u00B7 ProgressDialog (11) \u00B7 MathConverter (8)",
+      "evidence": [
+        "MetroWindow (37)",
+        "ProgressDialog (11)",
+        "MathConverter (8)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

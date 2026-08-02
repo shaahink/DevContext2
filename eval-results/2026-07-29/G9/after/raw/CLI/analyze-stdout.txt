@@ -1,0 +1,14 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G9\after\raw\CLI\kernel.json
+analyzed 178 files · 0 types kept of 199 · 767/8000 tokens · 10.8s stage2 ×2.9 
+stage3 ×1.8
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │  System.CommandLine  │
+│   Time   │       11203ms        │
+│  Tokens  │  ~767 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.384 │
+╰──────────┴──────────────────────╯

@@ -1,0 +1,15 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-29\G9\before\raw\MahApps.Metro\kernel.j
+son
+analyzed 330 files · 0 types kept of 338 · 651/8000 tokens · 4.2s stage2 ×2.9 
+stage3 ×1.8
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │    MahApps.Metro     │
+│   Time   │        4482ms        │
+│  Tokens  │  ~651 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.381 │
+╰──────────┴──────────────────────╯
