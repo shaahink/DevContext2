@@ -1,0 +1,110 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-08-02T11:16:06.9817811+00:00",
+  "archetype": "Library",
+  "architectureStyle": "NotApplicable",
+  "styleConfidence": 0,
+  "projectCount": 10,
+  "projectNames": [
+    "dotnet-suggest",
+    "dotnet-suggest.Tests",
+    "EndToEndTestApp",
+    "NativeAOT",
+    "System.CommandLine",
+    "System.CommandLine.ApiCompatibility.Tests",
+    "System.CommandLine.Benchmarks",
+    "System.CommandLine.Tests",
+    "Tools",
+    "Trimming"
+  ],
+  "typeCount": 199,
+  "entryCount": 2,
+  "topologyProjectCount": 2,
+  "graphNodeCount": 242,
+  "graphEdgeCount": 173,
+  "signals": [
+    {
+      "key": "cli-commands",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 1 heavily-referenced internal types",
+      "detail": "",
+      "evidence": [
+        "ArgumentConversionResult (4 refs)"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: System.CommandLine (4 dependents) \u00B7 dotnet-suggest (1 dependents) \u00B7 dotnet-suggest (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "System.CommandLine (4 dependents)",
+        "dotnet-suggest (1 dependents)",
+        "dotnet-suggest (1 dependents)"
+      ]
+    },
+    {
+      "id": "cli.command-tree",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Command tree: 2 CLI commands, 2 top-level groups",
+      "detail": "",
+      "evidence": [
+        "dotnet-suggest (1 commands)",
+        "RootCommand (1 commands)"
+      ]
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 0 interfaces, 36 classes (37 total public types)",
+      "detail": "",
+      "evidence": [
+        "0 interfaces",
+        "36 classes"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/2 (0%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ParseResult (12) \u00B7 SymbolResultTree (10) \u00B7 Argument (8) \u00B7 ArgumentResult (8) \u00B7 Command (7)",
+      "detail": "",
+      "evidence": [
+        "ParseResult (12)",
+        "SymbolResultTree (10)",
+        "Argument (8)",
+        "ArgumentResult (8)",
+        "Command (7)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "System.CommandLine.sln",
+    "analyzedName": "System.CommandLine",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\CLI\\System.CommandLine.sln",
+    "solutionsOnDisk": 1,
+    "others": [],
+    "requested": false,
+    "partial": false,
+    "note": "analyzed System.CommandLine"
+  }
+}

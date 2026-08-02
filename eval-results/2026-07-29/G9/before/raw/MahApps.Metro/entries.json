@@ -1,0 +1,208 @@
+﻿{
+  "count": 25,
+  "byKind": {
+    "UiEntry": 25
+  },
+  "entries": [
+    {
+      "kind": "UiEntry",
+      "title": "ButtonsExample",
+      "nodeId": "ui:ButtonsExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.5,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\ButtonsExample.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HamburgerMenuDefault",
+      "nodeId": "ui:HamburgerMenuDefault",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.5,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\HamburgerMenuDefault.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "TabControlExamples",
+      "nodeId": "ui:TabControlExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\TabControlExamples.xaml.cs:17"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "TextExamples",
+      "nodeId": "ui:TextExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.4,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\TextExamples.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HamburgerMenuCreatorsUpdate",
+      "nodeId": "ui:HamburgerMenuCreatorsUpdate",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.3,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\HamburgerMenuCreatorsUpdate.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HamburgerMenuSample",
+      "nodeId": "ui:HamburgerMenuSample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.3,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\HamburgerMenuSample.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "MultiSelectionComboBoxExample",
+      "nodeId": "ui:MultiSelectionComboBoxExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.3,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\MultiSelectionComboBoxExample.xaml.cs:15"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SplitViewExamples",
+      "nodeId": "ui:SplitViewExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.3,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\SplitViewExamples.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HamburgerMenuRipple",
+      "nodeId": "ui:HamburgerMenuRipple",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.3,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\HamburgerMenuRipple\\HamburgerMenuRipple.xaml.cs:11"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "App",
+      "nodeId": "ui:App",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\App.xaml.cs:16"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorExample",
+      "nodeId": "ui:ColorExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\ColorExample.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ColorPickerExample",
+      "nodeId": "ui:ColorPickerExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\ColorPickerExample.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "CustomDialogExample",
+      "nodeId": "ui:CustomDialogExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\CustomDialogExample.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DataGridExamples",
+      "nodeId": "ui:DataGridExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\DataGridExamples.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "DateExamples",
+      "nodeId": "ui:DateExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\DateExamples.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "OtherExamples",
+      "nodeId": "ui:OtherExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\OtherExamples.xaml.cs:14"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "ProgressBars",
+      "nodeId": "ui:ProgressBars",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\ProgressBars.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SelectionExamples",
+      "nodeId": "ui:SelectionExamples",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\SelectionExamples.xaml.cs:13"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "Sliders",
+      "nodeId": "ui:Sliders",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\Sliders.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "TilesExample",
+      "nodeId": "ui:TilesExample",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\ExampleViews\\TilesExample.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HomeView",
+      "nodeId": "ui:HomeView",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\HamburgerMenuRipple\\HomeView.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "PrivateView",
+      "nodeId": "ui:PrivateView",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\HamburgerMenuRipple\\PrivateView.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "SettingsView",
+      "nodeId": "ui:SettingsView",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\HamburgerMenuRipple\\SettingsView.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "HomePage",
+      "nodeId": "ui:HomePage",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\Navigation\\HomePage.xaml.cs:12"
+    },
+    {
+      "kind": "UiEntry",
+      "title": "InterestingPage",
+      "nodeId": "ui:InterestingPage",
+      "project": "MahApps.Metro.Demo",
+      "score": 0.2,
+      "provenance": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.Samples\\MahApps.Metro.Demo\\Navigation\\InterestingPage.xaml.cs:12"
+    }
+  ]
+}

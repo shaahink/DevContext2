@@ -1,0 +1,71 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-08-02T11:16:30.2837988+00:00",
+  "archetype": "Library",
+  "architectureStyle": "NotApplicable",
+  "styleConfidence": 0,
+  "projectCount": 4,
+  "projectNames": [
+    "MahApps.Metro",
+    "MahApps.Metro.Caliburn.Demo",
+    "MahApps.Metro.Demo",
+    "MahApps.Metro.Tests"
+  ],
+  "typeCount": 338,
+  "topologyProjectCount": 1,
+  "graphNodeCount": 389,
+  "graphEdgeCount": 117,
+  "signals": [
+    {
+      "key": "desktop-ui",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 10 interfaces, 191 classes (202 total public types)",
+      "detail": "",
+      "evidence": [
+        "10 interfaces",
+        "191 classes"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: MahApps.Metro (2 dependents) \u00B7 MahApps.Metro (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "MahApps.Metro (2 dependents)",
+        "MahApps.Metro (1 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: MetroWindow (37) \u00B7 ProgressDialog (11) \u00B7 MathConverter (8)",
+      "detail": "",
+      "evidence": [
+        "MetroWindow (37)",
+        "ProgressDialog (11)",
+        "MathConverter (8)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "src/MahApps.Metro.sln",
+    "analyzedName": "MahApps.Metro",
+    "analyzedPath": "C:\\code\\DevContext2\\eval-repos\\MahApps.Metro\\src\\MahApps.Metro.sln",
+    "solutionsOnDisk": 1,
+    "others": [],
+    "requested": false,
+    "partial": false,
+    "note": "analyzed MahApps.Metro"
+  }
+}
