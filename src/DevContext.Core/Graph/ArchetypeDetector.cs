@@ -31,6 +31,8 @@ public static class ArchetypeDetector
     /// L7.2: Worker and Blazor detected as App subtypes based on entry-point shape.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
+        var classifier = new ProjectClassifier(model.Projects);
+
         // M1.9 / T1.2: a gateway is the solution's archetype only when it isn't merely one service among
         // many. A YARP/Ocelot gateway sitting in front of ≥2 real backend services is a ROLE inside a
         // microservices app (the dogfood's YarpApiGateway, eShop's BFF) → App; YARP's and Ocelot's own
@@ -43,7 +45,7 @@ public static class ArchetypeDetector
         // counting it flipped YARP's own ReverseProxy library into a second "service".)
         if (model.Architecture.Has(ArchitectureSignals.Keys.Gateway))
         {
-            var gwNoise = new NoiseFilter(new ProjectClassifier(model.Projects));
+            var gwNoise = new NoiseFilter(classifier);
             var peerServiceCount = model.Projects.Count(p =>
                 !string.IsNullOrEmpty(p.FilePath)
                 && IsRunnableHost(p)
@@ -63,18 +65,28 @@ public static class ArchetypeDetector
         if (!model.SamplesAreTheProduct && IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
 
+        // G9.1: the library shape is computed ONCE, HERE, and consulted twice — by the rung below and,
+        // unchanged, as the bottom rung. It used to be computed only at the bottom, which is the whole
+        // defect: the ladder decided CliTool (and, for a demo app, App/Desktop) before the
+        // auxiliary-executable test it already owned was ever asked. Measured on dotnet/command-line-api:
+        // src/System.CommandLine.Suggest is a real dotnet tool (OutputType Exe + PackAsTool) under a
+        // production path, so the CliTool rung fired and returned before the bottom rung could observe
+        // that the exe merely CONSUMES System.CommandLine — the packable library that is the product.
+        var shape = DescribeLibraryShape(model, classifier);
+        if (!model.SamplesAreTheProduct && shape.IsPackableLibraryWithOnlyAuxiliaryExes)
+            return Archetype.Library;
+
         // A3/B4 (Prism D1.1d): CliTool — the product is a command-line tool. Fires when production
         // code has console executables with explicit TOOL evidence (PackAsTool/ToolCommandName in the
         // csproj, or a CLI-parser package) and NO web/desktop surface anywhere (a microservices repo
         // shipping a migrator utility stays App; a desktop app stays Desktop). Checked before the
         // entries rung so parser-based command entries route here, not to the generic App map.
         {
-            var cliClassifier = new ProjectClassifier(model.Projects);
             var prodConsoleExes = model.Projects
                 .Where(p => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
                     && p.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true)
-                .Where(p => !cliClassifier.IsInTestProject(p.FilePath)
-                    && cliClassifier.IsProduction(p, model.SamplesAreTheProduct)
+                .Where(p => !classifier.IsInTestProject(p.FilePath)
+                    && classifier.IsProduction(p, model.SamplesAreTheProduct)
                     && !p.HasSdk(SdkIds.Web))
                 .ToList();
             var hasWebOrDesktopSurface =
@@ -102,7 +114,49 @@ public static class ArchetypeDetector
                 || !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov)))))
             return DetectAppSubtype(model, entries);
 
-        var classifier = new ProjectClassifier(model.Projects);
+        if (shape.NoProductionProjects)
+            return Archetype.App;
+        if (shape.NoLibraryProjects)
+            return Archetype.App; // pure executable(s)
+        if (!shape.AllExeAreAuxiliary)
+            return Archetype.App; // a standalone executable that isn't just a sample of the library
+
+        return shape.Packable || shape.HasPublicSurface ? Archetype.Library : Archetype.App;
+    }
+
+    /// <summary>G9.1 — "is this repo a library whose executables merely demonstrate or consume it?", as a
+    /// value so the ladder can ask it more than once. Every field is the bottom rung's original
+    /// computation, moved verbatim; nothing here is new evidence.</summary>
+    private readonly record struct LibraryShape(
+        bool NoProductionProjects,
+        bool NoLibraryProjects,
+        bool HasExecutables,
+        bool AllExeAreAuxiliary,
+        bool Packable,
+        bool HasPublicSurface)
+    {
+        /// <summary>G9.1 — the narrow, high-evidence form of the shape, and the only one allowed to
+        /// overrule a rung above the bottom. Three guards make it safe to promote:
+        /// <list type="bullet">
+        /// <item><see cref="HasExecutables"/> — there must actually BE an executable about to decide the
+        /// archetype. A Web-SDK host declares no <c>OutputType</c>, so every ordinary web app has an empty
+        /// exe set and <c>All()</c> over it is vacuously true; without this guard such a repo could reach
+        /// Library the moment any of its projects declared packability.</item>
+        /// <item><see cref="Packable"/> means an EXPLICIT <c>IsPackable</c>/<c>GeneratePackageOnBuild</c>
+        /// declaration (see <c>CsprojReader.ResolveIsPackable</c>) — the symmetric counterpart of the
+        /// <c>PackAsTool</c> that makes the exe look like the product. A public surface is deliberately NOT
+        /// enough: every library has public types, so that bar would flip GitVersion (whose GitVersion.Core
+        /// declares no packability) out of CliTool. Measured across the eval poles: of the repos whose truth
+        /// is App or Desktop, not one declares packability anywhere.</item>
+        /// <item>the call site adds <c>!model.SamplesAreTheProduct</c> — in a samples-only repo the samples
+        /// ARE the product, so no executable in it is auxiliary to anything.</item>
+        /// </list></summary>
+        public bool IsPackableLibraryWithOnlyAuxiliaryExes
+            => !NoProductionProjects && !NoLibraryProjects && HasExecutables && AllExeAreAuxiliary && Packable;
+    }
+
+    private static LibraryShape DescribeLibraryShape(DiscoveryModel model, ProjectClassifier classifier)
+    {
         // D1.1b: holder csproj (NoTargets/Traversal SDKs) and build-tooling exes (Cake/Nuke/Bullseye)
         // are not archetype evidence — SE.Redis's root Traversal Build.csproj is an "Exe" that
         // references no library and blocked the Library verdict.
@@ -112,13 +166,13 @@ public static class ArchetypeDetector
             .Where(p => model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(p.FilePath))
             .ToList();
         if (nonTest.Count == 0)
-            return Archetype.App;
+            return new LibraryShape(NoProductionProjects: true, false, false, false, false, false);
 
         static bool IsExe(ProjectInfo p) => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
         var exe = nonTest.Where(IsExe).ToList();
         var nonExe = nonTest.Where(p => !IsExe(p)).ToList();
         if (nonExe.Count == 0)
-            return Archetype.App; // pure executable(s)
+            return new LibraryShape(false, NoLibraryProjects: true, false, false, false, false);
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -149,8 +203,6 @@ public static class ArchetypeDetector
             || ProjectClassifier.IsTestPath(e.FilePath)
             || e.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true
                 && ReferencesLibraryTransitively(e));
-        if (!allExeAreAuxiliary)
-            return Archetype.App; // a standalone executable that isn't just a sample of the library
 
         var packable = nonExe.Any(p => p.IsPackable);
         var hasPublicSurface = model.OrderedTypes.Any(t =>
@@ -158,7 +210,13 @@ public static class ArchetypeDetector
             && !classifier.IsInTestProject(t.FilePath)
             && (model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(t.FilePath)));
 
-        return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
+        return new LibraryShape(
+            NoProductionProjects: false,
+            NoLibraryProjects: false,
+            HasExecutables: exe.Count > 0,
+            AllExeAreAuxiliary: allExeAreAuxiliary,
+            Packable: packable,
+            HasPublicSurface: hasPublicSurface);
     }
 
     /// <summary>L7.2 — when the solution is App, refine to Worker, Blazor, or Desktop based on entry-point shape.</summary>
