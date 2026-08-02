@@ -122,7 +122,43 @@ public sealed class ProjectClassifier
             // A2 (Prism D1.1b): StackExchange.Redis keeps its aux hosts under toys/ — same intent
             // as samples/, and they flipped the library's archetype to App + style to MinimalApi.
             || p.Contains("/toys/", StringComparison.OrdinalIgnoreCase)
-            || p.Contains("/toy/", StringComparison.OrdinalIgnoreCase);
+            || p.Contains("/toy/", StringComparison.OrdinalIgnoreCase)
+            || HasSampleCollectionSegment(p);
+    }
+
+    // G9.1: sample-collection directories named after the product they demonstrate. The checks above
+    // match a whole path SEGMENT, so MahApps.Metro's src/MahApps.Metro.Samples/ misses every one of
+    // them — the character before "Samples" is '.', not '/'. Measured consequence: all 25 of that
+    // repo's entry points came from its demo app, which therefore counted as production, and the
+    // control LIBRARY read Desktop.
+    private static readonly string[] SampleCollectionSuffixes = ["samples", "examples", "snippets", "demos"];
+
+    /// <summary>G9.1 — true when a directory segment is a dotted-compound sample COLLECTION name
+    /// (<c>MahApps.Metro.Samples</c>, <c>Avalonia.Samples</c>): the product's name, then the collection
+    /// noun. Only the plural collection nouns qualify. The singular forms are deliberately excluded —
+    /// <c>OrchardCore.Demo</c> and <c>Worker.Extensions.Sample</c> are single SHIPPED projects that
+    /// happen to be named after a demo, and suppressing them would erase real product surface, whereas a
+    /// <c>*.Samples</c> directory is by construction a container of samples.</summary>
+    private static bool HasSampleCollectionSegment(string normalizedPath)
+    {
+        // Only segments delimited by '/' on BOTH sides are considered, which is exactly what the
+        // "/samples/"-style checks above encode: a trailing file name is never a sample marker.
+        var start = normalizedPath.IndexOf('/');
+        while (start >= 0)
+        {
+            var end = normalizedPath.IndexOf('/', start + 1);
+            if (end < 0) return false;
+            var segment = normalizedPath.AsSpan(start + 1, end - start - 1);
+            foreach (var suffix in SampleCollectionSuffixes)
+            {
+                if (segment.Length > suffix.Length + 1
+                    && segment[segment.Length - suffix.Length - 1] == '.'
+                    && segment[^suffix.Length..].Equals(suffix, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            start = end;
+        }
+        return false;
     }
 
     /// <summary>True when the file lives under a <c>test</c>/<c>tests</c> path segment. Catches shared test

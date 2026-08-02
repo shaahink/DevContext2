@@ -729,10 +729,23 @@ Session log (one line each: date · what closed · surprises):
   and 15 poles byte-identical by SHA-256 (`G8.2-DIFF-VERDICT.txt`). The 600s budget was NOT raised.
   The class to remember is **large AND base-list dense**, not "large": SignalR's 3.0 MB generated file
   has one base list and never engaged the quadratic.
-- **Archetype loses to an auxiliary executable.** `CLI` (dotnet/command-line-api) reads CliTool and
-  `MahApps.Metro` reads Desktop. Both are LIBRARIES whose exe is a demo/sample that isn't under a
-  `samples/` path, so it decides the archetype. One root cause, two poles, both pinned RED with the
-  truth declared — do not re-declare the expectations to match the engine.
+- ~~**Archetype loses to an auxiliary executable.**~~ **FIXED 2026-07-29 (G9.1)** —
+  `eval-results/2026-07-29/G9/`. Both poles now read `Library` / `NotApplicable`; expectations
+  untouched. It was **two root causes, not one**, and neither is "a demo exe outside `samples/`":
+  - `MahApps.Metro` was a **path shape**. All 25 of its entry points came from
+    `src/MahApps.Metro.Samples/…` and *none* from the library, but `ProjectClassifier.IsSamplePath`
+    matched `samples` only as a whole slash-delimited segment — the character before `Samples` here is
+    `.`, so the demo counted as production. `IsSamplePath` now also reads the dotted-compound sample
+    **collection** (`*.Samples`/`*.Examples`/`*.Snippets`/`*.Demos`). Plural only, deliberately:
+    `OrchardCore.Demo` is a shipped module, and a `*.Samples` *directory* is a container by construction.
+  - `CLI` (dotnet/command-line-api) was **ladder order**, with no sample path involved.
+    `src/System.CommandLine.Suggest` is a real dotnet tool (`Exe` + `PackAsTool`) under a production
+    path, so the CliTool rung returned before the auxiliary-executable test the detector *already
+    owned* was ever consulted. That test now runs once, above the CliTool and entries rungs
+    (`ArchetypeDetector.DescribeLibraryShape`), and overrules them only on **symmetric declaration
+    evidence**: `<PackAsTool>` on the exe loses to `<IsPackable>true</IsPackable>` on the library it
+    references. A public surface is *not* enough — that bar would flip GitVersion, whose
+    `GitVersion.Core` declares no packability. Canary sweep: 37 poles, only the two targets moved.
 - **`wolverine` `Envelope`** — accepted limitation, evidence in the S5 MATRIX. Still pinned at 1.
 - **`gRPC` transport** — unchanged since S3: its examples are outside the analysed solution.
 

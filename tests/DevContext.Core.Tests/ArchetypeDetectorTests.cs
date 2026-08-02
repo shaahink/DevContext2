@@ -271,4 +271,125 @@ public sealed class ArchetypeDetectorTests
 
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, entries));
     }
+
+    // ── G9.1 — an auxiliary executable stops deciding a packable library's archetype ─────────
+
+    [Fact]
+    public void Library_when_the_only_tool_exe_merely_consumes_the_packable_library()
+    {
+        // dotnet/command-line-api. src/System.CommandLine.Suggest is a REAL dotnet tool (Exe +
+        // PackAsTool) under a production path — no samples/ directory anywhere — so the CliTool rung
+        // fired and returned before the ladder could observe that the exe only CONSUMES the packable
+        // library that is the product. Measured before the fix: archetype CliTool; truth is Library.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("System.CommandLine", @"C:/repo/src/System.CommandLine/System.CommandLine.csproj",
+                    "C#", ["net10.0"], [], [], IsPackable: true),
+                new ProjectInfo("dotnet-suggest", @"C:/repo/src/System.CommandLine.Suggest/dotnet-suggest.csproj",
+                    "C#", ["net10.0"], [@"../System.CommandLine/System.CommandLine.csproj"], [],
+                    OutputType: "Exe", IsPackable: true, IsToolPackaged: true),
+            ],
+        };
+        model.Types.TryAdd("System.CommandLine.Parser",
+            PublicType("System.CommandLine.Parser", @"C:/repo/src/System.CommandLine/Parser.cs"));
+        // The tool's own commands are entry points, so the entries rung is the second thing that must
+        // not fire: a library's auxiliary exe does not lend the library its entry points.
+        ImmutableArray<EntryPoint> entries =
+        [
+            new EntryPoint(EntryPointKind.CliCommand, "dotnet-suggest", NodeId.ForEntry("cli:dotnet-suggest"))
+                { Provenance = @"C:/repo/src/System.CommandLine.Suggest/Program.cs:14" },
+        ];
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, entries));
+    }
+
+    [Fact]
+    public void CliTool_survives_when_the_library_the_tool_consumes_declares_no_packability()
+    {
+        // The canary for the rung above, and the reason a public surface is NOT enough evidence to
+        // overrule <PackAsTool>. GitVersion's shape is identical to command-line-api's — a tool exe
+        // referencing an in-solution library with a public API — and only one fact separates them:
+        // GitVersion.Core declares no IsPackable/GeneratePackageOnBuild, so the tool is the product.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("GitVersion.Core", @"C:/repo/new-cli/GitVersion.Core/GitVersion.Core.csproj",
+                    "C#", ["net10.0"], [], []),
+                new ProjectInfo("GitVersion.Cli", @"C:/repo/new-cli/GitVersion.Cli/GitVersion.Cli.csproj",
+                    "C#", ["net10.0"], [@"../GitVersion.Core/GitVersion.Core.csproj"],
+                    [new PackageReferenceInfo("System.CommandLine", "2.0.0")],
+                    OutputType: "Exe", IsToolPackaged: true),
+            ],
+        };
+        model.Types.TryAdd("GitVersion.Calculator",
+            PublicType("GitVersion.Calculator", @"C:/repo/new-cli/GitVersion.Core/Calculator.cs"));
+
+        Assert.Equal(Archetype.CliTool, ArchetypeDetector.Detect(model, []));
+    }
+
+    [Fact]
+    public void Library_when_the_demo_app_sits_in_a_dotted_sample_collection_directory()
+    {
+        // MahApps.Metro. The demo lives in src/MahApps.Metro.Samples/ — a sample collection named
+        // after the product — and the whole-segment "/samples/" convention misses it, because the
+        // character before "Samples" is '.', not '/'. Measured before the fix: all 25 of the repo's
+        // entry points came from that demo, none from the library, and the control LIBRARY read
+        // Desktop. The library is not packable by declaration, so its public surface carries it.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("MahApps.Metro", @"C:/repo/src/MahApps.Metro/MahApps.Metro.csproj",
+                    "C#", ["net9.0-windows"], [], []),
+                new ProjectInfo("MahApps.Metro.Demo",
+                    @"C:/repo/src/MahApps.Metro.Samples/MahApps.Metro.Demo/MahApps.Metro.Demo.csproj",
+                    "C#", ["net9.0-windows"], [@"../../MahApps.Metro/MahApps.Metro.csproj"], [],
+                    OutputType: "WinExe"),
+            ],
+        };
+        model.Types.TryAdd("MahApps.Metro.Controls.MetroWindow",
+            PublicType("MahApps.Metro.Controls.MetroWindow", @"C:/repo/src/MahApps.Metro/Controls/MetroWindow.cs"));
+        model.Architecture.Register(FeatureSignal.CreateDetected(
+            ArchitectureSignals.Keys.DesktopUi, 0.9f, via: "ProjectSdk", "Microsoft.NET.Sdk.WindowsDesktop"));
+        ImmutableArray<EntryPoint> entries =
+        [
+            new EntryPoint(EntryPointKind.UiEntry, "MainWindow", NodeId.ForEntry("ui:MainWindow"))
+                { Provenance = @"C:/repo/src/MahApps.Metro.Samples/MahApps.Metro.Demo/MainWindow.xaml.cs:16" },
+        ];
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, entries));
+    }
+
+    [Fact]
+    public void Desktop_product_is_unmoved_by_the_auxiliary_exe_rung()
+    {
+        // ScreenToGif / PowerToys: a shipped WinExe desktop product that references its own in-solution
+        // libraries. A WinExe is never auxiliary, so neither the new rung nor the bottom one may claim
+        // it — even when one of those libraries declares packability.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("ScreenToGif.Domain", @"C:/repo/ScreenToGif.Domain/ScreenToGif.Domain.csproj",
+                    "C#", ["net10.0-windows"], [], [], IsPackable: true),
+                new ProjectInfo("ScreenToGif", @"C:/repo/ScreenToGif/ScreenToGif.csproj",
+                    "C#", ["net10.0-windows"], [@"../ScreenToGif.Domain/ScreenToGif.Domain.csproj"], [],
+                    OutputType: "WinExe"),
+            ],
+        };
+        model.Types.TryAdd("ScreenToGif.Domain.Recorder",
+            PublicType("ScreenToGif.Domain.Recorder", @"C:/repo/ScreenToGif.Domain/Recorder.cs"));
+        model.Architecture.Register(FeatureSignal.CreateDetected(
+            ArchitectureSignals.Keys.DesktopUi, 0.9f, via: "ProjectSdk", "Microsoft.NET.Sdk.WindowsDesktop"));
+        ImmutableArray<EntryPoint> entries =
+        [
+            new EntryPoint(EntryPointKind.UiEntry, "MainWindow", NodeId.ForEntry("ui:MainWindow"))
+                { Provenance = @"C:/repo/ScreenToGif/MainWindow.xaml.cs:20" },
+        ];
+
+        Assert.Equal(Archetype.Desktop, ArchetypeDetector.Detect(model, entries));
+    }
 }

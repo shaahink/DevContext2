@@ -143,4 +143,31 @@ public sealed class TopologyNoiseTests
         Assert.Contains("MediatR (", insight.Title);
         Assert.DoesNotContain("Examples", insight.Title);
     }
+
+    [Fact]
+    public void IsSamplePath_reads_a_dotted_sample_collection_directory()
+    {
+        // G9.1 — a sample collection named after the product it demonstrates. The whole-segment
+        // conventions miss these because the character before the collection noun is '.', not '/'.
+        Assert.True(ProjectClassifier.IsSamplePath(
+            @"C:/repo/src/MahApps.Metro.Samples/MahApps.Metro.Demo/MahApps.Metro.Demo.csproj"));
+        Assert.True(ProjectClassifier.IsSamplePath(@"C:/repo/src/Avalonia.Samples/MVVM/CommandSample/App.cs"));
+        Assert.True(ProjectClassifier.IsSamplePath(@"C:/repo/Foo.Examples/Program.cs"));
+        Assert.True(ProjectClassifier.IsSamplePath(@"C:/repo/Foo.Snippets/A.cs"));
+        Assert.True(ProjectClassifier.IsSamplePath(@"C:/repo/Foo.Demos/A.cs"));
+    }
+
+    [Fact]
+    public void IsSamplePath_does_not_read_a_single_dotted_project_as_a_collection()
+    {
+        // Only the PLURAL collection nouns qualify. OrchardCore.Demo is a shipped module and
+        // Worker.Extensions.Sample a shipped extension — suppressing either erases real surface.
+        Assert.False(ProjectClassifier.IsSamplePath(
+            @"C:/repo/src/OrchardCore.Modules/OrchardCore.Demo/OrchardCore.Demo.csproj"));
+        Assert.False(ProjectClassifier.IsSamplePath(
+            @"C:/repo/test/Resources/Extensions/Worker.Extensions.Sample/Startup.cs"));
+        // The suffix must follow a dot, and a trailing FILE name is never a sample marker.
+        Assert.False(ProjectClassifier.IsSamplePath(@"C:/repo/src/CodeSamples/A.cs"));
+        Assert.False(ProjectClassifier.IsSamplePath(@"C:/repo/src/Lib/Foo.Samples"));
+    }
 }
