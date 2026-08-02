@@ -180,7 +180,7 @@ run under Vitest (`pnpm test`).
 `develop` is the integration branch (feature branches PR here); `main` is always deployable. MinVer
 with a `v` tag prefix drives the release workflow (`.github/workflows/release.yml`: build + test +
 pack the CLI on Windows → NuGet + GitHub Release; no desktop artifact until server-sidecar bundling
-lands — see `GITHUB-READY-START.md`). See `docs/dev/DEVELOPER-PIPELINE.md` §11.
+lands — see `docs/dev/archive/trackers/GITHUB-READY-START.md`). See `docs/dev/DEVELOPER-PIPELINE.md` §11.
 
 ## See also
 

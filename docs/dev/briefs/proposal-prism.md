@@ -7,7 +7,7 @@
 > Evidence: maps, traces, 22-tool MCP transcript, 16 UI screenshots, code-read ground truth, all in
 > that directory. **Organized as 5 big deliveries (one session each) with a standing QA+fix
 > cadence** — not checkpoint-a-day stages. Branch scheme: `feat/prism-d<delivery>` off `develop`,
-> merged per delivery after its QA passes. Tracker: `PRISM-START.md` at D1 open.
+> merged per delivery after its QA passes. Tracker: `docs/dev/archive/trackers/PRISM-START.md` at D1 open.
 > Pre-release: feature redesign/new features in scope; waterfalls as detailed as needed.
 
 ## 0. What Prism is
@@ -216,7 +216,7 @@ session open catches cross-delivery regressions within one session of their land
 ## 4. Debts folded in / still open
 - conductor-DEBT: SymbolTable member indexing → D2; BodyFacts scoping, TfmScore, Flow hardening
   remain open (unchanged).
-- eval-results/ volume + analysis-exports/ — owner call, parked.
+- eval-results/ volume + docs/dev/archive/engine-audit/ — owner call, parked.
 - Fast-suite load-flake — name still uncaptured; watch the D-session batteries.
 - GrpcAggregator style rung — subsumed by D1's style rungs.
 

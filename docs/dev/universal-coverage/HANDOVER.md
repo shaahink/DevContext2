@@ -397,7 +397,7 @@ ffd39e8 fix(map): W4 structural section caps + ranking for huge repos + audit ga
 ## 9. Resume Instruction
 
 1. Read this document.
-2. Read `analysis-exports/universal-coverage/FINDINGS-AND-PLAN.md` for the raw analysis data.
+2. Read `docs/dev/archive/engine-audit/universal-coverage/FINDINGS-AND-PLAN.md` for the raw analysis data.
 3. Pick up the next deferred item from §6.
 4. Write failing test → implement → gate → commit → push.
 5. Pattern: one extractor + one builder + one eval expectation per new entry-point kind.

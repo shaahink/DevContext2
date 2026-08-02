@@ -218,7 +218,7 @@ during long waits. Related drivers: `visual-gate.mts`, `audit-screenshots.mts`, 
   tests (fast suite), and `dotnet pack`s the CLI → NuGet (when `NUGET_API_KEY` is set) + GitHub
   Release with the `.nupkg`. The desktop installer bundles `DevContext.Server` as a Tauri
   sidecar (github-ready G8; verified live install). Remaining nicety: the installer version is
-  `tauri.conf.json`'s `0.1.0`, not the release tag (tracked in `GITHUB-READY-START.md`).
+  `tauri.conf.json`'s `0.1.0`, not the release tag (tracked in `docs/dev/archive/trackers/GITHUB-READY-START.md`).
   ```powershell
   git tag -a v1.2.3 -m "Release notes"; git push origin v1.2.3
   ```

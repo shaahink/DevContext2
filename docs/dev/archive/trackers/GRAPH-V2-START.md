@@ -22,15 +22,24 @@ rendered (cause is between line 199 and `k<5` — Dapper's Calls edges span 32 t
 (GraphStats approx = Syntactic only, so Join counts; GraphOrphansSource counts Semantic only; Join is the enum
 DEFAULT). Gates: Cli 0w/0e · loom-guards PASSED incl. Truth · app 159/159 · `ng build` EXIT 0. 4 bugs filed.
 **Branch was DIVERGED from origin** (all of G9 existed twice under different shas — infrastructure, not a red);
-reconciled by merge @ `91e2bca`, pushed. Don't rebase it — see the ledger trap. **Next = G10 is CLOSED; take the next stage.**
+reconciled by merge @ `91e2bca`, pushed. Don't rebase it — see the ledger trap. **G10 was the last stage: the
+run reached 22/22 and this tracker is CLOSED.** The strand continues at `docs/dev/research/PLAN.md` §2 — S11
+(D-F insight dedup · D-G Studio · D-H) is the next owner-interactive session, and the findings this run filed
+rather than fixed are in `docs/dev/research/BUG-BACKLOG.md`.
+
 
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 22 |
-| Done | 0 |
-| Claimed (unconfirmed) | 21 |
+| Done | 22 |
+| Claimed (unconfirmed) | 0 |
+
+> **CLOSED 2026-08-02.** All 22 checkpoints confirmed by full battery across 28 sessions
+> (`$358.06`). The two rows above were a generated snapshot taken mid-verdict and are corrected
+> here; the run's own record is `.conductor/RUN-SUMMARY.md` (gitignored — the durable copies are
+> this file, `docs/dev/research/PLAN.md` §2, and `docs/dev/research/BUG-BACKLOG.md`).
 
 ## Checkpoints
 
@@ -101,13 +110,13 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | DONE | ea0dc3f | eval-results/2026-07-29/G9/G9.1-EVIDENCE.md |
+| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | DONE ✓ | ea0dc3f | eval-results/2026-07-29/G9/G9.1-EVIDENCE.md |
 
 ### G10 — Sweep for thresholds calibrated on pre-Batch-A data
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | TODO | - | - |
+| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | DONE ✓ | 55293b5 + 06fcae5 | eval-results/2026-08-02/G10/G10.1-EVIDENCE.md |
 
 ## Dependencies
 

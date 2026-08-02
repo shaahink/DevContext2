@@ -76,7 +76,7 @@ pushd eval-repos/MediatR; git checkout 1fd25f5beb40aafd6859d9225a37d0c4f5062cfa;
 8 repo shapes spanning the ".NET repo" space, audited blind on `audit/library-round`
 and pinned as the Prism regression corpus. Clones live in `eval-repos/<name>` like the
 expectation cohort. Intended verdicts start as `"status": "aspirational"` expectation
-rows and flip to `expected` as Prism D1 lands (see `PRISM-START.md`).
+rows and flip to `expected` as Prism D1 lands (see `docs/dev/archive/trackers/PRISM-START.md`).
 
 | Repo | Pinned SHA | Origin | Shape / intended verdict |
 |------|-----------|--------|--------------------------|

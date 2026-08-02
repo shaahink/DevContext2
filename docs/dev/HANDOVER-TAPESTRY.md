@@ -4,7 +4,7 @@
 > `feat/tapestry-t0…t8` (stacked; the t8 tip contains the whole train) — closes the
 > "Tapestry" track (`docs/dev/briefs/proposal-tapestry.md`), T0 through T8, 2026-07-15 →
 > 2026-07-17. Successor to `HANDOVER-LOOM.md`. Checkpoint-level detail lives in
-> `TAPESTRY-START.md` (tracker tables + drift table); this doc is the phase-level map.
+> `docs/dev/archive/trackers/TAPESTRY-START.md` (tracker tables + drift table); this doc is the phase-level map.
 
 ## 1. What Tapestry Was
 
@@ -28,7 +28,7 @@ with names instead of vibes. 40 checkpoints across 9 stages, all VERIFIED.
 | T7 | Bench + perf honesty — battery 25min→13m23s, 3 new bench poles + 25-repo verdicts, perf baseline (the big-repo wall has one name), waterfall ≥95%, RPC budget ~150→8 | 5/5 | `2026-07-16/tapestry-t7/T7.1–T7.4-EVIDENCE.md`, `gates-t7.0-full-run2.txt` |
 | T8 | Close-out — sample-collection render honesty, clean-clone battery, this doc | see §3 | `2026-07-17/tapestry-t8/` |
 
-Full checkpoint tables with per-row commits: `TAPESTRY-START.md`.
+Full checkpoint tables with per-row commits: `docs/dev/archive/trackers/TAPESTRY-START.md`.
 
 ## 3. T8 Close-out — This Session (2026-07-17)
 
@@ -37,7 +37,7 @@ Full checkpoint tables with per-row commits: `TAPESTRY-START.md`.
 | T8.2 | Sample-collection render honesty: `ProjectClassifier.SamplesAreTheProduct` (root-relative "every non-test/non-benchmark project is under a sample path") waives ONLY the sample-suppression rule across NoiseFilter entries, ArchetypeDetector ladder (5 points incl. the Orleans-named-sample framework short-circuit), RunnableProjects topology, chokepoint insight, library surface. aspire-samples: `LIBRARY (0 public types)`/no STYLE/0 entries → `MAP` + `STYLE SampleCollection (moderate)` + per-service rows + 5 entries (68n/34e/5e vs 58/31/0). MediatR-class repos byte-identical (T1.9 pins green). | commit on `feat/tapestry-t8`; `AspireSamples_style_is_sample_collection_not_microservices` un-pended → GREEN; +6 unit pins (`NoiseFilterTests`, `ArchetypeDetectorTests`) |
 | T8.3 | Empty-fixture-dir → skip in `TruthExpectationTests` (github-ready G5 handoff item): fresh clones materialize gitlink paths as EMPTY dirs — bare `Directory.Exists` made un-inited fixtures FAIL the truth gate instead of skipping. `FixtureExists` = exists AND non-empty, all 15 sites. | `tests/DevContext.Core.Tests/TruthExpectationTests.cs` |
 | T8.1 | Full battery on the t8 tip + clean-clone battery on the merged develop tip | `2026-07-17/tapestry-t8/gates-t8-tip.txt`, `gates-t8-cleanclone.txt` |
-| T8.1 | HANDOVER-TAPESTRY.md (this doc) + AGENTS.md updates + tracker closed | this file, `AGENTS.md`, `TAPESTRY-START.md` |
+| T8.1 | HANDOVER-TAPESTRY.md (this doc) + AGENTS.md updates + tracker closed | this file, `AGENTS.md`, `docs/dev/archive/trackers/TAPESTRY-START.md` |
 
 ## 4. Architecture Deltas (post-Loom → post-Tapestry)
 
@@ -86,7 +86,7 @@ form; ~13min — eval stamp-cached via `eval/.eval-stamp.json` + split over two 
 `-Scope engine`, `-Scope app` (~90s), `-SkipEval` (self-labels not-a-merge-gate). Full battery
 at boundaries ONLY (stage close, pre-push of dotnet commits, pre-merge); launch it DETACHED
 and keep working (overlap rule) — only push/merge waits for `GATE:` in the log. Details:
-`.claude/skills/dev-pipeline/SKILL.md` + `TAPESTRY-START.md` §Battery cadence.
+`.claude/skills/dev-pipeline/SKILL.md` + `docs/dev/archive/trackers/TAPESTRY-START.md` §Battery cadence.
 
 ## 7. Known Gaps / Next Threads
 
@@ -98,14 +98,14 @@ and keep working (overlap rule) — only push/merge waits for `GATE:` in the log
 3. **Fast-suite load-flake** — one Core test fails ONCE when run right after other dotnet
    churn, green when quiet; name still uncaptured (watch battery logs; pinned in tracker
    gotchas since T7).
-4. **eval-results/ tracked-file volume** (432 files) + `analysis-exports/` — owner decision
+4. **eval-results/ tracked-file volume** (432 files) + `docs/dev/archive/engine-audit/` — owner decision
    pending (github-ready G4 audit); nothing blocks on it.
 5. **Engine debt register** — `conductor-DEBT.md` (SymbolTable member indexing, BodyFacts
    scoping, TfmScore, Flow hardening) — unchanged by Tapestry, still real.
 
 ## 8. The Poles (regression baselines)
 
-Byte-stable baselines to diff against (full drift table in `TAPESTRY-START.md`):
+Byte-stable baselines to diff against (full drift table in `docs/dev/archive/trackers/TAPESTRY-START.md`):
 
 | Repo | Nodes/Edges/Entries | Style / note |
 |------|--------------------|--------------|

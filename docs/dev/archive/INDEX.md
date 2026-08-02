@@ -67,3 +67,29 @@ root. Paths inside these files are as they were when the phases ran.
 | `conductor-CLEANUP.md` | Conductor cleanup plan (Loom era) |
 | `conductor-DEBT.md` | Conductor-discovered debt items (all resolved, see `docs/qa-reports/QA-FINAL-LOOM.md`) |
 | `plan.json` | Conductor machine-readable plan for the Loom gap-close phases |
+
+### `archive/trackers/` — closed phase trackers (archived 2026-08-02 from the repo root)
+
+The repo root now holds **no `*-START.md`**, which is the signal that no phase is mid-flight. The
+live entry point is `docs/dev/research/PLAN.md` §2 STATUS. References to these files across the
+active docs were repointed to their new paths in the same commit.
+
+| File | What it was | Closed |
+|------|-------------|--------|
+| `GRAPH-V2-START.md` | graph-v2 autonomous remainder — G1–G10, driven by conductor | 2026-08-02, 22/22 confirmed over 28 sessions |
+| `PRISM-START.md` | Prism phase tracker (D1–D5) | 2026-07-19, merged to develop 07-27 |
+| `PRISM-INBOX.md` | Prism orchestrator → delivery-session channel | with Prism |
+| `TAPESTRY-START.md` | Tapestry phase tracker (T0–T8) | 2026-07-17 |
+| `GITHUB-READY-START.md` | GitHub-readiness strand tracker | merged 2026-07-17 |
+
+### `archive/desktop-wpf/` — the retired WPF desktop (archived 2026-08-02 from `docs/dev/`)
+
+`DevContext.Desktop` (WPF) was deleted 2026-07-15 in favour of the Angular 22 + Tauri 2 app. These
+eight files planned, reviewed and handed over an application that no longer exists; they referenced
+only each other. Kept because they carry the reasoning behind the replacement.
+
+| File | What it was |
+|------|-------------|
+| `PLAN-DESKTOP-V2.md` · `PLAN-DESKTOP-V2-REMEDIATION.md` · `PLAN-DESKTOP-V3.md` | Build, remediation and terminal-phosphor plans |
+| `REVIEW-DESKTOP-V2-P0-P3.md` · `AUDIT-V4-VERIFICATION.md` | Phase review and V4 audit verification |
+| `HANDOVER-DESKTOP-V2.md` · `HANDOVER-DESKTOP-V4.md` · `HANDOVER-DESKTOP-REDO.md` | Per-stage handovers, including the redo that chose Angular |

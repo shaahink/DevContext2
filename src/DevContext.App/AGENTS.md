@@ -344,7 +344,7 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 ## Tapestry delivery — phase close-out (overwrite this block each session, no history)
 
 status: Tapestry T0–T8 COMPLETE (2026-07-17). Close-out: `docs/dev/HANDOVER-TAPESTRY.md`;
-checkpoint detail: `TAPESTRY-START.md` (T5 Studio 6/6, T6 Workbench 12/12, T7.4 RPC budget).
+checkpoint detail: `docs/dev/archive/trackers/TAPESTRY-START.md` (T5 Studio 6/6, T6 Workbench 12/12, T7.4 RPC budget).
 
 ### App invariants Tapestry encoded (keep these true)
 

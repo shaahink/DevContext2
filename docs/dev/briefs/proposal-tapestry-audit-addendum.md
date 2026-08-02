@@ -4,7 +4,7 @@
 > GUI page on an isolated stack, token exports captured to disk, CLI `report`/`query` over 8
 > benchmark libraries), cross-checked against `docs/dev/briefs/proposal-tapestry.md` and verified
 > against code at `feat/tapestry-t1` (3ea6c34 + T1.2/T1.3). This file is the **detailed spec**;
-> the proposal carries the woven checkpoint summaries and `TAPESTRY-START.md` carries the tracker
+> the proposal carries the woven checkpoint summaries and `docs/dev/archive/trackers/TAPESTRY-START.md` carries the tracker
 > rows. Finding IDs (A1…, B1…, C1…, D…) refer to the audit doc.
 >
 > Rules of engagement are unchanged — R-T1..R-T8 apply to every checkpoint here, especially

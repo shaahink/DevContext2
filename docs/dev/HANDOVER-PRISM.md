@@ -3,7 +3,7 @@
 > **Read this first** if you're picking the project up cold. Branch chain
 > `feat/prism-d1…d5` (stacked; the d5 tip contains the whole train) — closes the "Prism"
 > track (`docs/dev/briefs/proposal-prism.md`), D1 through D5, 2026-07-17 → 2026-07-19.
-> Successor to `HANDOVER-TAPESTRY.md`. Checkpoint-level detail lives in `PRISM-START.md`
+> Successor to `HANDOVER-TAPESTRY.md`. Checkpoint-level detail lives in `docs/dev/archive/trackers/PRISM-START.md`
 > (tracker tables + handoff log); this doc is the phase-level map.
 
 ## 1. What Prism Was

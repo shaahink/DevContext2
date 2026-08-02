@@ -6,7 +6,7 @@
 > `eval-results/2026-07-15/wrapup-drive/` (maps v1→v3, MCP transcript, cold QA),
 > `eval-results/2026-07-11/ui-context-studio-audit.md` (R1–R16),
 > `docs/dev/NOTABLE-FINDINGS.md`, `docs/dev/go-to-program/HANDOVER-2026-07-15.md` §4.
-> Tracker: `TAPESTRY-START.md` (repo root). Branch scheme: `feat/tapestry-t<stage>` off `develop`.
+> Tracker: `docs/dev/archive/trackers/TAPESTRY-START.md` (repo root). Branch scheme: `feat/tapestry-t<stage>` off `develop`.
 > Dogfood stays `run-aspnetcore-microservices/src`; **shamshir-class truth** is the new second pole.
 > **Audit weave 2026-07-15:** the live blind-drive audit (`eval-results/2026-07-15/feature-design-audit.md`,
 > eShop GUI + 8-library CLI) added checkpoints T1.7–T1.9, T2.5–T2.8, T3.7–T3.8, T4.6, T5.6,
@@ -40,7 +40,7 @@ extend it, don't reopen it).
 ## 1. Rules of engagement (every session, no exceptions)
 
 **Pre-session ritual** (≤10 min):
-1. Read `TAPESTRY-START.md` handoff block + your stage section here + the evidence files your
+1. Read `docs/dev/archive/trackers/TAPESTRY-START.md` handoff block + your stage section here + the evidence files your
    stage cites.
 2. **Orphan kill is now automatic** (T0.1 landed): `eval/gates.ps1` Step 0 clears leaked
    `DevContext.Server`/`testhost` (and dotnet hosts running the server dll) before building — the

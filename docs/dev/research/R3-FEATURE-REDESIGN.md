@@ -86,4 +86,4 @@ status-bar hint rotation vs a real shortcuts/help surface; tab model (multi-repo
 
 - Current-state screenshots: `eval-results/2026-07-27/ui-feature-audit/evidence/*.png`
 - Reusable drivers for before/after captures: `src/DevContext.App/scripts/ui-redesign-drive*.mts`
-- Prior design language work: D4 ELK canvas design pass (PRISM-START.md D4.1-D4.3), styleguide page.
+- Prior design language work: D4 ELK canvas design pass (docs/dev/archive/trackers/PRISM-START.md D4.1-D4.3), styleguide page.

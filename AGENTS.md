@@ -81,7 +81,7 @@ unrebuilt CLI runs stale engine code.
 - **One battery at a time** (R-T5); full battery at boundaries only, launched DETACHED —
   don't run `dotnet build/test` in a worktree while its battery runs (locked-DLL collisions).
 - **Truth files change only in dedicated commits citing target-repo sources** (R-T7).
-- **Drift table row at every stage end** (R-T8) — `TAPESTRY-START.md` §Baseline drift table.
+- **Drift table row at every stage end** (R-T8) — `docs/dev/archive/trackers/TAPESTRY-START.md` §Baseline drift table.
 - New AppEntry surfaces go through the **Entry Surface Catalog** (one descriptor + one builder),
   never ad-hoc detection. Kind is single-sourced from `CodeGraph.Entries`.
 - Event wiring has **one join** (`EventWiringProjection`); pack sections and Studio content are
@@ -135,9 +135,14 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 
 ## Where the work is tracked
 
-- **`TAPESTRY-START.md` — the most recent phase tracker** (plan: `docs/dev/briefs/proposal-tapestry.md`;
-  close-out: `docs/dev/HANDOVER-TAPESTRY.md`). T0–T8 complete 2026-07-17 — read the handover first,
-  the tracker for checkpoint-level detail.
+- **`docs/dev/research/PLAN.md` §2 STATUS — the live entry point.** The graph-v2 strand is the
+  current work; §2 is written to be read cold and says what is closed and what is next (S11:
+  D-F insight dedup · D-G Studio · D-H). Findings the autonomous run filed rather than fixed are
+  in `docs/dev/research/BUG-BACKLOG.md` (24 open).
+- **No `*-START.md` sits at the repo root** — that is deliberate, and means no phase is mid-flight.
+  The four closed trackers are in `docs/dev/archive/trackers/`: `GRAPH-V2-START.md` (22/22,
+  2026-08-02), `PRISM-START.md`, `TAPESTRY-START.md` (T0–T8, 2026-07-17), `GITHUB-READY-START.md`.
+  Read the matching `docs/dev/HANDOVER-*.md` first; the tracker is for checkpoint-level detail.
 - `docs/dev/archive/conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts
   scoping, TfmScore, Flow hardening, audit sweep). Archived location, still-live register.
 - `docs/dev/HANDOVER-*.md` — per-phase close-outs (Loom, Meridian, Lighthouse, Fable, Desktop, Library-support). Read the newest for current architecture + known gaps.
