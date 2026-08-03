@@ -110,7 +110,84 @@ is wrong, and lowering its floor to make it start firing would not be a threshol
 
 ---
 
-## 5. Things I deliberately left alone
+## 5. One product decision I did not make for you
+
+`WorkspaceStore.createTab()` (`src/DevContext.App/src/app/state/workspace.store.ts:174`) returns the
+**active tab's id** when already at `MAX_TABS` (6), instead of creating one:
+
+```ts
+if (existing.length >= WorkspaceStore.MAX_TABS) return this._activeId() ?? existing[0]?.id ?? '';
+```
+
+The behaviour is documented and deliberate, but the caller gets back a plausible tab id and cannot
+tell it apart from success — so anything keyed by that id (the trail slice, for one) silently writes
+into the wrong tab. That is what made the CI failure in §2's neighbourhood so confusing to read.
+
+I left it alone: making a silent no-op loud is a product decision, not a test fix. If you want it
+changed, the options are returning `null` at the cap, or surfacing "tab limit reached" in the UI.
+Worth deciding, because it is the same shape as several entries in `BUG-BACKLOG.md` — a surface
+reporting success while doing nothing.
+
+---
+
+## 6. Every workflow action is on a deprecated Node — green today, on borrowed time
+
+The green run at `0bddb3f` surfaced this on **every job in all three workflows**:
+
+> `##[warning]` Node.js 20 is deprecated. The following actions target Node.js 20 but are being
+> forced to run on Node.js 24 —
+> [changelog](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/)
+
+Nothing is broken. The runner silently reruns each Node-20 action on Node 24, which is why CI is
+green — but that also means every action in this repo is already executing on a runtime its pinned
+major was never built against, and the shim is what is holding it up.
+
+**How far behind the pins are** (checked 2026-08-02):
+
+| Action | Pinned | Latest | Used by |
+|---|---|---|---|
+| `actions/checkout` | v4 | **v7.0.1** | ci, eval, release |
+| `actions/setup-dotnet` | v4 | **v6.0.0** | ci, eval, release |
+| `actions/setup-node` | v4 | **v7.0.0** | ci, eval, release |
+| `actions/upload-artifact` | v4 | **v7.0.1** | release |
+| `actions/download-artifact` | v4 | **v8.0.1** | release |
+| `pnpm/action-setup` | v4 | **v6.0.9** | ci, eval, release |
+| `softprops/action-gh-release` | v2 | **v3.0.2** | release |
+
+**Three of the breaking changes I checked do not apply to us** — worth recording so nobody
+re-derives it:
+
+- `setup-dotnet@v5` dropped older .NET SDKs. We pin `10.0.x` (`global.json`: `10.0.300`), the
+  newest — unaffected.
+- `setup-node@v5` auto-caches when `packageManager` is present, and `v6` narrowed that to npm.
+  There is no root `package.json`, and every call site already sets `cache: pnpm` with an explicit
+  `cache-dependency-path` — auto-detection never gets a say.
+- `checkout@v7` blocks fork-PR checkout for `pull_request_target` / `workflow_run`. `ci.yml` uses
+  plain `pull_request` — unaffected.
+
+**The one that needs your call is `release.yml`.** `download-artifact@v5`'s breaking change is
+scoped to single downloads *by ID*, and we download by path with `merge-multiple: true` — so the
+documented break misses us. But the artifact plumbing in that job is exactly what shipped v1.0.5
+without its installers, and the fix at `5100e90` is written against **v4's** least-common-ancestor
+rooting behaviour. Bumping upload/download-artifact there re-opens the one thing that has already
+failed once in production.
+
+And it cannot be smoke-tested: the `workflow_dispatch` dry-run uploads artifacts but the `release`
+job is gated `if: github.ref_type == 'tag'`, so the download-and-attach step — the step that broke —
+is unreachable without cutting a real tag.
+
+**Suggested split, if you want it done:**
+
+1. Bump `ci.yml` and `eval.yml` freely. CI verifies them on the next push; the blast radius is a red
+   build you can revert.
+2. Bump `release.yml` separately, and verify by cutting `v1.0.6` (or a throwaway pre-release tag)
+   and confirming the `.nupkg` **and both installers** are attached. Do not batch it with step 1 —
+   if the release breaks again you want the bisect to be one commit wide.
+
+No deadline has been announced for removing the Node 20 shim, so this is not urgent. It is logged
+because the warning will now appear on every run and is easy to learn to ignore.
+
+## 7. Things I deliberately left alone
 
 - **The 24 backlog items** — all product decisions, none safe to take unilaterally.
 - **`conductor.plan.json`** — left in the repo, pointing at the archived tracker. It is the machine
