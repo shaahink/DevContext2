@@ -17,22 +17,22 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 120 # eval analyzes real repos (eShop, CommunityToolkit, …) — generous on purpose
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true # eval-repos/{TodoApi,VerticalSlice,eShop} fixture pins
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
       # gates.ps1 step 5 (pnpm check) needs the app toolchain — run 3 died CommandNotFoundException.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: src/DevContext.App/package.json # no root package.json
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm

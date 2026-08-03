@@ -29,12 +29,12 @@ jobs:
     env:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # MinVer walks tag history for the version
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -59,7 +59,7 @@ jobs:
         run: echo "::notice::NUGET_API_KEY is not set — skipped publishing to NuGet.org. The .nupkg is attached to the GitHub Release instead."
 
       - name: Upload CLI artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-package
           path: nupkg/*.nupkg
@@ -68,19 +68,19 @@ jobs:
     name: Desktop — Tauri installer (Windows-only)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
-      - uses: pnpm/action-setup@v4 # version comes from packageManager in the APP's package.json
+      - uses: pnpm/action-setup@v6 # version comes from packageManager in the APP's package.json
         with:
           package_json_file: src/DevContext.App/package.json # no root package.json — the action defaults to repo root and finds nothing
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -106,7 +106,7 @@ jobs:
         working-directory: src/DevContext.App
 
       - name: Upload installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: desktop-installers
           path: |
@@ -121,7 +121,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
@@ -133,7 +133,7 @@ jobs:
       # with only the .nupkg attached while both installers sat in the run's artifacts — a green
       # release missing the very files the README tells people to download.
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # `**` matches zero or more segments, so these cover the flat .nupkg and the nested
           # installers with one form each.
