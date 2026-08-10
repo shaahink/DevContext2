@@ -1,0 +1,70 @@
+repo=eShop@9b4f9434 model=claude-opus-5 isolation=no-settings-fallback cap=$1.50
+cells=54 alreadyRecorded=0 planned=54 seed=20260811
+
+--dry-run: no subprocess is spawned. Planned order:
+    1. eshop-d1 arm=M rep=3
+    2. eshop-b1 arm=M rep=2
+    3. eshop-b1 arm=B rep=1
+    4. eshop-e1 arm=M rep=2
+    5. eshop-d1 arm=B rep=2
+    6. eshop-e1 arm=G rep=1
+    7. eshop-d1 arm=M rep=2
+    8. eshop-b1 arm=B rep=3
+    9. eshop-a1 arm=B rep=3
+   10. eshop-a1 arm=M rep=3
+   11. eshop-f1 arm=B rep=1
+   12. eshop-f1 arm=B rep=3
+   13. eshop-c1 arm=M rep=3
+   14. eshop-d1 arm=G rep=3
+   15. eshop-e1 arm=B rep=3
+   16. eshop-b1 arm=G rep=3
+   17. eshop-b1 arm=G rep=2
+   18. eshop-d1 arm=M rep=1
+   19. eshop-c1 arm=B rep=3
+   20. eshop-d1 arm=G rep=1
+   21. eshop-b1 arm=M rep=1
+   22. eshop-a1 arm=G rep=2
+   23. eshop-a1 arm=G rep=1
+   24. eshop-f1 arm=B rep=2
+   25. eshop-f1 arm=G rep=2
+   26. eshop-f1 arm=M rep=2
+   27. eshop-b1 arm=G rep=1
+   28. eshop-a1 arm=M rep=1
+   29. eshop-b1 arm=M rep=3
+   30. eshop-e1 arm=G rep=2
+   31. eshop-f1 arm=G rep=3
+   32. eshop-d1 arm=G rep=2
+   33. eshop-f1 arm=M rep=3
+   34. eshop-c1 arm=M rep=2
+   35. eshop-c1 arm=B rep=2
+   36. eshop-d1 arm=B rep=3
+   37. eshop-e1 arm=M rep=1
+   38. eshop-e1 arm=G rep=3
+   39. eshop-a1 arm=M rep=2
+   40. eshop-d1 arm=B rep=1
+   41. eshop-c1 arm=G rep=1
+   42. eshop-c1 arm=B rep=1
+   43. eshop-e1 arm=B rep=1
+   44. eshop-a1 arm=G rep=3
+   45. eshop-a1 arm=B rep=1
+   46. eshop-f1 arm=G rep=1
+   47. eshop-b1 arm=B rep=2
+   48. eshop-f1 arm=M rep=1
+   49. eshop-c1 arm=M rep=1
+   50. eshop-e1 arm=B rep=2
+   51. eshop-a1 arm=B rep=2
+   52. eshop-e1 arm=M rep=3
+   53. eshop-c1 arm=G rep=2
+   54. eshop-c1 arm=G rep=3
+
+argv per arm (system prompt elided):
+  G: C:\Users\shahi\.local\bin\claude.exe -p --output-format stream-json --verbose --model claude-opus-5 --strict-mcp-config --max-budget-usd 1.50 --system-prompt <contents of system.txt> --setting-sources "" --add-dir C:\Code\DevContext2\eval-repos\eShop --allowedTools Read,Grep,Glob --disallowedTools Edit,Write,WebFetch,WebSearch
+  M: C:\Users\shahi\.local\bin\claude.exe -p --output-format stream-json --verbose --model claude-opus-5 --strict-mcp-config --max-budget-usd 1.50 --system-prompt <contents of system.txt> --setting-sources "" --mcp-config C:\Code\DevContext2\eval\agent-probe\mcp.json --allowedTools mcp__devcontext --disallowedTools Read,Grep,Glob,Bash,Edit,Write
+  B: C:\Users\shahi\.local\bin\claude.exe -p --output-format stream-json --verbose --model claude-opus-5 --strict-mcp-config --max-budget-usd 1.50 --system-prompt <contents of system.txt> --setting-sources "" --add-dir C:\Code\DevContext2\eval-repos\eShop --mcp-config C:\Code\DevContext2\eval\agent-probe\mcp.json --allowedTools Read,Grep,Glob,mcp__devcontext --disallowedTools Edit,Write,WebFetch,WebSearch
+
+prompt (identical in every arm), first cell:
+---
+Repository root: C:/Code/DevContext2/eval-repos/eShop
+
+Does CatalogApi.CreateItem publish ProductPriceChangedIntegrationEvent? Answer yes or no, and say exactly what CreateItem does.
+---
