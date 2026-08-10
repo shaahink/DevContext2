@@ -47,6 +47,20 @@ Classes E and F are not padding. A set containing only B and C is built to produ
 5. Class E carries an empty `mustMention`.
 6. `expectedVerdict`, when present, is one of `yes` / `no` / `none`.
 
+## How `mustNotMention` is scored (pre-registered, written at K1.3 before any run)
+
+A `mustNotMention` entry is a **claim the answer asserts**, not a substring. The grader (A1.1)
+counts a violation only when the answer *puts the term forward as part of its answer* — as an
+affected dependent, a matching file, a consumer of the event. An answer that names the term in
+order to **exclude** it ("`CreateOrderDraftCommandHandler` is not affected", "it is not in
+`appsettings.json`") is exhibiting exactly the discrimination the trap tests for and scores as
+**clean**, not as a violation.
+
+This is written down here rather than left to the grader because a naive substring test would
+penalise the most careful answers in every arm, adding noise to the primary endpoint. The rule
+is fixed before any run and applies to all three repos. The gate's own check is unaffected —
+it only asserts the term *exists in the repo*, which is what makes the trap real.
+
 ## Writing a good question
 
 - Write the question a new engineer actually asks in week one, then see which tool happens to cover it. Do **not** write a question because a particular MCP tool answers it well — that is how a rigged set gets built.
