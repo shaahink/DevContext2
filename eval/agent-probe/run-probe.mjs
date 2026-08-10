@@ -36,7 +36,7 @@ const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.
 // ---- the two brakes. Not configurable, on purpose. --------------------------
 // The probe subprocesses spend real money that never reaches conductor's budget, so these are the
 // only limits in the system. If you find yourself editing either one, stop and escalate instead.
-const MAX_BUDGET_USD = "1.50";
+export const MAX_BUDGET_USD = "1.50";
 const MAX_RUNS_PER_INVOCATION = 60;
 
 // A subprocess that ignores its own budget cap still has to end. Generous - a class B question on
@@ -84,7 +84,7 @@ function die(msg) {
 // the MCP config passed on the command line; an explicit system prompt), and it is recorded on
 // every row so nobody has to take this comment's word for it. It never engages by accident.
 const HAVE_API_KEY = Boolean(process.env.ANTHROPIC_API_KEY);
-const ISOLATION = HAVE_API_KEY ? "bare" : "no-settings-fallback";
+export const ISOLATION = HAVE_API_KEY ? "bare" : "no-settings-fallback";
 
 // ---- question sets ----------------------------------------------------------
 
@@ -273,7 +273,7 @@ function denyListFor(arm) {
   return TOOL_UNIVERSE.filter((t) => !ARM_KEEP[arm].includes(t)).join(",");
 }
 
-function armArgs(arm, repoDir) {
+export function armArgs(arm, repoDir) {
   const shared = [
     "-p",
     "--output-format", "stream-json",
@@ -309,7 +309,7 @@ function armArgs(arm, repoDir) {
   die(`unknown arm ${arm}`);
 }
 
-function claudeBin() {
+export function claudeBin() {
   if (process.env.CLAUDE_BIN) return process.env.CLAUDE_BIN;
   const home = process.env.USERPROFILE || process.env.HOME || "";
   const local = join(home, ".local", "bin", process.platform === "win32" ? "claude.exe" : "claude");
@@ -331,7 +331,7 @@ function childEnv() {
 
 function slug(s) { return String(s).replace(/[^A-Za-z0-9._-]/g, "_"); }
 
-function spawnRun(cell, repoDir) {
+export function spawnRun(cell, repoDir) {
   return new Promise((resolvePromise) => {
     const args = armArgs(cell.arm, repoDir);
     const started = Date.now();
@@ -591,4 +591,8 @@ async function main() {
   console.log(`\ndone: ${planned.length} runs, $${spent.toFixed(4)} recorded in results/runs.jsonl`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+// Run only when invoked directly. P1.2's tax measurement imports armArgs/spawnRun from here rather
+// than restating them, because a tax measured against a different argv than the pilot uses would
+// not be a measurement of this experiment's arms.
+const INVOKED_DIRECTLY = process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
+if (INVOKED_DIRECTLY) main().catch((e) => { console.error(e); process.exit(1); });
