@@ -1,0 +1,141 @@
+{
+  "name": "DevContext agent probe - does the MCP help an agent browse code",
+  "repo": "C:/Code/DevContext2",
+  "tracker": "AGENT-PROBE-TRACKER.md",
+  "planDoc": "eval/agent-probe/DESIGN.md",
+  "branchPattern": "^feat/agent-probe$",
+  "pauseOnBlocked": true,
+  "batteryCollapse": false,
+
+  "agent": {
+    "command": "claude",
+    "model": "claude-opus-5",
+    "args": [
+      "-p", "{prompt}",
+      "--output-format", "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model", "{model}",
+      "--session-id", "{sessionId}"
+    ],
+    "resumeArgs": [
+      "-p", "{prompt}",
+      "--output-format", "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model", "{model}",
+      "--resume", "{claudeSessionId}"
+    ],
+    "output": "stream-json"
+  },
+
+  "advisor": {
+    "enabled": true,
+    "command": "claude",
+    "args": ["-p", "{prompt}", "--output-format", "json", "--model", "claude-haiku-4-5-20251001"],
+    "output": "json",
+    "timeoutMinutes": 6
+  },
+
+  "defaultWorkflow": "deliver",
+  "workflows": {
+    "deliver": {
+      "name": "deliver",
+      "description": "Deliver until the stage checkpoints are confirmed; fix only when gates are red.",
+      "repeat": true,
+      "steps": [
+        { "id": "deliver", "kind": "Deliver", "deliver": true },
+        { "id": "fix-if-red", "kind": "Fix", "deliver": true, "runIf": "!gatesGreen" }
+      ]
+    }
+  },
+
+  "templatesDir": "templates",
+
+  "stages": [
+    {
+      "id": "K1",
+      "title": "Ground truth - pre-registered question sets",
+      "sessions": 3,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md section 3.3, and eval/agent-probe/questions/SCHEMA.md for the exact file format. Author one question file per repo for eShop, TodoApi and FluentValidation, six questions each, covering classes A B C D E F. Read the repo to write each answer key - never guess a symbol name and never take one from a doc without confirming it in the source at the pinned SHA. The gate proves every mustMention and mustNotMention entry actually resolves in the cloned repo, so an unverified key fails the stage rather than silently corrupting the experiment. Class D is the attribution trap and docs/dev/reports/phase1-member-origin-reprobe.md documents a real one on eShop Catalog.API. Class E is the fabrication control and its true answer is none. Class F must be a question plain ripgrep answers better than any graph. THESE KEYS ARE PRE-REGISTERED: once this stage is claimed they are frozen, and a later stage may not adjust a key to match an answer it has seen."
+    },
+    {
+      "id": "H1",
+      "title": "Probe harness - three-arm runner",
+      "sessions": 2,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md sections 3.1, 4 and 8. Write eval/agent-probe/run-probe.mjs driving headless claude subprocesses in three arms - G is file tools only with no MCP configured, M is MCP only with file tools denied, B is both. Every invocation carries --bare, --strict-mcp-config, the shared system prompt file, and a per-run dollar cap. Append one JSON line per completed run to eval/agent-probe/results/runs.jsonl carrying repo, questionId, arm, rep, answer, toolCalls, costUsd, usage, numTurns, durationMs and censored. The harness MUST skip any cell already present in runs.jsonl so a session timeout costs nothing, and MUST refuse to start more than sixty runs in one invocation. Record the raw result JSON and the stream-json transcript per run under results/raw. Do not invent the token accounting - read it from the result object."
+    },
+    {
+      "id": "P1",
+      "title": "Smoke - prove arm isolation and cost accounting before spending",
+      "sessions": 2,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md section 8 pre-flight assertions, and section 4.4 for the tool-schema tax. Run one eShop question through all three arms once each, then prove four things with evidence in the checkpoint: arm G recorded zero mcp calls, arm M recorded zero Read Grep or Glob calls, costUsd is non-zero on every run, and analyze reported cached true so every arm started warm. Then measure the tool-schema tax by sending an identical trivial prompt through arm G and arm B and recording the turn-one input plus cache-creation token delta. If costUsd comes back zero the account bills through a subscription - compute cost from usage and modelUsage at published rates instead and write down which method was used. If arm isolation does not hold, STOP and fix the harness - every number after this depends on the arms actually differing."
+    },
+    {
+      "id": "P2",
+      "title": "Pilot - six eShop questions, three arms, three repetitions",
+      "sessions": 3,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md sections 6.5, 6.6 and 9. Execute fifty-four runs on eShop - six questions by three arms by three repetitions - sequentially, with a fresh session per run and question order randomised. A run that hits its dollar cap is recorded censored true with cost equal to the cap and scored incorrect - it is never dropped, and the censoring rate per arm goes in the results. This stage will very likely exceed one session timeout - that is expected and fine, because the harness skips completed cells, so simply resume and continue. Do not reduce the repetition count to finish faster, and do not switch to parallel execution without recording it, because concurrency distorts the duration metric."
+    },
+    {
+      "id": "A1",
+      "title": "Grade and analyse",
+      "sessions": 2,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md sections 7 and 9. Grade in two passes. Pass one is deterministic and scripted - mustMention hits, mustNotMention violations, expectedVerdict match for classes D and E, and citation resolution against the repo at the pinned SHA. Pass two is an LLM judge on a fresh session per item, given only the question, the answer key and the anonymised final answer - never the transcript, because the tool calls reveal the arm. Then compute the paired analysis - median log2 cost ratio for arm B over arm G with a bootstrap confidence interval, the accuracy difference with its interval, plus fabrication rate, censoring rate and mcp call share. Use medians and rank methods, not means and t-tests. Write the twenty percent human-check sample to a separate file for the owner to grade by hand - do not grade it yourself and do not report a kappa you did not compute."
+    },
+    {
+      "id": "R1",
+      "title": "Report and verdict",
+      "sessions": 2,
+      "notes": "STRAND DOC: eval/agent-probe/DESIGN.md section 5 for the decision rule and section 12 for the outputs. Write eval-results/agent-probe/RESULTS.md stating the verdict against the four pre-registered outcomes - accelerator, primer, null, or regression - and nothing else. Report the number the rule actually produces even when it is unflattering, and state the pilot confidence interval honestly rather than rounding a wide interval into a claim. If mcp call share came in under zero point two, say plainly that the comparison did not test the MCP. Include the tool-schema tax, the censoring rate per arm, and the per-class breakdown, because a win driven only by class B is a different product claim from a win across the set. Finish with what the full run would need to turn this pilot into a defensible number."
+    }
+  ],
+
+  "gatePolicy": "perPhase",
+  "gates": [
+    {
+      "name": "probe-fast",
+      "command": "node eval/agent-probe/verify.mjs --tier fast",
+      "tier": "fast",
+      "timeoutMinutes": 10
+    },
+    {
+      "name": "probe-full",
+      "command": "node eval/agent-probe/verify.mjs --tier full",
+      "tier": "full",
+      "timeoutMinutes": 15
+    }
+  ],
+
+  "limits": {
+    "stallMinutes": 25,
+    "stallGraceMinutes": 5,
+    "sessionTimeoutMinutes": 150,
+    "batterySettleSeconds": 30,
+    "authPreflight": true,
+    "maxResumesPerSession": 2,
+    "stageSlackFactor": 2,
+    "backoffMinutes": 30,
+    "maxBackoffs": 10,
+    "maxRunCostUsd": 120,
+    "approvalMode": false,
+    "maxSessionTokens": 21000000,
+    "softBreakRatio": 0.8,
+    "maxConcurrentLanes": 1,
+    "stallPatternTermination": true,
+    "sameFailureCircuitBreaker": true,
+    "stallBackoffMinutes": 12,
+    "overheadCostPerSecond": 0.0001,
+    "verifierThreshold": 80
+  },
+
+  "report": { "commit": true, "push": false, "heartbeatMinutes": 0 },
+
+  "readOrder": [
+    "AGENTS.md",
+    "eval/agent-probe/DESIGN.md",
+    "eval/agent-probe/questions/SCHEMA.md"
+  ],
+
+  "promptExtra": "PROBE-SPECIFIC RULES, in order of how much they cost if broken.\n\n1. NEVER modify anything under eval-repos/. They are pinned fixtures at specific SHAs and the answer keys describe those exact trees. Do not pull, do not check out another branch, do not let a tool write there.\n\n2. THE PROBE SUBPROCESSES ARE INVISIBLE TO CONDUCTOR'S BUDGET. Every probe run is a separate headless claude process, so its spend never reaches the engine's cost accumulator and maxRunCostUsd cannot stop it. Two controls are mandatory and neither is optional: every invocation carries --max-budget-usd 1.50, and the harness refuses to start more than sixty runs in one invocation. If you find yourself removing either, stop and escalate instead.\n\n3. PRE-REGISTRATION IS THE POINT. The question keys and the decision rule in DESIGN.md section 5 were written before any run. Do not adjust a key, a prompt, a threshold or an arm definition after seeing a result. If a key is genuinely wrong, say so in the handoff, record the reason, fix it, and re-run every affected cell in all three arms - never just the arm that looked wrong.\n\n4. ARM ISOLATION IS THE EXPERIMENT. Do not assume the allowedTools and disallowedTools flags behave as documented - prove it in stage P1 by reading the recorded transcripts. The gate fails the run if arm G ever calls an mcp tool or arm M ever calls Read, Grep or Glob, and that failure means every number collected so far is void.\n\n5. RESUMABILITY BEATS SPEED. Stage P2 is longer than a session. Append to runs.jsonl as each run completes and skip cells already recorded, so a timeout costs one run and not the stage. Never restart the pilot from scratch to tidy up the file.\n\n6. WARM, NOT COLD. Before any timed run, call analyze once per repo per arm and confirm it reports cached true. A cold analysis takes minutes and would land entirely in one arm's cost.\n\n7. REPORT WHAT HAPPENED. A null or a regression is a valid, publishable outcome of this experiment and the report says so plainly. Do not soften an unflattering interval, do not drop a censored run to improve a median, and do not report a statistic you did not compute.\n\n8. Windows shell hygiene: keep any PowerShell script pure ASCII, because PS 5.1 reads an unmarked UTF-8 file as cp1252 and one smart dash breaks the parse with an error that names a missing parenthesis. Prefer node for scripting here - the gate already is node.\n\n9. Claim checkpoints with conductor task --done and an evidence path, BEFORE writing the handoff block. Writing DONE in prose moves nothing."
+}
