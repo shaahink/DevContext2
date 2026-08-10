@@ -1,0 +1,102 @@
+{
+  "is_error": false,
+  "duration_api_ms": 91991,
+  "num_turns": 28,
+  "stop_reason": "end_turn",
+  "session_id": "4c7bf390-2581-44df-ab2a-279eea0f9a51",
+  "total_cost_usd": 0.6858315,
+  "usage": {
+    "input_tokens": 24,
+    "cache_creation_input_tokens": 30882,
+    "cache_read_input_tokens": 430553,
+    "output_tokens": 6438,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 30882,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2685,
+        "cache_read_input_tokens": 49589,
+        "cache_creation_input_tokens": 1494,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1494
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 24,
+      "outputTokens": 6438,
+      "cacheReadInputTokens": 430553,
+      "cacheCreationInputTokens": 30882,
+      "webSearchRequests": 0,
+      "costUSD": 0.6851664999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01XJeq31kBjDcKTSdVLSNntc",
+      "tool_input": {
+        "command": "cd \"C:/Code/DevContext2/eval-repos/eShop/src\"; for f in */*.csproj; do echo \"=== $f\"; grep -E \"<Project Sdk|<OutputType|<TargetFramework|IsAspireHost|UseMaui|<AspireHost\" \"$f\" | head -8; done",
+        "description": "Inspect SDK and output type of each project"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01JhTNgVXYEUbhQzc3q5JsJF",
+      "tool_input": {
+        "command": "cd \"C:/Code/DevContext2/eval-repos/eShop/src\"; for f in Basket.API Catalog.API Identity.API Ordering.API OrderProcessor PaymentProcessor WebApp WebhookClient Webhooks.API; do echo \"=== $f/Program.cs\"; head -25 \"$f/Program.cs\"; done",
+        "description": "Read heads of each service Program.cs"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01HSMeb1n69hDmwtzAkUiDZ8",
+      "tool_input": {
+        "command": "cd \"C:/Code/DevContext2/eval-repos/eShop/src\"; ls ClientApp HybridApp | head -40; echo \"=== slnf\"; cat ../eShop.Web.slnf",
+        "description": "List MAUI app files and read solution filter"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What kind of system this is\n\neShop is a **.NET Aspire–orchestrated, services-based e-commerce reference application** (\"AdventureWorks\") — a distributed set of ASP.NET Core microservices plus a Blazor storefront, mobile clients, and messaging/background workers (`README.md:1-3`). It targets **.NET 10** (`src/Catalog.API/Catalog.API.csproj:4`), and the solution is `eShop.slnx` (`eShop.slnx:1-36`).\n\n## The single runnable entry point\n\n**`src/eShop.AppHost`** is the orchestrator and the startup project — an `Exe` built with the Aspire AppHost SDK (`src/eShop.AppHost/eShop.AppHost.csproj:1,4`). You run it with `dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj`, or open `eShop.Web.slnf` in Visual Studio with `eShop.AppHost.csproj` as startup (`README.md:66-77`). Docker must be running (`README.md:64-65`). Everything else in the distributed app is started *by* the AppHost.\n\n## Processes started when the solution runs\n\nComposed declaratively in `src/eShop.AppHost/Program.cs`:\n\n**Infrastructure containers**\n- `redis` — Basket store (`Program.cs:7`)\n- `eventbus` — RabbitMQ, persistent container lifetime (`Program.cs:8-9`)\n- `postgres` — `ankane/pgvector` image, persistent (`Program.cs:10-13`), hosting four logical databases: `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb` (`Program.cs:15-18`)\n\n**.NET service projects** (each `AddProject<...>` launches its own process)\n- `identity-api` — Duende IdentityServer + ASP.NET Identity over `identitydb`, externally exposed, health-checked (`Program.cs:23-26`; `src/Identity.API/Program.cs:5-18`)\n- `basket-api` — a **gRPC** service backed by Redis (`Program.cs:30-33`; `src/Basket.API/Program.cs:6,12`)\n- `catalog-api` — versioned minimal-API catalog (`Program.cs:36-38`; `src/Catalog.API/Program.cs:21`)\n- `ordering-api` — versioned, authorized orders API; also owns the EF migrations (`Program.cs:40-44`; `src/Ordering.API/Program.cs:19-22`)\n- `order-processor` — a **Worker SDK** background service (`GracePeriodManagerService : BackgroundService`), waits for `ordering-api` because that runs the migrations (`Program.cs:46-49`; `src/OrderProcessor/OrderProcessor.csproj:1`; `src/OrderProcessor/Services/GracePeriodManagerService.cs:8-12`)\n- `payment-processor` — headless RabbitMQ consumer subscribed to `OrderStatusChangedToStockConfirmedIntegrationEvent` (`Program.cs:51-52`; `src/PaymentProcessor/Program.cs:5-6`)\n- `webhooks-api` — versioned webhook registration API over `webhooksdb` (`Program.cs:54-57`; `src/Webhooks.API/Program.cs:18-21`)\n- `webhooksclient` — Blazor Server sample webhook subscriber (`Program.cs:65-67`; `src/WebhookClient/Program.cs:5,25-29`)\n- `webapp` — the storefront: Blazor with interactive server components, externally exposed, labeled \"Online Store\" in the dashboard (`Program.cs:69-77`; `src/WebApp/Program.cs:8,30`)\n\n**Reverse proxy**\n- `mobile-bff` — a YARP resource (not a project) exposing catalog/ordering/identity routes to mobile clients (`Program.cs:60-62`; route table in `src/eShop.AppHost/Extensions.cs:185-250`)\n\nThat's **10 project processes + 1 YARP proxy + 3 infrastructure containers**, plus the Aspire dashboard itself (`README.md:78-81`).\n\n## What composes them\n\n- **Wiring/composition** is entirely in `src/eShop.AppHost/Program.cs` — `WithReference` injects connection strings and service-discovery endpoints; `WaitFor` orders startup; `WithEnvironment` threads cross-service URLs (e.g. `Identity__Url`) and the cyclic identity→app callback URLs (`Program.cs:97-101`). HTTP vs HTTPS launch profile is chosen by the `ESHOP_USE_HTTP_ENDPOINTS` env var, for Playwright CI (`Program.cs:20,108-115`).\n- **Shared cross-cutting composition** is `src/eShop.ServiceDefaults`: every service calls `AddServiceDefaults()` (or the lighter `AddBasicServiceDefaults()`), which adds OpenTelemetry logging/metrics/tracing with OTLP export, health checks, service discovery, and resilient HttpClient defaults (`src/eShop.ServiceDefaults/Extensions.cs:16-48,50-106`), plus `MapDefaultEndpoints()` for `/health` and `/alive` in development (`Extensions.cs:108-125`).\n- **Shared libraries** (not processes): `EventBus`/`EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`/`Ordering.Infrastructure`, `WebAppComponents` — all plain `Microsoft.NET.Sdk` or Razor class libraries.\n\n## Runnable, but *not* started by the AppHost\n\nTwo .NET MAUI client apps are in the solution and must be launched separately per-platform — neither appears anywhere in `src/eShop.AppHost/Program.cs`:\n- **`src/ClientApp`** — MAUI (XAML) mobile/desktop client, `UseMaui`, multi-targeted android/ios/maccatalyst/windows (`src/ClientApp/ClientApp.csproj:4-5,16-18`), entry point `src/ClientApp/MauiProgram.cs` with per-platform heads under `src/ClientApp/Platforms/`.\n- **`src/HybridApp`** — MAUI Blazor Hybrid client reusing `WebAppComponents` (`src/HybridApp/HybridApp.csproj:1,4,16-18`), entry point `src/HybridApp/MauiProgram.cs`.\n\nBoth are also excluded from the `eShop.Web.slnf` filter used for the standard Visual Studio run (`eShop.Web.slnf:4-26`).\n\n**One caveat:** I read the composition statically and did not build or run the solution, so I can't confirm runtime behavior (e.g. whether all containers start cleanly on this machine). Also note the two optional AI integrations — OpenAI/Azure OpenAI and Ollama — are gated behind `bool useOpenAI = false` and `bool useOllama = false` and therefore add **no** processes as the repo currently stands (`src/eShop.AppHost/Program.cs:79-90`); flipping either flag would add further resources (`src/eShop.AppHost/Extensions.cs:52-183`).",
+  "ttft_ms": 1813,
+  "ttft_stream_ms": 1023,
+  "time_to_request_ms": 58,
+  "type": "result",
+  "duration_ms": 102506,
+  "uuid": "fe731c9f-2ffc-4a85-8e3c-f2e90f2a164c"
+}

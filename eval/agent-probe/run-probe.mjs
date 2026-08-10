@@ -217,7 +217,61 @@ async function warmRepo(repoDir) {
   return { cold, warm };
 }
 
-// ---- the three arms (DESIGN section 8, verbatim) ----------------------------
+// ---- the three arms ---------------------------------------------------------
+//
+// DESIGN section 8's argv is NOT sufficient on its own, and the first three real runs proved it
+// rather than assuming it: --allowedTools is an AUTO-APPROVE list, not a restriction. Anything not
+// named in --disallowedTools is still offered and still runs. In those runs arm G executed three
+// Bash calls and arm M - the arm whose entire purpose is to have no filesystem - executed the
+// subagent tool, whose subagent then read files with cat and ls, plus five Monitor calls (Monitor
+// runs bash). --disallowedTools, by contrast, does work: a denied tool never appears in the init
+// event's tool list at all.
+//
+// So each arm is defined by an EXHAUSTIVE deny list: the whole non-MCP tool universe minus the
+// tools that arm is supposed to have. The universe is the union of what the CLI offered across the
+// three arms, plus the tool names it denied (which are absent from the list precisely because they
+// were denied), plus names from adjacent Claude Code versions. Denying a tool that does not exist
+// costs nothing; failing to deny one that does voids the experiment.
+const TOOL_UNIVERSE = [
+  // agent delegation - the worst offender, a subagent inherits its own tools
+  "Task", "Agent",
+  // shell
+  "Bash", "BashOutput", "KillShell", "PowerShell",
+  // file
+  "Read", "Edit", "Write", "NotebookEdit", "Glob", "Grep",
+  // network
+  "WebFetch", "WebSearch",
+  // deferred-tool loader: with it, anything at all can be pulled in mid-run
+  "ToolSearch",
+  // orchestration and side channels
+  "Skill", "SlashCommand", "Workflow", "Monitor", "ScheduleWakeup", "ReportFindings",
+  "SendMessage", "SendUserMessage", "PushNotification", "RemoteTrigger", "DesignSync",
+  "EnterWorktree", "ExitWorktree", "Artifact", "ExitPlanMode", "TodoWrite",
+  "CronCreate", "CronDelete", "CronList",
+  "TaskCreate", "TaskGet", "TaskList", "TaskOutput", "TaskStop", "TaskUpdate",
+];
+
+// DESIGN section 3.1 defines arm G as Read/Grep/Glob/Bash(git *) and arm B as that plus the MCP.
+// Section 8's --allowedTools line omits Bash, but that line was written as an auto-approve list, so
+// its omission never meant "deny Bash" - and denying the control arm a shell would bias the
+// experiment toward the treatment, which is the one direction this design must not lean.
+const ARM_KEEP = {
+  G: ["Read", "Grep", "Glob", "Bash"],
+  M: [],
+  B: ["Read", "Grep", "Glob", "Bash"],
+};
+
+// The predicate every offered and every called tool is checked against, per arm.
+function permittedInArm(arm, toolName) {
+  const n = String(toolName);
+  if (n.startsWith("mcp__devcontext__") || n === "mcp__devcontext") return arm === "M" || arm === "B";
+  if (n.startsWith("mcp__")) return false;
+  return ARM_KEEP[arm].includes(n);
+}
+
+function denyListFor(arm) {
+  return TOOL_UNIVERSE.filter((t) => !ARM_KEEP[arm].includes(t)).join(",");
+}
 
 function armArgs(arm, repoDir) {
   const shared = [
@@ -236,21 +290,21 @@ function armArgs(arm, repoDir) {
     // No --mcp-config at all: the MCP server is not merely denied, it is never configured.
     return [...shared,
       "--add-dir", repoDir,
-      "--allowedTools", "Read,Grep,Glob",
-      "--disallowedTools", "Edit,Write,WebFetch,WebSearch"];
+      "--allowedTools", "Read,Grep,Glob,Bash(git *)",
+      "--disallowedTools", denyListFor("G")];
   }
   if (arm === "M") {
     return [...shared,
       "--mcp-config", MCP_CONFIG,
       "--allowedTools", "mcp__devcontext",
-      "--disallowedTools", "Read,Grep,Glob,Bash,Edit,Write"];
+      "--disallowedTools", denyListFor("M")];
   }
   if (arm === "B") {
     return [...shared,
       "--add-dir", repoDir,
       "--mcp-config", MCP_CONFIG,
-      "--allowedTools", "Read,Grep,Glob,mcp__devcontext",
-      "--disallowedTools", "Edit,Write,WebFetch,WebSearch"];
+      "--allowedTools", "Read,Grep,Glob,Bash(git *),mcp__devcontext",
+      "--disallowedTools", denyListFor("B")];
   }
   die(`unknown arm ${arm}`);
 }
@@ -320,26 +374,43 @@ function spawnRun(cell, repoDir) {
   });
 }
 
+// Attempted calls in order, plus the ones that actually came back without an error. A denied call
+// still shows up as a tool_use block, so counting tool_use alone reports attempts, not actions -
+// which is both a false alarm and a blind spot for the isolation check.
 function toolCallsOf(events) {
-  const names = [];
+  const attempted = [];
+  const errored = new Set();
+  const byId = new Map();
+  const bashCommands = [];
   for (const e of events) {
     const content = e?.message?.content;
     if (!Array.isArray(content)) continue;
     for (const block of content) {
-      if (block?.type === "tool_use" && block.name) names.push(block.name);
+      if (block?.type === "tool_use" && block.name) {
+        attempted.push(block.name);
+        byId.set(block.id, block.name);
+        if (block.name === "Bash" && block.input?.command) {
+          bashCommands.push(String(block.input.command).slice(0, 200));
+        }
+      }
+      if (block?.type === "tool_result" && block.is_error === true) errored.add(block.tool_use_id);
     }
   }
-  return names;
+  const executed = [...byId.entries()].filter(([id]) => !errored.has(id)).map(([, name]) => name);
+  return { attempted, executed, bashCommands };
 }
 
-function initFacts(events) {
+function initFacts(events, arm) {
   const init = events.find((e) => e.type === "system" && e.subtype === "init");
-  if (!init) return { toolsOffered: null, mcpToolsOffered: null, mcpServers: null };
+  if (!init) return { toolsOffered: null, mcpToolsOffered: null, mcpServers: null, offeredOutsideArm: null };
   const tools = Array.isArray(init.tools) ? init.tools : [];
   return {
     toolsOffered: tools.length,
     mcpToolsOffered: tools.filter((t) => String(t).startsWith("mcp__")).length,
     mcpServers: init.mcp_servers ?? null,
+    // The earliest possible isolation signal: a tool the arm should not have was OFFERED, whether
+    // or not the model happened to reach for it. Catches the breach without paying for a call.
+    offeredOutsideArm: tools.filter((t) => !permittedInArm(arm, t)).sort(),
   };
 }
 
@@ -361,8 +432,9 @@ async function runCell(cell, repoDir, ordinal, total) {
 
   const out = await spawnRun(cell, repoDir);
   const result = out.events.find((e) => e.type === "result") || null;
-  const calls = toolCallsOf(out.events);
-  const facts = initFacts(out.events);
+  const { attempted: calls, executed, bashCommands } = toolCallsOf(out.events);
+  const facts = initFacts(out.events, cell.arm);
+  const calledOutsideArm = [...new Set(calls.filter((c) => !permittedInArm(cell.arm, c)))].sort();
 
   const dir = join(RAW, cell.repo);
   mkdirSync(dir, { recursive: true });
@@ -383,6 +455,13 @@ async function runCell(cell, repoDir, ordinal, total) {
     // Read out of the result object. Nothing here recomputes a token count.
     answer: result?.result ?? "",
     toolCalls: calls,
+    toolCallsExecuted: executed,
+    bashCommands,
+    // Arm isolation, decided per run and stored, so no later stage has to re-derive it from the
+    // transcript to know whether this row is admissible.
+    offeredOutsideArm: facts.offeredOutsideArm,
+    calledOutsideArm,
+    isolationOk: (facts.offeredOutsideArm || []).length === 0 && calledOutsideArm.length === 0,
     costUsd: result?.total_cost_usd ?? null,
     usage: result?.usage ?? null,
     modelUsage: result?.modelUsage ?? null,
@@ -411,8 +490,18 @@ async function runCell(cell, repoDir, ordinal, total) {
   };
 
   appendFileSync(RUNS_JSONL, JSON.stringify(row) + "\n", "utf8");
-  const mcpShare = calls.length ? (calls.filter((c) => c.startsWith("mcp__")).length / calls.length).toFixed(2) : "-";
-  console.log(`      cost=${row.costUsd} turns=${row.numTurns} calls=${calls.length} mcpShare=${mcpShare} censored=${censored}`);
+  const mcpShare = executed.length
+    ? (executed.filter((c) => c.startsWith("mcp__")).length / executed.length).toFixed(2) : "-";
+  console.log(`      cost=${row.costUsd} turns=${row.numTurns} calls=${executed.length}/${calls.length} ` +
+              `mcpShare=${mcpShare} censored=${censored} isolationOk=${row.isolationOk}`);
+
+  // Stop the batch the moment an arm leaks. Every run after a breach spends real money on a number
+  // that cannot be used, and the row is already on disk for whoever diagnoses it.
+  if (!row.isolationOk) {
+    die(`ARM ISOLATION BREACH on ${label} - offered outside arm: [${(facts.offeredOutsideArm || []).join(", ")}], ` +
+        `called outside arm: [${calledOutsideArm.join(", ")}]. The batch is stopped; this row and every ` +
+        "row recorded under the same harness must be voided and re-run in ALL THREE arms.");
+  }
   return row;
 }
 

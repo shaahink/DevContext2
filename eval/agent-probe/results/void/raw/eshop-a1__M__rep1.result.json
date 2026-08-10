@@ -1,0 +1,88 @@
+{
+  "is_error": false,
+  "duration_api_ms": 190516,
+  "num_turns": 7,
+  "stop_reason": "end_turn",
+  "session_id": "8644e25c-83e0-4e7a-ac80-4dd047e609c2",
+  "total_cost_usd": 1.4378822500000004,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 30779,
+    "cache_read_input_tokens": 106921,
+    "output_tokens": 3187,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 30779,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2234,
+        "cache_read_input_tokens": 24827,
+        "cache_creation_input_tokens": 5952,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 5952
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 46,
+      "outputTokens": 14372,
+      "cacheReadInputTokens": 709457,
+      "cacheCreationInputTokens": 97206,
+      "webSearchRequests": 0,
+      "costUSD": 1.4372172500000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Monitor",
+      "tool_use_id": "toolu_014QNcTZAVH9TJBgbQKFDFGa",
+      "tool_input": {
+        "description": "dump solution files, service entry files, AppHost dir",
+        "timeout_ms": 60000,
+        "persistent": false,
+        "command": "cd /c/Code/DevContext2/eval-repos/eShop && for f in *.sln *.slnx; do echo \"=== $f ===\"; cat -n \"$f\"; done 2>/dev/null; echo \"=== ENTRYFILES ===\"; ls src/*/Program.cs src/*/*/Program.cs 2>/dev/null; echo \"=== APPHOSTDIR ===\"; ls src/eShop.AppHost/"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What kind of system this is\n\nIt's **eShop** — the .NET reference microservices e-commerce sample, orchestrated by **.NET Aspire**. It's a polyglot-of-one (all C#) distributed app: a set of ASP.NET Core services, two background workers, a Blazor web frontend, and two .NET MAUI client apps, all composed by an Aspire AppHost that also spins up the backing infrastructure containers. Solution file is the new XML format, `eShop.slnx` — there is no `.sln` (`eShop.slnx:1-36`, 24 projects across `/src/` and `/tests/`).\n\n## The runnable entry point\n\nThere is exactly one thing you run: **`src/eShop.AppHost`** (`src/eShop.AppHost/Program.cs`). It is the Aspire orchestrator — `DistributedApplication.CreateBuilder(args)` at `src/eShop.AppHost/Program.cs:3`, `builder.Build().Run()` at `src/eShop.AppHost/Program.cs:103`. Everything else is started by it.\n\n## Processes that start when the solution runs\n\n**Nine .NET service processes** (each `AddProject<>` in the AppHost):\n\n| Resource name | Project | Role |\n|---|---|---|\n| `identity-api` | `src/Identity.API/Program.cs` | Duende IdentityServer, external HTTP (`Program.cs:23-26`) |\n| `basket-api` | `src/Basket.API/Program.cs` | gRPC basket service over Redis (`Program.cs:30-33`) |\n| `catalog-api` | `src/Catalog.API/Program.cs` | Minimal-API catalog (`Program.cs:36-38`) |\n| `ordering-api` | `src/Ordering.API/Program.cs` | DDD/CQRS ordering, also runs EF migrations (`Program.cs:40-44`) |\n| `order-processor` | `src/OrderProcessor/Program.cs` | Worker; `WaitFor(orderingApi)` (`Program.cs:46-49`) |\n| `payment-processor` | `src/PaymentProcessor/Program.cs` | Worker on the event bus (`Program.cs:51-52`) |\n| `webhooks-api` | `src/Webhooks.API/Program.cs` | Webhook subscriptions (`Program.cs:54-57`) |\n| `webhooksclient` | `src/WebhookClient/Program.cs` | Demo webhook receiver UI (`Program.cs:65-67`) |\n| `webapp` | `src/WebApp/Program.cs` | Blazor storefront, external HTTP (`Program.cs:69-77`) |\n\n**Plus a YARP reverse proxy** `mobile-bff` (`src/eShop.AppHost/Program.cs:60-62`) — not a solution project, a built-in Aspire resource; its routes are defined in `src/eShop.AppHost/Extensions.cs:180-249`.\n\n**Plus three infrastructure containers and four databases:**\n- `redis` (`Program.cs:7`), parented to basket-api in the dashboard (`Program.cs:34`)\n- `eventbus` — RabbitMQ, persistent lifetime (`Program.cs:8-9`)\n- `postgres` — image `ankane/pgvector:latest`, persistent (`Program.cs:10-13`), hosting `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb` (`Program.cs:15-18`)\n\n## What composes them\n\n`src/eShop.AppHost/Program.cs` is the composition root: it declares each resource, wires `WithReference(...)` dependencies (e.g. webapp → basket-api/catalog-api/ordering-api/eventbus, `Program.cs:69-77`), injects identity URLs as env vars, and sets health-check paths. Cross-cutting concerns (OpenTelemetry, health checks, service discovery, resilience) come from the shared `src/eShop.ServiceDefaults` library referenced by the services.\n\nThree gates worth knowing (`src/eShop.AppHost/Extensions.cs`):\n- `useOpenAI` is a **hardcoded `false`** local at `Program.cs:80` — the AI/semantic-search path (Azure OpenAI or OpenAI parameters, `Extensions.cs:64-145`) is off unless you edit that line.\n- `useOllama` is likewise hardcoded `false` at `Program.cs:86`; enabling it adds an `ollama` container with OpenWebUI and two models (`Extensions.cs:165-170`).\n- `ESHOP_USE_HTTP_ENDPOINTS=1` is the only real env gate (`Program.cs:20`, `Program.cs:108-115`); it switches launch profiles from `https` to `http`, intended for CI/Playwright.\n\n## Not started by the AppHost\n\n`src/ClientApp` (MAUI, `src/ClientApp/MauiProgram.cs`) and `src/HybridApp` (MAUI Blazor Hybrid, `src/HybridApp/MauiProgram.cs`) are in the solution (`eShop.slnx:20-21`) but are **not** registered in the AppHost — `Program.cs` contains no `Projects.ClientApp` or `Projects.HybridApp` reference among its nine `AddProject<>` calls (lines 23, 30, 36, 40, 46, 51, 54, 65, 69). They must be deployed/launched separately and pointed at the `mobile-bff` URL manually; nothing injects that address for them.\n\nThe remaining solution projects are libraries with no entry point: `eShop.ServiceDefaults`, `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents` (`eShop.slnx:6-8,10,13-14,19`).\n\nOne caveat: I verified the AppHost composition and solution membership directly, but did not read each service's `Program.cs` body — the role descriptions in the table above are inferred from resource names, references, and the codebase's entry-point index (43 HTTP endpoints, 3 gRPC methods on `Basket`, 13 message consumers) rather than from reading each host file line by line.",
+  "ttft_ms": 1817,
+  "ttft_stream_ms": 989,
+  "time_to_request_ms": 59,
+  "type": "result",
+  "duration_ms": 200802,
+  "uuid": "789bb0c5-cb38-49d1-8989-8af3b1358ce6"
+}
