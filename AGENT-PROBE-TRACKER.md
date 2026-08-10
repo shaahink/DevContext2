@@ -20,16 +20,19 @@ that opinion with a measurement.
   without it.
 
 ## Handoff  (overwrite this block, 12 lines max, no history)
-last: nothing yet — run not started. Plan, gate, templates and question schema authored by the
-  driver; no session has run.
-stage: **K1 not started** (attempt 0).
-gate: `node eval/agent-probe/verify.mjs --tier fast` proven green and proven red before launch;
-  see the launch note in `.conductor/WATCH-HANDOFF.md`.
-next: **K1.1** — author `eval/agent-probe/questions/eShop.json`: six questions covering classes
-  A B C D E F, every answer key verified against the source at the pinned SHA `9b4f9434`.
-trap: the gate proves every `mustMention` and `mustNotMention` string actually resolves in the
-  cloned repo, so a plausible-but-wrong symbol name fails the stage rather than corrupting the
-  experiment silently. Read the source; do not take a symbol from a doc.
+last: K1 CLOSED — K1.1/K1.2/K1.3 all DONE. 18 pre-registered questions (one per class A–F)
+  in `questions/{eShop,TodoApi,FluentValidation}.json`. Commits e210f51, e6205fb, f7d40f4.
+stage: **K1 complete, attempt 1, no reds. H1 is next.**
+gate: `node eval/agent-probe/verify.mjs --tier fast` → GREEN; every key resolves in the cloned
+  repo at its pinned SHA. The keys are now FROZEN — a later stage may not adjust one.
+next: **H1.1** — `run-probe.mjs`: three arms as headless subprocesses, resumable from
+  `results/runs.jsonl`, `--max-budget-usd 1.50` on every invocation, hard refusal above 60 runs
+  per invocation. DESIGN.md §8 carries the three command lines verbatim.
+trap: eShop @ 9b4f9434 is the **Aspire** eShop, not eShopOnContainers — there is no
+  `UserCheckoutAcceptedIntegrationEvent`, Basket.API has exactly ONE subscription, and every
+  event in the repo has a subscriber, so the class E controls are false-premise questions
+  rather than orphan events. Answers echoing the old sample are recall, not reading.
+note: one question per class, not DESIGN §3.3's B×2 + E/F at ½ — see the ledger and file notes.
 
 ## Checkpoints
 
