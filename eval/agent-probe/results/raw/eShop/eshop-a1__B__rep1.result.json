@@ -1,0 +1,86 @@
+{
+  "is_error": false,
+  "duration_api_ms": 69702,
+  "num_turns": 14,
+  "stop_reason": "end_turn",
+  "session_id": "cb6b3cd6-64d5-4cc1-8a98-84e02b2708f4",
+  "total_cost_usd": 0.43783550000000004,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 25317,
+    "cache_read_input_tokens": 106241,
+    "output_tokens": 5232,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 25317,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2498,
+        "cache_read_input_tokens": 24376,
+        "cache_creation_input_tokens": 941,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 941
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 16,
+      "outputTokens": 5232,
+      "cacheReadInputTokens": 106241,
+      "cacheCreationInputTokens": 25317,
+      "webSearchRequests": 0,
+      "costUSD": 0.4371705,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01BGhAQ3E2vdugfxmxwYySKU",
+      "tool_input": {
+        "command": "cd C:/Code/DevContext2/eval-repos/eShop && for f in src/*/*.csproj; do echo \"=== $f\"; head -8 \"$f\"; done",
+        "description": "Inspect csproj SDK and output types"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What the system is\n\n**eShop is a .NET Aspire–orchestrated, services-based e-commerce reference application** (.NET 10), described in the repo as \"A reference .NET application implementing an e-commerce website using a services-based architecture using .NET Aspire\" (`README.md:3`). Its 19 projects (`eShop.slnx`) split into runnable services, two client apps, and shared libraries (EventBus, EventBusRabbitMQ, IntegrationEventLogEF, Ordering.Domain, Ordering.Infrastructure, WebAppComponents, eShop.ServiceDefaults).\n\n## The single entry point you actually run\n\n`src/eShop.AppHost` — an Aspire AppHost (`<Project Sdk=\"Aspire.AppHost.Sdk/13.2.0\">`, `OutputType=Exe`, `src/eShop.AppHost/eShop.AppHost.csproj:1-4`). You start it with `dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj` (`README.md:75`) or Ctrl-F5 in Visual Studio (`README.md:71`). Its `Program.cs` builds the whole distributed app graph and calls `builder.Build().Run()` (`src/eShop.AppHost/Program.cs:103`).\n\n## Processes that start when the solution runs\n\n**Backing containers** (`src/eShop.AppHost/Program.cs:7-18`): Redis (`redis`), RabbitMQ (`eventbus`, persistent lifetime), and Postgres using the `ankane/pgvector` image, hosting four databases: `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb`.\n\n**.NET service processes**, each `AddProject<>` in the AppHost:\n- `identity-api` — Duende IdentityServer + ASP.NET Identity on `identitydb`, external HTTP endpoints, `/health` check (`src/eShop.AppHost/Program.cs:23-27`; `src/Identity.API/Program.cs:1-30`).\n- `basket-api` — gRPC service (`MapGrpcService<BasketService>()`, `src/Basket.API/Program.cs:1-13`), wired to Redis and RabbitMQ (`src/eShop.AppHost/Program.cs:30-34`).\n- `catalog-api` — versioned minimal-API Web API over `catalogdb` + RabbitMQ (`src/eShop.AppHost/Program.cs:36-38`; `src/Catalog.API/Program.cs:1-24`).\n- `ordering-api` — versioned minimal API with MediatR/DDD layers, `orderingdb`, RabbitMQ, `/health` (`src/eShop.AppHost/Program.cs:40-44`; `src/Ordering.API/Program.cs:1-25`).\n- `order-processor` — background worker (Worker SDK, `src/OrderProcessor/OrderProcessor.csproj:1`) hosting `GracePeriodManagerService` over RabbitMQ + `orderingdb` (`src/OrderProcessor/Extensions/Extensions.cs:9-19`); it `WaitFor(orderingApi)` because Ordering.API runs the EF migrations (`src/eShop.AppHost/Program.cs:46-49`).\n- `payment-processor` — event-bus subscriber for `OrderStatusChangedToStockConfirmedIntegrationEvent` (`src/PaymentProcessor/Program.cs:1-16`; `src/eShop.AppHost/Program.cs:51-52`).\n- `webhooks-api` — versioned Web API over `webhooksdb` + RabbitMQ (`src/eShop.AppHost/Program.cs:54-57`; `src/Webhooks.API/Program.cs:1-26`).\n- `webhooksclient` — Blazor server app consuming the webhooks API (`src/eShop.AppHost/Program.cs:65-67`; `src/WebhookClient/Program.cs:1-28`).\n- `webapp` — the customer-facing Blazor interactive-server storefront, external endpoints, referencing basket/catalog/ordering/RabbitMQ (`src/eShop.AppHost/Program.cs:69-77`; `src/WebApp/Program.cs:1-30`).\n- `mobile-bff` — a YARP reverse proxy resource (not a project) fronting catalog, ordering and identity for mobile clients (`src/eShop.AppHost/Program.cs:60-62`; routes in `src/eShop.AppHost/Extensions.cs:185-215`).\n\nPlus the Aspire dashboard itself, served from the AppHost's launch profile at `https://localhost:19888` (`src/eShop.AppHost/Properties/launchSettings.json`).\n\n## How they are composed\n\n- Composition is entirely declarative in `src/eShop.AppHost/Program.cs`: `WithReference` injects connection strings/service discovery, `WaitFor` orders startup, and `WithEnvironment` threads endpoint URLs (e.g. `Identity__Url`, `CallBackUrl`) between resources; Identity gets back-references to every client, an intentional cyclic reference (`src/eShop.AppHost/Program.cs:96-101`).\n- `AddForwardedHeaders()` is a `BeforeStartEvent` hook that sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on every project resource (`src/eShop.AppHost/Extensions.cs:22-46`).\n- HTTP vs HTTPS launch profile is chosen by the `ESHOP_USE_HTTP_ENDPOINTS` env var, for Playwright CI (`src/eShop.AppHost/Program.cs:20`, `:108-116`).\n- Every service calls `AddServiceDefaults()`/`AddBasicServiceDefaults()` and `MapDefaultEndpoints()` from the shared `eShop.ServiceDefaults` library (telemetry, health, service discovery) — e.g. `src/Catalog.API/Program.cs:3,17`.\n- Inter-service communication: WebApp → Basket over gRPC and → Catalog/Ordering over HTTP; Ordering/Catalog/Basket/OrderProcessor/PaymentProcessor communicate asynchronously via the RabbitMQ event bus.\n\n## Not started by the AppHost\n\n`ClientApp` (.NET MAUI, `src/ClientApp/ClientApp.csproj:1-5`, entry `src/ClientApp/MauiProgram.cs`) and `HybridApp` (MAUI Blazor Hybrid, `src/HybridApp/HybridApp.csproj:1-5`, entry `src/HybridApp/MauiProgram.cs`) are separately-launched mobile/desktop clients — I grepped `src/eShop.AppHost/` for \"ClientApp\"/\"HybridApp\" and found **no** references, so they are not part of the orchestrated run; they talk to the `mobile-bff` proxy. Optional OpenAI/Ollama resources exist but are gated behind `useOpenAI`/`useOllama` flags that are both hardcoded `false` (`src/eShop.AppHost/Program.cs:80-91`), so no AI container starts by default.",
+  "ttft_ms": 2199,
+  "ttft_stream_ms": 1311,
+  "time_to_request_ms": 96,
+  "type": "result",
+  "duration_ms": 86815,
+  "uuid": "dede9b2a-6c4e-4327-b28e-b4598d7bd4c0"
+}
