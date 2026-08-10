@@ -4,21 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-last: H1 CLOSED — H1.1 + H1.2 DONE. `run-probe.mjs` drives arms G/M/B, resumable, $1.50 cap,
-  refuses >60 runs/invocation. Commits 2d20636, e2f7372, 5f95609. Gate `--tier fast` GREEN and
-  `total_cost_usd` is non-zero ($0.44–$0.66/run), so DESIGN §4.1's zero-cost trap is settled.
-stage: **H1 complete, attempt 1, no reds. P1 is next.**
-trap: **`--allowedTools` does NOT restrict — it only auto-approves.** The first three real runs
-  proved it: arm G executed Bash, arm M executed a subagent that read files with cat/ls. Those
-  runs are void, kept with the reason in `results/void/`, and were re-run in ALL THREE arms. Arms
-  are now exhaustive `--disallowedTools` lists; every row carries offeredOutsideArm /
-  calledOutsideArm / isolationOk and `verify.mjs` fails on any row recording a breach.
-next: **P1.1 is mostly reading** — the isolation evidence is already in the three recorded rows
-  and `results/raw/eShop/*.stream.jsonl`. P1.2 needs two trivial-prompt runs; turn-1 tokens are
-  in `usage.iterations[0]`. P2 goes through `conductor bg` and skips the 3 eshop-a1 rep1 cells.
+last: **P1 CLOSED** — P1.1 + P1.2 DONE, commits 53ca6c5, aeaebfd, 65b79b0. `audit-preflight.mjs`
+  re-derives DESIGN §8 assertions 1–4 from `results/raw/**` sharing no code with the harness:
+  all four hold on all 3 runs. `verify.mjs --tier fast` GREEN and now runs that audit too.
+stage: **P1 complete, attempt 1, no reds. P2 (54-cell pilot) is next.**
+trap: **DESIGN §4.4's tax statistic is cache-dependent and read 9 tokens.** The prompt cache is
+  server-side and prefix-keyed, so the schemas came back as `cache_read`, not `cache_creation`.
+  Measured invariantly (turn-1 in+create+read) the tax is **2540 tokens / $0.0254 cold / 4.0% of
+  a median run**; cold cross-check off the recorded runs gives 2531. Same trap bites P2: 54
+  back-to-back cells share a warm prefix, so pilot costs carry an amortised tax that flatters B.
+next: P2 = `conductor bg start --purpose probe -- node eval/agent-probe/run-probe.mjs --repo eShop
+  --reps 3 --allow-no-bare`. It skips the 3 recorded eshop-a1 rep1 cells, so 51 runs, ~$32 at the
+  observed $0.44–$0.66. Ceiling is 60/invocation, cap $1.50/run; resumable, never restart it.
 escalation: `--bare` cannot authenticate here (no ANTHROPIC_API_KEY; bare never reads OAuth), so
-  runs need `--allow-no-bare` and record isolation:"no-settings-fallback". An owner key restores
-  DESIGN §6.3 verbatim; the ambient audit found no CLAUDE.md anywhere in the parent chain.
+  runs need `--allow-no-bare` and record isolation:"no-settings-fallback". Cost is exact but only
+  at a **2x** cache-write rate (1h TTL), not DESIGN §4.1's 1.25x — matters only if cost ever hits 0.
 
 
 ## Baseline numbers (from run.db)
@@ -26,8 +26,8 @@ escalation: `--bare` cannot authenticate here (no ANTHROPIC_API_KEY; bare never 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 12 |
-| Done | 0 |
-| Claimed (unconfirmed) | 3 |
+| Done | 3 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -38,16 +38,16 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| K1.1 | `questions/eShop.json` exists with 6 questions covering classes A B C D E F; every key symbol resolves in eval-repos/eShop at 9b4f9434; class D is a real sibling-attribution trap and class E has an empty mustMention | DONE | e210f51 | eval/agent-probe/questions/eShop.json |
-| K1.2 | `questions/TodoApi.json` exists, same shape, keys verified at 307a1ead | DONE | e210f51 | eval/agent-probe/questions/TodoApi.json |
-| K1.3 | `questions/FluentValidation.json` exists, same shape, keys verified at 94397908 | DONE | e210f51 | eval/agent-probe/questions/FluentValidation.json |
+| K1.1 | `questions/eShop.json` exists with 6 questions covering classes A B C D E F; every key symbol resolves in eval-repos/eShop at 9b4f9434; class D is a real sibling-attribution trap and class E has an empty mustMention | DONE ✓ | e210f51 | eval/agent-probe/questions/eShop.json |
+| K1.2 | `questions/TodoApi.json` exists, same shape, keys verified at 307a1ead | DONE ✓ | e210f51 | eval/agent-probe/questions/TodoApi.json |
+| K1.3 | `questions/FluentValidation.json` exists, same shape, keys verified at 94397908 | DONE ✓ | e210f51 | eval/agent-probe/questions/FluentValidation.json |
 
 ### H1 — Probe harness - three-arm runner
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| H1.1 | `run-probe.mjs` drives all three arms as headless subprocesses, is resumable from `runs.jsonl`, caps each run at $1.50, and refuses more than 60 runs per invocation | TODO | - | - |
-| H1.2 | One real end-to-end run per arm is recorded in `results/runs.jsonl` with answer, toolCalls, costUsd, usage, numTurns, durationMs — and the raw result JSON plus transcript are saved under `results/raw` | TODO | - | - |
+| H1.1 | `run-probe.mjs` drives all three arms as headless subprocesses, is resumable from `runs.jsonl`, caps each run at $1.50, and refuses more than 60 runs per invocation | DONE | 2d20636 | eval/agent-probe/results/h1.1-dryrun-eShop.txt |
+| H1.2 | One real end-to-end run per arm is recorded in `results/runs.jsonl` with answer, toolCalls, costUsd, usage, numTurns, durationMs — and the raw result JSON plus transcript are saved under `results/raw` | DONE | 2d20636 | eval/agent-probe/results/h1.2-three-arm-smoke.md |
 
 ### P1 — Smoke - prove arm isolation and cost accounting before spending
 
