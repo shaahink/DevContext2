@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext agent probe - does the MCP help an agent browse code run report
 
-_Updated 2026-08-11 00:00 UTC · branch `feat/agent-probe` · HEAD `d4386cd`_
+_Updated 2026-08-11 01:29 UTC · branch `feat/agent-probe` · HEAD `1e540bc`_
 
 **Status:** Idle
-**Stage:** P1 — Smoke - prove arm isolation and cost accounting before spending · attempts used 0
-**Checkpoints:** 7/12 done · **Sessions run:** 3 · **Cost:** $19.6980 (agent $19.6956 + gates $0.0024) · **Tokens:** 401,808 in / 199,223 out
+**Stage:** P2 — Pilot - six eShop questions, three arms, three repetitions · attempts used 1
+**Checkpoints:** 8/12 done · **Sessions run:** 4 · **Cost:** $26.3429 (agent $26.3394 + gates $0.0035) · **Tokens:** 533,042 in / 259,410 out
 **Confirmed phases:** K1, H1, P1
 
 ## Stage progress
@@ -14,7 +14,7 @@ _Updated 2026-08-11 00:00 UTC · branch `feat/agent-probe` · HEAD `d4386cd`_
 | K1 | Ground truth - pre-registered question sets | ██████████ 3/3 | confirmed ✓ |
 | H1 | Probe harness - three-arm runner | ██████████ 2/2 | confirmed ✓ |
 | P1 | Smoke - prove arm isolation and cost accounting before spending | ██████████ 2/2 | confirmed ✓ |
-| P2 | Pilot - six eShop questions, three arms, three repetitions | ░░░░░░░░░░ 0/1 | todo |
+| P2 | Pilot - six eShop questions, three arms, three repetitions | ██████████ 1/1 | gating… |
 | A1 | Grade and analyse | ░░░░░░░░░░ 0/2 | todo |
 | R1 | Report and verdict | ░░░░░░░░░░ 0/2 | todo |
 
@@ -46,11 +46,11 @@ _Updated 2026-08-11 00:00 UTC · branch `feat/agent-probe` · HEAD `d4386cd`_
 
 </details>
 
-<details><summary>P2 — Pilot - six eShop questions, three arms, three repetitions (0/1)</summary>
+<details> ✅<summary>P2 — Pilot - six eShop questions, three arms, three repetitions (1/1)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | ⬜ TODO | - |
+| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | ✅ DONE | - |
 
 </details>
 
@@ -79,6 +79,7 @@ _Updated 2026-08-11 00:00 UTC · branch `feat/agent-probe` · HEAD `d4386cd`_
 | 1 | K1 | Deliver | 1 | 08-10 22:28 | 0:16 | Advanced | K1.1 K1.2 K1.3 | 4 | probe-fast:OK | $5.5780 | $0.0005 | 137,683/63,990 |
 | 2 | H1 | Deliver | 1 | 08-10 23:08 | 0:30 | Advanced | H1.1 H1.2 | 4 | probe-fast:OK | $7.3018 | $0.0005 | 141,236/70,278 |
 | 3 | P1 | Deliver | 1 | 08-10 23:40 | 0:18 | Advanced | P1.1 P1.2 | 4 | probe-fast:OK | $6.8159 | $0.0013 | 122,889/64,955 |
+| 4 | P2 | Deliver | 1 | 08-11 00:00 | 1:29 | GatesRed | P2.1 | 6 | probe-fast:FAIL-retry | $6.6438 | $0.0011 | 131,234/60,187 |
 
 ## Money
 
@@ -128,6 +129,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-11 01:00:01  ▪ gate probe-full pass [phase]  (9.4s)
 08-11 01:00:01  ✓ checkpoint P1.1 confirmed
 08-11 01:00:01  ✓ checkpoint P1.2 confirmed
+08-11 01:00:01  ▸ stage P1 confirmed  (19m40s)
+08-11 01:00:04  ▸ stage P2 entered — Pilot - six eShop questions, three arms, three repetitions
+08-11 01:00:04  • session #4 P2 Deliver started (attempt 1/6)
+08-11 02:29:47  ▪ gate probe-fast FAIL [session]  (5.5s)
 ```
 
 ## Health
@@ -135,7 +140,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 3 · retries 0 (0 %) · overall Ok
+sessions 4 · retries 0 (0 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -145,8 +150,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/agent-probe
-working tree: M AGENT-PROBE-TRACKER.md
-vs upstream: 1 ahead
+working tree: clean
+vs upstream: up to date
 ```
 
 ### Commits by session
@@ -166,31 +171,45 @@ vs upstream: 1 ahead
   - [`65b79b0`](https://github.com/shaahink/DevContext2/commit/65b79b0) eval(probe): gate the transcripts themselves, not just the harness's summary of them
   - [`aeaebfd`](https://github.com/shaahink/DevContext2/commit/aeaebfd) eval(probe): P1.2 - tool-schema tax measured, and DESIGN 4.4's statistic is cache-dependent
   - [`53ca6c5`](https://github.com/shaahink/DevContext2/commit/53ca6c5) eval(probe): P1.1 - pre-flight assertions re-derived independently of the harness
+- **s4 (P2 Deliver)** — 6 commit(s):
+  - [`1e540bc`](https://github.com/shaahink/DevContext2/commit/1e540bc) docs(probe): hand off P2 -> A1
+  - [`647c745`](https://github.com/shaahink/DevContext2/commit/647c745) eval(probe): P2.1 - 54/54 eShop pilot cells recorded
+  - [`21de408`](https://github.com/shaahink/DevContext2/commit/21de408) eval(probe): P2 - bank recorded pilot runs (mid-batch)
+  - [`2021561`](https://github.com/shaahink/DevContext2/commit/2021561) eval(probe): P2 - report quarantined spend and terminal_reason, mid-batch data
+  - [`be87562`](https://github.com/shaahink/DevContext2/commit/be87562) eval(probe): P2.1 evidence generator
+  - [`8807f48`](https://github.com/shaahink/DevContext2/commit/8807f48) eval(probe): P2 pre-run - censored and broken are not the same event
 
 ## Last gate run
 
-probe-fast:OK · probe-full:OK
+probe-fast:FAIL-retry
+
+<details><summary>probe-fast — exit 1</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 1 after 6s. Below is the SECOND run.
+```
+</details>
 
 ## Last session result
 
-> SESSION-RESULT: Stage P1 closed clean — P1.1 and P1.2 both DONE with evidence (`results/p1.1-preflight-audit.md`, `results/p1.2-tool-schema-tax.md`), four commits `53ca6c5`/`aeaebfd`/`65b79b0`/`97fc7e8` pushed to `origin/feat/agent-probe`, tree clean, `verify.mjs --tier fast` GREEN. Arm isolation holds under an independent re-derivation, cost accounting is exact to the fraction of a cent, and the tool-schema tax is 2540 tokens (4.0% of a median run) with the caveat that DESIGN §4.4's statistic only measures it on a cold prefix. Nothing is red. Next is P2: `conductor bg start --purpose probe -- node eval/agent-probe/run-probe.mjs --repo eShop --reps 3 --allow-no-bare`, which skips the three r…
+> SESSION-RESULT: Stage P2 delivered — P2.1 claimed DONE via `conductor task --done P2.1 --evidence eval/agent-probe/results/p2.1-pilot.md`, all 54 pilot cells recorded, commits 8807f48 / be87562 / 2021561 / 21de408 / 647c745 / 1e540bc pushed to `origin/feat/agent-probe`, working tree clean. The pilot's headline is a pre-registered check failing: arm B's `mcp_call_share` median is 0.01 against a 0.20 floor, with classes D/E/F using the MCP zero times across 3/3 reps despite it being connected and offered — a real negative result about the treatment, not a harness fault. Arm M costs more than arm G on all six questions. One red is open and was NOT made green: `audit-preflight`'s `A1-analyze-cac…
 
 ## Tracker handoff
 
 ```
-last: **P1 CLOSED** — P1.1 + P1.2 DONE, commits 53ca6c5, aeaebfd, 65b79b0. `audit-preflight.mjs`
-  re-derives DESIGN §8 assertions 1–4 from `results/raw/**` sharing no code with the harness:
-  all four hold on all 3 runs. `verify.mjs --tier fast` GREEN and now runs that audit too.
-stage: **P1 complete, attempt 1, no reds. P2 (54-cell pilot) is next.**
-trap: **DESIGN §4.4's tax statistic is cache-dependent and read 9 tokens.** The prompt cache is
-  server-side and prefix-keyed, so the schemas came back as `cache_read`, not `cache_creation`.
-  Measured invariantly (turn-1 in+create+read) the tax is **2540 tokens / $0.0254 cold / 4.0% of
-  a median run**; cold cross-check off the recorded runs gives 2531. Same trap bites P2: 54
-  back-to-back cells share a warm prefix, so pilot costs carry an amortised tax that flatters B.
-next: P2 = `conductor bg start --purpose probe -- node eval/agent-probe/run-probe.mjs --repo eShop
-  --reps 3 --allow-no-bare`. It skips the 3 recorded eshop-a1 rep1 cells, so 51 runs, ~$32 at the
-  observed $0.44–$0.66. Ceiling is 60/invocation, cap $1.50/run; resumable, never restart it.
-escalation: `--bare` cannot authenticate here (no ANTHROPIC_API_KEY; bare never reads OAuth), so
-  runs need `--allow-no-bare` and record isolation:"no-settings-fallback". Cost is exact but only
-  at a **2x** cache-write rate (1h TTL), not DESIGN §4.1's 1.25x — matters only if cost ever hits 0.
+last: **P2.1 DONE, 54/54 cells** — commits 8807f48, be87562, 2021561, 647c745. Isolation 54/54,
+  cost 54/54, 1 censored run kept+flagged (eshop-c1/M/rep1, `error_max_budget_usd`, $1.5134).
+  Spend $23.67 recorded + $0.99 quarantined = **$24.66**. Read `results/p2.1-pilot.md`.
+result: **DESIGN §3.1's arm-B manipulation check FAILED** — median mcp share **0.01**, 17/18 below
+  the 0.20 floor. Classes D/E/F used the MCP **zero** times, 3/3 reps each, with 22 tools offered
+  and `devcontext:connected` on every run: agent CHOICE, not availability. Arm B does not measure
+  what DESIGN wrote it to measure. Medians G $0.2702 / M $0.5073 / B $0.2509 — **M costs more than
+  G on all six questions individually**. Between-rep CV 0.116, so n=5 can resolve a 20% effect.
+red: **`verify.mjs --tier fast` is RED and I did not make it green.** `A1-analyze-cached` fails on
+  exactly those 9 zero-mcp arm-B runs. A2/A3/X isolation pass 54/54 and A4 pass 54/54, so nothing
+  is void; batch warmth is proven separately by the pre-batch warm gate (bg log lines 3-5).
+escalation: the A1 predicate assumed an MCP-capable arm always calls `analyze`. Two options, both
+  costed, with a recommendation, in **`results/p2.1-gate-red-A1.md`** — owner/next session's call.
+next: A1.1 grading. Do NOT restart the pilot. Trap: `subtype` is not a success signal from this
+  CLI — read `is_error` and `terminal_reason` too (see `results/infra-failures.jsonl`).
 ```
