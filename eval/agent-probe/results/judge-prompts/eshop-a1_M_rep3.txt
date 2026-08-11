@@ -1,0 +1,79 @@
+## QUESTION PUT TO THE ENGINEER
+I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.
+
+## ANSWER KEY (verified ground truth)
+It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.
+
+Elements a complete answer names: `Aspire`, `eShop.AppHost`, `Catalog.API`, `Basket.API`, `Ordering.API`, `WebApp`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## What it is
+
+This is **eShop** — a .NET reference microservices e-commerce application, orchestrated by **.NET Aspire**. [REDACTED] classifies it as an App (not a library) with a **Microservices** style at high confidence, on evidence of "Aspire orchestration of 9 runnable services" (`eShop.slnx`, 19 projects). The stack is net10.0, Minimal APIs + MVC controllers, MediatR/CQRS, EF Core, FluentValidation, and DDD aggregates (`Order`, `Buyer`).
+
+Note there are **3 solutions on disk**; the one analyzed is `eShop.slnx`. The other two are `src/ClientApp/ClientApp.sln` and `tests/ClientApp.UnitTests/ClientApp.UnitTests.sln`.
+
+## The single entry point you run
+
+**`src/eShop.AppHost`** is the Aspire AppHost and the only thing you launch. It is the root of the [REDACTED] (in-degree 0, out-degree 9) and it composes everything else.
+
+## Processes the AppHost starts
+
+Nine .NET processes, each registered in `src/eShop.AppHost/Program.cs`:
+
+| Process | Kind | Registered at |
+|---|---|---|
+| **Identity.API** | IdentityServer (Duende) auth provider | `src/eShop.AppHost/Program.cs:23` |
+| **Basket.API** | gRPC service | `src/eShop.AppHost/Program.cs:30` |
+| **Catalog.API** | Web API (EF Core + pgvector) | `src/eShop.AppHost/Program.cs:36` |
+| **Ordering.API** | Web API (EF Core, MediatR, FluentValidation) | `src/eShop.AppHost/Program.cs:40` |
+| **OrderProcessor** | Worker service | `src/eShop.AppHost/Program.cs:46` |
+| **PaymentProcessor** | Worker service | `src/eShop.AppHost/Program.cs:51` |
+| **Webhooks.API** | Web API | `src/eShop.AppHost/Program.cs:54` |
+| **WebhookClient** | Blazor UI | `src/eShop.AppHost/Program.cs:65` |
+| **WebApp** | Blazor storefront (+ YARP) | `src/eShop.AppHost/Program.cs:69` |
+
+The AppHost also applies a cross-cutting hook that sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on every project resource (`src/eShop.AppHost/Extensions.cs:22`, `src/eShop.AppHost/Extensions.cs:32-40`), and wires an AI backend for Catalog.API and WebApp — either OpenAI/Azure OpenAI (`src/eShop.AppHost/Extensions.cs:51`) or a containerized **Ollama** with OpenWebUI plus `all-minilm` embedding and `llama3.1` chat models (`src/eShop.AppHost/Extensions.cs:163-172`).
+
+## Backing infrastructure resources
+
+The services resolve Aspire resources by name, so the AppHost also brings up:
+- **Redis** as `"redis"` — Basket.API's store (`src/Basket.API/Extensions/Extensions.cs:14-16`)
+- **RabbitMQ** as `"eventbus"` — the shared bus (`src/Basket.API/Extensions/Extensions.cs:18`, `src/Catalog.API/Extensions/Extensions.cs:31`, `src/OrderProcessor/Extensions/Extensions.cs:10`)
+- **PostgreSQL** databases — `"catalogdb"` with the vector extension (`src/Catalog.API/Extensions/Extensions.cs:15-21`) and `"orderingdb"` (`src/OrderProcessor/Extensions/Extensions.cs:13`)
+
+I did not read `Program.cs` directly (the tooling exposed only graph provenance for it, not its text), so the exact lines where these containers are declared are inferred from the consuming services plus the `Aspire.Hosting.PostgreSQL`, `Aspire.Hosting.Redis`, `Aspire.Hosting.RabbitMQ` and `Aspire.Hosting.Yarp` package references. I also did not verify the database resource names used by Identity.API and Webhooks.API.
+
+## Not started by the AppHost
+
+**ClientApp** (.NET MAUI) and **HybridApp** (.NET MAUI + Blazor WebView) are runnable clients but are *not* among the AppHost's nine dependencies — you launch them separately onto a device/emulator. ClientApp has its own solution at `src/ClientApp/ClientApp.sln`.
+
+Supporting libraries with no process of their own: `eShop.ServiceDefaults`, `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents`.
+
+## How the processes talk
+
+- **WebApp → Basket.API** over gRPC (`src/WebApp/Services/BasketService.cs:7` → `src/Basket.API/Grpc/BasketService.cs:8`)
+- **WebApp → Catalog.API / Ordering.API** over HTTP (`src/WebApp/Extensions/Extensions.cs:34`, `src/WebApp/Extensions/Extensions.cs:38`)
+- **WebhookClient → Webhooks.API** over HTTP (`src/WebhookClient/Extensions/Extensions.cs:19`)
+- Everything else is asynchronous over RabbitMQ — 13 integration events, all cross-service. The core saga is Ordering.API → Catalog.API for stock validation (`src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToAwaitingValidationDomainEventHandler.cs:33`), Ordering.API → PaymentProcessor (`src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToStockConfirmedDomainEventHandler.cs:30`), and back (`src/PaymentProcessor/IntegrationEvents/EventHandling/OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs:27`).
+- The only hosted background loop is **GracePeriodManagerService** in OrderProcessor (`src/OrderProcessor/Extensions/Extensions.cs:18`), which publishes `GracePeriodConfirmedIntegrationEvent` to Ordering.API (`src/OrderProcessor/Services/GracePeriodManagerService.cs:55`).
+
+Across the whole solution [REDACTED] counts **109 entry points**: 43 HTTP endpoints, 42 UI entries, 13 message consumers, 7 domain event handlers, 3 gRPC methods (`Basket.GetBasket`, `Basket.UpdateBasket`, `Basket.DeleteBasket`, all at `src/Basket.API/Grpc/BasketService.cs:8`), and 1 hosted service.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

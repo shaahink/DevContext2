@@ -1,0 +1,37 @@
+## QUESTION PUT TO THE ENGINEER
+In Basket.API, which integration event handlers update the prices of items already sitting in a customer's basket when a catalog item's price changes? Name each handler and the file it lives in.
+
+## ANSWER KEY (verified ground truth)
+There are none. Basket.API registers exactly one subscription - src/Basket.API/Extensions/Extensions.cs:19, AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>() - and that handler only calls repository.DeleteBasketAsync to empty the basket after an order starts. Basket.API has no subscription to ProductPriceChangedIntegrationEvent and no code that rewrites basket item prices; the only subscriber to that event anywhere in this repository is Webhooks.API (src/Webhooks.API/Extensions/Extensions.cs:21), whose ProductPriceChangedIntegrationEventHandler dispatches webhooks and never touches a basket. Basket item prices in this version are carried by the client on UpdateBasket. Note for the grader: an older generation of this sample (eShopOnContainers) DID have a Basket.API price-update handler, so a confident named answer here is most likely recalled rather than read - which is exactly what this control is for.
+
+This question has NO required elements: the true answer is that nothing in the repository matches.
+The correct verdict is: none
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+**None.** Basket.API contains no integration event handler that updates prices of items already in a customer's basket when a catalog item's price changes.
+
+- Basket.API has exactly one integration event handler in the whole project: `OrderStartedIntegrationEventHandler` (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`). Its `Handle` method deletes the user's basket after an order starts — it does no price updating (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10-15`).
+- Basket.API's event bus wiring registers only that single subscription: `AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` (`src/Basket.API/Extensions/Extensions.cs:19`), and the JSON serializer context lists only `OrderStartedIntegrationEvent` (`src/Basket.API/Extensions/Extensions.cs:24`).
+- A repo-wide search for `IIntegrationEventHandler` / `Handle(` under `src/Basket.API` returned only that one handler, and a search for `PriceChanged` matched no file under `src/Basket.API` at all.
+
+For context (not an answer to the question): the price-change event exists elsewhere — it is published by Catalog.API at `src/Catalog.API/Apis/CatalogApi.cs:350` as `ProductPriceChangedIntegrationEvent` (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`), and its only subscriber in this repo is Webhooks.API's `ProductPriceChangedIntegrationEventHandler` (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`, registered at `src/Webhooks.API/Extensions/Extensions.cs:21`), which does not touch baskets.
+
+One caveat: this reflects the current source only; if you are comparing against older eShop/eShopOnContainers versions, that codebase did have a `ProductPriceChangedIntegrationEventHandler` in Basket.API, but it is not present here.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

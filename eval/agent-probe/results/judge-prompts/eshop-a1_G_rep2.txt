@@ -1,0 +1,66 @@
+## QUESTION PUT TO THE ENGINEER
+I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.
+
+## ANSWER KEY (verified ground truth)
+It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.
+
+Elements a complete answer names: `Aspire`, `eShop.AppHost`, `Catalog.API`, `Basket.API`, `Ordering.API`, `WebApp`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## What this is
+
+**eShop ("AdventureWorks") — a .NET Aspire–orchestrated, services-based e‑commerce reference application** (`README.md:1-5`), targeting `net10.0` across [REDACTED] projects (e.g. `src/Catalog.API/Catalog.API.csproj:3`).
+
+## The single runnable entry point
+
+There is **one entry point for the system**: the Aspire AppHost, `src/eShop.AppHost/eShop.AppHost.csproj` (`<Project Sdk="Aspire.AppHost.Sdk/13.2.0">`, `OutputType=Exe`, `src/eShop.AppHost/eShop.AppHost.csproj:1-3`). You run it with `dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj`, or open `eShop.Web.slnf` in VS with AppHost as startup project (`README.md`, "Running the solution"). Its dashboard listens on `https://localhost:19888` (`src/eShop.AppHost/Properties/launchSettings.json:6`). The composition root is `builder = DistributedApplication.CreateBuilder(args) … builder.Build().Run()` (`src/eShop.AppHost/Program.cs:3`, `src/eShop.AppHost/Program.cs:101`).
+
+## Processes started when the solution runs
+
+Containers (`src/eShop.AppHost/Program.cs:7-13`): **redis**, **rabbitmq** ("eventbus", persistent lifetime), **postgres** (image `ankane/pgvector`, persistent) hosting four databases `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb` (`src/eShop.AppHost/Program.cs:15-18`).
+
+.NET processes (each `AddProject<…>`):
+
+| Aspire resource | Project | What composes it |
+|---|---|---|
+| `identity-api` | `src/Identity.API` (`Program.cs:21-23`) | ASP.NET MVC + Duende IdentityServer with in-memory clients/scopes, ASP.NET Identity on `identitydb`, auto-migration + `UsersSeed` (`src/Identity.API/Program.cs:1-41`) |
+| `basket-api` | `src/Basket.API` (`Program.cs:28-31`) | gRPC-only service: `AddBasicServiceDefaults`, `MapGrpcService<BasketService>` (`src/Basket.API/Program.cs:1-14`); Redis-backed `RedisBasketRepository`, RabbitMQ subscription to `OrderStartedIntegrationEvent` (`src/Basket.API/Extensions/Extensions.cs:12-21`) |
+| `catalog-api` | `src/Catalog.API` (`Program.cs:33-35`) | Minimal API `MapCatalogApi`, versioned + OpenAPI (`src/Catalog.API/Program.cs:1-24`); pgvector `CatalogContext` + seed, integration-event log, RabbitMQ subscriptions, optional Ollama/OpenAI embedding generator (`src/Catalog.API/Extensions/Extensions.cs:15-48`) |
+| `ordering-api` | `src/Ordering.API` (`Program.cs:37-41`) | Versioned minimal API `MapOrdersApiV1` with auth (`src/Ordering.API/Program.cs:19-22`); MediatR + FluentValidation + logging/validator/transaction behaviors, EF `OrderingContext` with migrations/seed, 5 RabbitMQ subscriptions (`src/Ordering.API/Extensions/Extensions.cs:16-59`) |
+| `order-processor` | `src/OrderProcessor` (`Program.cs:43-46`) | Worker SDK (`src/OrderProcessor/OrderProcessor.csproj:1`); hosted `GracePeriodManagerService` + Npgsql data source + RabbitMQ (`src/OrderProcessor/Extensions/Extensions.cs:9-18`); waits for `ordering-api` because that owns the EF migrations (`src/eShop.AppHost/Program.cs:46`) |
+| `payment-processor` | `src/PaymentProcessor` (`Program.cs:48-49`) | Event-only host: subscribes `OrderStatusChangedToStockConfirmedIntegrationEvent` (`src/PaymentProcessor/Program.cs:5-9`) |
+| `webhooks-api` | `src/Webhooks.API` (`Program.cs:51-54`) | Versioned `MapWebHooksApiV1` (`src/Webhooks.API/Program.cs:19-21`); `WebhooksContext` on `webhooksdb`, sender/retriever/grant-url-tester, 3 RabbitMQ subscriptions (`src/Webhooks.API/Extensions/Extensions.cs:5-23`) |
+| `mobile-bff` | YARP reverse proxy resource (no project) | `builder.AddYarp("mobile-bff").ConfigureMobileBffRoutes(catalogApi, orderingApi, identityApi)` (`src/eShop.AppHost/Program.cs:57-59`); route table in `src/eShop.AppHost/Extensions.cs:185-250` |
+| `webhooksclient` | `src/WebhookClient` (`Program.cs:62-64`) | Blazor Server app + OIDC cookie auth against Identity, typed `WebhooksClient` HTTP client (`src/WebhookClient/Program.cs:1-31`, `src/WebhookClient/Extensions/Extensions.cs:12-22`) |
+| `webapp` | `src/WebApp` (`Program.cs:66-74`) | The storefront: Blazor interactive-server Razor components (`src/WebApp/Program.cs:8`, `:30`), image forwarder to catalog (`src/WebApp/Program.cs:32`), gRPC `Basket.BasketClient`, HTTP clients to catalog/ordering, OIDC auth, 6 RabbitMQ order-status subscriptions (`src/WebApp/Extensions/Extensions.cs:15-50`) |
+
+That is 9 project processes + 1 YARP proxy + 3 containers. Cross-cutting: every project calls `AddServiceDefaults()`/`AddBasicServiceDefaults()` from `src/eShop.ServiceDefaults/Extensions.cs:16-46` (OpenTelemetry, health checks, service discovery, resilient HTTP), and the AppHost injects `ASPNETCORE_FORWARDEDHEADERS_ENABLED` into every project (`src/eShop.AppHost/Extensions.cs:22-46`).
+
+Optional, **off by default**: OpenAI/Azure OpenAI and Ollama resources are gated by `bool useOpenAI = false;` and `bool useOllama = false;` (`src/eShop.AppHost/Program.cs:77-87`), so no AI container starts unless you flip those.
+
+## Runnable things that the AppHost does *not* start
+
+- `src/ClientApp` — .NET MAUI client (`TargetFrameworks` android/ios/maccatalyst/windows, `OutputType=Exe`, `src/ClientApp/ClientApp.csproj:3-6`), launched separately; it talks to the mobile BFF on port 11632 (`src/ClientApp/ViewModels/SettingsViewModel.cs:58`).
+- `src/HybridApp` — MAUI Blazor Hybrid client (`src/HybridApp/HybridApp.csproj:1-6`), entry `MauiProgram.CreateMauiApp()` pointing at `http://localhost:11632/` (`src/HybridApp/MauiProgram.cs:9-13`). Neither appears in any `AddProject<…>` call in `src/eShop.AppHost/Program.cs`, nor in `eShop.Web.slnf`.
+- Libraries only (no entry point): `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents`, `eShop.ServiceDefaults` (all plain `Microsoft.NET.Sdk`/`Sdk.Razor`).
+- Tests: `tests/Basket.UnitTests`, `tests/Ordering.UnitTests`, `tests/Catalog.FunctionalTests`, `tests/Ordering.FunctionalTests`, `tests/ClientApp.UnitTests` (`eShop.slnx:23-29`), plus Playwright end-to-end specs in `e2e/` driven by `playwright.config.ts`.
+
+One caveat: `PaymentProcessor` uses `Microsoft.NET.Sdk.Web` (`src/PaymentProcessor/PaymentProcessor.csproj:1`) but maps only default/health endpoints, so functionally it is a message-consumer process rather than an API.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

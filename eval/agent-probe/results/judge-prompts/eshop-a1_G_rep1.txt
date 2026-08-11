@@ -1,0 +1,75 @@
+## QUESTION PUT TO THE ENGINEER
+I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.
+
+## ANSWER KEY (verified ground truth)
+It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.
+
+Elements a complete answer names: `Aspire`, `eShop.AppHost`, `Catalog.API`, `Basket.API`, `Ordering.API`, `WebApp`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+I have a complete picture. Here's what I found.
+
+## What kind of system it is
+
+This is **dotnet/eShop — the "AdventureWorks" .NET reference e-commerce application**, a services-based (microservices) architecture orchestrated by **.NET Aspire** (`README.md:1-4`). It is .NET 9/10-era, with projects targeting `net10.0` and MAUI heads (`src/ClientApp/ClientApp.csproj:4`). The solution manifest is the newer XML format, `eShop.slnx:1-36`, listing 21 projects under `/src/` and 5 under `/tests/`.
+
+## The single runnable entry point
+
+There is **one** entry point that runs the system: the Aspire AppHost.
+
+```
+dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj
+```
+
+confirmed by `README.md:70-74` and by the project being the only `Aspire.AppHost.Sdk` / `OutputType=Exe` orchestrator (`src/eShop.AppHost/eShop.AppHost.csproj:1,4`). Its `Program.cs` is the composition root and ends in `builder.Build().Run()` (`src/eShop.AppHost/Program.cs:103`). The Aspire dashboard is served at `https://localhost:19888` (`src/eShop.AppHost/Properties/launchSettings.json:8`).
+
+## Processes that start
+
+**Three container-backed infrastructure resources** (`src/eShop.AppHost/Program.cs:7-13`): Redis, RabbitMQ (named `eventbus`, persistent lifetime), and Postgres using the `ankane/pgvector` image (persistent). Postgres hosts four logical databases — `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb` (`src/eShop.AppHost/Program.cs:15-18`).
+
+**Nine .NET project processes:**
+
+| Resource name | Project | What it is |
+|---|---|---|
+| `identity-api` | Identity.API | Duende IdentityServer + ASP.NET Identity, MVC controllers/views; the auth authority (`src/Identity.API/Program.cs:14-37,52`). Declared at `Program.cs:23-26` |
+| `basket-api` | Basket.API | **gRPC-only** service (`src/Basket.API/Program.cs:6,12`), backed by Redis + RabbitMQ (`Program.cs:30-33`) |
+| `catalog-api` | Catalog.API | Versioned minimal API over Postgres/pgvector (`src/Catalog.API/Program.cs:7-21`; `Program.cs:36-38`) |
+| `ordering-api` | Ordering.API | Versioned minimal API, `RequireAuthorization` (`src/Ordering.API/Program.cs:19-22`); also owns the EF migrations (`Program.cs:49`) |
+| `order-processor` | OrderProcessor | Background worker (`Microsoft.NET.Sdk.Worker`) running the hosted `GracePeriodManagerService` (`src/OrderProcessor/Extensions/Extensions.cs:18`; `Program.cs:46-49`) |
+| `payment-processor` | PaymentProcessor | Pure event subscriber — only subscribes to `OrderStatusChangedToStockConfirmedIntegrationEvent` (`src/PaymentProcessor/Program.cs:5-6`; `Program.cs:51-52`) |
+| `webhooks-api` | Webhooks.API | Versioned minimal API, authorized (`src/Webhooks.API/Program.cs:18-21`; `Program.cs:54-57`) |
+| `webhooksclient` | WebhookClient | Blazor Server app that receives webhooks (`src/WebhookClient/Program.cs:5,25-29`; `Program.cs:65-67`) |
+| `webapp` | WebApp | The storefront: Blazor Server with interactive server rendering, externally exposed, labelled "Online Store" in the dashboard (`src/WebApp/Program.cs:8,30-32`; `Program.cs:69-77`) |
+
+**Plus one proxy:** `mobile-bff`, a **YARP reverse proxy resource declared inline in the AppHost** — there is no BFF project in the repo. Its routes are built programmatically in `ConfigureMobileBffRoutes`, fronting catalog, ordering and identity (`src/eShop.AppHost/Program.cs:60-62`, `src/eShop.AppHost/Extensions.cs:185-249`).
+
+## What composes them
+
+- **`eShop.ServiceDefaults`** is the shared cross-cutting composition every service calls: OpenTelemetry logging/metrics/tracing with OTLP export, service discovery, standard HTTP resilience, and `/health` + `/alive` endpoints (`src/eShop.ServiceDefaults/Extensions.cs:16-128`). Note the two tiers — `AddServiceDefaults` adds outgoing-HTTP concerns, while `AddBasicServiceDefaults` deliberately omits them so Polly can be trimmed (`src/eShop.ServiceDefaults/Extensions.cs:34-48`); Basket.API and OrderProcessor use the basic variant (`src/Basket.API/Program.cs:3`, `src/OrderProcessor/Program.cs:3`).
+- **Messaging** is RabbitMQ via the `EventBus` / `EventBusRabbitMQ` libraries, wired with `AddRabbitMqEventBus(...).AddSubscription<...>()` (`src/PaymentProcessor/Program.cs:5-6`).
+- **Wiring between processes** is entirely declarative in the AppHost: `WithReference` injects connection info, `WaitFor` orders startup, and endpoints are passed as environment variables. Identity deliberately holds a cyclic set of callback URLs back to every client app (`src/eShop.AppHost/Program.cs:96-101`).
+- **Supporting libraries** (not processes): `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, and `WebAppComponents` (a Razor class library shared by the web and hybrid UIs).
+
+## Two entry points that do *not* start with the solution
+
+`ClientApp` (.NET MAUI, `src/ClientApp/MauiProgram.cs`) and `HybridApp` (MAUI Blazor Hybrid, `src/HybridApp/MauiProgram.cs`) are `Exe` mobile/desktop heads targeting android/ios/maccatalyst/windows (`src/ClientApp/ClientApp.csproj:4-5,16`, `src/HybridApp/HybridApp.csproj:4-5,16`). They are **not** registered in the AppHost and are excluded from the `eShop.Web.slnf` filter (`eShop.Web.slnf:4-21`), so they are launched separately. `ClientApp` resolves its backend from a user-set `DefaultEndpoint` preference at runtime (`src/ClientApp/Services/Settings/SettingsService.cs:55-58`) rather than being wired by Aspire — I did not find a hard-coded link from it to `mobile-bff`, so I can't assert that binding with certainty.
+
+Two optional integrations are present but **off by default**: OpenAI/Azure OpenAI and Ollama, both gated by `bool useOpenAI = false` / `bool useOllama = false` (`src/eShop.AppHost/Program.cs:80,87`); enabling either adds embedding/chat models to `catalog-api` and `webapp`, and Ollama additionally starts its own container with Open WebUI (`src/eShop.AppHost/Extensions.cs:168-181`).
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

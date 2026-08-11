@@ -1,0 +1,64 @@
+## QUESTION PUT TO THE ENGINEER
+I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.
+
+## ANSWER KEY (verified ground truth)
+It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.
+
+Elements a complete answer names: `Aspire`, `eShop.AppHost`, `Catalog.API`, `Basket.API`, `Ordering.API`, `WebApp`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## What the system is
+
+**eShop is a .NET Aspire–orchestrated, services-based e-commerce reference application** (.NET 10), described in the repo as "A reference .NET application implementing an e-commerce website using a services-based architecture using .NET Aspire" (`README.md:3`). Its 19 projects (`eShop.slnx`) split into runnable services, two client apps, and shared libraries (EventBus, EventBusRabbitMQ, IntegrationEventLogEF, Ordering.Domain, Ordering.Infrastructure, WebAppComponents, eShop.ServiceDefaults).
+
+## The single entry point you actually run
+
+`src/eShop.AppHost` — an Aspire AppHost (`<Project Sdk="Aspire.AppHost.Sdk/13.2.0">`, `OutputType=Exe`, `src/eShop.AppHost/eShop.AppHost.csproj:1-4`). You start it with `dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj` (`README.md:75`) or Ctrl-F5 in Visual Studio (`README.md:71`). Its `Program.cs` builds the whole distributed app graph and calls `builder.Build().Run()` (`src/eShop.AppHost/Program.cs:103`).
+
+## Processes that start when the solution runs
+
+**Backing containers** (`src/eShop.AppHost/Program.cs:7-18`): Redis (`redis`), RabbitMQ (`eventbus`, persistent lifetime), and Postgres using the `ankane/pgvector` image, hosting four databases: `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb`.
+
+**.NET service processes**, each `AddProject<>` in the AppHost:
+- `identity-api` — Duende IdentityServer + ASP.NET Identity on `identitydb`, external HTTP endpoints, `/health` check (`src/eShop.AppHost/Program.cs:23-27`; `src/Identity.API/Program.cs:1-30`).
+- `basket-api` — gRPC service (`MapGrpcService<BasketService>()`, `src/Basket.API/Program.cs:1-13`), wired to Redis and RabbitMQ (`src/eShop.AppHost/Program.cs:30-34`).
+- `catalog-api` — versioned minimal-API Web API over `catalogdb` + RabbitMQ (`src/eShop.AppHost/Program.cs:36-38`; `src/Catalog.API/Program.cs:1-24`).
+- `ordering-api` — versioned minimal API with MediatR/DDD layers, `orderingdb`, RabbitMQ, `/health` (`src/eShop.AppHost/Program.cs:40-44`; `src/Ordering.API/Program.cs:1-25`).
+- `order-processor` — background worker (Worker SDK, `src/OrderProcessor/OrderProcessor.csproj:1`) hosting `GracePeriodManagerService` over RabbitMQ + `orderingdb` (`src/OrderProcessor/Extensions/Extensions.cs:9-19`); it `WaitFor(orderingApi)` because Ordering.API runs the EF migrations (`src/eShop.AppHost/Program.cs:46-49`).
+- `payment-processor` — event-bus subscriber for `OrderStatusChangedToStockConfirmedIntegrationEvent` (`src/PaymentProcessor/Program.cs:1-16`; `src/eShop.AppHost/Program.cs:51-52`).
+- `webhooks-api` — versioned Web API over `webhooksdb` + RabbitMQ (`src/eShop.AppHost/Program.cs:54-57`; `src/Webhooks.API/Program.cs:1-26`).
+- `webhooksclient` — Blazor server app consuming the webhooks API (`src/eShop.AppHost/Program.cs:65-67`; `src/WebhookClient/Program.cs:1-28`).
+- `webapp` — the customer-facing Blazor interactive-server storefront, external endpoints, referencing basket/catalog/ordering/RabbitMQ (`src/eShop.AppHost/Program.cs:69-77`; `src/WebApp/Program.cs:1-30`).
+- `mobile-bff` — a YARP reverse proxy resource (not a project) fronting catalog, ordering and identity for mobile clients (`src/eShop.AppHost/Program.cs:60-62`; routes in `src/eShop.AppHost/Extensions.cs:185-215`).
+
+Plus the Aspire dashboard itself, served from the AppHost's launch profile at `https://localhost:19888` (`src/eShop.AppHost/Properties/launchSettings.json`).
+
+## How they are composed
+
+- Composition is entirely declarative in `src/eShop.AppHost/Program.cs`: `WithReference` injects connection strings/service discovery, `WaitFor` orders startup, and `WithEnvironment` threads endpoint URLs (e.g. `Identity__Url`, `CallBackUrl`) between resources; Identity gets back-references to every client, an intentional cyclic reference (`src/eShop.AppHost/Program.cs:96-101`).
+- `AddForwardedHeaders()` is a `BeforeStartEvent` hook that sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on every project resource (`src/eShop.AppHost/Extensions.cs:22-46`).
+- HTTP vs HTTPS launch profile is chosen by the `ESHOP_USE_HTTP_ENDPOINTS` env var, for Playwright CI (`src/eShop.AppHost/Program.cs:20`, `:108-116`).
+- Every service calls `AddServiceDefaults()`/`AddBasicServiceDefaults()` and `MapDefaultEndpoints()` from the shared `eShop.ServiceDefaults` library (telemetry, health, service discovery) — e.g. `src/Catalog.API/Program.cs:3,17`.
+- Inter-service communication: WebApp → Basket over gRPC and → Catalog/Ordering over HTTP; Ordering/Catalog/Basket/OrderProcessor/PaymentProcessor communicate asynchronously via the RabbitMQ event bus.
+
+## Not started by the AppHost
+
+`ClientApp` (.NET MAUI, `src/ClientApp/ClientApp.csproj:1-5`, entry `src/ClientApp/MauiProgram.cs`) and `HybridApp` (MAUI Blazor Hybrid, `src/HybridApp/HybridApp.csproj:1-5`, entry `src/HybridApp/MauiProgram.cs`) are separately-launched mobile/desktop clients — I [REDACTED] `src/eShop.AppHost/` for "ClientApp"/"HybridApp" and found **no** references, so they are not part of the orchestrated run; they talk to the `mobile-bff` proxy. Optional OpenAI/Ollama resources exist but are gated behind `useOpenAI`/`useOllama` flags that are both hardcoded `false` (`src/eShop.AppHost/Program.cs:80-91`), so no AI container starts by default.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.
