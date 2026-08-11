@@ -29,6 +29,10 @@ const EVAL_REPOS = join(REPO_ROOT, "eval-repos");
 const RESULTS = join(HERE, "results");
 const RAW = join(RESULTS, "raw");
 const RUNS_JSONL = join(RESULTS, "runs.jsonl");
+// Infrastructure interruptions are quarantined here, never into runs.jsonl and never into raw/.
+// They are kept, not deleted - the count per arm goes in the P2 evidence file.
+const INFRA_DIR = join(RESULTS, "infra");
+const INFRA_JSONL = join(RESULTS, "infra-failures.jsonl");
 const SYSTEM_PROMPT_FILE = join(HERE, "system.txt");
 const MCP_CONFIG = join(HERE, "mcp.json");
 const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
@@ -38,6 +42,10 @@ const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.
 // only limits in the system. If you find yourself editing either one, stop and escalate instead.
 export const MAX_BUDGET_USD = "1.50";
 const MAX_RUNS_PER_INVOCATION = 60;
+// Retries exist for infrastructure interruptions ONLY - a censored run is data and is never
+// retried. They spend from the same ceiling above, so they cannot widen the brake.
+const INFRA_RETRIES = 2;
+const INFRA_OUTAGE_STOP = 3;
 
 // A subprocess that ignores its own budget cap still has to end. Generous - a class B question on
 // eShop legitimately runs minutes - but finite, so one wedged child cannot eat a session.
@@ -416,19 +424,35 @@ function initFacts(events, arm) {
 
 // Right-censoring (DESIGN 6.6): a run that hit the cap is scored incorrect at cost = cap, never
 // dropped. The raw signals are recorded next to the flag so the call can be re-derived later.
-function isCensored(result, timedOut) {
-  if (timedOut) return true;
-  if (!result) return true;
-  if (result.subtype && result.subtype !== "success") return true;
-  const reason = String(result.terminal_reason || "");
-  if (/budget|max_turns|limit/i.test(reason)) return true;
-  if (result.is_error === true) return true;
-  return false;
+//
+// But CENSORED and BROKEN are not the same event, and collapsing them corrupts the pilot in a way
+// that cannot be undone later. DESIGN 6.6 censoring is a run that RAN and was stopped by its own
+// pre-registered cap - that is a real data point and it is scored incorrect at cost = cap. An HTTP
+// 529, an auth failure, a dead subprocess or a transport drop is an infrastructure interruption: it
+// says nothing about the arm, and writing it into runs.jsonl would both invent a wrong answer the
+// model never gave AND - because the file is resumable and cells already recorded are skipped -
+// permanently prevent that cell from ever being run. So classify, and only "censored" is data.
+//
+// Returns "ok" | "censored" | "infra". Censored requires POSITIVE evidence of a limit; anything
+// else that is not a clean success is treated as infrastructure, which is the conservative
+// direction: it never fabricates a censored data point, and every quarantined attempt is counted.
+export function classifyOutcome(result, out) {
+  if (result && result.subtype === "success" && result.is_error !== true) return "ok";
+  // The subprocess never produced a result event, or died: nothing ran.
+  if (!result) return "infra";
+  // The API itself said no. api_error_status is the CLI's own transport-level status field.
+  if (result.api_error_status != null) return "infra";
+  const signals = [result.subtype, result.terminal_reason, result.stop_reason, result.result]
+    .map((s) => String(s ?? "")).join(" ");
+  if (/budget|cost[_ ]?limit|max[_ ]?turns|max turns|turn[_ ]?limit|limit reached/i.test(signals)) return "censored";
+  // The harness wall clock fired: the run was rabbit-holing rather than broken.
+  if (out.timedOut) return "censored";
+  return "infra";
 }
 
-async function runCell(cell, repoDir, ordinal, total) {
+async function runCell(cell, repoDir, ordinal, total, attempt = 1) {
   const label = `${cell.questionId}/${cell.arm}/rep${cell.rep}`;
-  console.log(`[${ordinal}/${total}] ${label} ...`);
+  console.log(`[${ordinal}/${total}] ${label}${attempt > 1 ? ` (attempt ${attempt})` : ""} ...`);
 
   const out = await spawnRun(cell, repoDir);
   const result = out.events.find((e) => e.type === "result") || null;
@@ -436,15 +460,42 @@ async function runCell(cell, repoDir, ordinal, total) {
   const facts = initFacts(out.events, cell.arm);
   const calledOutsideArm = [...new Set(calls.filter((c) => !permittedInArm(cell.arm, c)))].sort();
 
+  const outcome = classifyOutcome(result, out);
+  const base = `${slug(cell.questionId)}__${cell.arm}__rep${cell.rep}`;
+
+  // Infrastructure interruption: quarantine the evidence somewhere the auditors read, leave the
+  // cell unrecorded so the next pass runs it, and hand the caller a retry signal. Nothing about a
+  // broken transport belongs in results/raw, which audit-preflight.mjs treats as measured runs.
+  if (outcome === "infra") {
+    const qdir = join(INFRA_DIR, cell.repo);
+    mkdirSync(qdir, { recursive: true });
+    const qbase = `${base}__attempt${attempt}`;
+    writeFileSync(join(qdir, `${qbase}.stream.jsonl`), out.events.map((e) => JSON.stringify(e)).join("\n") + "\n", "utf8");
+    writeFileSync(join(qdir, `${qbase}.result.json`),
+      JSON.stringify(result ?? { missing: true, stderr: out.stderr.slice(0, 4000) }, null, 2), "utf8");
+    const rec = {
+      repo: cell.repo, questionId: cell.questionId, arm: cell.arm, rep: cell.rep, attempt,
+      reason: "infrastructure", subtype: result?.subtype ?? null, isError: result?.is_error ?? null,
+      apiErrorStatus: result?.api_error_status ?? null, terminalReason: result?.terminal_reason ?? null,
+      exitCode: out.exitCode, timedOut: out.timedOut, wallMs: out.wallMs,
+      costUsd: result?.total_cost_usd ?? null,
+      stderr: out.stderr.slice(0, 1000), startedAt: new Date().toISOString(),
+      raw: `results/infra/${cell.repo}/${qbase}.stream.jsonl`,
+    };
+    appendFileSync(INFRA_JSONL, JSON.stringify(rec) + "\n", "utf8");
+    console.log(`      INFRA FAILURE (not data, cell left unrecorded): subtype=${rec.subtype} ` +
+                `api=${rec.apiErrorStatus} exit=${rec.exitCode} - quarantined to results/infra-failures.jsonl`);
+    return { outcome, row: null, costUsd: rec.costUsd || 0 };
+  }
+
   const dir = join(RAW, cell.repo);
   mkdirSync(dir, { recursive: true });
-  const base = `${slug(cell.questionId)}__${cell.arm}__rep${cell.rep}`;
   const streamPath = join(dir, `${base}.stream.jsonl`);
   const resultPath = join(dir, `${base}.result.json`);
   writeFileSync(streamPath, out.events.map((e) => JSON.stringify(e)).join("\n") + "\n", "utf8");
   writeFileSync(resultPath, JSON.stringify(result ?? { missing: true, stderr: out.stderr.slice(0, 4000) }, null, 2), "utf8");
 
-  const censored = isCensored(result, out.timedOut);
+  const censored = outcome === "censored";
   const row = {
     repo: cell.repo,
     questionId: cell.questionId,
@@ -483,6 +534,9 @@ async function runCell(cell, repoDir, ordinal, total) {
     devcontextSha: cell.devcontextSha,
     repoSha: cell.repoSha,
     tag: OPT.tag || null,
+    // >1 means earlier attempts at this cell were quarantined as infrastructure failures. The
+    // quarantined attempts are in results/infra-failures.jsonl, not deleted.
+    attempt,
     startedAt: new Date().toISOString(),
     ...facts,
     rawStream: `results/raw/${cell.repo}/${base}.stream.jsonl`,
@@ -502,7 +556,7 @@ async function runCell(cell, repoDir, ordinal, total) {
         `called outside arm: [${calledOutsideArm.join(", ")}]. The batch is stopped; this row and every ` +
         "row recorded under the same harness must be voided and re-run in ALL THREE arms.");
   }
-  return row;
+  return { outcome, row, costUsd: row.costUsd || 0 };
 }
 
 // ---- main -------------------------------------------------------------------
@@ -583,12 +637,59 @@ async function main() {
   mkdirSync(RAW, { recursive: true });
   if (!OPT.skipWarm) await warmRepo(repoDir);
 
+  // Every SPAWN counts against the ceiling, not every planned cell - a retry costs the same money
+  // as a first attempt, so the only spend brake in the system has to see it. This makes the brake
+  // stricter than before, never looser.
+  let spawnsLeft = OPT.maxRuns;
   let spent = 0;
+  let recorded = 0;
+  let censoredCount = 0;
+  let quarantined = 0;
+  const unresolved = [];
+  let consecutiveInfra = 0;
+
   for (const [i, cell] of planned.entries()) {
-    const row = await runCell(cell, repoDir, i + 1, planned.length);
-    spent += row.costUsd || 0;
+    let done = false;
+    for (let attempt = 1; attempt <= INFRA_RETRIES + 1 && !done; attempt++) {
+      if (spawnsLeft <= 0) {
+        console.log(`\nSTOPPING: the ${OPT.maxRuns}-spawn ceiling for this invocation is used up. ` +
+                    "runs.jsonl is resumable - invoke again to continue where this left off.");
+        unresolved.push(`${cell.questionId}/${cell.arm}/rep${cell.rep} (ceiling)`);
+        done = true;
+        break;
+      }
+      spawnsLeft--;
+      const res = await runCell(cell, repoDir, i + 1, planned.length, attempt);
+      spent += res.costUsd || 0;
+      if (res.outcome === "infra") {
+        quarantined++;
+        consecutiveInfra++;
+        // A run of back-to-back infrastructure failures is an outage, not a measurement. Stop
+        // rather than burn the ceiling one 529 at a time; the file is resumable.
+        if (consecutiveInfra >= INFRA_OUTAGE_STOP) {
+          console.log(`\nSTOPPING: ${consecutiveInfra} consecutive infrastructure failures - that is an ` +
+                      "outage, not a result. Nothing was recorded for those cells; re-invoke when it clears.");
+          unresolved.push(`${cell.questionId}/${cell.arm}/rep${cell.rep} (outage)`);
+          done = true;
+          break;
+        }
+        if (attempt === INFRA_RETRIES + 1) unresolved.push(`${cell.questionId}/${cell.arm}/rep${cell.rep}`);
+        continue;
+      }
+      consecutiveInfra = 0;
+      recorded++;
+      if (res.outcome === "censored") censoredCount++;
+      done = true;
+    }
+    if (consecutiveInfra >= INFRA_OUTAGE_STOP) break;
   }
-  console.log(`\ndone: ${planned.length} runs, $${spent.toFixed(4)} recorded in results/runs.jsonl`);
+
+  console.log(`\ndone: ${recorded}/${planned.length} planned cells recorded in results/runs.jsonl ` +
+              `($${spent.toFixed(4)} spent, ${censoredCount} censored, ${quarantined} infrastructure ` +
+              `attempts quarantined to results/infra-failures.jsonl)`);
+  if (unresolved.length) {
+    console.log(`unresolved cells (left UNRECORDED so a later invocation runs them): ${unresolved.join(", ")}`);
+  }
 }
 
 // Run only when invoked directly. P1.2's tax measurement imports armArgs/spawnRun from here rather
