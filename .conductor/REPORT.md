@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext agent probe - does the MCP help an agent browse code run report
 
-_Updated 2026-08-11 01:29 UTC · branch `feat/agent-probe` · HEAD `1e540bc`_
+_Updated 2026-08-11 01:47 UTC · branch `feat/agent-probe` · HEAD `4c9dbb5`_
 
 **Status:** Idle
-**Stage:** P2 — Pilot - six eShop questions, three arms, three repetitions · attempts used 1
-**Checkpoints:** 8/12 done · **Sessions run:** 4 · **Cost:** $26.3429 (agent $26.3394 + gates $0.0035) · **Tokens:** 533,042 in / 259,410 out
-**Confirmed phases:** K1, H1, P1
+**Stage:** P2 — Pilot - six eShop questions, three arms, three repetitions · attempts used 0
+**Checkpoints:** 9/12 done · **Sessions run:** 5 · **Cost:** $33.4303 (agent $33.4261 + gates $0.0042) · **Tokens:** 681,794 in / 327,258 out
+**Confirmed phases:** K1, H1, P1, P2
 
 ## Stage progress
 
@@ -14,8 +14,8 @@ _Updated 2026-08-11 01:29 UTC · branch `feat/agent-probe` · HEAD `1e540bc`_
 | K1 | Ground truth - pre-registered question sets | ██████████ 3/3 | confirmed ✓ |
 | H1 | Probe harness - three-arm runner | ██████████ 2/2 | confirmed ✓ |
 | P1 | Smoke - prove arm isolation and cost accounting before spending | ██████████ 2/2 | confirmed ✓ |
-| P2 | Pilot - six eShop questions, three arms, three repetitions | ██████████ 1/1 | gating… |
-| A1 | Grade and analyse | ░░░░░░░░░░ 0/2 | todo |
+| P2 | Pilot - six eShop questions, three arms, three repetitions | ██████████ 1/1 | confirmed ✓ |
+| A1 | Grade and analyse | █████░░░░░ 1/2 | partial |
 | R1 | Report and verdict | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>K1 — Ground truth - pre-registered question sets (3/3)</summary>
@@ -50,15 +50,15 @@ _Updated 2026-08-11 01:29 UTC · branch `feat/agent-probe` · HEAD `1e540bc`_
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | ✅ DONE | - |
+| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | ✅ DONE | [`8807f48`](https://github.com/shaahink/DevContext2/commit/8807f48) |
 
 </details>
 
-<details><summary>A1 — Grade and analyse (0/2)</summary>
+<details><summary>A1 — Grade and analyse (1/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | ⬜ TODO | - |
+| A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | ✅ DONE | [`c366338`](https://github.com/shaahink/DevContext2/commit/c366338) |
 | A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | ⬜ TODO | - |
 
 </details>
@@ -80,6 +80,7 @@ _Updated 2026-08-11 01:29 UTC · branch `feat/agent-probe` · HEAD `1e540bc`_
 | 2 | H1 | Deliver | 1 | 08-10 23:08 | 0:30 | Advanced | H1.1 H1.2 | 4 | probe-fast:OK | $7.3018 | $0.0005 | 141,236/70,278 |
 | 3 | P1 | Deliver | 1 | 08-10 23:40 | 0:18 | Advanced | P1.1 P1.2 | 4 | probe-fast:OK | $6.8159 | $0.0013 | 122,889/64,955 |
 | 4 | P2 | Deliver | 1 | 08-11 00:00 | 1:29 | GatesRed | P2.1 | 6 | probe-fast:FAIL-retry | $6.6438 | $0.0011 | 131,234/60,187 |
+| 5 | P2 | Fix | 2 | 08-11 01:29 | 0:17 | Advanced | A1.1 | 4 | probe-fast:OK | $7.0867 | $0.0007 | 148,752/67,848 |
 
 ## Money
 
@@ -87,13 +88,14 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 3 | 22M | 97.3% | $19.70 | 7 | 3.14M | $2.81 |
+| **run total** | 5 | 37.8M | 97.3% | $33.43 | 9 | 4.2M | $3.71 |
 | stage K1 | 1 | 5.39M | 96.3% | $5.58 | 3 | 1.8M | $1.86 |
 | stage H1 | 1 | 8.47M | 97.5% | $7.30 | 2 | 4.23M | $3.65 |
 | stage P1 | 1 | 8.1M | 97.7% | $6.82 | 2 | 4.05M | $3.41 |
-| 2026-08 | 3 | 22M | 97.3% | $19.70 | 7 | 3.14M | $2.81 |
+| stage P2 | 2 | 15.8M | 97.4% | $13.73 | 2 | 7.92M | $6.87 |
+| 2026-08 | 5 | 37.8M | 97.3% | $33.43 | 9 | 4.2M | $3.71 |
 
-_Where the money goes: agent $19.70 (100%) · gate $0.00 (0%) · blended $0.90/M tokens._
+_Where the money goes: agent $33.43 (100%) · gate $0.00 (0%) · blended $0.88/M tokens._
 
 ## Timeline
 
@@ -133,6 +135,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-11 01:00:04  ▸ stage P2 entered — Pilot - six eShop questions, three arms, three repetitions
 08-11 01:00:04  • session #4 P2 Deliver started (attempt 1/6)
 08-11 02:29:47  ▪ gate probe-fast FAIL [session]  (5.5s)
+08-11 02:29:48  • session #4 P2 → GatesRed · done P2.1 · 6 commit(s)  (1h29m44s)
+08-11 02:29:49  • session #5 P2 Fix started (attempt 2/6)
+08-11 02:47:22  ▪ gate probe-fast pass [session]  (6.8s)
+08-11 02:47:23  • session #5 P2 → Advanced · done A1.1 · 4 commit(s)  (17m34s)
+08-11 02:47:37  ▪ gate probe-fast pass [phase]  (6.3s)
+08-11 02:47:37  ▪ gate probe-full pass [phase]  (6.9s)
+08-11 02:47:37  ✓ checkpoint A1.1 confirmed
 ```
 
 ## Health
@@ -140,7 +149,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 4 · retries 0 (0 %) · overall Ok
+sessions 5 · retries 1 (20 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -150,8 +159,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/agent-probe
-working tree: clean
-vs upstream: up to date
+working tree: M AGENT-PROBE-TRACKER.md
+vs upstream: 1 ahead
 ```
 
 ### Commits by session
@@ -178,38 +187,36 @@ vs upstream: up to date
   - [`2021561`](https://github.com/shaahink/DevContext2/commit/2021561) eval(probe): P2 - report quarantined spend and terminal_reason, mid-batch data
   - [`be87562`](https://github.com/shaahink/DevContext2/commit/be87562) eval(probe): P2.1 evidence generator
   - [`8807f48`](https://github.com/shaahink/DevContext2/commit/8807f48) eval(probe): P2 pre-run - censored and broken are not the same event
+- **s5 (P2 Fix)** — 4 commit(s):
+  - [`ee70d80`](https://github.com/shaahink/DevContext2/commit/ee70d80) docs(probe): hand off P2 gate-green + A1.1 -> A1.2
+  - [`1be9129`](https://github.com/shaahink/DevContext2/commit/1be9129) eval(probe): A1.1 - deterministic grading pass over all 54 runs
+  - [`de235f6`](https://github.com/shaahink/DevContext2/commit/de235f6) docs(probe): record six pre-registration deviations
+  - [`c366338`](https://github.com/shaahink/DevContext2/commit/c366338) eval(probe): A1 warmth proxy - zero-analyze is n/a, not unproven
 
 ## Last gate run
 
-probe-fast:FAIL-retry
-
-<details><summary>probe-fast — exit 1</summary>
-
-```
-[conductor] retried once (SC4.1): the first attempt exited 1 after 6s. Below is the SECOND run.
-```
-</details>
+probe-fast:OK · probe-full:OK
 
 ## Last session result
 
-> SESSION-RESULT: Stage P2 delivered — P2.1 claimed DONE via `conductor task --done P2.1 --evidence eval/agent-probe/results/p2.1-pilot.md`, all 54 pilot cells recorded, commits 8807f48 / be87562 / 2021561 / 21de408 / 647c745 / 1e540bc pushed to `origin/feat/agent-probe`, working tree clean. The pilot's headline is a pre-registered check failing: arm B's `mcp_call_share` median is 0.01 against a 0.20 floor, with classes D/E/F using the MCP zero times across 3/3 reps despite it being connected and offered — a real negative result about the treatment, not a harness fault. Arm M costs more than arm G on all six questions. One red is open and was NOT made green: `audit-preflight`'s `A1-analyze-cac…
+> SESSION-RESULT:** The gate is green and two checkpoints are banked. The escalated `A1-analyze-cached` red was real but misdiagnosed as a bar: DESIGN §8 pre-registers its assertions as running *"before every **batch**"*, and that batch-level bar passed — `run-probe.mjs`'s warm gate refused to start until a **fresh** MCP process reported `cached=true`, now committed as `results/p2.1-warm-gate.txt`. `audit-preflight.mjs`'s per-run re-derivation was P1's stricter *proxy* on top, and it had a false-positive mode: a run that calls no `analyze` performed no analysis and cannot have paid a cold cost, which is the identical reasoning arm G was already granted `n/a` under. I narrowed the proxy, not th…
 
 ## Tracker handoff
 
 ```
-last: **P2.1 DONE, 54/54 cells** — commits 8807f48, be87562, 2021561, 647c745. Isolation 54/54,
-  cost 54/54, 1 censored run kept+flagged (eshop-c1/M/rep1, `error_max_budget_usd`, $1.5134).
-  Spend $23.67 recorded + $0.99 quarantined = **$24.66**. Read `results/p2.1-pilot.md`.
-result: **DESIGN §3.1's arm-B manipulation check FAILED** — median mcp share **0.01**, 17/18 below
-  the 0.20 floor. Classes D/E/F used the MCP **zero** times, 3/3 reps each, with 22 tools offered
-  and `devcontext:connected` on every run: agent CHOICE, not availability. Arm B does not measure
-  what DESIGN wrote it to measure. Medians G $0.2702 / M $0.5073 / B $0.2509 — **M costs more than
-  G on all six questions individually**. Between-rep CV 0.116, so n=5 can resolve a 20% effect.
-red: **`verify.mjs --tier fast` is RED and I did not make it green.** `A1-analyze-cached` fails on
-  exactly those 9 zero-mcp arm-B runs. A2/A3/X isolation pass 54/54 and A4 pass 54/54, so nothing
-  is void; batch warmth is proven separately by the pre-batch warm gate (bg log lines 3-5).
-escalation: the A1 predicate assumed an MCP-capable arm always calls `analyze`. Two options, both
-  costed, with a recommendation, in **`results/p2.1-gate-red-A1.md`** — owner/next session's call.
-next: A1.1 grading. Do NOT restart the pilot. Trap: `subtype` is not a success signal from this
-  CLI — read `is_error` and `terminal_reason` too (see `results/infra-failures.jsonl`).
+green: **`verify.mjs --tier fast` is GREEN** (c366338). The escalated A1 red was the *proxy*, not
+  the bar: DESIGN §8 pre-registers its assertions "before every **batch**", and that bar passed —
+  warm gate now committed as `results/p2.1-warm-gate.txt`. Zero-analyze runs are `n/a` (the same
+  reason arm G already was); the 9 runs got MORE visible — own counted section in the audit.
+deviations: **`eval/agent-probe/DEVIATIONS.md`, six entries** (de235f6) — D1 no `--bare`, D2 cap
+  $1.50 not $2.00, D3 tax statistic, D4 deny-list isolation, D5 the A1 proxy, D6 build SHA moved.
+  D6 came from sweeping `runs.jsonl`, not row 1: 3/54 rows carry `e2f7372`. Immaterial —
+  `git diff --name-only e2f73724 8807f48e -- src/ proto/` is EMPTY and the 3 cells are one
+  `eshop-a1` rep1 triple spanning G/M/B. No key, threshold or arm moved; no number changed.
+done: **A1.1** (1be9129) — 54/54 graded, `results/a1.1-grading.md`. Median recall 100% all arms,
+  0 trap violations, D/E/F 9/9 G · 9/9 B · 8/9 M. Unresolved citations G 14 / B 15 / **M 5**.
+next: **A1.2** judge pass — launch it as a `conductor bg` child. Accuracy is at CEILING in all
+  three arms, so R1.1 must say a 6-question set cannot show non-inferiority with any power.
+trap: `eshop-b1` 6/7 and `eshop-c1` 4/5 in *every* run looks like a grader bug and is not —
+  `IOrderRepository`/`NewOrderRequestHandlerTest` are in no answer at all. Don't touch the keys.
 ```
