@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 18853,
+  "num_turns": 4,
+  "stop_reason": "end_turn",
+  "session_id": "5ae7df0a-190f-4173-ab2a-a6b2c52466db",
+  "total_cost_usd": 0.077691,
+  "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 3139,
+    "cache_read_input_tokens": 20516,
+    "output_tokens": 1412,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3139,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1005,
+        "cache_read_input_tokens": 7422,
+        "cache_creation_input_tokens": 2113,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2113
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 568,
+      "outputTokens": 29,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0007130000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 6,
+      "outputTokens": 1412,
+      "cacheReadInputTokens": 20516,
+      "cacheCreationInputTokens": 3139,
+      "webSearchRequests": 0,
+      "costUSD": 0.07697799999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it contains no event-bus interaction at all.\n\n**What `CreateItem` actually does** (`src/Catalog.API/Apis/CatalogApi.cs:366-388`):\n\n1. Constructs a new `CatalogItem` from the posted `product`, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`).\n2. Computes and assigns an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n3. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` — a plain EF Core save, not the transactional `EventService.SaveEventAndCatalogContextChangesAsync` path (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n4. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`).\n\nIt is registered as `POST /items` with the endpoint name `CreateItem` (`src/Catalog.API/Apis/CatalogApi.cs:103-104`).\n\n**Where the event is actually published:** the only publisher in `CatalogApi.cs` is `UpdateItem`, and only conditionally — it checks whether the `Price` property is modified (`priceEntry.IsModified`), and if so creates `new ProductPriceChangedIntegrationEvent(catalogItem.Id, productToUpdate.Price, priceEntry.OriginalValue)`, saves it atomically with `SaveEventAndCatalogContextChangesAsync`, then calls `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:347-357`). If the price is unchanged, it just calls `SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:358-361`).\n\n**How I established this:** I grepped the whole repository for `ProductPriceChangedIntegrationEvent` — it appears in only five files (the event and handler in `Webhooks.API`, `Webhooks.API/Extensions/Extensions.cs`, the event definition in `src/Catalog.API/IntegrationEvents/Events/`, and `CatalogApi.cs`), and within `CatalogApi.cs` the sole usage is inside `UpdateItem`, outside the body of `CreateItem` (lines 366-388).",
+  "ttft_ms": 1786,
+  "ttft_stream_ms": 1004,
+  "time_to_request_ms": 122,
+  "type": "result",
+  "duration_ms": 25924,
+  "uuid": "4ab67fdb-453f-483e-a692-d4992119ed85"
+}

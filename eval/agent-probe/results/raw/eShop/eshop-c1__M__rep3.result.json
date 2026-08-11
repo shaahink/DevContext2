@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 180641,
+  "num_turns": 45,
+  "stop_reason": "end_turn",
+  "session_id": "763aad84-a0f0-4ce9-b8be-4a36c539898c",
+  "total_cost_usd": 1.3462759999999998,
+  "usage": {
+    "input_tokens": 50,
+    "cache_creation_input_tokens": 61408,
+    "cache_read_input_tokens": 789614,
+    "output_tokens": 13459,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 61408,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3747,
+        "cache_read_input_tokens": 61571,
+        "cache_creation_input_tokens": 2859,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2859
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 579,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000664,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 50,
+      "outputTokens": 13459,
+      "cacheReadInputTokens": 789614,
+      "cacheCreationInputTokens": 61408,
+      "webSearchRequests": 0,
+      "costUSD": 1.3456119999999998,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\nNothing calls `CreateOrderCommandHandler` directly — it is reached only through MediatR, from exactly one entry point (HTTP `POST /api/orders/`), but its side effects fan out into Basket.API, WebApp, OrderProcessor and the rest of the ordering saga. Below is everything I found that depends on it.\n\n### 1. How it is invoked (in-process, Ordering.API)\n\n- It is bound to `CreateOrderCommand` purely by the MediatR contract `IRequestHandler<CreateOrderCommand, bool>` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:6`. There are no direct `new CreateOrderCommandHandler(...)` call sites; changing the constructor signature only affects DI (registered by MediatR assembly scan at `src/Ordering.API/Extensions/Extensions.cs:35`).\n- `CreateOrderIdentifiedCommandHandler` — the idempotency wrapper, declared in the same file at `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:56` (`: IdentifiedCommandHandler<CreateOrderCommand, bool>`). It re-sends the inner command via mediator and, on duplicate `x-requestid`, short-circuits with `CreateResultForDuplicateRequest()` (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs`, idempotency store `src/Ordering.Infrastructure/Idempotency/RequestManager.cs`). If you change the handler's return semantics (`bool`), the duplicate-request result and the API's success/failure mapping change with it.\n- `OrdersApi.CreateOrderAsync` — the only sender, wrapping the command in `IdentifiedCommand<CreateOrderCommand, bool>` and returning `Ok`/`BadRequest` based on the `bool` — `src/Ordering.API/Apis/OrdersApi.cs:118` and `src/Ordering.API/Apis/OrdersApi.cs:115` (`services.Mediator.Send(command)`); route `POST /api/orders/`.\n- MediatR pipeline behaviours that wrap every send of this command (`src/Ordering.API/Extensions/Extensions.cs:35`): `LoggingBehavior`, `ValidatorBehavior` and `TransactionBehavior` (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:5`). `TransactionBehavior` owns the transaction and publishes the integration events the handler queued, so changing where/whether the handler saves (`SaveEntitiesAsync`) can break commit/publish ordering.\n- `CreateOrderCommandValidator` — `src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2`; any change to required fields on the command must stay consistent with it.\n\n### 2. Collaborators the handler calls (break if you change what you call/when)\n\n- `IOrderingIntegrationEventService.AddAndSaveEventAsync` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:33`\n- `Order` aggregate constructor and `AddOrderItem` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:40` and `:44`\n- `IOrderRepository.Add` and `UnitOfWork.SaveEntitiesAsync` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:49` and `:51`\n- `IIdentityService` is injected but not used in `Handle` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:18`).\n\n### 3. Downstream effects outside Ordering.API (the real blast radius)\n\n- **Basket.API** — the handler raises `OrderStartedIntegrationEvent` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:32`), consumed by `OrderStartedIntegrationEventHandler`, which **deletes the user's basket** (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`, delete at `:15`). If you stop raising it, or change `UserId`, baskets are never cleared after checkout.\n- **Ordering.API domain-event chain** — the `new Order(...)` in the handler raises `OrderStartedDomainEvent`, handled by `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:3`), which creates/verifies the `Buyer` and payment method (`:23`, `:34`, `:44`, `:47`) and raises `OrderStatusChangedToSubmittedIntegrationEvent` (`:50`–`:51`). `UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler` (`src/Ordering.API/Application/DomainEventHandlers/UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler.cs:3`, order lookup at `:21`) then updates the order with the buyer/payment method — it fires off `Buyer.VerifyOrAddPaymentMethod`, so it is part of the same create-order transaction.\n- **WebApp (real-time order status)** — `OrderStatusChangedToSubmittedIntegrationEventHandler` notifies the user's UI (`src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:5`, `:13`).\n- **OrderProcessor** — `GracePeriodManagerService` polls the ordering database for orders past their grace period and publishes `GracePeriodConfirmedIntegrationEvent` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:8`, publish at `:55` via `CheckConfirmedGracePeriodOrders`). It reads the rows this handler writes over raw SQL/Npgsql, not through Ordering's model, so changes to the order's initial status or to the persisted schema/timestamps break it silently. (I read lines 1–65; the SQL itself is at `:63`–`:95` and I did not read it, so I cannot state its exact predicate.)\n- **The rest of the saga is downstream of that**: `GracePeriodConfirmedIntegrationEventHandler` (`src/Ordering.API/Application/IntegrationEvents/EventHandling/GracePeriodConfirmedIntegrationEventHandler.cs:3`) → `OrderStatusChangedToAwaitingValidationIntegrationEvent` → **Catalog.API** stock check (`src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:3`) → `OrderStockConfirmed/Rejected` back to Ordering.API → **PaymentProcessor** (`src/PaymentProcessor/IntegrationEvents/EventHandling/OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs:3`) → paid/shipped events consumed by **Webhooks.API** (`src/Webhooks.API/IntegrationEvents/OrderStatusChangedToPaidIntegrationEventHandler.cs`, `.../OrderStatusChangedToShippedIntegrationEventHandler.cs`) and **WebApp**. These only depend on an order existing in the expected initial state, but they are what fails if creation semantics change.\n\n### 4. Upstream HTTP callers (outside Ordering.API)\n\n- **WebApp**: `Checkout.razor` submit → `BasketState.CheckoutAsync` → `OrderingService.CreateOrder` posting to `/api/Orders/` with an `x-requestid` header — `src/WebApp/Components/Pages/Checkout/Checkout.razor:114`, `src/WebApp/Services/BasketState.cs:107`, `src/WebApp/Services/OrderingService.cs:12`–`:15`.\n- **ClientApp (MAUI)**: `CheckoutViewModel.CheckoutAsync` → `IOrderService.CreateOrderAsync` → POST with `x-requestid` — `src/ClientApp/ViewModels/CheckoutViewModel.cs:112`, `src/ClientApp/Services/Order/OrderService.cs:28`, `:38`.\n- Contract shape is `CreateOrderRequest` on the API side (`src/Ordering.API/Apis/OrdersApi.cs:120`); both clients serialize their own equivalent, so adding required fields to the command is a cross-repo/API-contract break.\n\n### 5. Things that are explicitly *not* there\n\n- **No message-bus path creates orders**: none of the 13 integration-event consumers in the solution handles a \"checkout accepted\" event; Ordering.API's consumers are only GracePeriodConfirmed, OrderPaymentFailed, OrderPaymentSucceeded, OrderStockConfirmed, OrderStockRejected (`src/Ordering.API/Application/IntegrationEvents/EventHandling/*.cs`). I established this by listing all `MessageConsumer` entry points and all `*IntegrationEventHandler` types. So `POST /api/orders/` is the single ingress.\n- **No tests found in the analyzed graph**: `tests_for` on the handler returned 0, walking in-edges up to 6 hops.\n\n### Caveats\n\n- The analyzed solution slice is `eShop.slnx` (19 projects) and contains **no test projects**; the repo has other solutions on disk (`src/ClientApp/ClientApp.sln`, `tests/ClientApp.UnitTests/ClientApp.UnitTests.sln`). So I cannot rule out unit/functional tests asserting this handler's behaviour — \"no tests\" here means \"none in the analyzed solution\", not proof of no coverage.\n- I did not verify whether HybridApp has its own checkout path to `/api/orders/`; the two client callers I confirmed are WebApp and ClientApp.",
+  "ttft_ms": 2800,
+  "ttft_stream_ms": 1972,
+  "time_to_request_ms": 36,
+  "type": "result",
+  "duration_ms": 179826,
+  "uuid": "a8d3b5f5-dcfc-44a6-af12-88463c62ae95"
+}

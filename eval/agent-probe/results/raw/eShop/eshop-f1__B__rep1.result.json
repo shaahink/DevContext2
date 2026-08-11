@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 17055,
+  "num_turns": 4,
+  "stop_reason": "end_turn",
+  "session_id": "29b835fe-8336-4443-abc4-0e9a2439af1e",
+  "total_cost_usd": 0.048656000000000005,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 1151,
+    "cache_read_input_tokens": 27534,
+    "output_tokens": 907,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 1151,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 415,
+        "cache_read_input_tokens": 7334,
+        "cache_creation_input_tokens": 213,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 213
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 559,
+      "outputTokens": 21,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000664,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 8,
+      "outputTokens": 907,
+      "cacheReadInputTokens": 27534,
+      "cacheCreationInputTokens": 1151,
+      "webSearchRequests": 0,
+      "costUSD": 0.04799200000000001,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Three files in the repository contain the literal string `GracePeriodTime`:\n\n1. **`src/OrderProcessor/BackgroundTaskOptions.cs:5`** — declares the option property: `public int GracePeriodTime { get; set; }`\n2. **`src/OrderProcessor/appsettings.json:15`** — configures the value: `\"GracePeriodTime\": \"1\"`\n3. **`src/OrderProcessor/Services/GracePeriodManagerService.cs:72,74`** — used twice: as a SQL parameter placeholder in the query (`WHERE CURRENT_TIMESTAMP - \"OrderDate\" >= @GracePeriodTime AND \"OrderStatus\" = 'Submitted'`) and when binding it (`command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime));`).\n\nI established this with a repository-wide content search, then re-ran it with a plain recursive grep that includes hidden and ignored files (e.g. `.git`, build output) to confirm no additional matches exist.",
+  "ttft_ms": 1892,
+  "ttft_stream_ms": 1103,
+  "time_to_request_ms": 36,
+  "type": "result",
+  "duration_ms": 30449,
+  "uuid": "caa5a2ce-6609-4507-a16c-c42dbeb2b3ab"
+}

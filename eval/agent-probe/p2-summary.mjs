@@ -210,12 +210,25 @@ if (!infra.length) {
   P(`They are kept in \`results/infra-failures.jsonl\` and \`results/infra/\`, and the affected cells were`);
   P(`re-run. This is not censoring: DESIGN 6.6 censoring is a run that ran and hit its own cap.`);
   P();
-  P(`| Question | Arm | Rep | Attempt | subtype | api status | exit | wall ms |`);
-  P(`|---|---|---|---|---|---|---|---|`);
-  for (const r of infra) P(`| ${r.questionId} | ${r.arm} | ${r.rep} | ${r.attempt} | ${r.subtype ?? "-"} | ${r.apiErrorStatus ?? "-"} | ${r.exitCode ?? "-"} | ${r.wallMs ?? "-"} |`);
+  P(`| Question | Arm | Rep | Attempt | subtype | terminal reason | api status | exit | wall ms | $ burnt |`);
+  P(`|---|---|---|---|---|---|---|---|---|---|`);
+  for (const r of infra) {
+    P(`| ${r.questionId} | ${r.arm} | ${r.rep} | ${r.attempt} | ${r.subtype ?? "-"} | ${r.terminalReason ?? "-"} | ` +
+      `${r.apiErrorStatus ?? "-"} | ${r.exitCode ?? "-"} | ${r.wallMs ?? "-"} | $${fmt(r.costUsd, 4)} |`);
+  }
   P();
   const byArm = ARMS.map((a) => `${a}=${infra.filter((r) => r.arm === a).length}`).join(" ");
+  const burnt = infra.reduce((s, r) => s + (r.costUsd || 0), 0);
   P(`Per arm: ${byArm}. Rows in \`runs.jsonl\` whose \`attempt\` field is >1 are the successful re-runs.`);
+  P();
+  P(`**$${fmt(burnt, 2)} was spent on these attempts and is NOT in the recorded spend above**, because the`);
+  P(`attempts are not runs. Total money the pilot actually cost = recorded + quarantined =`);
+  P(`**$${fmt(runs.reduce((s, r) => s + (r.costUsd || 0), 0) + burnt, 2)}**. DESIGN section 10 asks for actual spend, not estimated.`);
+  P();
+  P(`Note for anyone writing classification code later: \`subtype\` is not a reliable success signal from`);
+  P(`this CLI. The first interruption of this pilot reported \`subtype: "success"\` with \`is_error: true\`,`);
+  P(`\`terminal_reason: "api_error"\` and the answer text "API Error: Connection lost mid-response".`);
+  P(`Read \`is_error\` and \`terminal_reason\` too.`);
 }
 P();
 

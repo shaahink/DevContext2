@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 91571,
+  "num_turns": 23,
+  "stop_reason": "end_turn",
+  "session_id": "d9427137-e430-4789-b3e1-2efcc79d6a6a",
+  "total_cost_usd": 0.6761320000000002,
+  "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 35052,
+    "cache_read_input_tokens": 325544,
+    "output_tokens": 6481,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 35052,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2575,
+        "cache_read_input_tokens": 37250,
+        "cache_creation_input_tokens": 1120,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1120
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000675,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 28,
+      "outputTokens": 6481,
+      "cacheReadInputTokens": 325544,
+      "cacheCreationInputTokens": 35052,
+      "webSearchRequests": 0,
+      "costUSD": 0.6754570000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What it is\n\nThis is **eShop** — a .NET reference microservices e-commerce application, orchestrated by **.NET Aspire**. The analyzer classifies it as an App (not a library) with a **Microservices** style at high confidence, on evidence of \"Aspire orchestration of 9 runnable services\" (`eShop.slnx`, 19 projects). The stack is net10.0, Minimal APIs + MVC controllers, MediatR/CQRS, EF Core, FluentValidation, and DDD aggregates (`Order`, `Buyer`).\n\nNote there are **3 solutions on disk**; the one analyzed is `eShop.slnx`. The other two are `src/ClientApp/ClientApp.sln` and `tests/ClientApp.UnitTests/ClientApp.UnitTests.sln`.\n\n## The single entry point you run\n\n**`src/eShop.AppHost`** is the Aspire AppHost and the only thing you launch. It is the root of the dependency graph (in-degree 0, out-degree 9) and it composes everything else.\n\n## Processes the AppHost starts\n\nNine .NET processes, each registered in `src/eShop.AppHost/Program.cs`:\n\n| Process | Kind | Registered at |\n|---|---|---|\n| **Identity.API** | IdentityServer (Duende) auth provider | `src/eShop.AppHost/Program.cs:23` |\n| **Basket.API** | gRPC service | `src/eShop.AppHost/Program.cs:30` |\n| **Catalog.API** | Web API (EF Core + pgvector) | `src/eShop.AppHost/Program.cs:36` |\n| **Ordering.API** | Web API (EF Core, MediatR, FluentValidation) | `src/eShop.AppHost/Program.cs:40` |\n| **OrderProcessor** | Worker service | `src/eShop.AppHost/Program.cs:46` |\n| **PaymentProcessor** | Worker service | `src/eShop.AppHost/Program.cs:51` |\n| **Webhooks.API** | Web API | `src/eShop.AppHost/Program.cs:54` |\n| **WebhookClient** | Blazor UI | `src/eShop.AppHost/Program.cs:65` |\n| **WebApp** | Blazor storefront (+ YARP) | `src/eShop.AppHost/Program.cs:69` |\n\nThe AppHost also applies a cross-cutting hook that sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` on every project resource (`src/eShop.AppHost/Extensions.cs:22`, `src/eShop.AppHost/Extensions.cs:32-40`), and wires an AI backend for Catalog.API and WebApp — either OpenAI/Azure OpenAI (`src/eShop.AppHost/Extensions.cs:51`) or a containerized **Ollama** with OpenWebUI plus `all-minilm` embedding and `llama3.1` chat models (`src/eShop.AppHost/Extensions.cs:163-172`).\n\n## Backing infrastructure resources\n\nThe services resolve Aspire resources by name, so the AppHost also brings up:\n- **Redis** as `\"redis\"` — Basket.API's store (`src/Basket.API/Extensions/Extensions.cs:14-16`)\n- **RabbitMQ** as `\"eventbus\"` — the shared bus (`src/Basket.API/Extensions/Extensions.cs:18`, `src/Catalog.API/Extensions/Extensions.cs:31`, `src/OrderProcessor/Extensions/Extensions.cs:10`)\n- **PostgreSQL** databases — `\"catalogdb\"` with the vector extension (`src/Catalog.API/Extensions/Extensions.cs:15-21`) and `\"orderingdb\"` (`src/OrderProcessor/Extensions/Extensions.cs:13`)\n\nI did not read `Program.cs` directly (the tooling exposed only graph provenance for it, not its text), so the exact lines where these containers are declared are inferred from the consuming services plus the `Aspire.Hosting.PostgreSQL`, `Aspire.Hosting.Redis`, `Aspire.Hosting.RabbitMQ` and `Aspire.Hosting.Yarp` package references. I also did not verify the database resource names used by Identity.API and Webhooks.API.\n\n## Not started by the AppHost\n\n**ClientApp** (.NET MAUI) and **HybridApp** (.NET MAUI + Blazor WebView) are runnable clients but are *not* among the AppHost's nine dependencies — you launch them separately onto a device/emulator. ClientApp has its own solution at `src/ClientApp/ClientApp.sln`.\n\nSupporting libraries with no process of their own: `eShop.ServiceDefaults`, `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents`.\n\n## How the processes talk\n\n- **WebApp → Basket.API** over gRPC (`src/WebApp/Services/BasketService.cs:7` → `src/Basket.API/Grpc/BasketService.cs:8`)\n- **WebApp → Catalog.API / Ordering.API** over HTTP (`src/WebApp/Extensions/Extensions.cs:34`, `src/WebApp/Extensions/Extensions.cs:38`)\n- **WebhookClient → Webhooks.API** over HTTP (`src/WebhookClient/Extensions/Extensions.cs:19`)\n- Everything else is asynchronous over RabbitMQ — 13 integration events, all cross-service. The core saga is Ordering.API → Catalog.API for stock validation (`src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToAwaitingValidationDomainEventHandler.cs:33`), Ordering.API → PaymentProcessor (`src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToStockConfirmedDomainEventHandler.cs:30`), and back (`src/PaymentProcessor/IntegrationEvents/EventHandling/OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs:27`).\n- The only hosted background loop is **GracePeriodManagerService** in OrderProcessor (`src/OrderProcessor/Extensions/Extensions.cs:18`), which publishes `GracePeriodConfirmedIntegrationEvent` to Ordering.API (`src/OrderProcessor/Services/GracePeriodManagerService.cs:55`).\n\nAcross the whole solution the analyzer counts **109 entry points**: 43 HTTP endpoints, 42 UI entries, 13 message consumers, 7 domain event handlers, 3 gRPC methods (`Basket.GetBasket`, `Basket.UpdateBasket`, `Basket.DeleteBasket`, all at `src/Basket.API/Grpc/BasketService.cs:8`), and 1 hosted service.",
+  "ttft_ms": 2068,
+  "ttft_stream_ms": 1318,
+  "time_to_request_ms": 76,
+  "type": "result",
+  "duration_ms": 91143,
+  "uuid": "7ddcf784-aec8-45e9-a96d-a56a76cc625b"
+}

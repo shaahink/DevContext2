@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 55854,
+  "num_turns": 18,
+  "stop_reason": "end_turn",
+  "session_id": "ac28e499-bb8e-4b06-880f-87bde1bde205",
+  "total_cost_usd": 0.4092475,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 22347,
+    "cache_read_input_tokens": 159177,
+    "output_tokens": 4217,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 22347,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1807,
+        "cache_read_input_tokens": 25893,
+        "cache_creation_input_tokens": 615,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 615
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 22,
+      "outputTokens": 4217,
+      "cacheReadInputTokens": 159177,
+      "cacheCreationInputTokens": 22347,
+      "webSearchRequests": 0,
+      "costUSD": 0.4085935,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I have the full path traced.\n\n## Answer\n\nThe checkout form ultimately writes the order at **`OrderingContext.SaveEntitiesAsync` → `base.SaveChangesAsync(cancellationToken)`** in `src/Ordering.Infrastructure/OrderingContext.cs:59`, committed by the transaction in `src/Ordering.Infrastructure/OrderingContext.cs:80-81`.\n\n### Handlers involved, in order\n\n1. **`Checkout.HandleSubmitAsync` / `HandleValidSubmitAsync`** (Blazor form handler) — `src/WebApp/Components/Pages/Checkout/Checkout.razor:101` and `:111`; validates then calls `Basket.CheckoutAsync(Info)` at `:114`.\n2. **`BasketState.CheckoutAsync`** — `src/WebApp/Services/BasketState.cs:78`; builds a `CreateOrderRequest` (`:92-106`) and calls `orderingService.CreateOrder(request, checkoutInfo.RequestId)` at `:107`.\n3. **`OrderingService.CreateOrder`** — `src/WebApp/Services/OrderingService.cs:12`; POSTs to `/api/Orders/` with an `x-requestid` header (`:14-17`). The `HttpClient` is bound to `https+http://ordering-api` at `src/WebApp/Extensions/Extensions.cs:38`.\n4. **`OrdersApi.CreateOrderAsync`** (minimal-API endpoint handler, mapped at `src/Ordering.API/Apis/OrdersApi.cs:17`) — `src/Ordering.API/Apis/OrdersApi.cs:118`; masks the card number, builds `CreateOrderCommand` (`:141`), wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` (`:146`) and sends it via MediatR (`:155`).\n5. **MediatR pipeline behaviors** run around the command, registered in this order at `src/Ordering.API/Extensions/Extensions.cs:39-41`: `LoggingBehavior`, `ValidatorBehavior`, then **`TransactionBehavior.Handle`** (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20`) which opens the DB transaction (`:38`), invokes the next handler (`:43`) and commits (`:47`).\n6. **`CreateOrderIdentifiedCommandHandler`** (derives from **`IdentifiedCommandHandler<CreateOrderCommand, bool>.Handle`**) — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57` and `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39`; does the idempotency check (`:41-48`) and re-sends the inner command through the mediator (`:87`).\n7. **`CreateOrderCommandHandler.Handle`** — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`; adds the basket-cleanup integration event (`:33`), constructs the `Order` aggregate (`:40`), adds items (`:44`), calls `_orderRepository.Add(order)` (`:49`) — which is `_context.Orders.Add(order)` at `src/Ordering.Infrastructure/Repositories/OrderRepository.cs:17` — and then `_orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`:51`).\n8. **`OrderingContext.SaveEntitiesAsync`** — `src/Ordering.Infrastructure/OrderingContext.cs:47`; first dispatches domain events (`:55`, implemented in `src/Ordering.Infrastructure/MediatorExtension.cs:19`), then executes **`base.SaveChangesAsync(cancellationToken)` at `src/Ordering.Infrastructure/OrderingContext.cs:59` — this is the line that writes the order to the database.**\n\n### Domain-event handler that runs inside step 8, before the write\n- **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** — `src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`. It fires because the `Order` constructor raises `OrderStartedDomainEvent` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63`, `:170-173`). It creates/updates the `Buyer` and payment method and itself calls `SaveEntitiesAsync` (`:47-48`), so in practice the buyer rows and the order row can be flushed by that nested save; the outer `SaveChangesAsync` at `OrderingContext.cs:59` and the commit at `OrderingContext.cs:80-81` complete the transaction.\n\nCaveat: I traced the Blazor web storefront (`src/WebApp`) as asked. The MAUI `ClientApp` has its own separate checkout path (`src/ClientApp/ViewModels/CheckoutViewModel.cs`) that I did not follow.",
+  "ttft_ms": 1581,
+  "ttft_stream_ms": 828,
+  "time_to_request_ms": 77,
+  "type": "result",
+  "duration_ms": 70126,
+  "uuid": "bae4d094-d0e1-47f8-ac18-507a17184c81"
+}

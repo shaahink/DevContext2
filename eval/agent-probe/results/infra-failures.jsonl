@@ -1,0 +1,1 @@
+{"repo":"eShop","questionId":"eshop-b1","arm":"M","rep":1,"attempt":1,"reason":"infrastructure","subtype":"success","isError":true,"apiErrorStatus":null,"terminalReason":"api_error","exitCode":1,"timedOut":false,"wallMs":156965,"costUsd":0.9880244999999999,"stderr":"","startedAt":"2026-08-11T00:33:11.289Z","raw":"results/infra/eShop/eshop-b1__M__rep1__attempt1.stream.jsonl"}

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 78987,
+  "num_turns": 21,
+  "stop_reason": "end_turn",
+  "session_id": "374e840e-804c-45e3-b6f6-6318655df233",
+  "total_cost_usd": 0.511605,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 27211,
+    "cache_read_input_tokens": 189772,
+    "output_tokens": 5754,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 27211,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2023,
+        "cache_read_input_tokens": 29363,
+        "cache_creation_input_tokens": 4540,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 4540
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000649,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 22,
+      "outputTokens": 5754,
+      "cacheReadInputTokens": 189772,
+      "cacheCreationInputTokens": 27211,
+      "webSearchRequests": 0,
+      "costUSD": 0.510956,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Answer: the chain runs Checkout.razor → BasketState → OrderingService (HTTP) → OrdersApi.CreateOrderAsync → MediatR pipeline (Logging/Validator/Transaction) → CreateOrderIdentifiedCommandHandler → CreateOrderCommandHandler → OrderRepository.Add → OrderingContext.SaveEntitiesAsync, whose `base.SaveChangesAsync(cancellationToken)` at `src/Ordering.Infrastructure/OrderingContext.cs:59` is the line that writes the order to the database.**\n\nIn order:\n\n**WebApp (storefront)**\n1. `Checkout.HandleSubmitAsync` — the `EditForm OnSubmit` handler on the `/checkout` page; validates, then calls `HandleValidSubmitAsync` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:12`, `:101`, `:111`).\n2. `BasketState.CheckoutAsync` — builds a `CreateOrderRequest` from the form info plus the fetched basket items (`src/WebApp/Services/BasketState.cs:78-107`).\n3. `OrderingService.CreateOrder` — POSTs that request to `/api/Orders/` with the `x-requestid` header used for idempotency (`src/WebApp/Services/OrderingService.cs:12-18`).\n\n**Ordering.API**\n4. `OrdersApi.CreateOrderAsync` — the minimal-API endpoint handler mapped at `src/Ordering.API/Apis/OrdersApi.cs:17`; it masks the card number, builds a `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand,bool>` and sends it via MediatR (`src/Ordering.API/Apis/OrdersApi.cs:118-155`).\n5. MediatR pipeline behaviors run around every request, registered in this order: `LoggingBehavior` → `ValidatorBehavior` → `TransactionBehavior` (`src/Ordering.API/Extensions/Extensions.cs:39-41`). `TransactionBehavior.Handle` opens the DB transaction, calls `next()`, then commits and publishes integration events (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-53`).\n6. `CreateOrderIdentifiedCommandHandler` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`), whose logic lives in the base `IdentifiedCommandHandler<T,R>.Handle` — checks `IRequestManager` for a duplicate request id, records the request, then re-sends the inner `CreateOrderCommand` through the mediator (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39-87`). The pipeline behaviors run again for the inner command, but `TransactionBehavior` short-circuits because a transaction is already active (`TransactionBehavior.cs:27-29`).\n7. `CreateOrderCommandHandler.Handle` — publishes `OrderStartedIntegrationEvent`, constructs the `Order` aggregate with its items, calls `_orderRepository.Add(order)` and then `SaveEntitiesAsync` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29-51`).\n8. `OrderRepository.Add` — `_context.Orders.Add(order)`, i.e. only marks the entity as Added in the EF change tracker (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15-19`).\n9. `OrderingContext.SaveEntitiesAsync` — first dispatches domain events (`src/Ordering.Infrastructure/OrderingContext.cs:55`, dispatcher at `src/Ordering.Infrastructure/MediatorExtension.cs:5-19`), which invokes the domain-event handler `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`) — the `OrderStartedDomainEvent` is raised in the `Order` constructor (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63`, `:170-173`).\n10. **The write:** `_ = await base.SaveChangesAsync(cancellationToken)` in `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:59`) issues the INSERTs. The transaction is then committed by `TransactionBehavior` via `OrderingContext.CommitTransactionAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:73-81`, called from `TransactionBehavior.cs:47`).\n\nOne nuance worth flagging: the buyer domain-event handler itself calls `_buyerRepository.UnitOfWork.SaveEntitiesAsync` (`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:47-48`) on the same scoped `OrderingContext`, so in practice that nested call reaches `OrderingContext.cs:59` first and is the invocation that physically flushes the already-tracked `Order` row; the outer `SaveChangesAsync` from the command handler then flushes anything remaining. Both are the same line of code.",
+  "ttft_ms": 1667,
+  "ttft_stream_ms": 832,
+  "time_to_request_ms": 66,
+  "type": "result",
+  "duration_ms": 91593,
+  "uuid": "a65f78cd-6259-4cc4-874c-bce27a1f6874"
+}
