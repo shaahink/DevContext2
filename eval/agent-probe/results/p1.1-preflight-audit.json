@@ -80,6 +80,164 @@
     },
     {
       "repo": "eShop",
+      "cell": "eshop-a1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 17,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__overview"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 15,
+      "mcpAttempts": 4,
+      "fileAttempts": 3,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.4878644999999999,
+      "costReconstructed": 0.487865,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 18,
+      "durationMs": 91113,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.4878644999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-a1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-a1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 28,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__overview"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 26,
+      "mcpAttempts": 4,
+      "fileAttempts": 13,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.7018025,
+      "costReconstructed": 0.701802,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 29,
+      "durationMs": 131864,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.7018025"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-a1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
       "cell": "eshop-a1__G__rep1",
       "arm": "G",
       "model": "claude-opus-5",
@@ -145,6 +303,142 @@
       "artifacts": [
         "results/raw/eShop/eshop-a1__G__rep1.stream.jsonl",
         "results/raw/eShop/eshop-a1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-a1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 17,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 15,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.6104555,
+      "costReconstructed": 0.610456,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 18,
+      "durationMs": 213184,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.6104555"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-a1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-a1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 19,
+      "attemptedDistinct": [
+        "Bash",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 18,
+      "mcpAttempts": 0,
+      "fileAttempts": 2,
+      "analyzeCached": [],
+      "costUsd": 0.49253349999999996,
+      "costReconstructed": 0.492534,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 20,
+      "durationMs": 99706,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.49253349999999996"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-a1__G__rep3.result.json"
       ]
     },
     {
@@ -227,6 +521,3512 @@
       "artifacts": [
         "results/raw/eShop/eshop-a1__M__rep1.stream.jsonl",
         "results/raw/eShop/eshop-a1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-a1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 25,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__config",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__get_context",
+        "mcp__devcontext__map",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__seam",
+        "mcp__devcontext__top_flows"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 25,
+      "mcpAttempts": 25,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.791743,
+      "costReconstructed": 0.791743,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 26,
+      "durationMs": 97754,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.791743"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-a1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-a1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 22,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__get_context",
+        "mcp__devcontext__map",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 22,
+      "mcpAttempts": 22,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.6761320000000002,
+      "costReconstructed": 0.676132,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 23,
+      "durationMs": 91143,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.6761320000000002"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-a1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-a1__M__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__B__rep1",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 21,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 21,
+      "mcpAttempts": 1,
+      "fileAttempts": 16,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.495081,
+      "costReconstructed": 0.495081,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 22,
+      "durationMs": 103003,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.495081"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__B__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-b1__B__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 18,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__trace"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 17,
+      "mcpAttempts": 2,
+      "fileAttempts": 5,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.41069849999999997,
+      "costReconstructed": 0.410698,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 19,
+      "durationMs": 81266,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.41069849999999997"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-b1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 20,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__overview"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 20,
+      "mcpAttempts": 3,
+      "fileAttempts": 16,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.511605,
+      "costReconstructed": 0.511605,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 21,
+      "durationMs": 91593,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.511605"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-b1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__G__rep1",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 17,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 17,
+      "mcpAttempts": 0,
+      "fileAttempts": 9,
+      "analyzeCached": [],
+      "costUsd": 0.41373849999999995,
+      "costReconstructed": 0.413739,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 18,
+      "durationMs": 147598,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.41373849999999995"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__G__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-b1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 17,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 17,
+      "mcpAttempts": 0,
+      "fileAttempts": 13,
+      "analyzeCached": [],
+      "costUsd": 0.4092475,
+      "costReconstructed": 0.409247,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 18,
+      "durationMs": 70126,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.4092475"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-b1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 19,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 19,
+      "mcpAttempts": 0,
+      "fileAttempts": 10,
+      "analyzeCached": [],
+      "costUsd": 0.4507095,
+      "costReconstructed": 0.450709,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 20,
+      "durationMs": 96889,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.4507095"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-b1__G__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__M__rep1",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 38,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__trace"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 38,
+      "mcpAttempts": 38,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.9792164999999999,
+      "costReconstructed": 0.979217,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 39,
+      "durationMs": 147509,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.9792164999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__M__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-b1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 32,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__trace"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 32,
+      "mcpAttempts": 32,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.753172,
+      "costReconstructed": 0.753172,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 33,
+      "durationMs": 108325,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.753172"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-b1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-b1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 38,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__trace"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 38,
+      "mcpAttempts": 38,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 1.016448,
+      "costReconstructed": 1.016448,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 39,
+      "durationMs": 147547,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=1.016448"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-b1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-b1__M__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__B__rep1",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 31,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__trace",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 31,
+      "mcpAttempts": 3,
+      "fileAttempts": 21,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.8727490000000001,
+      "costReconstructed": 0.872749,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 32,
+      "durationMs": 207591,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.8727490000000001"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__B__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-c1__B__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 34,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 33,
+      "mcpAttempts": 2,
+      "fileAttempts": 30,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.9612779999999999,
+      "costReconstructed": 0.961278,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 35,
+      "durationMs": 162742,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.9612779999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-c1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 34,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read",
+        "mcp__devcontext__analyze"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 34,
+      "mcpAttempts": 1,
+      "fileAttempts": 31,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.9825289999999998,
+      "costReconstructed": 0.982529,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 35,
+      "durationMs": 165065,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.9825289999999998"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-c1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__G__rep1",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 26,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 26,
+      "mcpAttempts": 0,
+      "fileAttempts": 10,
+      "analyzeCached": [],
+      "costUsd": 0.83353,
+      "costReconstructed": 0.83353,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 27,
+      "durationMs": 148571,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.83353"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__G__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-c1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 37,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 37,
+      "mcpAttempts": 0,
+      "fileAttempts": 19,
+      "analyzeCached": [],
+      "costUsd": 1.031032,
+      "costReconstructed": 1.031032,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 38,
+      "durationMs": 275882,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=1.031032"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-c1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 31,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 30,
+      "mcpAttempts": 0,
+      "fileAttempts": 18,
+      "analyzeCached": [],
+      "costUsd": 0.9531795000000001,
+      "costReconstructed": 0.953179,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 32,
+      "durationMs": 236953,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.9531795000000001"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-c1__G__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__M__rep1",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 50,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__config",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__impact",
+        "mcp__devcontext__map",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__tests_for",
+        "mcp__devcontext__trace",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 50,
+      "mcpAttempts": 50,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 1.513355,
+      "costReconstructed": 1.513355,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 51,
+      "durationMs": 221040,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=1.513355"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__M__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-c1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 42,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__impact",
+        "mcp__devcontext__map",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__tests_for",
+        "mcp__devcontext__trace",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 42,
+      "mcpAttempts": 42,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 1.086193,
+      "costReconstructed": 1.086193,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 43,
+      "durationMs": 171221,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=1.086193"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-c1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-c1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 44,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__get_context",
+        "mcp__devcontext__impact",
+        "mcp__devcontext__map",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__tests_for",
+        "mcp__devcontext__trace",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 44,
+      "mcpAttempts": 44,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 1.3462759999999998,
+      "costReconstructed": 1.346276,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 45,
+      "durationMs": 179826,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=1.3462759999999998"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-c1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-c1__M__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__B__rep1",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 4,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 4,
+      "mcpAttempts": 0,
+      "fileAttempts": 4,
+      "analyzeCached": [],
+      "costUsd": 0.08794450000000001,
+      "costReconstructed": 0.087944,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 5,
+      "durationMs": 23653,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.08794450000000001"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__B__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-d1__B__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 3,
+      "mcpAttempts": 0,
+      "fileAttempts": 3,
+      "analyzeCached": [],
+      "costUsd": 0.077691,
+      "costReconstructed": 0.077691,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 25924,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.077691"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-d1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 4,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 4,
+      "mcpAttempts": 0,
+      "fileAttempts": 4,
+      "analyzeCached": [],
+      "costUsd": 0.0759385,
+      "costReconstructed": 0.075939,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 5,
+      "durationMs": 18663,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0759385"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-d1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__G__rep1",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 3,
+      "mcpAttempts": 0,
+      "fileAttempts": 3,
+      "analyzeCached": [],
+      "costUsd": 0.06382950000000001,
+      "costReconstructed": 0.063829,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 17397,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.06382950000000001"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__G__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-d1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 4,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 4,
+      "mcpAttempts": 0,
+      "fileAttempts": 4,
+      "analyzeCached": [],
+      "costUsd": 0.0663,
+      "costReconstructed": 0.0663,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 5,
+      "durationMs": 14861,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0663"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-d1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 3,
+      "mcpAttempts": 0,
+      "fileAttempts": 3,
+      "analyzeCached": [],
+      "costUsd": 0.07496349999999999,
+      "costReconstructed": 0.074963,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 18021,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.07496349999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-d1__G__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__M__rep1",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 7,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.10790050000000001,
+      "costReconstructed": 0.107901,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 28192,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.10790050000000001"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__M__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-d1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 7,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.10086149999999999,
+      "costReconstructed": 0.100861,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 28221,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.10086149999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-d1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-d1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 7,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.1012135,
+      "costReconstructed": 0.101214,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 22978,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.1012135"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-d1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-d1__M__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__B__rep1",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 5,
+      "attemptedDistinct": [
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 5,
+      "mcpAttempts": 0,
+      "fileAttempts": 5,
+      "analyzeCached": [],
+      "costUsd": 0.08295999999999999,
+      "costReconstructed": 0.08296,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 6,
+      "durationMs": 21955,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.08295999999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__B__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-e1__B__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 6,
+      "attemptedDistinct": [
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 6,
+      "mcpAttempts": 0,
+      "fileAttempts": 6,
+      "analyzeCached": [],
+      "costUsd": 0.0840205,
+      "costReconstructed": 0.084021,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 7,
+      "durationMs": 23509,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0840205"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-e1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 5,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 5,
+      "mcpAttempts": 0,
+      "fileAttempts": 4,
+      "analyzeCached": [],
+      "costUsd": 0.0911665,
+      "costReconstructed": 0.091166,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 6,
+      "durationMs": 39020,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0911665"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-e1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__G__rep1",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 0,
+      "fileAttempts": 7,
+      "analyzeCached": [],
+      "costUsd": 0.13123500000000002,
+      "costReconstructed": 0.131235,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 23704,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.13123500000000002"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__G__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-e1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "Bash",
+        "Glob",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 0,
+      "fileAttempts": 6,
+      "analyzeCached": [],
+      "costUsd": 0.0869215,
+      "costReconstructed": 0.086921,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 40693,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0869215"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-e1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 7,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep",
+        "Read"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 7,
+      "mcpAttempts": 0,
+      "fileAttempts": 6,
+      "analyzeCached": [],
+      "costUsd": 0.12069949999999999,
+      "costReconstructed": 0.1207,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 8,
+      "durationMs": 37050,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.12069949999999999"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-e1__G__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__M__rep1",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 9,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 9,
+      "mcpAttempts": 9,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.1338995,
+      "costReconstructed": 0.1339,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 10,
+      "durationMs": 26625,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.1338995"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__M__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-e1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 13,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__find",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 13,
+      "mcpAttempts": 13,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.2169965,
+      "costReconstructed": 0.216997,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 14,
+      "durationMs": 40714,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.2169965"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-e1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-e1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 10,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__entrypoints",
+        "mcp__devcontext__find",
+        "mcp__devcontext__neighbors",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 10,
+      "mcpAttempts": 10,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.1798495,
+      "costReconstructed": 0.179849,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 11,
+      "durationMs": 32317,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.1798495"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-e1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-e1__M__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__B__rep1",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 2,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.048656000000000005,
+      "costReconstructed": 0.048656,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 30449,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.048656000000000005"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__B__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-f1__B__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__B__rep2",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 2,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.045928,
+      "costReconstructed": 0.045928,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 26404,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.045928"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__B__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-f1__B__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__B__rep3",
+      "arm": "B",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 26,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 3,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.047564499999999996,
+      "costReconstructed": 0.047564,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 33170,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": false,
+          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.047564499999999996"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": false,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__B__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-f1__B__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__G__rep1",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 2,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 2,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.033686,
+      "costReconstructed": 0.033686,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 3,
+      "durationMs": 23539,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.033686"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__G__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-f1__G__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__G__rep2",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 3,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 2,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.0457565,
+      "costReconstructed": 0.045756,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 4,
+      "durationMs": 28610,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.0457565"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__G__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-f1__G__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__G__rep3",
+      "arm": "G",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 4,
+      "mcpToolsOfferedCount": 0,
+      "mcpServers": [],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 2,
+      "attemptedDistinct": [
+        "Bash",
+        "Grep"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 2,
+      "mcpAttempts": 0,
+      "fileAttempts": 1,
+      "analyzeCached": [],
+      "costUsd": 0.035231,
+      "costReconstructed": 0.035231,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 3,
+      "durationMs": 24497,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "na": true,
+          "detail": "no MCP server configured for arm G (init.mcp_servers=[]), so no analysis can run inside this arm and it cannot pay a cold cost; the pre-batch warm gate in run-probe.mjs covers the batch (DESIGN 4.5)"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": false,
+          "detail": "mcp tool_use blocks=0, mcp servers at init=[], mcp tools offered=0"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm M only"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.035231"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__G__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-f1__G__rep3.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__M__rep1",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 18,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__config",
+        "mcp__devcontext__find",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 18,
+      "mcpAttempts": 18,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.265078,
+      "costReconstructed": 0.265078,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 19,
+      "durationMs": 56483,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.265078"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__M__rep1.stream.jsonl",
+        "results/raw/eShop/eshop-f1__M__rep1.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__M__rep2",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 22,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__config",
+        "mcp__devcontext__find",
+        "mcp__devcontext__get_context",
+        "mcp__devcontext__node",
+        "mcp__devcontext__overview",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__stats",
+        "mcp__devcontext__tests_for",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 22,
+      "mcpAttempts": 22,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.3686335,
+      "costReconstructed": 0.368634,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 23,
+      "durationMs": 81978,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.3686335"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__M__rep2.stream.jsonl",
+        "results/raw/eShop/eshop-f1__M__rep2.result.json"
+      ]
+    },
+    {
+      "repo": "eShop",
+      "cell": "eshop-f1__M__rep3",
+      "arm": "M",
+      "model": "claude-opus-5",
+      "cliVersion": "2.1.227",
+      "permissionMode": "default",
+      "apiKeySource": "none",
+      "memoryPaths": {
+        "auto": "C:\\Users\\shahi\\.claude\\projects\\C--Code-DevContext2-eval-repos-eShop\\memory\\"
+      },
+      "toolsOfferedCount": 22,
+      "mcpToolsOfferedCount": 22,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "offeredOutsideArm": [],
+      "toolUseBlocks": 23,
+      "attemptedDistinct": [
+        "mcp__devcontext__analyze",
+        "mcp__devcontext__config",
+        "mcp__devcontext__find",
+        "mcp__devcontext__get_context",
+        "mcp__devcontext__node",
+        "mcp__devcontext__read_source",
+        "mcp__devcontext__resolve",
+        "mcp__devcontext__stats",
+        "mcp__devcontext__usages"
+      ],
+      "attemptedOutsideArm": [],
+      "executedCount": 23,
+      "mcpAttempts": 23,
+      "fileAttempts": 0,
+      "analyzeCached": [
+        {
+          "path": "C:/Code/DevContext2/eval-repos/eShop",
+          "cached": true,
+          "isError": false
+        }
+      ],
+      "costUsd": 0.38038600000000006,
+      "costReconstructed": 0.380386,
+      "costReconDeltaPct": 0,
+      "cacheWriteTtl": "1h",
+      "cacheWriteMultiplier": 2,
+      "numTurns": 24,
+      "durationMs": 68277,
+      "assertions": [
+        {
+          "id": "A1-analyze-cached",
+          "ok": true,
+          "detail": "analyze(C:/Code/DevContext2/eval-repos/eShop) cached=true"
+        },
+        {
+          "id": "A2-armG-zero-mcp",
+          "ok": true,
+          "na": true,
+          "detail": "applies to arm G only"
+        },
+        {
+          "id": "A3-armM-zero-file",
+          "ok": true,
+          "na": false,
+          "detail": "Read/Grep/Glob tool_use blocks=0, offered at init=[]"
+        },
+        {
+          "id": "A4-cost-nonzero",
+          "ok": true,
+          "detail": "total_cost_usd=0.38038600000000006"
+        },
+        {
+          "id": "X-nothing-outside-arm",
+          "ok": true,
+          "detail": "offered outside arm=[], attempted outside arm=[]"
+        }
+      ],
+      "ok": true,
+      "artifacts": [
+        "results/raw/eShop/eshop-f1__M__rep3.stream.jsonl",
+        "results/raw/eShop/eshop-f1__M__rep3.result.json"
       ]
     }
   ]

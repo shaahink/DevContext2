@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 167113,
+  "num_turns": 38,
+  "stop_reason": "end_turn",
+  "session_id": "189bba74-c1cf-46d7-99c2-26c2b2187e43",
+  "total_cost_usd": 1.031032,
+  "usage": {
+    "input_tokens": 44,
+    "cache_creation_input_tokens": 46968,
+    "cache_read_input_tokens": 552336,
+    "output_tokens": 11372,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 46968,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3753,
+        "cache_read_input_tokens": 49446,
+        "cache_creation_input_tokens": 1699,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1699
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 579,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000664,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 44,
+      "outputTokens": 11372,
+      "cacheReadInputTokens": 552336,
+      "cacheCreationInputTokens": 46968,
+      "webSearchRequests": 0,
+      "costUSD": 1.030368,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\n**Nothing constructs `CreateOrderCommandHandler` directly except one unit test** — every production path reaches it through MediatR — but its side effects fan out to Basket.API, WebApp, OrderProcessor and the rest of the order saga. Full dependency map below.\n\n### 1. Direct invocation path (in-process)\n\n- The handler is registered only by MediatR assembly scanning: `src/Ordering.API/Extensions/Extensions.cs:35-37`. There is no explicit DI registration and no subclass of it (`CreateOrderIdentifiedCommandHandler` at `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57` derives from `IdentifiedCommandHandler`, not from it).\n- `IdentifiedCommandHandler<CreateOrderCommand,bool>.Handle` re-sends the inner command through the mediator, which is what actually reaches `CreateOrderCommandHandler` (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39-104`, dispatch at `:87`; it special-cases `CreateOrderCommand` for logging at `:58-61`). Note `:99-102` swallows *any* exception and returns `default` (false).\n- The only sender of that identified command is the HTTP endpoint `POST api/orders`: `src/Ordering.API/Apis/OrdersApi.cs:17` (route), `:141-146` (command construction, incl. the card-number masking at `:140`), `:155` (send). The endpoint returns `Ok()` even when the handler returns false (`:157-166`).\n- MediatR pipeline behaviours that wrap every invocation: `LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior` (`src/Ordering.API/Extensions/Extensions.cs:39-41`). `TransactionBehavior` opens the DB transaction, commits it, and only then publishes the queued integration events (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:38-52`) — the handler runs *inside* that transaction.\n- `CreateOrderCommandValidator` runs before the handler and enforces address/card/order-item rules (`src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2-32`, registered at `src/Ordering.API/Extensions/Extensions.cs:45`); `IdentifiedCommandValidator` validates the wrapper (`src/Ordering.API/Application/Validations/IdentifiedCommandValidator.cs`).\n\n### 2. HTTP callers of that endpoint (outside Ordering.API)\n\n- **WebApp** checkout: `src/WebApp/Components/Pages/Checkout/Checkout.razor:114` → `BasketState.CheckoutAsync` builds `CreateOrderRequest` and calls `OrderingService.CreateOrder` (`src/WebApp/Services/BasketState.cs:78-108`), which POSTs with the `x-requestid` header (`src/WebApp/Services/OrderingService.cs:12-18`). Its local `CreateOrderRequest` record (`src/WebApp/Services/BasketState.cs:158-172`) must stay shape-compatible with `src/Ordering.API/Apis/OrdersApi.cs:171-185`. Note WebApp deletes the basket itself right after (`BasketState.cs:108`).\n- **ClientApp (MAUI)**: `src/ClientApp/Services/Order/OrderService.cs:13,28-40` POSTs to `api/orders` with `x-requestid`; called from `src/ClientApp/ViewModels/CheckoutViewModel.cs:112`.\n- **AppHost/YARP** routes `/api/orders/{*any}` to Ordering.API (`src/eShop.AppHost/Extensions.cs:243`), so any gateway client is affected.\n\n### 3. Side effects other services depend on\n\n- **`OrderStartedIntegrationEvent`** is enqueued by the handler (`CreateOrderCommandHandler.cs:32-33`) and published post-commit. **Basket.API subscribes to it and deletes the user's basket** (`src/Basket.API/Extensions/Extensions.cs:19`, `src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10-15`). Removing/renaming/changing `UserId` breaks basket clearing.\n- **`OrderStartedDomainEvent`** is raised by the `Order` constructor the handler calls (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:52-65`) and dispatched by `SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:47-62`, called at `CreateOrderCommandHandler.cs:51`). Its handler creates/updates the **Buyer + payment method** and emits `OrderStatusChangedToSubmittedIntegrationEvent` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-52`). That file already carries a warning (`:31-32`) that the ordering only works \"by coincidence\" — timing changes here are fragile.\n- **WebApp** subscribes to `OrderStatusChangedToSubmittedIntegrationEvent` and pushes a live order-status notification to the buyer (`src/WebApp/Extensions/Extensions.cs:50`, `src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:10-14`) — it keys off `BuyerIdentityGuid`.\n- **OrderProcessor** polls the ordering database directly with raw SQL for rows where `\"OrderStatus\" = 'Submitted'` and `OrderDate` older than the grace period, then publishes `GracePeriodConfirmedIntegrationEvent` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:63-74`, `:55-59`). If the handler stops persisting orders in `Submitted` state or changes `OrderDate` semantics, orders silently never progress. This is a schema/data coupling, not a code reference.\n- Indirect saga continuation (all triggered only because the order exists in `Submitted`): `GracePeriodConfirmedIntegrationEventHandler`, stock confirmed/rejected, payment succeeded/failed handlers in Ordering.API (`src/Ordering.API/Extensions/Extensions.cs:55-59`), Catalog.API stock validation, PaymentProcessor (`src/PaymentProcessor/IntegrationEvents/EventHandling/OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs`), Webhooks.API (`src/Webhooks.API/IntegrationEvents/OrderStatusChangedToPaidIntegrationEventHandler.cs`, `...ToShippedIntegrationEventHandler.cs`), and the remaining WebApp status handlers.\n\n### 4. Tests that will break\n\n- `tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs:41` constructs the handler with the exact 5-arg constructor `(IMediator, IOrderingIntegrationEventService, IOrderRepository, IIdentityService, ILogger)` and asserts `Handle` returns **false** when persistence is mocked out (`:43-46`). Any constructor or return-semantics change breaks this.\n- `tests/Ordering.UnitTests/Application/IdentifiedCommandHandlerTest.cs:22,44,60-62` uses `CreateOrderCommand` as the wrapped command type.\n- `tests/Ordering.UnitTests/Application/OrdersWebApiTest.cs:74` stubs `IdentifiedCommand<CreateOrderCommand,bool>`.\n- `tests/Ordering.FunctionalTests/OrderingApiTests.cs:135-159` (`AddNewEmptyOrder` expects 400, `AddNewOrder` expects 200 end-to-end through the real handler).\n\n### 5. Most likely breakage points\n\n- **Constructor signature** — only the unit test binds to it; MediatR resolves the rest, so a DI change fails at runtime, not compile time.\n- **Return value** — `false` is silently converted to `Ok()` by the API (`OrdersApi.cs:157-166`) and to `true` for duplicate requests (`CreateOrderCommandHandler.cs:67-70`), so a failure change may be invisible to callers.\n- **Emitting/removing `OrderStartedIntegrationEvent`** — baskets stop being cleared server-side (WebApp also clears locally, MAUI does not).\n- **Not constructing `Order` via its constructor** — no `OrderStartedDomainEvent`, so no Buyer/payment method row, no `OrderStatusChangedToSubmitted`, no WebApp notification.\n- **Changing status/date on creation** — OrderProcessor's SQL polling stops picking the order up.\n- **Doing work after `SaveEntitiesAsync`, or calling `AddAndSaveEventAsync` outside the transaction** — `AddAndSaveEventAsync` writes to the event log using the current transaction (`src/Ordering.API/Application/IntegrationEvents/OrderingIntegrationEventService.cs:36-41`) and `TransactionBehavior` publishes only events tagged with that transaction id (`TransactionBehavior.cs:52`).\n\nUncertainty: `IIdentityService` is injected but never used inside `Handle` (`CreateOrderCommandHandler.cs:10,22`), so it looks removable — but the unit test passes it positionally, so removing it requires editing that test. I traced callers by full-repo text search on `CreateOrderCommandHandler`, `CreateOrderCommand`, `api/orders`, and the two events it emits; I found no reflection-based or configuration-driven references to the handler type.",
+  "ttft_ms": 1992,
+  "ttft_stream_ms": 762,
+  "time_to_request_ms": 44,
+  "type": "result",
+  "duration_ms": 275882,
+  "uuid": "d2512d08-d7ab-4d72-bba7-5b97712635fe"
+}

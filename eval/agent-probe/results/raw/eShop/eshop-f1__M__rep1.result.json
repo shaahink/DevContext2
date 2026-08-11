@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 57050,
+  "num_turns": 19,
+  "stop_reason": "end_turn",
+  "session_id": "24a9339d-3017-414e-b9a1-ca92a013ce3c",
+  "total_cost_usd": 0.265078,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 11898,
+    "cache_read_input_tokens": 90168,
+    "output_tokens": 4010,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 11898,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1163,
+        "cache_read_input_tokens": 15288,
+        "cache_creation_input_tokens": 374,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 374
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 559,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0006540000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 22,
+      "outputTokens": 4010,
+      "cacheReadInputTokens": 90168,
+      "cacheCreationInputTokens": 11898,
+      "webSearchRequests": 0,
+      "costUSD": 0.264424,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Two C# files in this repository contain the literal string `GracePeriodTime`** (based on what my code-index tools can search — see the caveat below):\n\n1. `src/OrderProcessor/BackgroundTaskOptions.cs` — declares the property: `public int GracePeriodTime { get; set; }` (`src/OrderProcessor/BackgroundTaskOptions.cs:5`).\n2. `src/OrderProcessor/Services/GracePeriodManagerService.cs` — uses the string three times inside `GetConfirmedGracePeriodOrders()`: as the SQL parameter placeholder `@GracePeriodTime` in the query text, as the parameter name in `command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime))`, and as the options property read (`src/OrderProcessor/Services/GracePeriodManagerService.cs:44-95`, method body shown at the file's tail; the class itself starts at `src/OrderProcessor/Services/GracePeriodManagerService.cs:8`).\n\nHow I established this: I searched the analyzed symbol graph for `GracePeriodTime`/`GracePeriod`/`Grace`, which surfaced `GracePeriodManagerService`, `BackgroundTaskOptions`, and the `GracePeriodConfirmedIntegrationEvent` types, then read each one's source. The only other `GracePeriod*` code files — `src/OrderProcessor/Events/GracePeriodConfirmedIntegrationEvent.cs`, `src/Ordering.API/Application/IntegrationEvents/Events/GracePeriodConfirmedIntegrationEvent.cs` and `.../EventHandling/GracePeriodConfirmedIntegrationEventHandler.cs` — do not contain the literal `GracePeriodTime`, only `GracePeriodConfirmed*`.\n\n**Important caveat — I could not search non-C# files.** My tools only index C#/source symbols; a config-key scan (`config`) covers only literal keys used in C# via `IConfiguration` indexers/`GetValue`/`GetSection`, and it lists 16 keys, none of them `GracePeriodTime`. The options object is bound by section name via `builder.Services.AddOptions<BackgroundTaskOptions>().BindConfiguration(nameof(BackgroundTaskOptions))` (`src/OrderProcessor/Extensions/Extensions.cs:15-16`), which strongly implies a JSON settings file (e.g. `src/OrderProcessor/appsettings.json`) supplies a `BackgroundTaskOptions:GracePeriodTime` value — but I was unable to open or verify any `.json`/`.yaml`/`.env` file, so I cannot confirm or rule out additional occurrences outside C# source.",
+  "ttft_ms": 1517,
+  "ttft_stream_ms": 771,
+  "time_to_request_ms": 50,
+  "type": "result",
+  "duration_ms": 56483,
+  "uuid": "e3a5bc71-bc99-44ba-8794-dc307f3b7144"
+}

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 21065,
+  "num_turns": 7,
+  "stop_reason": "end_turn",
+  "session_id": "f8557c9b-6ca4-401a-8fe6-e7ad700eb537",
+  "total_cost_usd": 0.0840205,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 3049,
+    "cache_read_input_tokens": 29241,
+    "output_tokens": 1529,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3049,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 776,
+        "cache_read_input_tokens": 8396,
+        "cache_creation_input_tokens": 1351,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1351
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000645,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 8,
+      "outputTokens": 1529,
+      "cacheReadInputTokens": 29241,
+      "cacheCreationInputTokens": 3049,
+      "webSearchRequests": 0,
+      "costUSD": 0.08337549999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**None.** Basket.API contains no integration event handler that updates prices of items already in a customer's basket when a catalog item's price changes.\n\nHow I established this:\n\n- Basket.API has exactly one integration event handler in the whole project: `OrderStartedIntegrationEventHandler` (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`). Its `Handle` method deletes the user's basket after an order starts — it does no price updating (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10-15`).\n- Basket.API's event bus wiring registers only that single subscription: `AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` (`src/Basket.API/Extensions/Extensions.cs:19`), and the JSON serializer context lists only `OrderStartedIntegrationEvent` (`src/Basket.API/Extensions/Extensions.cs:24`).\n- A repo-wide search for `IIntegrationEventHandler` / `Handle(` under `src/Basket.API` returned only that one handler, and a search for `PriceChanged` matched no file under `src/Basket.API` at all.\n\nFor context (not an answer to the question): the price-change event exists elsewhere — it is published by Catalog.API at `src/Catalog.API/Apis/CatalogApi.cs:350` as `ProductPriceChangedIntegrationEvent` (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`), and its only subscriber in this repo is Webhooks.API's `ProductPriceChangedIntegrationEventHandler` (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`, registered at `src/Webhooks.API/Extensions/Extensions.cs:21`), which does not touch baskets.\n\nOne caveat: this reflects the current source only; if you are comparing against older eShop/eShopOnContainers versions, that codebase did have a `ProductPriceChangedIntegrationEventHandler` in Basket.API, but it is not present here.",
+  "ttft_ms": 1929,
+  "ttft_stream_ms": 1178,
+  "time_to_request_ms": 54,
+  "type": "result",
+  "duration_ms": 23509,
+  "uuid": "91f4df0d-8749-4d03-b775-dfa856166566"
+}

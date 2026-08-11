@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 32918,
+  "num_turns": 11,
+  "stop_reason": "end_turn",
+  "session_id": "1f6c25fa-0be3-4c2a-91d3-85c243ea7279",
+  "total_cost_usd": 0.1798495,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 9615,
+    "cache_read_input_tokens": 49539,
+    "output_tokens": 2328,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 9615,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1030,
+        "cache_read_input_tokens": 12342,
+        "cache_creation_input_tokens": 597,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 597
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.00066,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 14,
+      "outputTokens": 2328,
+      "cacheReadInputTokens": 49539,
+      "cacheCreationInputTokens": 9615,
+      "webSearchRequests": 0,
+      "costUSD": 0.1791895,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**None.** Basket.API contains no integration event handler that updates prices of items already in a customer's basket.\n\nEvidence:\n\n- Basket.API subscribes to exactly one integration event, and it is not a price event: `builder.AddRabbitMqEventBus(\"eventbus\").AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` — `src/Basket.API/Extensions/Extensions.cs:18-19`. That is the only `AddSubscription` call in the service.\n- The single handler that exists in Basket.API is `OrderStartedIntegrationEventHandler` (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`), and it *deletes* the basket (`await repository.DeleteBasketAsync(@event.UserId);`, `src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:14`) — it does not re-price anything.\n- Enumerating every message-consumer entry point across the solution returns 13 consumers, and the only one belonging to Basket.API is `OrderStartedIntegrationEventHandler`.\n- `ProductPriceChangedIntegrationEvent` does exist in Catalog.API (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs`), but its only usage in the codebase is being *published* from `CatalogApi.UpdateItem` (`src/Catalog.API/Apis/CatalogApi.cs:350`). The only handler named `ProductPriceChangedIntegrationEventHandler` lives in Webhooks.API (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs`), not Basket.API, and it dispatches webhooks rather than mutating baskets.\n\nNote on likely expectation: in the older *eShopOnContainers* codebase, Basket.API did have a `ProductPriceChangedIntegrationEventHandler` with an `UpdatePriceInBasketItems` method. In this repository (the newer `eShop`) that handler has been removed — baskets in this version store only product ID and quantity/unit price snapshots and are not re-priced on catalog price changes.",
+  "ttft_ms": 1669,
+  "ttft_stream_ms": 812,
+  "time_to_request_ms": 35,
+  "type": "result",
+  "duration_ms": 32317,
+  "uuid": "75963332-13d4-4daf-a3e4-d9e76761a147"
+}

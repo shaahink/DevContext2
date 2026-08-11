@@ -154,6 +154,27 @@ const gShares = runs.filter((r) => r.arm === "G").map(mcpShare).filter((x) => x 
 P();
 P(`Arm G median mcp share: ${median(gShares) == null ? "-" : median(gShares).toFixed(2)} (must be 0 by construction).`);
 P();
+// Where arm B's share goes is the whole story of the manipulation check, and a single median hides
+// it: the effect is per QUESTION, not spread evenly, and it repeats across reps.
+P(`Arm B, per question - the manipulation check is not uniform, so the median above hides it.`);
+P(`\`mcp offered\` is the count of devcontext tools present at init: it is the proof that a run with`);
+P(`zero mcp calls CHOSE not to call them rather than being unable to.`);
+P();
+P(`| Question | Class | reps with 0 mcp calls | median mcp calls | median file calls | median mcp share | mcp offered at init |`);
+P(`|---|---|---|---|---|---|---|`);
+for (const q of QIDS) {
+  const rs = runs.filter((r) => r.questionId === q && r.arm === "B");
+  const mcpN = (r) => (r.toolCallsExecuted || []).filter((c) => String(c).startsWith("mcp__")).length;
+  const fileN = (r) => (r.toolCallsExecuted || []).filter((c) => ["Read", "Grep", "Glob"].includes(String(c))).length;
+  const zero = rs.filter((r) => mcpN(r) === 0).length;
+  // mcpToolsOffered is a COUNT, and mcpServers carries the connection status. Both are stated so a
+  // zero-mcp run cannot be explained away as "the server was not up".
+  const offered = [...new Set(rs.map((r) => `${r.mcpToolsOffered} tools, ${(r.mcpServers || []).map((s) => `${s.name}:${s.status}`).join(" ")}`))].join(" / ");
+  const sh = median(rs.map(mcpShare).filter((x) => x != null));
+  P(`| ${q} | ${CLASS_OF[q]} | **${zero}/${rs.length}** | ${fmt(median(rs.map(mcpN)), 1)} | ${fmt(median(rs.map(fileN)), 1)} | ` +
+    `${sh == null ? "-" : sh.toFixed(2)} | ${offered} |`);
+}
+P();
 
 // 2. cost populated
 const nullCost = runs.filter((r) => r.costUsd == null || r.costUsd === 0);
