@@ -2,23 +2,23 @@
 
 **Plan:** DevContext agent probe - does the MCP help an agent browse code | **Branch:** `feat/agent-probe` | **Design doc:** eval/agent-probe/DESIGN.md
 
-## Handoff (overwrite this block, ≤12 lines, no history)
+## Handoff (overwrite this block, ≤ 12 lines, no history)
 
-last: **P2.1 DONE, 54/54 cells** — commits 8807f48, be87562, 2021561, 647c745. Isolation 54/54,
-  cost 54/54, 1 censored run kept+flagged (eshop-c1/M/rep1, `error_max_budget_usd`, $1.5134).
-  Spend $23.67 recorded + $0.99 quarantined = **$24.66**. Read `results/p2.1-pilot.md`.
-result: **DESIGN §3.1's arm-B manipulation check FAILED** — median mcp share **0.01**, 17/18 below
-  the 0.20 floor. Classes D/E/F used the MCP **zero** times, 3/3 reps each, with 22 tools offered
-  and `devcontext:connected` on every run: agent CHOICE, not availability. Arm B does not measure
-  what DESIGN wrote it to measure. Medians G $0.2702 / M $0.5073 / B $0.2509 — **M costs more than
-  G on all six questions individually**. Between-rep CV 0.116, so n=5 can resolve a 20% effect.
-red: **`verify.mjs --tier fast` is RED and I did not make it green.** `A1-analyze-cached` fails on
-  exactly those 9 zero-mcp arm-B runs. A2/A3/X isolation pass 54/54 and A4 pass 54/54, so nothing
-  is void; batch warmth is proven separately by the pre-batch warm gate (bg log lines 3-5).
-escalation: the A1 predicate assumed an MCP-capable arm always calls `analyze`. Two options, both
-  costed, with a recommendation, in **`results/p2.1-gate-red-A1.md`** — owner/next session's call.
-next: A1.1 grading. Do NOT restart the pilot. Trap: `subtype` is not a success signal from this
-  CLI — read `is_error` and `terminal_reason` too (see `results/infra-failures.jsonl`).
+green: **`verify.mjs --tier fast` is GREEN** (c366338). The escalated A1 red was the *proxy*, not
+  the bar: DESIGN §8 pre-registers its assertions "before every **batch**", and that bar passed —
+  warm gate now committed as `results/p2.1-warm-gate.txt`. Zero-analyze runs are `n/a` (the same
+  reason arm G already was); the 9 runs got MORE visible — own counted section in the audit.
+deviations: **`eval/agent-probe/DEVIATIONS.md`, six entries** (de235f6) — D1 no `--bare`, D2 cap
+  $1.50 not $2.00, D3 tax statistic, D4 deny-list isolation, D5 the A1 proxy, D6 build SHA moved.
+  D6 came from sweeping `runs.jsonl`, not row 1: 3/54 rows carry `e2f7372`. Immaterial —
+  `git diff --name-only e2f73724 8807f48e -- src/ proto/` is EMPTY and the 3 cells are one
+  `eshop-a1` rep1 triple spanning G/M/B. No key, threshold or arm moved; no number changed.
+done: **A1.1** (1be9129) — 54/54 graded, `results/a1.1-grading.md`. Median recall 100% all arms,
+  0 trap violations, D/E/F 9/9 G · 9/9 B · 8/9 M. Unresolved citations G 14 / B 15 / **M 5**.
+next: **A1.2** judge pass — launch it as a `conductor bg` child. Accuracy is at CEILING in all
+  three arms, so R1.1 must say a 6-question set cannot show non-inferiority with any power.
+trap: `eshop-b1` 6/7 and `eshop-c1` 4/5 in *every* run looks like a grader bug and is not —
+  `IOrderRepository`/`NewOrderRequestHandlerTest` are in no answer at all. Don't touch the keys.
 
 
 ## Baseline numbers (from run.db)
@@ -26,8 +26,8 @@ next: A1.1 grading. Do NOT restart the pilot. Trap: `subtype` is not a success s
 | Metric | Value |
 |---|---|
 | Total checkpoints | 12 |
-| Done | 5 |
-| Claimed (unconfirmed) | 2 |
+| Done | 7 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -53,14 +53,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| P1.1 | Arm isolation proven from recorded transcripts: arm G made 0 mcp calls, arm M made 0 Read/Grep/Glob calls, cost is non-zero on every run, and analyze reported cached true for every arm | DONE | 53ca6c5 | eval/agent-probe/results/p1.1-preflight-audit.md |
-| P1.2 | Tool-schema tax measured — the turn-1 input + cache-creation token delta between arm G and arm B on an identical trivial prompt, recorded as an absolute count and as a share of median run cost | DONE | 53ca6c5 | eval/agent-probe/results/p1.2-tool-schema-tax.md |
+| P1.1 | Arm isolation proven from recorded transcripts: arm G made 0 mcp calls, arm M made 0 Read/Grep/Glob calls, cost is non-zero on every run, and analyze reported cached true for every arm | DONE ✓ | 53ca6c5 | eval/agent-probe/results/p1.1-preflight-audit.md |
+| P1.2 | Tool-schema tax measured — the turn-1 input + cache-creation token delta between arm G and arm B on an identical trivial prompt, recorded as an absolute count and as a share of median run cost | DONE ✓ | 53ca6c5 | eval/agent-probe/results/p1.2-tool-schema-tax.md |
 
 ### P2 — Pilot - six eShop questions, three arms, three repetitions
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | TODO | - | - |
+| P2.1 | 54 eShop runs recorded (6 questions x 3 arms x 3 reps), question order randomised, censored runs kept and flagged, per-arm censoring rate reported | DONE | 8807f48 | eval/agent-probe/results/p2.1-pilot.md |
 
 ### A1 — Grade and analyse
 
