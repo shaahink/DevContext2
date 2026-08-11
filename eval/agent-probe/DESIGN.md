@@ -3,6 +3,10 @@
 > Pre-registration. Written before any run. The point of writing it first is that the
 > decision rule (§5) cannot be chosen after seeing the numbers.
 >
+> **This file is never edited to match what happened.** Where execution departed from it, the
+> departure is recorded in [`DEVIATIONS.md`](DEVIATIONS.md) — read the two together. Six
+> deviations are on record as of the P2 pilot; none touches §5, §3.1, the questions or the keys.
+>
 > Lineage: this is the fresh-agent A/B that `IDEAL-OUTPUT-TARGET.md` §7 specified and
 > `docs/dev/archive/reports/probe-kit.md` scoped, and that
 > `docs/dev/reports/phase1-member-origin-reprobe.md` §4 explicitly deferred as
