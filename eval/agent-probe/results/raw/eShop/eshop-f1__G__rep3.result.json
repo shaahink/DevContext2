@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 12993,
+  "num_turns": 3,
+  "stop_reason": "end_turn",
+  "session_id": "a6143def-e354-4b15-a0ee-c77093c24689",
+  "total_cost_usd": 0.035231,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 830,
+    "cache_read_input_tokens": 8284,
+    "output_tokens": 885,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 830,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 608,
+        "cache_read_input_tokens": 4142,
+        "cache_creation_input_tokens": 830,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 830
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 559,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000644,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 4,
+      "outputTokens": 885,
+      "cacheReadInputTokens": 8284,
+      "cacheCreationInputTokens": 830,
+      "webSearchRequests": 0,
+      "costUSD": 0.034587,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Three files contain the literal string `GracePeriodTime`, all under `src/OrderProcessor`:\n\n1. **`src/OrderProcessor/BackgroundTaskOptions.cs`** — declares the option property `public int GracePeriodTime { get; set; }` (src/OrderProcessor/BackgroundTaskOptions.cs:5).\n2. **`src/OrderProcessor/Services/GracePeriodManagerService.cs`** — twice: as the SQL parameter placeholder `@GracePeriodTime` in the `WHERE CURRENT_TIMESTAMP - \"OrderDate\" >= @GracePeriodTime` clause (src/OrderProcessor/Services/GracePeriodManagerService.cs:72), and when binding it via `command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime))` (src/OrderProcessor/Services/GracePeriodManagerService.cs:74).\n3. **`src/OrderProcessor/appsettings.json`** — the configuration entry `\"GracePeriodTime\": \"1\"` (src/OrderProcessor/appsettings.json:15).\n\nMethod: I ran a case-sensitive repository-wide content search for the literal `GracePeriodTime`, and independently re-ran it with `grep -rn` from the repo root (which also covers files that might be excluded by ignore rules); both produced exactly the same four match lines across these three files. Note that the file name `GracePeriodManagerService.cs` contains `GracePeriod` but not the full string, so it only qualifies because of its contents.",
+  "ttft_ms": 3442,
+  "ttft_stream_ms": 2485,
+  "time_to_request_ms": 48,
+  "type": "result",
+  "duration_ms": 24497,
+  "uuid": "c234f38a-b0a4-487c-a0e4-23c3411ff703"
+}

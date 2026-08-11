@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 171690,
+  "num_turns": 43,
+  "stop_reason": "end_turn",
+  "session_id": "c21968c7-e930-488b-a19e-89ab9260a627",
+  "total_cost_usd": 1.086193,
+  "usage": {
+    "input_tokens": 48,
+    "cache_creation_input_tokens": 52613,
+    "cache_read_input_tokens": 467418,
+    "output_tokens": 13018,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 52613,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 5461,
+        "cache_read_input_tokens": 54817,
+        "cache_creation_input_tokens": 1130,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1130
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 579,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000664,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 48,
+      "outputTokens": 13018,
+      "cacheReadInputTokens": 467418,
+      "cacheCreationInputTokens": 52613,
+      "webSearchRequests": 0,
+      "costUSD": 1.085529,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\n**Nothing calls `CreateOrderCommandHandler` directly except MediatR** — its only trigger is `CreateOrderCommand`, and that command is constructed in exactly one place in the analyzed solution. But a long chain hangs off it, including three other services. Here is everything.\n\n### 1. What invokes it (in-process, Ordering.API)\n\n- **`OrdersApi.CreateOrderAsync`** is the only producer of `CreateOrderCommand`: it masks the card number, builds the command, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` and sends it through MediatR (`src/Ordering.API/Apis/OrdersApi.cs:118`, command constructed and sent at `src/Ordering.API/Apis/OrdersApi.cs:140`–`src/Ordering.API/Apis/OrdersApi.cs:155`). It rejects the call when the `x-requestid` header is empty (`src/Ordering.API/Apis/OrdersApi.cs:132`) and logs `CreateOrderCommand succeeded/failed` off the `bool` result (`src/Ordering.API/Apis/OrdersApi.cs:157`).\n- **`CreateOrderIdentifiedCommandHandler`** — the idempotency wrapper that actually re-sends the inner command to your handler; it deliberately returns `true` for duplicate request ids (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`), backed by `IRequestManager`/`RequestManager` against `OrderingContext` (`src/Ordering.Infrastructure/Idempotency/RequestManager.cs`, reached via the trace of `POST /api/orders/`).\n- **MediatR pipeline behaviors wrapping every command**: `LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior`. `TransactionBehavior` opens the EF transaction and publishes the queued integration events after commit (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:5`). If your change alters what the handler saves or when it enqueues events, this is where it will surface.\n- **`CreateOrderCommandValidator`** runs before the handler and enforces address/card fields and non-empty `OrderItems` (`src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2`). Changing the command shape breaks it.\n\n### 2. What the handler itself depends on (breaks if you change the ordering/semantics)\n\n- Publishes `OrderStartedIntegrationEvent` via `IOrderingIntegrationEventService.AddAndSaveEventAsync` **before** creating the order (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:32`–`:33`).\n- Constructs the `Order` aggregate and adds items (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:40`, `:44`).\n- `IOrderRepository.Add` + `SaveEntitiesAsync` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:49`, `:51`) — `SaveEntitiesAsync` is what dispatches the domain events below.\n\n### 3. Downstream — outside Ordering.API\n\n- **Basket.API**: `OrderStartedIntegrationEventHandler` consumes the event this handler raises and **deletes the user's basket** (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10`). Cross-service edge recorded as `Ordering.API → Basket.API … CreateOrderCommandHandler.cs:32 raises OrderStartedIntegrationEvent`. Stop or delay that publish and baskets are never cleared.\n- **Buyer aggregate path (still Ordering.API, but triggered only by this handler)**: the new `Order` raises `OrderStartedDomainEvent` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs`, member `AddOrderStartedDomainEvent`), handled by `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler`, which finds/creates the `Buyer`, verifies the payment method and saves (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:23`, `:34`, `:44`, `:47`) and then raises `OrderStatusChangedToSubmittedIntegrationEvent` (`…DomainEventHandler.cs:50`–`:51`). A follow-on domain handler `UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler` also sits on this chain (`src/Ordering.API/Application/DomainEventHandlers/UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler.cs:3`).\n- **WebApp**: `OrderStatusChangedToSubmittedIntegrationEventHandler` consumes that event and pushes a live order-status notification to the browser (`src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:10`).\n- **OrderProcessor**: `GracePeriodManagerService` polls the `ordering.orders` table with **raw SQL** (`src/OrderProcessor/Services/GracePeriodManagerService.cs:62`) and publishes `GracePeriodConfirmedIntegrationEvent` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:55`) back into Ordering.API. It depends on the rows/status this handler writes, not on any code contract — schema or status changes here break it silently.\n- **Knock-on chain after grace period** (all only reachable because this handler created the order): Ordering.API `GracePeriodConfirmedIntegrationEventHandler` → `OrderStatusChangedToAwaitingValidationIntegrationEvent` → **Catalog.API** stock check → `OrderStockConfirmed/Rejected` → **PaymentProcessor** (`OrderStatusChangedToStockConfirmedIntegrationEventHandler`) → `OrderPaymentSucceeded/Failed` → **Webhooks.API** (`OrderStatusChangedToPaidIntegrationEvent`) and further WebApp status notifications. These wirings are listed in the event map (e.g. `src/Ordering.API/Application/DomainEventHandlers/OrderStatusChangedToAwaitingValidationDomainEventHandler.cs:33`, `src/PaymentProcessor/IntegrationEvents/EventHandling/OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs:27`, `src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:29`).\n\n### 4. Upstream — HTTP clients of `POST /api/orders/`\n\n- **WebApp (Blazor)**: `Checkout.razor` → `BasketState.CheckoutAsync` → `OrderingService.CreateOrder`, which POSTs to `/api/Orders/` with an `x-requestid` header (`src/WebApp/Components/Pages/Checkout/Checkout.razor:114`, `src/WebApp/Services/BasketState.cs:107`, `src/WebApp/Services/OrderingService.cs:12`).\n- **ClientApp (.NET MAUI)**: `CheckoutViewModel.CheckoutAsync` → `IOrderService.CreateOrderAsync` → `OrderService.CreateOrderAsync` POSTs to the orders gateway with `x-requestid` (`src/ClientApp/ViewModels/CheckoutViewModel.cs:112`, `src/ClientApp/Services/Order/OrderService.cs:28`). Note it ignores the response, so a behaviour change that turns success into failure would be invisible in the mobile app.\n- Anything that changes the shape of `CreateOrderRequest` (`src/Ordering.API/Apis/OrdersApi.cs`, mirrored by `eShop.WebApp.Services.CreateOrderRequest` in `src/WebApp/Services/OrderingService.cs`) breaks both clients — they are separate copies of the DTO, not a shared contract.\n- **HybridApp** references only `WebAppComponents` and has no order-creation path in the graph; **Webhooks.API/WebhookClient** are affected only via the paid/shipped events much later in the chain.\n\n### 5. Tests\n\n**None found.** `tests_for` on the handler returned 0, and the analyzed solution (`eShop.slnx`, 19 projects) contains no test project at all. Caveat: the repo has two other solutions on disk (`src/ClientApp/ClientApp.sln`, `tests/ClientApp.UnitTests/...`) that were not analyzed, so I cannot rule out test projects under `tests/` that exercise this handler — I only established that nothing in `eShop.slnx` does.\n\n### Highest-risk breakages, in order\n\n1. Removing/reordering the `OrderStartedIntegrationEvent` publish → baskets never cleared in Basket.API.\n2. Changing what gets persisted or the initial order status → OrderProcessor's raw-SQL poll never fires, so the entire validation/payment/shipping saga stalls.\n3. Changing `CreateOrderCommand`'s fields → `CreateOrderCommandValidator`, `OrdersApi.CreateOrderAsync`, and the two client DTOs all break.\n4. Changing the `bool` return → `CreateOrderIdentifiedCommandHandler.CreateResultForDuplicateRequest` (which returns `true` for duplicates) and the endpoint's success/failure logging.\n5. Throwing or short-circuiting before `SaveEntitiesAsync` → the `OrderStartedDomainEvent` never dispatches, so no `Buyer` is created and WebApp never gets the \"submitted\" notification.",
+  "ttft_ms": 1936,
+  "ttft_stream_ms": 754,
+  "time_to_request_ms": 28,
+  "type": "result",
+  "duration_ms": 171221,
+  "uuid": "e0f21d19-b2c0-4c1f-a078-c9d0b5448d73"
+}

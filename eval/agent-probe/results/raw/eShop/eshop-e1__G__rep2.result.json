@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 27685,
+  "num_turns": 8,
+  "stop_reason": "end_turn",
+  "session_id": "5125ecfd-3429-42c2-862a-88bca23cf2d0",
+  "total_cost_usd": 0.0869215,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 3110,
+    "cache_read_input_tokens": 25613,
+    "output_tokens": 1692,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3110,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 790,
+        "cache_read_input_tokens": 6652,
+        "cache_creation_input_tokens": 625,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 625
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 10,
+      "outputTokens": 1692,
+      "cacheReadInputTokens": 25613,
+      "cacheCreationInputTokens": 3110,
+      "webSearchRequests": 0,
+      "costUSD": 0.0862565,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**None** — Basket.API contains no integration event handler that updates prices of items in existing baskets.\n\nEvidence:\n\n- Basket.API has exactly one integration event handler in the whole project: `OrderStartedIntegrationEventHandler`, and it deletes the basket rather than repricing it (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6-15`, which calls `repository.DeleteBasketAsync(@event.UserId)`).\n- The event bus registration confirms only one subscription is wired up: `.AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` (`src/Basket.API/Extensions/Extensions.cs:18-20`).\n- The `IntegrationEvents` folder of Basket.API holds only `OrderStartedIntegrationEventHandler.cs` and `OrderStartedIntegrationEvent.cs`; there are no other files there.\n- A repository-wide search for `PriceChanged` returns no hits in Basket.API. The `ProductPriceChangedIntegrationEvent` is published by Catalog.API (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs`, raised from `src/Catalog.API/Apis/CatalogApi.cs`), and its only consumer in this codebase is `ProductPriceChangedIntegrationEventHandler` in `src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs`, which dispatches webhooks — it does not touch baskets.\n\nHow I established it: I enumerated every `.cs` file under `src/Basket.API`, read the only handler and the DI/subscription registration, and grepped the entire repo for `PriceChanged`, `IIntegrationEventHandler`, `AddSubscription`, `UnitPrice =`, and `OldPrice`, none of which produced a basket-repricing handler.\n\nNote: in the upstream eShopOnContainers sample this behavior did exist (`ProductPriceChangedIntegrationEventHandler` in Basket.API, which updated `UnitPrice`/`OldUnitPrice`), so if you were expecting it here, it has been removed in this version of the codebase.",
+  "ttft_ms": 1579,
+  "ttft_stream_ms": 761,
+  "time_to_request_ms": 50,
+  "type": "result",
+  "duration_ms": 40693,
+  "uuid": "f5e9229d-ba61-4c62-8b16-00d01281e9aa"
+}

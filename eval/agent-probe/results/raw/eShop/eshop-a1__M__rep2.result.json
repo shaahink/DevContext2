@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 98041,
+  "num_turns": 26,
+  "stop_reason": "end_turn",
+  "session_id": "22500969-10a5-4683-9280-34105a332a40",
+  "total_cost_usd": 0.791743,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 41380,
+    "cache_read_input_tokens": 392106,
+    "output_tokens": 7243,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 41380,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2858,
+        "cache_read_input_tokens": 43658,
+        "cache_creation_input_tokens": 1040,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1040
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 30,
+      "outputTokens": 7243,
+      "cacheReadInputTokens": 392106,
+      "cacheCreationInputTokens": 41380,
+      "webSearchRequests": 0,
+      "costUSD": 0.7910780000000001,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What it is\n\nA .NET Aspire–orchestrated **microservices e‑commerce reference app** (the eShop reference application), 19 projects on `net10.0` (plus MAUI TFMs), analyzed from `eShop.slnx`. The style detector rates it \"Microservices, high confidence — Aspire orchestration of 9 runnable services\", with Minimal APIs + Controllers, MediatR CQRS, EF Core/Postgres, FluentValidation and DDD aggregates (`Buyer`, `Order`).\n\n## The composition root\n\n`src/eShop.AppHost` is the Aspire AppHost — the thing you actually F5. It references and starts **nine** project resources (line numbers are the `AddProject` calls in `src/eShop.AppHost/Program.cs`):\n\n| Process | Kind | Started at |\n|---|---|---|\n| Identity.API | Duende IdentityServer web app (MVC controllers) | `src/eShop.AppHost/Program.cs:23` |\n| Basket.API | gRPC service | `src/eShop.AppHost/Program.cs:30` |\n| Catalog.API | Minimal-API Web API (EF Core + pgvector) | `src/eShop.AppHost/Program.cs:36` |\n| Ordering.API | Web API (MediatR/CQRS, DDD) | `src/eShop.AppHost/Program.cs:40` |\n| OrderProcessor | Worker service | `src/eShop.AppHost/Program.cs:46` |\n| PaymentProcessor | Worker service | `src/eShop.AppHost/Program.cs:51` |\n| Webhooks.API | Web API | `src/eShop.AppHost/Program.cs:54` |\n| WebhookClient | Blazor UI | `src/eShop.AppHost/Program.cs:65` |\n| WebApp | Blazor storefront (+ YARP) | `src/eShop.AppHost/Program.cs:69` |\n\nEvery one of these also references `eShop.ServiceDefaults` (`AddServiceDefaults` in `src/eShop.ServiceDefaults/Extensions.cs`) for OpenTelemetry, health checks and service discovery.\n\n**Not** started by the AppHost: `ClientApp` (.NET MAUI) and `HybridApp` (MAUI + Blazor hybrid) are separately-launched client apps — the AppHost has no dependency edge to either; `ClientApp` even has its own solution `src/ClientApp/ClientApp.sln`. The remaining projects (`EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents`, `eShop.ServiceDefaults`) are libraries, not processes.\n\n## Backing resources the AppHost also brings up\n\n- **PostgreSQL** databases: `catalogdb` (`src/Catalog.API/Extensions/Extensions.cs:15`), `orderingdb` (`src/Ordering.API/Extensions/Extensions.cs:17`, also consumed by OrderProcessor at `src/OrderProcessor/Extensions/Extensions.cs:13`); Identity.API and Webhooks.API have their own EF contexts (`src/Identity.API/Data/ApplicationDbContext.cs`, `src/Webhooks.API/Infrastructure/WebhooksContext.cs`) — I did not verify their Aspire resource names.\n- **Redis** (`redis`) for the basket: `src/Basket.API/Extensions/Extensions.cs:14`, backing `RedisBasketRepository`.\n- **RabbitMQ** (`eventbus`): `AddRabbitMqEventBus(\"eventbus\")` in `src/Basket.API/Extensions/Extensions.cs:18`, `src/Catalog.API/Extensions/Extensions.cs:31`, `src/OrderProcessor/Extensions/Extensions.cs:10`.\n- **AI backend, optional**: either Ollama as a container with `embedding`/`chat` models (`src/eShop.AppHost/Extensions.cs:AddOllama`, uses `all-minilm` and `llama3.1`) or OpenAI/Azure OpenAI connection strings `textEmbeddingModel`/`chatModel` (`src/eShop.AppHost/Extensions.cs:AddOpenAI`); Catalog picks between them at `src/Catalog.API/Extensions/Extensions.cs:38-46`.\n- The AppHost also injects `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` into every project resource (`src/eShop.AppHost/Extensions.cs:22-46`).\n\n## Entry points inside those processes (109 total)\n\n- **43 HTTP endpoints** — Catalog minimal APIs (`src/Catalog.API/Apis/CatalogApi.cs:21-107`), Ordering (`POST /api/orders/`, `PUT /api/orders/cancel|ship`, `POST /api/orders/draft`), Webhooks (`src/Webhooks.API/Apis/WebHooksApi.cs`), Identity MVC controllers (`src/Identity.API/Quickstart/...`).\n- **3 gRPC methods** — `Basket.GetBasket/UpdateBasket/DeleteBasket` (`src/Basket.API/Grpc/BasketService.cs:8`).\n- **13 RabbitMQ message consumers** — e.g. `OrderStartedIntegrationEventHandler` in Basket.API, `OrderStatusChangedToStockConfirmedIntegrationEventHandler` in PaymentProcessor, `ProductPriceChangedIntegrationEventHandler` in Webhooks.API.\n- **1 hosted background service** — `GracePeriodManagerService`, registered at `src/OrderProcessor/Extensions/Extensions.cs:18`; it is what makes OrderProcessor a process rather than a library.\n- **7 MediatR domain-event handlers** in `src/Ordering.API/Application/DomainEventHandlers/`, behind the pipeline `LoggingBehavior → TransactionBehavior → ValidatorBehavior`.\n- **42 UI entries** — Blazor routes in WebApp (`/cart`, `/checkout`, `/user/orders`) and WebhookClient (`/add-webhook`, `/login`), plus MAUI `[RelayCommand]` view-model entries in ClientApp and Razor pages in HybridApp.\n\n## How the processes talk\n\nWebApp → Basket.API over gRPC (`src/WebApp/Services/BasketService.cs:7`), WebApp → Catalog.API / Ordering.API over HTTP (`src/WebApp/Extensions/Extensions.cs:34,38`), WebhookClient → Webhooks.API (`src/WebhookClient/Extensions/Extensions.cs:19`), and everything else via 13 RabbitMQ integration events (Ordering.API ↔ Catalog.API, Ordering.API → PaymentProcessor, OrderProcessor → Ordering.API, Catalog/Ordering → Webhooks.API).\n\n## Caveat\n\nI could not open `src/eShop.AppHost/Program.cs` as text with the tools available; the nine project registrations and their line numbers come from the dependency-graph provenance recorded for that file, and the resource names (`redis`, `eventbus`, `catalogdb`, `orderingdb`) come from the consuming services' own registration code cited above. The exact set of container resources declared in `Program.cs` (e.g. whether a standalone YARP reverse-proxy resource is added — `Aspire.Hosting.Yarp` is imported at `src/eShop.AppHost/Extensions.cs:3`) is therefore inferred rather than read directly.",
+  "ttft_ms": 1597,
+  "ttft_stream_ms": 843,
+  "time_to_request_ms": 99,
+  "type": "result",
+  "duration_ms": 97754,
+  "uuid": "e785de08-3d73-4271-9aca-0a62a895f6d9"
+}

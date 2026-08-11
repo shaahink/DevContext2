@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 27367,
+  "num_turns": 10,
+  "stop_reason": "end_turn",
+  "session_id": "e2e90cb2-89ce-47a6-b527-54add3013d9d",
+  "total_cost_usd": 0.1338995,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 6561,
+    "cache_read_input_tokens": 40349,
+    "output_tokens": 1896,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 6561,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 605,
+        "cache_read_input_tokens": 9460,
+        "cache_creation_input_tokens": 425,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 425
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 14,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000645,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 14,
+      "outputTokens": 1896,
+      "cacheReadInputTokens": 40349,
+      "cacheCreationInputTokens": 6561,
+      "webSearchRequests": 0,
+      "costUSD": 0.1332545,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**None** — Basket.API contains no integration event handler that updates prices of items already in a customer's basket.\n\nHow I established this:\n\n- Basket.API has exactly one integration event handler: `OrderStartedIntegrationEventHandler` (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`), and it deletes the basket rather than repricing it (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:14`).\n- The service's event bus wiring registers only that one subscription: `.AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` (`src/Basket.API/Extensions/Extensions.cs:18`). There is no `ProductPriceChanged` subscription in Basket.API.\n- Enumerating every node in the `Basket.API` service turned up no other `IIntegrationEventHandler` implementation and no `ProductPriceChanged*` type in that project.\n\nFor completeness (not the answer, just to show where the price-change event does go): `ProductPriceChangedIntegrationEvent` is raised by Catalog when an item's price is updated (`src/Catalog.API/Apis/CatalogApi.cs:350`), and the only handler for it in the whole solution lives in Webhooks.API — `ProductPriceChangedIntegrationEventHandler` (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`), which dispatches webhooks and does not touch baskets.\n\nSo the \"update prices of items already in the basket\" behavior (present in older eShopOnContainers versions) does not exist in this codebase's Basket.API.",
+  "ttft_ms": 1523,
+  "ttft_stream_ms": 752,
+  "time_to_request_ms": 46,
+  "type": "result",
+  "duration_ms": 26625,
+  "uuid": "c141b1f3-3668-44d5-9fb8-7baf6e6d4b6a"
+}

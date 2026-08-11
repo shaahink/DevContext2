@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 19316,
+  "num_turns": 5,
+  "stop_reason": "end_turn",
+  "session_id": "d9ee79af-6c83-45d0-a393-fa9ca8c1015e",
+  "total_cost_usd": 0.0759385,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 2521,
+    "cache_read_input_tokens": 28171,
+    "output_tokens": 1438,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2521,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 927,
+        "cache_read_input_tokens": 7555,
+        "cache_creation_input_tokens": 1664,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1664
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 568,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000653,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 8,
+      "outputTokens": 1438,
+      "cacheReadInputTokens": 28171,
+      "cacheCreationInputTokens": 2521,
+      "webSearchRequests": 0,
+      "costUSD": 0.0752855,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it publishes no integration events at all.\n\nWhat `CreateItem` actually does (`src/Catalog.API/Apis/CatalogApi.cs:366-388`):\n1. Takes `CatalogServices services` and a `CatalogItem product` from the request body (`src/Catalog.API/Apis/CatalogApi.cs:366-368`).\n2. Constructs a new `CatalogItem` from the posted product, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`).\n3. Computes and assigns an AI embedding via `services.CatalogAI.GetEmbeddingAsync(item)` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n4. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` — a plain EF Core insert, with no `services.EventService` usage (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n5. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`). It is registered as the `POST /items` endpoint named \"CreateItem\" (`src/Catalog.API/Apis/CatalogApi.cs:103-104`).\n\nHow I established this: `ProductPriceChangedIntegrationEvent` appears in `CatalogApi.cs` at exactly one place — line 350, inside `UpdateItem`, not `CreateItem`. There, when the EF `Price` property is flagged as modified, the event is created and published via `services.EventService.SaveEventAndCatalogContextChangesAsync` and `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:345-357`). `CreateItem`'s body (lines 366-388) contains no reference to `EventService` or any integration event.\n\nOne nuance worth flagging: `UpdateOrCreateItem` (`src/Catalog.API/Apis/CatalogApi.cs:315-322`) delegates to `UpdateItem`, not to `CreateItem`, so the event-publishing path is reached only through the update flow.",
+  "ttft_ms": 1814,
+  "ttft_stream_ms": 996,
+  "time_to_request_ms": 46,
+  "type": "result",
+  "duration_ms": 18663,
+  "uuid": "85d19e79-623d-4e2d-b1fc-90d7333584b7"
+}

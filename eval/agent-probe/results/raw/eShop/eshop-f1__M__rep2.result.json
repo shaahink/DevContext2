@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 82505,
+  "num_turns": 23,
+  "stop_reason": "end_turn",
+  "session_id": "52e91deb-722f-414d-a0fc-13c45c7e0aa8",
+  "total_cost_usd": 0.3686335,
+  "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 18805,
+    "cache_read_input_tokens": 122669,
+    "output_tokens": 4739,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 18805,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 947,
+        "cache_read_input_tokens": 20767,
+        "cache_creation_input_tokens": 1060,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1060
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 559,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000644,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 26,
+      "outputTokens": 4739,
+      "cacheReadInputTokens": 122669,
+      "cacheCreationInputTokens": 18805,
+      "webSearchRequests": 0,
+      "costUSD": 0.3679895,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Answer: within the C# sources I can search, two files contain the literal `GracePeriodTime`:**\n\n1. `src/OrderProcessor/BackgroundTaskOptions.cs` — declares the property: `public int GracePeriodTime { get; set; }` (src/OrderProcessor/BackgroundTaskOptions.cs:5, in a file that is only 8 lines long).\n2. `src/OrderProcessor/Services/GracePeriodManagerService.cs` — three occurrences, all inside `GetConfirmedGracePeriodOrders()`: the SQL parameter placeholder `... >= @GracePeriodTime ...`, the parameter name in `command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime))`, and the options property read in that same call (src/OrderProcessor/Services/GracePeriodManagerService.cs:44 onward; the file is 95 lines).\n\nThe option is bound by section name, not by key name, so no other C# file spells out `GracePeriodTime`: `src/OrderProcessor/Extensions/Extensions.cs:15` does `AddOptions<BackgroundTaskOptions>().BindConfiguration(nameof(BackgroundTaskOptions))`, and that is the only usage of the options type anywhere in the graph (usages of `Type:eShop.OrderProcessor.BackgroundTaskOptions` returned exactly one hit).\n\n**Important caveat about completeness:** my tooling indexes C# symbols and source, not arbitrary text, so I could search only `.cs` content. I could **not** verify non-C# files (e.g. `appsettings.json` / `appsettings.Development.json` under `src/OrderProcessor/`, AppHost environment-variable wiring, docs, or `.md` files). Since the value is bound from configuration section `BackgroundTaskOptions`, an `appsettings.json` entry named `GracePeriodTime` is plausible and quite likely, but I did not confirm it — the configuration-key scanner in my tooling only reports keys read from source (16 keys, none of them `GracePeriodTime`) and reported two config-JSON files it failed to parse. Please treat the two `.cs` files as confirmed and run a plain-text grep if you need certainty about JSON/other file types.",
+  "ttft_ms": 1652,
+  "ttft_stream_ms": 838,
+  "time_to_request_ms": 30,
+  "type": "result",
+  "duration_ms": 81978,
+  "uuid": "0042b810-3e23-4d8e-afe0-27cc8eac584b"
+}
