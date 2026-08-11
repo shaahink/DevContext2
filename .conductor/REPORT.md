@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext agent probe - does the MCP help an agent browse code run report
 
-_Updated 2026-08-11 01:47 UTC · branch `feat/agent-probe` · HEAD `4c9dbb5`_
+_Updated 2026-08-11 02:08 UTC · branch `feat/agent-probe` · HEAD `f52a33e`_
 
 **Status:** Idle
-**Stage:** P2 — Pilot - six eShop questions, three arms, three repetitions · attempts used 0
-**Checkpoints:** 9/12 done · **Sessions run:** 5 · **Cost:** $33.4303 (agent $33.4261 + gates $0.0042) · **Tokens:** 681,794 in / 327,258 out
-**Confirmed phases:** K1, H1, P1, P2
+**Stage:** A1 — Grade and analyse · attempts used 0
+**Checkpoints:** 10/12 done · **Sessions run:** 6 · **Cost:** $45.3856 (agent $45.3808 + gates $0.0048) · **Tokens:** 819,041 in / 395,992 out
+**Confirmed phases:** K1, H1, P1, P2, A1
 
 ## Stage progress
 
@@ -15,7 +15,7 @@ _Updated 2026-08-11 01:47 UTC · branch `feat/agent-probe` · HEAD `4c9dbb5`_
 | H1 | Probe harness - three-arm runner | ██████████ 2/2 | confirmed ✓ |
 | P1 | Smoke - prove arm isolation and cost accounting before spending | ██████████ 2/2 | confirmed ✓ |
 | P2 | Pilot - six eShop questions, three arms, three repetitions | ██████████ 1/1 | confirmed ✓ |
-| A1 | Grade and analyse | █████░░░░░ 1/2 | partial |
+| A1 | Grade and analyse | ██████████ 2/2 | confirmed ✓ |
 | R1 | Report and verdict | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>K1 — Ground truth - pre-registered question sets (3/3)</summary>
@@ -54,12 +54,12 @@ _Updated 2026-08-11 01:47 UTC · branch `feat/agent-probe` · HEAD `4c9dbb5`_
 
 </details>
 
-<details><summary>A1 — Grade and analyse (1/2)</summary>
+<details> ✅<summary>A1 — Grade and analyse (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | ✅ DONE | [`c366338`](https://github.com/shaahink/DevContext2/commit/c366338) |
-| A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | ⬜ TODO | - |
+| A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | ✅ DONE | [`33aba13`](https://github.com/shaahink/DevContext2/commit/33aba13) |
 
 </details>
 
@@ -81,6 +81,7 @@ _Updated 2026-08-11 01:47 UTC · branch `feat/agent-probe` · HEAD `4c9dbb5`_
 | 3 | P1 | Deliver | 1 | 08-10 23:40 | 0:18 | Advanced | P1.1 P1.2 | 4 | probe-fast:OK | $6.8159 | $0.0013 | 122,889/64,955 |
 | 4 | P2 | Deliver | 1 | 08-11 00:00 | 1:29 | GatesRed | P2.1 | 6 | probe-fast:FAIL-retry | $6.6438 | $0.0011 | 131,234/60,187 |
 | 5 | P2 | Fix | 2 | 08-11 01:29 | 0:17 | Advanced | A1.1 | 4 | probe-fast:OK | $7.0867 | $0.0007 | 148,752/67,848 |
+| 6 | A1 | Deliver | 1 | 08-11 01:47 | 0:20 | Advanced | A1.2 | 3 | probe-fast:OK | $11.9547 | $0.0006 | 137,247/68,734 |
 
 ## Money
 
@@ -88,28 +89,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 5 | 37.8M | 97.3% | $33.43 | 9 | 4.2M | $3.71 |
+| **run total** | 6 | 55.7M | 97.8% | $45.39 | 10 | 5.57M | $4.54 |
 | stage K1 | 1 | 5.39M | 96.3% | $5.58 | 3 | 1.8M | $1.86 |
 | stage H1 | 1 | 8.47M | 97.5% | $7.30 | 2 | 4.23M | $3.65 |
 | stage P1 | 1 | 8.1M | 97.7% | $6.82 | 2 | 4.05M | $3.41 |
 | stage P2 | 2 | 15.8M | 97.4% | $13.73 | 2 | 7.92M | $6.87 |
-| 2026-08 | 5 | 37.8M | 97.3% | $33.43 | 9 | 4.2M | $3.71 |
+| stage A1 | 1 | 17.9M | 98.9% | $11.96 | 1 | 17.9M | $11.96 |
+| 2026-08 | 6 | 55.7M | 97.8% | $45.39 | 10 | 5.57M | $4.54 |
 
-_Where the money goes: agent $33.43 (100%) · gate $0.00 (0%) · blended $0.88/M tokens._
+_Where the money goes: agent $45.38 (100%) · gate $0.00 (0%) · blended $0.81/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-10 23:28:38  ◆ run started · DevContext agent probe - does the MCP help an agent browse code
-08-10 23:28:39  ▸ stage K1 entered — Ground truth - pre-registered question sets
-08-10 23:28:39  • session #1 K1 Deliver started (attempt 1/6)
-08-10 23:44:46  ▪ gate probe-fast pass [session]  (5.0s)
-08-10 23:44:47  • session #1 K1 → Advanced · done K1.1,K1.2,K1.3 · 4 commit(s)  (16m08s)
-08-11 00:08:37  ◆ run resumed · DevContext agent probe - does the MCP help an agent browse code
-08-11 00:08:50  ▪ gate probe-fast pass [phase]  (5.2s)
-08-11 00:08:50  ▪ gate probe-full pass [phase]  (4.8s)
 08-11 00:08:50  ✓ checkpoint K1.1 confirmed
 08-11 00:08:50  ✓ checkpoint K1.2 confirmed
 08-11 00:08:50  ✓ checkpoint K1.3 confirmed
@@ -142,6 +136,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-11 02:47:37  ▪ gate probe-fast pass [phase]  (6.3s)
 08-11 02:47:37  ▪ gate probe-full pass [phase]  (6.9s)
 08-11 02:47:37  ✓ checkpoint A1.1 confirmed
+08-11 02:47:37  ▸ stage P2 confirmed  (1h47m32s)
+08-11 02:47:40  ▸ stage A1 entered — Grade and analyse
+08-11 02:47:40  • session #6 A1 Deliver started (attempt 1/4)
+08-11 03:08:13  ▪ gate probe-fast pass [session]  (6.1s)
+08-11 03:08:15  • session #6 A1 → Advanced · done A1.2 · 3 commit(s)  (20m34s)
+08-11 03:08:30  ▪ gate probe-fast pass [phase]  (8.1s)
+08-11 03:08:30  ▪ gate probe-full pass [phase]  (6.6s)
+08-11 03:08:31  ✓ checkpoint A1.2 confirmed
 ```
 
 ## Health
@@ -149,7 +151,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 5 · retries 1 (20 %) · overall Ok
+sessions 6 · retries 1 (17 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -192,6 +194,10 @@ vs upstream: 1 ahead
   - [`1be9129`](https://github.com/shaahink/DevContext2/commit/1be9129) eval(probe): A1.1 - deterministic grading pass over all 54 runs
   - [`de235f6`](https://github.com/shaahink/DevContext2/commit/de235f6) docs(probe): record six pre-registration deviations
   - [`c366338`](https://github.com/shaahink/DevContext2/commit/c366338) eval(probe): A1 warmth proxy - zero-analyze is n/a, not unproven
+- **s6 (A1 Deliver)** — 3 commit(s):
+  - [`15c0c6b`](https://github.com/shaahink/DevContext2/commit/15c0c6b) eval(probe): A1.2 - judge pass 54/54 and the paired analysis. The pilot is a NULL
+  - [`df09b5e`](https://github.com/shaahink/DevContext2/commit/df09b5e) eval(probe): A1.2 paired analysis script (DESIGN 4, 5, 9)
+  - [`33aba13`](https://github.com/shaahink/DevContext2/commit/33aba13) eval(probe): A1.2 judge harness - blind-grading redactor + leak scan
 
 ## Last gate run
 
@@ -199,24 +205,25 @@ probe-fast:OK · probe-full:OK
 
 ## Last session result
 
-> SESSION-RESULT:** The gate is green and two checkpoints are banked. The escalated `A1-analyze-cached` red was real but misdiagnosed as a bar: DESIGN §8 pre-registers its assertions as running *"before every **batch**"*, and that batch-level bar passed — `run-probe.mjs`'s warm gate refused to start until a **fresh** MCP process reported `cached=true`, now committed as `results/p2.1-warm-gate.txt`. `audit-preflight.mjs`'s per-run re-derivation was P1's stricter *proxy* on top, and it had a false-positive mode: a run that calls no `analyze` performed no analysis and cannot have paid a cold cost, which is the identical reasoning arm G was already granted `n/a` under. I narrowed the proxy, not th…
+> SESSION-RESULT: **A1.2 landed and the pilot's answer is a null — reported as one.** I built the pass-2 judge harness (`judge.mjs`, commit `33aba13`) and the paired-analysis script (`analyse.mjs`, `df09b5e`), then graded all 54 runs blind and computed every DESIGN §4/5/9 statistic (`15c0c6b`, evidence `eval/agent-probe/results/a1.2-analysis.md`, claimed via `conductor task --done A1.2`). **Cost, arm B vs arm G, paired by question: median log2 ratio +0.120 — arm B costs 1.087× arm G, slightly *more*, not less; 95% CI [-0.423, +0.346] contains zero, against an accelerator bar of upper < -0.32.** Correctness is exactly tied, G 18/18 and B 18/18 with zero discordant pairs (McNemar p=1.0). Neither…
 
 ## Tracker handoff
 
 ```
-green: **`verify.mjs --tier fast` is GREEN** (c366338). The escalated A1 red was the *proxy*, not
-  the bar: DESIGN §8 pre-registers its assertions "before every **batch**", and that bar passed —
-  warm gate now committed as `results/p2.1-warm-gate.txt`. Zero-analyze runs are `n/a` (the same
-  reason arm G already was); the 9 runs got MORE visible — own counted section in the audit.
-deviations: **`eval/agent-probe/DEVIATIONS.md`, six entries** (de235f6) — D1 no `--bare`, D2 cap
-  $1.50 not $2.00, D3 tax statistic, D4 deny-list isolation, D5 the A1 proxy, D6 build SHA moved.
-  D6 came from sweeping `runs.jsonl`, not row 1: 3/54 rows carry `e2f7372`. Immaterial —
-  `git diff --name-only e2f73724 8807f48e -- src/ proto/` is EMPTY and the 3 cells are one
-  `eshop-a1` rep1 triple spanning G/M/B. No key, threshold or arm moved; no number changed.
-done: **A1.1** (1be9129) — 54/54 graded, `results/a1.1-grading.md`. Median recall 100% all arms,
-  0 trap violations, D/E/F 9/9 G · 9/9 B · 8/9 M. Unresolved citations G 14 / B 15 / **M 5**.
-next: **A1.2** judge pass — launch it as a `conductor bg` child. Accuracy is at CEILING in all
-  three arms, so R1.1 must say a 6-question set cannot show non-inferiority with any power.
-trap: `eshop-b1` 6/7 and `eshop-c1` 4/5 in *every* run looks like a grader bug and is not —
-  `IOrderRepository`/`NewOrderRequestHandlerTest` are in no answer at all. Don't touch the keys.
+done: **A1.2** (judge 54/54 + paired analysis) - `results/a1.2-analysis.md`. **THE PILOT ANSWER
+  IS A NULL.** Cost B vs G: median log2 **+0.120** (B costs **1.087x** G, i.e. slightly MORE),
+  95% CI [-0.423, +0.346]; accelerator needs upper < -0.32. Accuracy G 18/18 = B 18/18, **zero
+  discordant pairs**, McNemar p=1.0. Judge: opus-5, effort high, zero tools, 54/54 parsed, $3.48.
+trap for R1.1: DESIGN 5's **Regression branch fires mechanically** (90% lower -0.131 vs -0.05 bar)
+  and reporting it as a regression would be WRONG - at 18 pairs the tightest interval is +/-0.131
+  even at a perfect tie, so the bar is unreachable at pilot n whatever the answers were.
+  `analyse.mjs` section 6 prints that caveat itself; quote it, do not re-derive it.
+dont bury: **arm M is the sharpest result** - 12/18 (66.7%) vs G 18/18 at **1.508x** cost
+  (Wilcoxon p=0.0313, the n=6 minimum), total failures on `eshop-c1` (class C, impact) 0/3 and
+  `eshop-f1` (class F control) 0/3. Arm B's median mcp share is **0.015** - B barely uses the MCP,
+  which is why B tracks G. That and P2's manipulation-check failure are one fact seen twice.
+next: **R1.1** (write `eval-results/agent-probe/RESULTS.md`), then R1.2 (20% human sample - the
+  owner grades it; do not grade it yourself and do not report a kappa you did not compute).
+green: `verify.mjs --tier fast` GREEN. Blindness shown not asserted: `results/a1.2-leak-scan.md`,
+  54 prompts, 0 residual hits from an independently-written superset scanner.
 ```
