@@ -285,11 +285,23 @@ for the pilot and ~$15 for judging.
 
 DESIGN §7 requires a human to grade a 20% stratified sample and compute Cohen's κ against the
 judge, and states that **if κ < 0.8 the judge's scores are discarded and the whole set is graded
-by hand**. That validation has **not** been performed. The sample is produced for the owner by
-checkpoint R1.2; no κ is reported here because none has been computed, and this report does not
-estimate one. Until it exists, every judge-derived figure — including arm M's 12/18, which is the
-most consequential number in this document — is unvalidated. Pass 1's deterministic results
-(recall, `mustNotMention`, citation resolution, the D/E/F verdicts) do not depend on the judge.
+by hand**. That validation has **not** been performed. The sample is drawn and laid out for the
+owner at `eval/agent-probe/results/r1.2-human-sample/` — 11 items (`ceil(0.20 × 54)`), stratified
+over the 18 arm × class cells at an equal 11/54 inclusion probability per run, seed `20260811`,
+copied to arm-free filenames with the mapping sealed. **No κ is reported here because none has
+been computed, and this report does not estimate one.** Until it exists, every judge-derived
+figure — including arm M's 12/18, the most consequential number in this document — is
+unvalidated. Pass 1's deterministic results (recall, `mustNotMention`, citation resolution, the
+D/E/F verdicts) do not depend on the judge and stand either way.
+
+And the validation itself is underpowered, which the owner should know before grading rather than
+after. The judge marked 10 of the 11 drawn items correct, and against a 10:1 marginal a
+chance-corrected statistic is brutal: **one** human disagreement on **one** item drops κ to 0.62,
+and if it lands on the single judge-incorrect item κ collapses to 0.00. Only *perfect* 11/11
+agreement clears the 0.8 gate. The gate is **not** being moved — DESIGN §7 is pre-registered and
+its consequence stands — but a failure at this n means "the pilot is too small to validate its
+judge", not "the judge is wrong". Derivation and the full table are in that directory's
+`README.md`; the arithmetic is self-tested by `kappa.mjs --self-test`.
 
 **Departures from the pre-registration**: seven, recorded in
 [`DEVIATIONS.md`](../../eval/agent-probe/DEVIATIONS.md) with direction of effect. D1–D6 applied
@@ -343,10 +355,16 @@ In the order that changes the answer most.
    a margin 30 pairs can actually test, with the widening justified on its own terms. Deciding
    this after seeing the pilot's ±0.131 is pre-registration drift; deciding it now, in writing,
    is not.
-5. **Run the κ validation and honour its consequence.** 20% stratified human sample, Cohen's κ
-   against the judge, and the pre-registered discard rule if κ < 0.8. Do this on the pilot's 54
-   before committing to 360 — a judge that fails κ turns the entire correctness endpoint into hand
-   grading, and that is a schedule decision, not a footnote.
+5. **Run the κ validation, honour its consequence, and power it.** The pilot's sample is drawn
+   and waiting (`eval/agent-probe/results/r1.2-human-sample/`); grade it before committing to 360,
+   because a judge that fails κ turns the entire correctness endpoint into hand grading, and that
+   is a schedule decision rather than a footnote. But 20% of 54 is 11 items with a 10:1 verdict
+   split, where a single disagreement fails the 0.8 gate (§9) — so at pilot scale the validation
+   can only ever return "perfect agreement" or "unevaluable". The full run must fix that in the
+   pre-registration, not afterwards: 20% of 360 is 72 items, which is enough for κ to mean
+   something, and the design should also say what happens when a marginal is degenerate — the
+   judge flagged `fabricated: false` on all 11 drawn items here, so that κ is undefined by
+   construction and no threshold can be applied to it.
 6. **n = 5 reps, as §6.5 specifies.** The pilot's between-rep coefficient of variation is a median
    of 0.116 across cells (max 0.258), so the standard error of a cell mean at n = 5 is ~0.052
    against the 0.20 effect the rule must resolve. Reps are adequate; they were never the binding

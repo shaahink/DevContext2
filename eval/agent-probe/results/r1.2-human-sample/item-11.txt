@@ -1,0 +1,40 @@
+## QUESTION PUT TO THE ENGINEER
+Does CatalogApi.CreateItem publish ProductPriceChangedIntegrationEvent? Answer yes or no, and say exactly what CreateItem does.
+
+## ANSWER KEY (verified ground truth)
+No. CatalogApi.CreateItem (src/Catalog.API/Apis/CatalogApi.cs:366) builds a CatalogItem from the posted product, computes an embedding via services.CatalogAI.GetEmbeddingAsync, calls services.Context.CatalogItems.Add(item) and services.Context.SaveChangesAsync(), then returns Created. It never touches the event bus. ProductPriceChangedIntegrationEvent is constructed at exactly one place in the whole repository - CatalogApi.cs:350, inside the sibling method UpdateItem - and even there only when the price actually changed (priceEntry.IsModified); that branch calls EventService.SaveEventAndCatalogContextChangesAsync followed by PublishThroughEventBusAsync, while the else branch just calls SaveChangesAsync. The trap is that CreateItem and UpdateItem live in the same file and the same class, so an agent that reads CatalogApi.cs and attributes file-level facts to the member being asked about will answer yes.
+
+Elements a complete answer names: `UpdateItem`, `SaveChangesAsync`
+The correct verdict is: no
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it contains no event-bus interaction at all.
+
+**What `CreateItem` actually does** (`src/Catalog.API/Apis/CatalogApi.cs:366-388`):
+
+1. Constructs a new `CatalogItem` from the posted `product`, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`).
+2. Computes and assigns an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` (`src/Catalog.API/Apis/CatalogApi.cs:382`).
+3. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` — a plain EF Core save, not the transactional `EventService.SaveEventAndCatalogContextChangesAsync` path (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).
+4. Returns `TypedResults.Created($"/api/catalog/items/{item.Id}")` (`src/Catalog.API/Apis/CatalogApi.cs:387`).
+
+It is registered as `POST /items` with the endpoint name `CreateItem` (`src/Catalog.API/Apis/CatalogApi.cs:103-104`).
+
+**Where the event is actually published:** the only publisher in `CatalogApi.cs` is `UpdateItem`, and only conditionally — it checks whether the `Price` property is modified (`priceEntry.IsModified`), and if so creates `new ProductPriceChangedIntegrationEvent(catalogItem.Id, productToUpdate.Price, priceEntry.OriginalValue)`, saves it atomically with `SaveEventAndCatalogContextChangesAsync`, then calls `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:347-357`). If the price is unchanged, it just calls `SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:358-361`).
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.
