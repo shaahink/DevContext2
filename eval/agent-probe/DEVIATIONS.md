@@ -12,8 +12,11 @@ That is the load-bearing property: a control applied identically to G, M and B c
 paired within-question contrast that §4.1 reports. It can still limit how far the *absolute*
 numbers generalise, which is what the "effect on the result" column is for.
 
-The decision rule in §5, the arm definitions in §3.1, the question set and every answer key are
-**untouched**. No threshold moved.
+The decision rule in §5, the arm definitions in §3.1, and every question and answer key are
+**untouched** — nothing was edited after a result was seen. No threshold moved. The one place the
+question set departs from the pre-registration is its **class composition**, which was wrong from
+the moment the files were written rather than adjusted later; that is **D7**, and it is the entry
+that most changes how the headline number reads.
 
 ---
 
@@ -157,6 +160,52 @@ difference would have hit all three arms equally and could not bend the paired c
 
 The `repoSha` pin — the thing the answer keys describe — held perfectly: `9b4f9434` on all 54.
 The harness re-checks it before every batch and refuses to run against a different tree.
+
+## D7 — the question set is one-per-class, not the pre-registered mix (DESIGN §3.3)
+
+| | |
+|---|---|
+| Pre-registered | §3.3's `n/repo` column: **A 1, B 2, C 1, D 1, E ½, F ½** — six questions per repo, 24 across four repos |
+| Actual | **A 1, B 1, C 1, D 1, E 1, F 1** in all three question files (`eShop.json`, `TodoApi.json`, `FluentValidation.json`) |
+| Found | R1, sweeping §3.3 against the shipped keys while writing the headline |
+| Decided | Never decided — K1 wrote one question per class and no session compared the counts back to §3.3 |
+| Scope | The whole pilot. It is the composition of the primary endpoint itself |
+
+**Why it matters more than the other six.** D1–D6 are controls applied identically to G, M and B,
+so they cannot bend the paired contrast. D7 is different in kind: the primary endpoint (§4.1) is
+the **median of `log2(cost_ratio)` across questions**, and the bootstrap resamples *questions*. The
+set's class mix is therefore not a background condition — it is the sample. Relative to §3.3 the
+pilot **halved class B**, the indirection class §3.3 calls "the core claim" and the only class the
+MCP is designed to win, and **doubled** classes E and F, the two controls (E fabrication, F the
+explicit grep-favouring sanity check) that §3.3 deliberately weights at a half each. The
+departure's direction is **against the treatment**, not for it.
+
+**Effect on the result — arithmetic over the published per-question `log2(B/G)` column**
+(`results/a1.2-analysis.md` §1: A −0.323, B +0.259, C +0.012, D +0.229, E −0.523, F +0.433):
+
+| Question set | median log2 | as a cost ratio |
+|---|---|---|
+| As run — all six, one per class | **+0.120** | 1.087× (the headline) |
+| §3.3-shaped, E kept and F dropped | +0.120 | 1.087× |
+| §3.3-shaped, F kept and E dropped | +0.244 | 1.184× |
+| E-only half, class B not doubled | +0.012 | 1.008× |
+| F-only half, class B not doubled | +0.229 | 1.172× |
+
+Reproduce with `node -e` over those six numbers; class B's second question does not exist, so the
+"§3.3-shaped" rows duplicate `eshop-b1` and are an illustration of leverage, not an estimate of
+what a second class-B question would have returned.
+
+The point estimate moves across a **0.23 log2 span (~17% of cost ratio)** purely on which control
+question is in the set — on a decision rule whose accelerator threshold is −0.32. **The verdict
+does not move**: no composition in that table comes within 0.33 log2 of the threshold, and the
+95% CI is wider than the whole span. So this is not a result that was lost. It is a statement that
+the pilot's headline *number* is not robust to a composition choice nobody made deliberately, which
+is the same fact as "six questions cannot settle this" seen from a second angle.
+
+**Not fixed here, and deliberately not.** Probe rule 3 forbids changing a question set after seeing
+results, and adding the missing class-B question now would be exactly that. It is carried into the
+full-run requirements in `eval-results/agent-probe/RESULTS.md` instead: the 360-run study must ship
+§3.3's mix, which is 2 × class B per repo and E/F alternating across repos.
 
 ---
 
