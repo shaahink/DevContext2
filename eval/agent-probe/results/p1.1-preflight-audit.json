@@ -2110,8 +2110,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 4 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2136,7 +2138,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-d1__B__rep1.stream.jsonl",
         "results/raw/eShop/eshop-d1__B__rep1.result.json"
@@ -2179,8 +2181,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 3 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2205,7 +2209,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-d1__B__rep2.stream.jsonl",
         "results/raw/eShop/eshop-d1__B__rep2.result.json"
@@ -2248,8 +2252,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 4 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2274,7 +2280,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-d1__B__rep3.stream.jsonl",
         "results/raw/eShop/eshop-d1__B__rep3.result.json"
@@ -2756,8 +2762,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 5 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2782,7 +2790,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-e1__B__rep1.stream.jsonl",
         "results/raw/eShop/eshop-e1__B__rep1.result.json"
@@ -2826,8 +2834,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 6 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2852,7 +2862,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-e1__B__rep2.stream.jsonl",
         "results/raw/eShop/eshop-e1__B__rep2.result.json"
@@ -2897,8 +2907,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 4 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -2923,7 +2935,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-e1__B__rep3.stream.jsonl",
         "results/raw/eShop/eshop-e1__B__rep3.result.json"
@@ -3409,8 +3421,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 1 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -3435,7 +3449,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-f1__B__rep1.stream.jsonl",
         "results/raw/eShop/eshop-f1__B__rep1.result.json"
@@ -3478,8 +3492,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 1 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -3504,7 +3520,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-f1__B__rep2.stream.jsonl",
         "results/raw/eShop/eshop-f1__B__rep2.result.json"
@@ -3547,8 +3563,10 @@
       "assertions": [
         {
           "id": "A1-analyze-cached",
-          "ok": false,
-          "detail": "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
+          "ok": true,
+          "na": true,
+          "naKind": "zero-analyze-mcp-available",
+          "detail": "arm B was offered the MCP but the run made zero analyze calls (0 mcp attempts, 1 Read/Grep/Glob attempts), so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm gate covers the batch (DESIGN 4.5, 8.1)"
         },
         {
           "id": "A2-armG-zero-mcp",
@@ -3573,7 +3591,7 @@
           "detail": "offered outside arm=[], attempted outside arm=[]"
         }
       ],
-      "ok": false,
+      "ok": true,
       "artifacts": [
         "results/raw/eShop/eshop-f1__B__rep3.stream.jsonl",
         "results/raw/eShop/eshop-f1__B__rep3.result.json"

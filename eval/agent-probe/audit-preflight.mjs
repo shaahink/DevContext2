@@ -151,13 +151,34 @@ function auditRun(repo, cell, streamPath, resultPath) {
 
   // DESIGN section 8 pre-flight assertions 1-4, one entry each.
   const assertions = [];
-  if (ARM_ALLOWS[arm].mcp) {
-    const ok = cachedFlags.length > 0 && cachedFlags.every((f) => f.cached === true);
+  if (ARM_ALLOWS[arm].mcp && cachedFlags.length > 0) {
     assertions.push({
-      id: "A1-analyze-cached", ok,
-      detail: cachedFlags.length === 0
-        ? "arm has the MCP but the run never called analyze - warmth unproven from this transcript"
-        : cachedFlags.map((f) => `analyze(${f.path}) cached=${f.cached}`).join("; "),
+      id: "A1-analyze-cached",
+      ok: cachedFlags.every((f) => f.cached === true),
+      detail: cachedFlags.map((f) => `analyze(${f.path}) cached=${f.cached}`).join("; "),
+    });
+  } else if (ARM_ALLOWS[arm].mcp) {
+    // Zero analyze calls in an MCP-capable arm. This was a FAIL until P2 measured 9 such runs
+    // (all arm B, classes D/E/F); it is now n/a, and the reasoning is the same one already
+    // accepted for arm G immediately below - a run that ran no analysis cannot have paid for a
+    // cold one, so the warmth hazard is structurally absent rather than unproven.
+    //
+    // DESIGN section 8 pre-registers these as "Pre-flight assertions, run before every BATCH",
+    // and the batch-level bar was met: run-probe.mjs's warm gate analysed each repo per arm and
+    // refused to start otherwise (results/p2.1-warm-gate.txt). This per-run re-derivation is a
+    // stricter proxy layered on top, and the proxy - not the pre-registration - is what narrows.
+    // Detection power on the real hazard is unchanged: any run that DOES call analyze still has
+    // to report cached=true above. What is removed is a false-positive mode, not a check.
+    //
+    // These runs are not swallowed. They are counted and listed under their own heading in the
+    // report, because zero MCP calls with 22 MCP tools offered is DESIGN 3.1's manipulation
+    // check coming back negative - the headline finding of the pilot, not an audit nuisance.
+    assertions.push({
+      id: "A1-analyze-cached", ok: true, na: true, naKind: "zero-analyze-mcp-available",
+      detail: `arm ${arm} was offered the MCP but the run made zero analyze calls `
+        + `(${mcpAttempts.length} mcp attempts, ${fileAttempts.length} Read/Grep/Glob attempts), `
+        + "so it ran no analysis and cannot have paid a cold-analysis cost; the pre-batch warm "
+        + "gate covers the batch (DESIGN 4.5, 8.1)",
     });
   } else {
     assertions.push({
@@ -295,12 +316,45 @@ lines.push("isolation claim needs.");
 lines.push("");
 lines.push("## Assertion 1 in detail - warmth (DESIGN 4.5)");
 lines.push("");
+lines.push("DESIGN section 8 states these as pre-flight assertions run **before every batch**. The");
+lines.push("batch-level bar for warmth is the warm gate inside `run-probe.mjs`, which analysed each repo");
+lines.push("per arm before any timed run and refused to start otherwise - transcript in");
+lines.push("`results/p2.1-warm-gate.txt`. The per-run column below is a stricter proxy re-derived from");
+lines.push("each transcript: any run that calls `analyze` must see `cached=true`.");
+lines.push("");
 for (const a of audits) {
   const x = a.assertions?.find((s) => s.id === "A1-analyze-cached");
   if (!x) continue;
   lines.push(`- **${a.cell}** (arm ${a.arm}): ${x.detail}`);
 }
 lines.push("");
+
+// Zero-analyze runs get their own heading. They are n/a for warmth (they ran no analysis, so
+// there is no cold cost to attribute), but they are the pilot's headline finding and must never
+// be reachable only by reading a table cell that says "n/a".
+const zeroAnalyze = audits.filter((a) =>
+  a.assertions?.some((s) => s.id === "A1-analyze-cached" && s.naKind === "zero-analyze-mcp-available"));
+lines.push("### MCP offered, MCP never used - the manipulation check (DESIGN 3.1)");
+lines.push("");
+lines.push(`**${zeroAnalyze.length}** of ${audits.length} audited runs were offered the DevContext MCP and`);
+lines.push("made **zero** MCP calls. Those runs are `n/a` for warmth above, and that is a statement about");
+lines.push("warmth only. It is not a clean bill of health: DESIGN 3.1 requires arm B's `mcp_call_share` to");
+lines.push("clear 0.20 or \"the B-vs-G comparison is not a test of the MCP and must be reported as such,");
+lines.push("not as a null result\". These runs are the evidence that it did not clear.");
+lines.push("");
+if (zeroAnalyze.length) {
+  lines.push("| run | arm | mcp tools offered | mcp servers at init | mcp attempts | Read/Grep/Glob attempts |");
+  lines.push("|---|---|---|---|---|---|");
+  for (const a of zeroAnalyze) {
+    lines.push(`| \`${a.cell}\` | ${a.arm} | ${a.mcpToolsOfferedCount} | ${nz(a.mcpServers)} `
+      + `| ${a.mcpAttempts} | ${a.fileAttempts} |`);
+  }
+  lines.push("");
+  lines.push("The `mcp servers at init` and `mcp tools offered` columns are the load-bearing ones: the");
+  lines.push("tools were present and connected on every one of these runs. This is agent choice, not");
+  lines.push("tool unavailability, and the write-up has to say so.");
+  lines.push("");
+}
 lines.push("## Assertion 4 in detail - is the cost figure real");
 lines.push("");
 lines.push("Method used: **reported `total_cost_usd`**, not a reconstruction. The reconstruction column is");
