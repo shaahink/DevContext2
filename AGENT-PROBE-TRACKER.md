@@ -4,21 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-done: **R1.1** - `eval-results/agent-probe/RESULTS.md` (09eb609) + **D7** (cd4d15d). Gate
-  `verify.mjs --tier fast` GREEN, 0 notes. Both queued instructions discharged.
-headline, do NOT revert it: the last handoff said "the pilot answer is a NULL" - that is wrong
-  against the pre-registration. DESIGN 3.1 pre-committed that arm B mcp share < 0.2 means "the
-  B-vs-G comparison is not a test of the MCP and must be reported as such, **not as a null**".
-  Share = 0.015, 17/18 below the floor. So no branch is earned; Null and the power-artifact
-  Regression are reported but **subordinate**. Arm M (12/18 vs 18/18, 1.508x) is the real test.
-**D7** = question-set composition: DESIGN 3.3 wants A1 **B2** C1 D1 **E-half F-half** per repo;
-  all 3 files ship one-per-class, halving the core-claim class and doubling the controls. Median
-  log2 spans +0.012..+0.244 vs the +0.120 headline. Verdict unmoved, number not robust.
-next: **R1.2** - 20% stratified human sample to a separate file. The **owner** grades it; do not
-  grade it or report a kappa. RESULTS.md 9 already flags every judge number provisional on it.
-computed, reuse dont re-derive: newcombePaired at a perfect tie, 90% lower - n=18 -0.131,
-  **n=30 (one repo at full size) -0.083**, n=120 (4 repos pooled) -0.022. The -0.05 bar is
-  unreachable PER REPO even in the full run; pooling collides with 6.1's per-repo headline.
+done: **STAGE R1 COMPLETE, and with it every checkpoint in the program.** R1.1
+  `eval-results/agent-probe/RESULTS.md` (09eb609) + **D7** (cd4d15d); R1.2
+  `eval/agent-probe/results/r1.2-human-sample/` (0caa5f7). Gate `--tier fast` GREEN, both
+  queued instructions discharged, tree clean, branch pushed.
+headline, do NOT revert it: an earlier handoff said "the pilot answer is a NULL" - wrong against
+  the pre-registration. DESIGN 3.1 pre-committed that arm B mcp share < 0.2 means "the B-vs-G
+  comparison is not a test of the MCP and must be reported as such, **not as a null**". Share =
+  0.015, 17/18 below the floor. No branch is earned; Null and the power-artifact Regression are
+  reported but **subordinate**. Arm M (12/18 vs G 18/18 at 1.508x) is the only real test, and
+  it is negative. **D7** = question-set composition (DESIGN 3.3 wants B2 and E/F at half).
+owner action, blocking nothing else: grade the 11 `item-NN.txt` files, then
+  `node eval/agent-probe/kappa.mjs`. No agent grades them and none reports a kappa.
+two pre-registered gates are DEGENERATE at pilot n - the transferable lesson: -0.05
+  non-inferiority is unreachable at 18 pairs AND at 30 (one repo at full size); kappa >= 0.8
+  needs perfect 11/11 agreement (one disagreement -> 0.62). Neither was moved. See RESULTS.md
+  9 and 10, which say what the full run needs. `PRODUCT-DIRECTION.md` 9 is deliberately NOT
+  rewritten - it must not be written off a disqualified contrast.
 
 
 ## Baseline numbers (from run.db)
