@@ -390,6 +390,51 @@ P(`- Rank methods and medians throughout. No t-test, no mean over raw dollars.`)
 P(`- The one censored run (\`eshop-c1/M/rep1\`, budget exhausted) is kept and counted everywhere.`);
 P();
 
+// ---- 6. the decision rule -----------------------------------------------------------------
+
+const costUpper = bootBG.ci95[1], accLower = nc90.lower, accUpper = nc90.upper;
+const nonInferior = accLower > -0.05;
+const isAccelerator = nonInferior && costUpper < threshold;
+const isPrimer = accLower > 0.05 && !(costUpper < threshold);
+const costSpansZero = bootBG.ci95[0] <= 0 && bootBG.ci95[1] >= 0;
+const accSpansZero = accLower <= 0 && accUpper >= 0;
+const isNull = costSpansZero && accSpansZero;
+const tieOnAccuracy = t_BG.b === 0 && t_BG.c === 0;
+
+P(`## 6. Mapping onto the DESIGN 5 decision rule`);
+P();
+P(`| Branch | Pre-registered condition | Computed | Met |`);
+P(`|---|---|---|---|`);
+P(`| **Accelerator** | non-inferior AND cost CI upper < ${threshold} | upper = ${f(costUpper)} | ${isAccelerator ? "YES" : "no"} |`);
+P(`| **Primer** | 90% CI lower on d-accuracy > +0.05, cost not reduced | lower = ${f(accLower)} | ${isPrimer ? "YES" : "no"} |`);
+P(`| **Null** | neither CI excludes zero | cost 95% [${f(bootBG.ci95[0])}, ${f(bootBG.ci95[1])}], acc 90% [${f(accLower)}, ${f(accUpper)}] | ${isNull ? "YES" : "no"} |`);
+P(`| **Regression** | non-inferiority fails | lower = ${f(accLower)} vs bar -0.05 | ${nonInferior ? "no" : "fires - read the caveat"} |`);
+P();
+if (!nonInferior && tieOnAccuracy) {
+  P(`> **The Regression branch fires on a power artifact and must not be reported as a regression.**`);
+  P(`> Arms B and G are *exactly tied*: ${t_BG.a}/${t_BG.a} concordant-correct, **zero discordant pairs**`);
+  P(`> (b=${t_BG.b}, c=${t_BG.c}), exact McNemar p=${f(mc.p, 4)}. Nothing in the data says arm B is less accurate than`);
+  P(`> arm G on a single item. The branch fires because the tightest interval ${nc90.n} pairs can produce is`);
+  P(`> +/-${f(Math.abs(accLower))}, and the pre-registered bar is +/-0.05. Calling that a regression would be`);
+  P(`> reporting the sample size as if it were a finding.`);
+  P(">");
+  P(`> The honest pilot-scale reading is **${isNull ? "Null" : "inconclusive"}**: the cost CI contains zero, the accuracy`);
+  P(`> contrast IS zero, and the design's own bars need the 360-run full study to be reachable.`);
+  P();
+}
+P(`Arm M is not part of the primary contrast, but it is the sharpest signal in the pilot and`);
+P(`the write-up should not bury it: `);
+{
+  const mAcc = accOf.M;
+  const fBad = QIDS.filter((q) => cell(q, "M").filter((i) => i.correct === false).length === 3);
+  P(`arm M scores **${mAcc.x}/${mAcc.n}** (${pct(mAcc.acc)}) against ${accOf.G.x}/${accOf.G.n} for arm G, at **${ratio(bootMG.point)}** the cost`);
+  P(`(Wilcoxon p=${f(wMG.p, 4)}, the smallest value n=${wMG.n} can produce). Its failures are total on ${fBad.length} question(s):`);
+  P(fBad.map((q) => `\`${q}\` (class ${CLASS_OF[q]}) 0/3`).join(", ") + `. Class F is the design's own`);
+  P(`grep-favouring control, and DESIGN 5's note that "if the MCP arm wins here, the harness is wrong"`);
+  P(`cuts both ways: it loses here, which is evidence the harness is measuring what it claims to.`);
+}
+P();
+
 writeFileSync(OUT, L.join("\n") + "\n", "utf8");
 console.log(`wrote ${OUT}`);
 console.log(`cost B/G median log2 = ${f(bootBG.point)} (95% CI ${f(bootBG.ci95[0])}..${f(bootBG.ci95[1])})`);

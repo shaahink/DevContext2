@@ -2,23 +2,24 @@
 
 **Plan:** DevContext agent probe - does the MCP help an agent browse code | **Branch:** `feat/agent-probe` | **Design doc:** eval/agent-probe/DESIGN.md
 
-## Handoff (overwrite this block, ≤ 12 lines, no history)
+## Handoff (overwrite this block, ≤12 lines, no history)
 
-green: **`verify.mjs --tier fast` is GREEN** (c366338). The escalated A1 red was the *proxy*, not
-  the bar: DESIGN §8 pre-registers its assertions "before every **batch**", and that bar passed —
-  warm gate now committed as `results/p2.1-warm-gate.txt`. Zero-analyze runs are `n/a` (the same
-  reason arm G already was); the 9 runs got MORE visible — own counted section in the audit.
-deviations: **`eval/agent-probe/DEVIATIONS.md`, six entries** (de235f6) — D1 no `--bare`, D2 cap
-  $1.50 not $2.00, D3 tax statistic, D4 deny-list isolation, D5 the A1 proxy, D6 build SHA moved.
-  D6 came from sweeping `runs.jsonl`, not row 1: 3/54 rows carry `e2f7372`. Immaterial —
-  `git diff --name-only e2f73724 8807f48e -- src/ proto/` is EMPTY and the 3 cells are one
-  `eshop-a1` rep1 triple spanning G/M/B. No key, threshold or arm moved; no number changed.
-done: **A1.1** (1be9129) — 54/54 graded, `results/a1.1-grading.md`. Median recall 100% all arms,
-  0 trap violations, D/E/F 9/9 G · 9/9 B · 8/9 M. Unresolved citations G 14 / B 15 / **M 5**.
-next: **A1.2** judge pass — launch it as a `conductor bg` child. Accuracy is at CEILING in all
-  three arms, so R1.1 must say a 6-question set cannot show non-inferiority with any power.
-trap: `eshop-b1` 6/7 and `eshop-c1` 4/5 in *every* run looks like a grader bug and is not —
-  `IOrderRepository`/`NewOrderRequestHandlerTest` are in no answer at all. Don't touch the keys.
+done: **A1.2** (judge 54/54 + paired analysis) - `results/a1.2-analysis.md`. **THE PILOT ANSWER
+  IS A NULL.** Cost B vs G: median log2 **+0.120** (B costs **1.087x** G, i.e. slightly MORE),
+  95% CI [-0.423, +0.346]; accelerator needs upper < -0.32. Accuracy G 18/18 = B 18/18, **zero
+  discordant pairs**, McNemar p=1.0. Judge: opus-5, effort high, zero tools, 54/54 parsed, $3.48.
+trap for R1.1: DESIGN 5's **Regression branch fires mechanically** (90% lower -0.131 vs -0.05 bar)
+  and reporting it as a regression would be WRONG - at 18 pairs the tightest interval is +/-0.131
+  even at a perfect tie, so the bar is unreachable at pilot n whatever the answers were.
+  `analyse.mjs` section 6 prints that caveat itself; quote it, do not re-derive it.
+dont bury: **arm M is the sharpest result** - 12/18 (66.7%) vs G 18/18 at **1.508x** cost
+  (Wilcoxon p=0.0313, the n=6 minimum), total failures on `eshop-c1` (class C, impact) 0/3 and
+  `eshop-f1` (class F control) 0/3. Arm B's median mcp share is **0.015** - B barely uses the MCP,
+  which is why B tracks G. That and P2's manipulation-check failure are one fact seen twice.
+next: **R1.1** (write `eval-results/agent-probe/RESULTS.md`), then R1.2 (20% human sample - the
+  owner grades it; do not grade it yourself and do not report a kappa you did not compute).
+green: `verify.mjs --tier fast` GREEN. Blindness shown not asserted: `results/a1.2-leak-scan.md`,
+  54 prompts, 0 residual hits from an independently-written superset scanner.
 
 
 ## Baseline numbers (from run.db)
@@ -27,7 +28,7 @@ trap: `eshop-b1` 6/7 and `eshop-c1` 4/5 in *every* run looks like a grader bug a
 |---|---|
 | Total checkpoints | 12 |
 | Done | 7 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -66,7 +67,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | TODO | - | - |
+| A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | DONE | c366338 | eval/agent-probe/results/a1.1-grading.md |
 | A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | TODO | - | - |
 
 ### R1 — Report and verdict
