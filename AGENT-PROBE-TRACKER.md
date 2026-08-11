@@ -4,21 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-last: **P1 CLOSED** — P1.1 + P1.2 DONE, commits 53ca6c5, aeaebfd, 65b79b0. `audit-preflight.mjs`
-  re-derives DESIGN §8 assertions 1–4 from `results/raw/**` sharing no code with the harness:
-  all four hold on all 3 runs. `verify.mjs --tier fast` GREEN and now runs that audit too.
-stage: **P1 complete, attempt 1, no reds. P2 (54-cell pilot) is next.**
-trap: **DESIGN §4.4's tax statistic is cache-dependent and read 9 tokens.** The prompt cache is
-  server-side and prefix-keyed, so the schemas came back as `cache_read`, not `cache_creation`.
-  Measured invariantly (turn-1 in+create+read) the tax is **2540 tokens / $0.0254 cold / 4.0% of
-  a median run**; cold cross-check off the recorded runs gives 2531. Same trap bites P2: 54
-  back-to-back cells share a warm prefix, so pilot costs carry an amortised tax that flatters B.
-next: P2 = `conductor bg start --purpose probe -- node eval/agent-probe/run-probe.mjs --repo eShop
-  --reps 3 --allow-no-bare`. It skips the 3 recorded eshop-a1 rep1 cells, so 51 runs, ~$32 at the
-  observed $0.44–$0.66. Ceiling is 60/invocation, cap $1.50/run; resumable, never restart it.
-escalation: `--bare` cannot authenticate here (no ANTHROPIC_API_KEY; bare never reads OAuth), so
-  runs need `--allow-no-bare` and record isolation:"no-settings-fallback". Cost is exact but only
-  at a **2x** cache-write rate (1h TTL), not DESIGN §4.1's 1.25x — matters only if cost ever hits 0.
+last: **P2.1 DONE, 54/54 cells** — commits 8807f48, be87562, 2021561, 647c745. Isolation 54/54,
+  cost 54/54, 1 censored run kept+flagged (eshop-c1/M/rep1, `error_max_budget_usd`, $1.5134).
+  Spend $23.67 recorded + $0.99 quarantined = **$24.66**. Read `results/p2.1-pilot.md`.
+result: **DESIGN §3.1's arm-B manipulation check FAILED** — median mcp share **0.01**, 17/18 below
+  the 0.20 floor. Classes D/E/F used the MCP **zero** times, 3/3 reps each, with 22 tools offered
+  and `devcontext:connected` on every run: agent CHOICE, not availability. Arm B does not measure
+  what DESIGN wrote it to measure. Medians G $0.2702 / M $0.5073 / B $0.2509 — **M costs more than
+  G on all six questions individually**. Between-rep CV 0.116, so n=5 can resolve a 20% effect.
+red: **`verify.mjs --tier fast` is RED and I did not make it green.** `A1-analyze-cached` fails on
+  exactly those 9 zero-mcp arm-B runs. A2/A3/X isolation pass 54/54 and A4 pass 54/54, so nothing
+  is void; batch warmth is proven separately by the pre-batch warm gate (bg log lines 3-5).
+escalation: the A1 predicate assumed an MCP-capable arm always calls `analyze`. Two options, both
+  costed, with a recommendation, in **`results/p2.1-gate-red-A1.md`** — owner/next session's call.
+next: A1.1 grading. Do NOT restart the pilot. Trap: `subtype` is not a success signal from this
+  CLI — read `is_error` and `terminal_reason` too (see `results/infra-failures.jsonl`).
 
 
 ## Baseline numbers (from run.db)
@@ -26,7 +26,7 @@ escalation: `--bare` cannot authenticate here (no ANTHROPIC_API_KEY; bare never 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 12 |
-| Done | 3 |
+| Done | 5 |
 | Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
@@ -46,15 +46,15 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| H1.1 | `run-probe.mjs` drives all three arms as headless subprocesses, is resumable from `runs.jsonl`, caps each run at $1.50, and refuses more than 60 runs per invocation | DONE | 2d20636 | eval/agent-probe/results/h1.1-dryrun-eShop.txt |
-| H1.2 | One real end-to-end run per arm is recorded in `results/runs.jsonl` with answer, toolCalls, costUsd, usage, numTurns, durationMs — and the raw result JSON plus transcript are saved under `results/raw` | DONE | 2d20636 | eval/agent-probe/results/h1.2-three-arm-smoke.md |
+| H1.1 | `run-probe.mjs` drives all three arms as headless subprocesses, is resumable from `runs.jsonl`, caps each run at $1.50, and refuses more than 60 runs per invocation | DONE ✓ | 2d20636 | eval/agent-probe/results/h1.1-dryrun-eShop.txt |
+| H1.2 | One real end-to-end run per arm is recorded in `results/runs.jsonl` with answer, toolCalls, costUsd, usage, numTurns, durationMs — and the raw result JSON plus transcript are saved under `results/raw` | DONE ✓ | 2d20636 | eval/agent-probe/results/h1.2-three-arm-smoke.md |
 
 ### P1 — Smoke - prove arm isolation and cost accounting before spending
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| P1.1 | Arm isolation proven from recorded transcripts: arm G made 0 mcp calls, arm M made 0 Read/Grep/Glob calls, cost is non-zero on every run, and analyze reported cached true for every arm | TODO | - | - |
-| P1.2 | Tool-schema tax measured — the turn-1 input + cache-creation token delta between arm G and arm B on an identical trivial prompt, recorded as an absolute count and as a share of median run cost | TODO | - | - |
+| P1.1 | Arm isolation proven from recorded transcripts: arm G made 0 mcp calls, arm M made 0 Read/Grep/Glob calls, cost is non-zero on every run, and analyze reported cached true for every arm | DONE | 53ca6c5 | eval/agent-probe/results/p1.1-preflight-audit.md |
+| P1.2 | Tool-schema tax measured — the turn-1 input + cache-creation token delta between arm G and arm B on an identical trivial prompt, recorded as an absolute count and as a share of median run cost | DONE | 53ca6c5 | eval/agent-probe/results/p1.2-tool-schema-tax.md |
 
 ### P2 — Pilot - six eShop questions, three arms, three repetitions
 
