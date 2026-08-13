@@ -113,6 +113,23 @@ WHAT THE BAR SHOULD BE. `found:true` with `steps:0` is the vacuous shape. Either
 
 ### #7 · G4 · A METHOD is registered as a Type node and 26 BCL System.Type references bind to it — the mis-bound node is stats' #5 "wiring hub" on Hangfire
 
+> **FIXED — re-measured closed 2026-08-13 (E1.3, commit f686e25 + the V1.3/E1.2 fixes it verifies).**
+> Measured at both ends on the bug's OWN repo, not argued: at `0fd1cbe` (pre-V1.3) Hangfire ships
+> `Type:Hangfire.StackTraceHtmlFragments::Type(1)` with **inDegree 26**, verbatim as filed — plus a
+> SECOND instance of the same class never reported before, `Type:ConsoleSample.Services::Random(1)`
+> (inDegree 1). At HEAD both are gone: zero nodes carry kind Type with a `::` id, and the only edge
+> left touching the fragment type is the legitimate `IStackTraceFormatter\`1 → StackTraceHtmlFragments`
+> Resolves. Nothing collapsed with them — the same repo went 928→994 nodes and 599→877 edges.
+> Three fixes did it: V1.3's producer-level refusal (a member answer is not a type answer), V1.3's
+> INV-A refusal at `AddNode`, and E1.2's `afee44b` out-of-solution gate.
+> **What E1.3 added:** the refusal is no longer SILENT (it dropped the node *and every edge that
+> wanted it*, invisibly). `CodeGraphBuilder.RefusedNodes` counts distinct refused keys and
+> `GraphBuilder` reports the tally as a `GraphInvariants` diagnostic, with a positive-control test so
+> a measured zero cannot be a dead instrument. **Swept at HEAD: 0 refusals on all 7 poles** — no
+> producer even attempts the shape (`eval-results/2026-08-13/e1-typenode/refusal-sweep.txt`).
+> Standing guard: `BclNameCollisionEdgeTests` (labelled in its own doc comment as a guard, NOT a
+> reproduction — it passes at 0fd1cbe too). Evidence: `eval-results/2026-08-13/e1-typenode/`.
+
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive on eval-repos/Hangfire, then verified against the repo source. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{016-stats,019-resolve,020-node,023-usages}.json.
 
@@ -141,6 +158,26 @@ WHAT TO MEASURE FIRST (do not fix from this text): (a) why an explicit interface
 <a id="8"></a>
 
 ### #8 · G4 · Calls inside a lambda argument produce NO edge — the actual storage write of Hangfire's enqueue path is invisible, and the trace of the writing type looks complete without it
+
+> **FIXED by E1.2, and the FILED MECHANISM BELOW IS REFUTED — re-measured 2026-08-13 (E1.3, f686e25).**
+> "Whether the extractor walks lambda/anonymous-function bodies at all" is answered: it always did.
+> `BodyFactExtractor.WalkMember` walks `body.DescendantNodes()`, so a lambda-body call whose receiver
+> is a FIELD, or a TYPED lambda parameter (`GetEnclosingParamType`), has always produced an edge on the
+> syntax tier alone — both pinned green in `LambdaArgumentEdgeTests`.
+> **The true mechanism is one token narrower: a receiver rooted at an UNTYPED lambda parameter is in no
+> syntactic scope, so only Tier B (SemanticLite) can type it.** Hangfire's own site is worse than any
+> delegate-signature lookup could fix — `RetryOnException<TContext>(ref int, Action<int,TContext>,
+> TContext)` infers the parameter's type from a LATER argument.
+> **RED FIRST, and it dates the fix:** at `795b71b` (post-#11, pre-#12) the two semantic fixtures FAIL
+> and the three syntactic ones pass; at HEAD all five pass. E1.2's TextSpan-on-op is what closed it —
+> not #11, and not a lambda walk (`eval-results/2026-08-13/e1-typenode/bug8-redfirst-at-795b71b.txt`).
+> **Both halves measured closed on Hangfire at HEAD:** `CoreBackgroundJobFactory::CreateBackgroundJob`
+> `TwoSteps → IStorageConnection [Calls/Semantic]` now exists (that member is lines 76–142 and every
+> storage call in it is inside a lambda; the type went from 3 out-edges to 7), and `InvocationData` —
+> filed with ONE in-caller where source had at least four — now has 7, including all three the bug
+> named by file:line. **Residual, named not hidden:** on a project that degrades to Tier A (missing
+> assets.json) the untyped-lambda-parameter receiver still yields no edge; pinned as
+> `Tier_A_alone_cannot_type_an_untyped_lambda_parameter` and re-filed at MEDIUM below.
 
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive (eval-repos/Hangfire), then verified in source. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{027-trace,043-neighbors}.json.
