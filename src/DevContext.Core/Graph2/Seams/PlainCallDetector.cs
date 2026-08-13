@@ -84,7 +84,18 @@ public sealed class PlainCallDetector : ISeamDetector
             // the same shape, and it collected 26 phantom in-edges). A member answer is not a type
             // answer — drop the invocation, exactly as an unresolved framework receiver is dropped.
             var resolved = ctx.Symbols.Resolve(receiverRef);
-            if (resolved.Resolved is not { Kind: SymbolKind.Type }) continue;
+            if (resolved.Resolved is not { Kind: SymbolKind.Type } resolvedType) continue;
+
+            // E1.2 (#12) rider, MEASURED: once the semantic upgrade relocates exactly, it names the
+            // receiver of a FRAMEWORK static too (Console, Activator, Array, System.Type). Those used to
+            // arrive with a null ReceiverType and only E1.1's gated static arm could speak for them
+            // (in-solution + declares-the-method); now they arrive as Semantic refs, and Law R2
+            // (SymbolTable.Resolve) deliberately KEEPS an out-of-solution bound id rather than discarding
+            // it — so the Kind==Type check above passes and a BCL node is minted. Measured on MediatR:
+            // 34 new System.* type nodes, 174 → 255 nodes, before this gate. The rule the paragraph above
+            // already states ("only when the receiver type resolves to an in-solution TYPE") was being
+            // enforced by accident, by nothing ever naming a framework type here. State it.
+            if (!ctx.Symbols.IsKnownFqn(resolvedType.Canonical)) continue;
 
             // Batch C (DC4) — receiver CHAIN hop. `_appEnvironmentService.OrderService.CreateOrderAsync()`
             // used to emit Calls → IAppEnvironmentService: the aggregator that HOLDS the collaborator,
@@ -93,9 +104,15 @@ public sealed class PlainCallDetector : ISeamDetector
             // call lands on that property's type. Unresolvable → the receiver type stands (still true).
             // The static arm passes NO receiver member to the hop: there the trailing segment IS the
             // type name (`Utilities.RazorCodeVirtualizer`), not a property of the resolved type.
+            // E1.2: `ReceiverType is null` was the marker for "static call" and it no longer is — the
+            // semantic upgrade fills it for a type-name receiver too. The honest marker is the trailing
+            // segment itself: for `Utilities.RazorCodeVirtualizer.Walk(x)` it IS the receiver type's own
+            // name, not a property of it, so hopping through it would be nonsense.
             var hopMember = inv.ReceiverType is null ? null : inv.ReceiverMember;
+            if (hopMember is not null && string.Equals(hopMember, ShortName(receiverRef.Text), StringComparison.Ordinal))
+                hopMember = null;
             var target = SeamDetectorHelpers.Resolve(receiverRef, ctx);
-            if (ctx.Symbols.HopThroughProperty(resolved.Resolved.Value.Canonical, hopMember, receiverRef.Site) is { } hopped)
+            if (ctx.Symbols.HopThroughProperty(resolvedType.Canonical, hopMember, receiverRef.Site) is { } hopped)
                 target = ctx.Symbols.Resolve(new SymbolRef { Text = hopped, Site = receiverRef.Site });
 
             yield return new SeamMatch(

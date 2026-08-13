@@ -209,6 +209,13 @@ public static class CallGraphBinder
             if (resolved.Resolved is not { Kind: SymbolKind.Type } sym)
                 return null;                                   // member-canonical collision — not a type
 
+            // E1.2 (#12) rider — same gate as PlainCallDetector, one rule for both producers. The exact
+            // span relocation lets the semantic upgrade name framework receivers, and Law R2 keeps an
+            // out-of-solution bound id rather than discarding it. A callee type this solution does not
+            // declare has no member nodes to land on: skip, never invent.
+            if (!symbols.IsKnownFqn(sym.Canonical))
+                return null;
+
             var calleeType = sym.Canonical;
 
             // Batch C (DC4) — receiver CHAIN hop. `a.B.C()` was bound to a's type, so an aggregator that
@@ -218,7 +225,12 @@ public static class CallGraphBinder
             // segment names a PROPERTY of the resolved receiver type, the call lands on that property's
             // type. Same honesty rule as everywhere else: the hop happens only when the property's declared
             // type resolves unambiguously, otherwise the receiver type stands.
-            if (symbols.HopThroughProperty(calleeType, inv.ReceiverMember, recv.Site) is { } hopped)
+            // E1.2: a type-name receiver's trailing segment IS the type's own name (`Utilities.Foo.Bar()`),
+            // not a property of it — the semantic upgrade now fills ReceiverType for those too.
+            var hopMember = inv.ReceiverMember;
+            if (hopMember is not null && string.Equals(hopMember, SymbolCanon.ShortNameOf(calleeType), StringComparison.Ordinal))
+                hopMember = null;
+            if (symbols.HopThroughProperty(calleeType, hopMember, recv.Site) is { } hopped)
                 calleeType = hopped;
             if (symbols.IsInterface(calleeType))
             {
