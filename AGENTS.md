@@ -55,6 +55,15 @@ powershell -File eval/contract-sweep.ps1                  # dead proto fields (S
 pnpm check                                                # lint + vitest + production build
 ```
 
+**Gate scripts must not call cmdlets that Windows PowerShell 5.1 autoloads from a module.** `powershell`
+is 5.1, and there `Get-FileHash`, `Format-Hex`, `New-TemporaryFile` and friends are *functions* exported
+by `Microsoft.PowerShell.Utility`, resolved through `PSModulePath`. Launched from a **pwsh 7 parent**
+(Conductor, or any PS7 shell) the 5.1 child inherits PS7's module dirs *prepended*, autoloads PS7's
+Utility module, and the command resolves to nothing — `CommandNotFound`, and with
+`$ErrorActionPreference = "Stop"` the battery dies mid-step with no failing test to point at. This cost
+a whole fix session on 2026-08-13 (`Get-EngineStamp`, Step 3). Use the .NET type instead
+(`[System.Security.Cryptography.SHA256]`) — same result, no module resolution.
+
 `dotnet build DevContext.slnx` covers `Cli`, `Contracts`, `Core`, `Mcp`, `Server` and the two test
 projects (`DevContext.Core.Tests`, `DevContext.Server.Tests`). **Rebuild the CLI after a Core edit** —
 `dotnet build src/DevContext.Cli` — its `bin` carries its own copy of `DevContext.Core.dll`, so an
