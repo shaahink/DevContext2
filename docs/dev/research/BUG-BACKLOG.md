@@ -812,3 +812,9 @@ Side-finding filed while wiring the button, not fixed here: `ui/icon/icon.ts`'s 
 **empty span for a name it does not carry** (`if (!node) return`), and the app binds four such names
 (`box`, `edit`, `grip-vertical`, `lock`) — `bookmark` and `history` were added because the seed
 button binds them. Tracked as run bug #3.
+
+## M1.2 — the hygiene batch (2026-08-13, desktop pre-release stage M1)
+
+| # | Defect | Decision taken | Fix locus |
+|---|--------|----------------|-----------|
+| 30 | `MapResponse.stack` (proto field 13) had **three readers and no writer**: `identity-strip.ts` (`stack()` computed), `atlas-page.ts` (chip header), MCP `overview` (`DevContextTools.cs:400`). Nothing in `ProtoMapper` ever set `resp.Stack`, and `MapModel` had no `Stack` member — the tags were computed inside `MapRenderer.AppendStack` and left only as a line of markdown. The S9 contract sweep cannot see this direction: it fails a field with no READERS. Run bug #7. | **POPULATE.** The fact existed and was already rendered on the CLI; the wire was dropping it. `MapModel.Stack` is now built once in `MapBuilder.Build` (which already holds the `DiscoveryModel` and the aggregates), the renderer JOINS that list instead of recomputing it, and `ProtoMapper` copies it. Markdown is byte-identical — the architecture goldens did not move. | `MapBuilder.cs` (`BuildStack`, + `SummarizeTfms`/`TfmRank` moved down from the renderer); `MapRenderer.cs` `AppendStack` is now four lines; `ProtoMapper.cs` `resp.Stack.AddRange(map.Stack)`. Gates: `MapStackTests` (4) + `ProtoMapperStackTests` (2) |

@@ -1,4 +1,4 @@
-# DevContext pre-release - desktop agent loop Phase Tracker
+﻿# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
@@ -20,13 +20,14 @@ red inside one `dotnet test DevContext.slnx` run is a two-host CONCURRENCY artif
 ReadSource RPC. Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts,
 #5 Types tab ranks nothing.
 
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 5 |
-| Claimed (unconfirmed) | 2 |
+| Done | 7 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -52,14 +53,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | DONE | 104c9d0 | eval-results/2026-08-13/N2.1-pack-convergence.md |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | DONE | aab7cf3 | eval-results/2026-08-13/N2.2-honesty-parity.md |
+| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | DONE ✓ | 104c9d0 | eval-results/2026-08-13/N2.1-pack-convergence.md |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | DONE ✓ | aab7cf3 | eval-results/2026-08-13/N2.2-honesty-parity.md |
 
 ### M1 — Hygiene + Reader prerequisites (proto/mapper shopping list)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | TODO | - | - |
+| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | DONE | a95d620 | eval-results/2026-08-13/M1.1-reader-prereqs.md |
 | M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | TODO | - | - |
 
 ### N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)

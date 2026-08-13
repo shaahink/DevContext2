@@ -8,7 +8,7 @@
 
 | # | Pass | Calls | Tokens | Question | Detail |
 |---|------|-------|--------|----------|--------|
-| q1-overview | YES | 1 | 195 | What is this repo? (one-call repo brief) | overview 195 tok, archetype=true flows=true counts=true services=true |
+| q1-overview | YES | 1 | 217 | What is this repo? (one-call repo brief) | overview 217 tok, archetype=true flows=true counts=true services=true |
 | q2-checkout-flow | YES | 1 | 1477 | How does checkout work? | trace found: 46 steps, cross-service, 1477 tok |
 | q3-discount-callers | YES | 2 | 699 | Who calls the Discount service? | 10 Discount matches, usages=true |
 | q4-impact-of-handler | YES | 3 | 1145 | What breaks if I change CheckoutBasketCommandHandler? | impact up=5 down=13 total=18 |
@@ -19,14 +19,14 @@
 | q9-entrypoints-summary | YES | 2 | 3174 | List entry points as a bounded summary (not a token wall)? | byKind=true, showing 15/34 (848tok), full→34 |
 | q10-self-describing | YES | 3 | 472 | Do best-effort tools explain their method (what 0 means)? | method note: tests_for=true, config=true |
 | q11-trace-budget | YES | 2 | 1800 | Does trace respect a token budget with named omissions? | budget400: 11 steps/323tok omitted=19; full: 46 steps/1477tok |
-| gate-checkout | YES | 2 | 1672 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 1672 tok, found=true, 46 steps, cross-service=true |
+| gate-checkout | YES | 2 | 1694 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 1694 tok, found=true, 46 steps, cross-service=true |
 
 **Score:** 12/12  
 **Checkout gate (<=3c/2ktok):** PASS  
 
 ## Transport checks
 - [x] Cold start: server started and accepted initialize
-- [x] Analyze: the call returned its own handle in 8.7s
+- [x] Analyze: the call returned its own handle in 11.0s
 - [x] Session lifecycle: create, list, close
 
 ## Tool coverage

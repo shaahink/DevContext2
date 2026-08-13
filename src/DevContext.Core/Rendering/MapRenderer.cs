@@ -126,97 +126,15 @@ public static class MapRenderer
         sb.AppendLine();
     }
 
+    /// <summary>M1.2 — renders the list, does not compute it. The stack tags now live on
+    /// <see cref="MapModel.Stack"/> so the wire (<c>MapResponse.stack</c>, which had three readers and
+    /// no writer) says exactly what this line says. Changing the tags means changing
+    /// <see cref="MapBuilder.BuildStack"/>, and both surfaces move together.</summary>
     private static void AppendStack(StringBuilder sb, MapRenderContext ctx)
     {
-        var model = ctx.Snapshot.Model;
-        var signals = model.Architecture.All;
-        var parts = new List<string>();
-
-        // Runtime. E5 (Prism D1.4b): a multi-targeting library's TFM matrix summarizes to the newest
-        // few + a count — Newtonsoft's raw `net20, net35, net40, …` ×9 dump was unreadable.
-        var tfms = model.Projects
-            .SelectMany(p => p.TargetFrameworks)
-            .Where(f => !f.Contains("$(", StringComparison.Ordinal)) // drop unevaluated MSBuild vars (Low 16)
-            .Distinct()
-            .OrderBy(f => f)
-            .ToList();
-        if (tfms.Count > 0) parts.Add(SummarizeTfms(tfms));
-
-        // Web framework
-        if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected)
-            parts.Add("Minimal APIs");
-        if (signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrl) && ctrl.Detected)
-            parts.Add("Controllers");
-        if (signals.TryGetValue(ArchitectureSignals.Keys.FastEndpoints, out var fe) && fe.Detected)
-            parts.Add("FastEndpoints");
-
-        // CQRS / Mediator — light from handler evidence too (not just the package signal), so a scoped
-        // sub-project whose handlers are present reads consistently with the resolved STYLE (G7 residual).
-        // B6: a repo that declares its own IRequestHandler<,> hand-rolled the pattern — branding it
-        // "MediatR" is a name-only match (podcasts has zero MediatR references).
-        switch (ArchitectureStyleDetector.GetMediatREvidence(model))
-        {
-            case MediatREvidenceKind.Package: parts.Add("MediatR (CQRS)"); break;
-            case MediatREvidenceKind.HandRolled: parts.Add("CQRS (hand-rolled mediator)"); break;
-        }
-
-        // Data
-        if (signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
-            parts.Add("EF Core");
-
-        // Validation
-        if (signals.TryGetValue(ArchitectureSignals.Keys.FluentValidation, out var fv) && fv.Detected)
-            parts.Add("FluentValidation");
-
-        // Messaging
-        if (signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out var mt) && mt.Detected)
-            parts.Add("MassTransit");
-        if (signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out var nsb) && nsb.Detected)
-            parts.Add("NServiceBus");
-
-        // Aggregates
-        if (ctx.Map.Aggregates.Length > 0)
-            parts.Add("DDD aggregates");
-
-        if (parts.Count > 0)
-        {
-            sb.AppendLine("STACK  " + string.Join(" · ", parts));
-            sb.AppendLine();
-        }
-    }
-
-    /// <summary>E5: ≤3 distinct TFMs render verbatim (poles unchanged); a matrix shows the two most
-    /// modern + a count. Modernity ranks family first (net5+ core &gt; netcoreapp &gt; netstandard &gt;
-    /// classic net4x), then version — so "net6.0, netstandard2.0 +3 more TFMs", never a net20-first dump.</summary>
-    internal static string SummarizeTfms(IReadOnlyList<string> tfms)
-    {
-        if (tfms.Count <= 3) return string.Join(", ", tfms);
-
-        var ranked = tfms.OrderByDescending(TfmRank).ThenBy(t => t, StringComparer.Ordinal).ToList();
-        return $"{ranked[0]}, {ranked[1]} +{tfms.Count - 2} more TFMs";
-    }
-
-    private static double TfmRank(string tfm)
-    {
-        // Strip a platform suffix ("net8.0-android" → "net8.0") for scoring; the display keeps it.
-        var dash = tfm.IndexOf('-');
-        var core = dash > 0 ? tfm[..dash] : tfm;
-
-        static double Version(string s, string prefix)
-            => double.TryParse(s[prefix.Length..], System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
-
-        if (core.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase))
-            return 1000 + Version(core, "netstandard");
-        if (core.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase))
-            return 2000 + Version(core, "netcoreapp");
-        if (core.StartsWith("net", StringComparison.OrdinalIgnoreCase))
-        {
-            var v = Version(core, "net");
-            // "net10.0"/"net6.0" (dotted) is modern .NET; "net48"/"net462" (no dot) is classic Framework.
-            return core.Contains('.') ? 3000 + v : v;
-        }
-        return 0;
+        if (ctx.Map.Stack.Length == 0) return;
+        sb.AppendLine("STACK  " + string.Join(" · ", ctx.Map.Stack));
+        sb.AppendLine();
     }
 
     private static void AppendStyle(StringBuilder sb, MapModel map)

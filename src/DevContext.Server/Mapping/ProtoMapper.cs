@@ -114,6 +114,10 @@ internal static class ProtoMapper
             resp.Packages.Add(new Proto.PackageGroup { Label = pg.Label, Packages = { pg.Packages } });
 
         resp.Aggregates.AddRange(map.Aggregates);
+        // M1.2 — field 13 shipped empty since it was added: three consumers (identity strip, Atlas chip
+        // header, MCP overview) read it and nothing ever wrote it, because the tags were computed inside
+        // the markdown renderer. They are on the model now, so the wire carries the same list.
+        resp.Stack.AddRange(map.Stack);
         resp.PipelineBehaviors.AddRange(map.PipelineBehaviors);
 
         if (map.Surface is { } surface)
