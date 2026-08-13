@@ -112,6 +112,105 @@ public sealed class ContextPackAssemblyTests
         }
     }
 
+    /// <summary>N2.1 gate (audit §3.C, owner decision 2) — pack convergence: the multi-card path
+    /// resolves a TYPE and a MEMBER through the same resolver `get_context` uses, and the `usage`
+    /// section it has always built for a symbol root is now reachable from a card.
+    /// <para>MEASURED before the change on this same fixture: both cards below came back dropped —
+    /// `flow (…): no content for its entries — omitted` — because BuildMulti resolved ids against
+    /// the entry inventory alone. `PriceService` is a plain class, not a declared entry.</para></summary>
+    [Fact]
+    public async Task Symbol_rooted_cards_resolve_and_carry_usage()
+    {
+        var (builder, _) = await BuildFixture();
+
+        var pack = builder.BuildMulti(
+            [
+                // Bare type name — the spelling the resolver takes from an agent.
+                new ContextCardSpec("flow", "Flow: PriceService", ["PriceService"]),
+                // NodeId spelling — the one the desktop already sends for declared entries.
+                new ContextCardSpec("usage", "Who uses IPriceService", ["Type:CompositionApp.Core.IPriceService"]),
+                // Type:Member — the member-origin form, so a card can scope to one method.
+                new ContextCardSpec("signatures", "RefreshAsync", ["PriceService:RefreshAsync"]),
+                new ContextCardSpec("identity", "Repo identity", ["PriceService"]),
+            ],
+            totalBudget: 8000);
+
+        Assert.DoesNotContain(pack.Omitted, o => o.Contains("no content for its entries", StringComparison.Ordinal));
+
+        var flow = pack.Cards.Single(c => c.Type == "flow");
+        Assert.NotEmpty(string.Join("", flow.Sections.Select(s => s.Content)).Trim());
+
+        // The section that was built-but-unreachable: `usage` is the inbound direction, and
+        // IPriceService is injected by PriceWorker and the controller.
+        var usage = pack.Cards.Single(c => c.Type == "usage");
+        var usageText = string.Join("\n", usage.Sections.Select(s => s.Content));
+        Assert.Contains("usage", usage.Sections.Select(s => s.Section));
+        // Inbound, with the caller named and the verb read from the caller's side.
+        Assert.Contains("PriceHub", usageText, StringComparison.Ordinal);
+        Assert.Contains(" calls it ", usageText, StringComparison.Ordinal);
+
+        Assert.Contains(pack.Cards, c => c.Type == "signatures");
+
+        // G1.2's honesty line reaches the Studio's pack too: a symbol-rooted pack says which
+        // symbol it landed on and that the symbol is not a declared entry point.
+        var identity = string.Join("\n", pack.Cards.Single(c => c.Type == "identity").Sections.Select(s => s.Content));
+        Assert.Contains("Rooted on symbol:", identity, StringComparison.Ordinal);
+        Assert.Contains("not a declared entry point", identity, StringComparison.Ordinal);
+
+        // Budget accounting still measures rather than echoes (N0.1's rule) on this path.
+        Assert.InRange(pack.AllocatedTokens, 1, 8000);
+    }
+
+    /// <summary>N2.1 — a declared entry keeps the focus spelling it always had, and the two spellings
+    /// of one symbol collapse to ONE traced focus (one budget share), not two.</summary>
+    [Fact]
+    public async Task Declared_entries_and_symbols_share_one_resolution()
+    {
+        var (builder, snapshot) = await BuildFixture();
+        var firstEntry = snapshot.Entries[0].Node.ToString();
+
+        var pack = builder.BuildMulti(
+            [
+                new ContextCardSpec("flow", "Entry flow", [firstEntry]),
+                new ContextCardSpec("signatures", "Same symbol, two spellings",
+                    ["PriceService", "Type:CompositionApp.Web.Services.PriceService"]),
+            ],
+            totalBudget: 8000);
+
+        Assert.Contains(pack.Cards, c => c.Type == "flow");
+        var signatures = pack.Cards.Single(c => c.Type == "signatures");
+        // One focus → one contributing entry → exactly one provenance footer. Two focuses would
+        // have traced PriceService twice and merged its own content into itself.
+        Assert.Single(ProvenanceFooters(string.Join("\n", signatures.Sections.Select(s => s.Content))));
+    }
+
+    private static async Task<(ContextPackBuilder Builder, AnalysisSnapshot Snapshot)> BuildFixture()
+    {
+        var repoPath = RepoPath(Path.Combine("tests", "fixtures", "CompositionApp"));
+        Assert.True(Directory.Exists(repoPath), $"fixture missing: {repoPath}");
+
+        var fs = new RealFileSystem();
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+        using var loggerFactory = LoggerFactory.Create(_ => { });
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            Options = new ExtractionOptions { MaxOutputTokens = 8000, OutputFormat = OutputFormat.Markdown, AllowRoslyn = true },
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = new AnalysisCache(fs),
+            Analysis = new SharedAnalysisContext(),
+            Logger = loggerFactory.CreateLogger("PackConvergence"),
+        };
+
+        var snapshot = await TestPipeline.Build(loggerFactory).AnalyzeAsync(ctx);
+        Assert.NotNull(snapshot.Graph);
+        Assert.False(snapshot.Entries.IsDefaultOrEmpty);
+        return (new ContextPackBuilder(new GraphQuery(snapshot.Graph!, snapshot.Entries, snapshot.Map), snapshot), snapshot);
+    }
+
     /// <summary>N0.1 — the `_provenance:` footers `tokensAddSection` writes into a section's own
     /// text; one per contributing entry after a multi-entry merge.</summary>
     private static List<(int Sites, int Verified, int Approx)> ProvenanceFooters(string content)

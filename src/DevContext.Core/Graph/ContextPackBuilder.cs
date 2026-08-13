@@ -30,7 +30,10 @@ public sealed class ContextPackBuilder
         // in BuildMulti before tracing. Without this, VerifyContext(focus=nodeId) traced null
         // and returned identity-only sections — 0 files checked, always "fresh" while the disk
         // drifted underneath.
-        focus = ResolveFocus(focus) ?? focus;
+        // N2.1 — and a node-id spelling ("Type:Acme.OrderService") resolves here too, so the two
+        // faces of one pipeline accept the same strings: whatever the Studio can put on a card,
+        // get_context can be handed verbatim.
+        focus = ResolveFocus(focus) ?? NormalizeSymbolFocus(focus);
         var (sections, omitted) = BuildSections(focus, budgetTokens, intent);
         if (sections.Length == 0)
         {
@@ -508,6 +511,11 @@ public sealed class ContextPackBuilder
         ["contracts"]  = ["contracts"],   // T4.6 — own section, no longer a signatures alias
         ["tests"]      = ["tests"],       // T4.3 (R9) — real: tests reaching the spine
         ["identity"]   = ["identity"],
+        // N2.1 (audit §3.F.15 / decision 2) — the inbound direction. BuildSections has built a
+        // `usage` section for every symbol-rooted focus since G1.2, and NO card type could pick it:
+        // the section was reachable from `get_context` and unreachable from the Studio. "Who calls
+        // this" is the half of a symbol-rooted pack a change-impact reader is actually after.
+        ["usage"]      = ["usage"],
     };
 
     /// <summary>N1.1 — card types whose sections include <see cref="BodiesSection"/>: the only
@@ -529,6 +537,11 @@ public sealed class ContextPackBuilder
         int totalBudget = 8000,
         string? intent = null)
     {
+        // N2.1 — resolve every card entry id ONCE, through the two-tier path (declared entry, then
+        // the symbol resolver `get_context` uses). Both loops below read this map, so a card and the
+        // trace it aggregates from can no longer disagree about what an id means.
+        var cardFocuses = ResolveCardFocuses(cards);
+
         // Collect unique entry focuses with their reach counts for proportional budget
         var uniqueFocuses = new List<(string Focus, int Reach)>();
         var seen = new HashSet<string>();
@@ -536,9 +549,9 @@ public sealed class ContextPackBuilder
         {
             foreach (var eid in card.EntryIds)
             {
-                var (focus, reach) = ResolveFocusWithReach(eid);
-                if (focus is not null && seen.Add(focus))
-                    uniqueFocuses.Add((focus, reach));
+                if (!cardFocuses.TryGetValue(eid, out var resolved)) continue;
+                if (seen.Add(resolved.Focus))
+                    uniqueFocuses.Add(resolved);
             }
         }
 
@@ -601,10 +614,15 @@ public sealed class ContextPackBuilder
             }
 
             var pickedBySection = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
+            // N2.1 — a card can name one focus twice (two spellings of a symbol, or a nodeId and its
+            // route). MEASURED: without this the merge below concatenated a section INTO ITSELF —
+            // duplicated bytes, doubled Verified/Approx counts, and the pack paid for both.
+            var focusesUsed = new HashSet<string>(StringComparer.Ordinal);
             foreach (var eid in card.EntryIds)
             {
-                var focus = ResolveFocus(eid);
-                if (focus is null || !entrySections.TryGetValue(focus, out var es)) continue;
+                if (!cardFocuses.TryGetValue(eid, out var resolved)
+                    || !focusesUsed.Add(resolved.Focus)
+                    || !entrySections.TryGetValue(resolved.Focus, out var es)) continue;
                 foreach (var sa in es)
                 {
                     if (!wanted.Contains(sa.Section)) continue;
@@ -1003,11 +1021,72 @@ public sealed class ContextPackBuilder
         ? (e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title)
         : null;
 
-    private (string? Focus, int Reach) ResolveFocusWithReach(string entryId)
+    /// <summary>
+    /// N2.1 (audit §3.C, owner decision 2) — every distinct entry id the cards name, resolved ONCE to
+    /// the focus string its sections get built from. Two tiers, in the order the product means them:
+    /// a DECLARED entry keeps the spelling it always had (<c>GET /orders</c>, or its title), and
+    /// anything else goes through the SAME <see cref="GraphQuery.ResolveEntry"/> path
+    /// <c>get_context</c> uses — so a type- or member-scoped card builds the symbol-rooted pack the
+    /// kernel has been able to build since G1.2.
+    /// <para>MEASURED before the change: BuildMulti resolved through <see cref="FindEntry"/> alone,
+    /// which scans <c>_snapshot.Entries</c> and nothing else. A card naming a type therefore produced
+    /// no focus, no sections, and was dropped as "no content for its entries" — the Studio's
+    /// entries-only scope was this one lookup, not a missing feature (audit §3.C).</para>
+    /// <para>Resolving here also collapses the per-card re-scan (ResolveEntry walks the graph) and
+    /// gives the two loops below ONE answer per id: the trace budget and the card that aggregates it
+    /// cannot disagree about what an id meant.</para>
+    /// </summary>
+    private Dictionary<string, (string Focus, int Reach)> ResolveCardFocuses(IReadOnlyList<ContextCardSpec> cards)
     {
-        if (FindEntry(entryId) is not { } e) return (null, 0);
-        var focus = e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title;
-        return (focus, e.Reach);
+        var map = new Dictionary<string, (string Focus, int Reach)>(StringComparer.Ordinal);
+        // First spelling of a symbol wins, so "OrderService" and "Type:Acme.OrderService" on two
+        // cards share one focus — one trace, one budget share — instead of building it twice.
+        var byNode = new Dictionary<NodeId, (string Focus, int Reach)>();
+
+        foreach (var card in cards)
+        {
+            foreach (var eid in card.EntryIds)
+            {
+                if (map.ContainsKey(eid)) continue;
+
+                if (FindEntry(eid) is { } declared)
+                {
+                    map[eid] = (declared.HttpMethod is { } m && declared.Route is { } r
+                        ? $"{m} {r}"
+                        : declared.Title, declared.Reach);
+                    continue;
+                }
+
+                var focus = NormalizeSymbolFocus(eid);
+                if (_query.ResolveEntry(focus) is not { } symbol) continue;
+                if (byNode.TryGetValue(symbol.Node, out var already)) { map[eid] = already; continue; }
+
+                // A symbol has no precomputed Reach (that is an entry-inventory field). Its rolled
+                // out-degree is the honest proxy for the same thing the budget split wants — how much
+                // this root goes on to touch — and it is what the resolver itself ranks candidates on.
+                var resolved = (focus, _query.Neighbors(symbol.Node, EdgeDirection.Out).Length);
+                byNode[symbol.Node] = resolved;
+                map[eid] = resolved;
+            }
+        }
+
+        return map;
+    }
+
+    /// <summary>N2.1 — a card entry id is a <see cref="NodeId"/> string (<c>Type:Acme.OrderService</c>,
+    /// <c>Member:Acme.OrderService::Handle</c>) because that is the spelling the desktop already sends
+    /// for declared entries. The shared resolver speaks the USER notation (<c>OrderService</c>,
+    /// <c>OrderService:Handle</c>), so the kind prefix is translated here rather than teaching the
+    /// resolver a second dialect. Anything that is not a node-id form passes through untouched — a
+    /// bare <c>RuleFor</c> is already what the resolver wants.</summary>
+    internal static string NormalizeSymbolFocus(string entryId)
+    {
+        var colon = entryId.IndexOf(':');
+        if (colon <= 0) return entryId;
+        var prefix = entryId[..colon];
+        return Enum.GetNames<NodeKind>().Contains(prefix, StringComparer.Ordinal)
+            ? entryId[(colon + 1)..]
+            : entryId;
     }
 
     // GAP 4 (UI Context Studio audit) — same bare-route gap as EntryPointResolver: a card seeded with
