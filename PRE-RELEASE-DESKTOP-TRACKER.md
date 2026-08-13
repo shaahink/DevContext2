@@ -1,24 +1,24 @@
-﻿# DevContext pre-release - desktop agent loop Phase Tracker
+# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-STAGE N2 IS CLOSED. N2.2 landed aab7cf3 (evidence eval-results/2026-08-13/N2.2-honesty-parity.md);
-the owner gate chore landed 7ff60eb. START AT N3.1. Session #7's tree was INCOMPLETE, not just
-uncommitted - the panel emitted an output() that was never declared, the studio never bound the two
-new inputs, and the spec fake omitted them, which threw inside repack and reddened 21 studio specs.
-Now true: ContextPackBuilder.BuildFillNote computes the fill note + suggested focuses SERVER-SIDE
-(wire: fill_note, repeated SuggestedFocus); the Studio renders and derives nothing; onSuggestedFocus
-adds a flow card whose entryId IS the focus string. ONE budget number: ContextPackBuilder.
-DefaultBudgetTokens == DEFAULT_STUDIO_BUDGET == 8000, deliberately NOT TracePolicy's 4000.
-gates.ps1 order is now 0,1,1a,5,2,2b,4,4b,3 and an ABORT exits 9 - step NUMBERS are unchanged.
-TRAP PAID FOR: a `cd` in the PowerShell tool LEAKS into the Bash tool's cwd (cd absolutely, always),
-and conductor bg cannot take args with leading dashes - use `-- pwsh <script.ps1>`; plain `pnpm` under
-it resolves to a stale corepack shim. Loop: pnpm check green 202/202. New bug #5 (Types tab ranks
-nothing: 58 of FluentValidation's 90 public types have zero in-repo usages, so their usage card is
-silently empty). Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
-
+M1.1 IS DONE, all four shopping-list items (evidence eval-results/2026-08-13/M1.1-reader-prereqs.md).
+NEXT: M1.2 (hygiene) - it is untouched, and its first move is to MEASURE whether MapResponse.stack is
+ever populated before deciding populate-vs-delete; file the bug either way. Leave the GitHub-URL dead
+code alone (owner call - file it, do not decide it). Now true on the wire: TraceNode carries file_path/
+line_number/omitted_names/multi_impl_count/di_host_count/test_only; ReadSourceMode.FILE reads a whole
+file by PATH or node, capped 2000/10000 and the cap is visible (total_lines+truncated, set for
+MEMBER/WINDOW too); GetFileOverlay returns GraphQuery.EdgesInFile - edges whose provenance falls in one
+file, line 0 = known-but-unplaced, counted not dropped. One ResolveInRoot guard covers both path-taking
+RPCs. PathDisplay.SplitProvenance is now the ONE file:line parse - do not add another.
+TRAPS PAID FOR: app component specs CANNOT run via `pnpm exec vitest run <file>` (TestBed env comes
+from the @angular/build:unit-test builder) - use `pnpm test`, whole suite, ~40s. McpQaGateTests going
+red inside one `dotnet test DevContext.slnx` run is a two-host CONCURRENCY artifact: it passes 2/2 alone
+- run it alone before chasing it. Bug filed: MCP read_source does its own file IO and never calls the
+ReadSource RPC. Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts,
+#5 Types tab ranks nothing.
 
 ## Baseline numbers (from run.db)
 

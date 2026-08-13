@@ -13,7 +13,11 @@ import { repoRelativePath } from '../../core/format';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { highlightCSharp } from '../../core/code-highlight';
 import type { TraceNodeVm } from '../../models/view-models';
-import type { Insight } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type {
+  FileOverlayResponse,
+  Insight,
+  ReadSourceResponse,
+} from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 
 type SectionId = 'details' | 'code' | 'insights' | 'callstack' | 'trail';
 
@@ -130,9 +134,38 @@ function isAlphanumeric(c: string): boolean {
               <button type="button" class="chip" (click)="loadCode(node)">
                 {{ codeLoading() ? 'loading…' : 'load source' }}
               </button>
+              <!-- M1.1 - member/window answer "what is at this node"; whole file answers "what is
+                   in this file", which is the question you ask once you want to READ. -->
+              <button type="button" class="chip" (click)="loadWholeFile(node)" data-testid="load-whole-file">
+                whole file
+              </button>
             </div>
             @if (codeContent()) {
+              @if (codeRange(); as range) {
+                <p class="text-2xs text-ink-subtle tabular-nums" data-testid="code-range">{{ range }}</p>
+              }
               <pre class="code-block max-h-80 overflow-y-auto whitespace-pre border border-line bg-base p-2 font-mono text-2xs leading-relaxed"><code [innerHTML]="highlightedCode()"></code></pre>
+              <!-- M1.1 - the per-file edge overlay. It states its own coverage: an unmarked line
+                   is a line the graph has no edge for, NOT a line with nothing on it. -->
+              @if (fileOverlay(); as overlay) {
+                <p class="text-2xs text-ink-subtle" data-testid="overlay-coverage">
+                  {{ overlay.sites.length }} wiring {{ overlay.sites.length === 1 ? 'site' : 'sites' }} in this file
+                  · {{ overlay.placedSites }} placed on a line
+                  @if (overlay.unplacedSites > 0) {<span>&nbsp;· {{ overlay.unplacedSites }} known but unplaced</span>}
+                </p>
+                @for (site of overlay.sites; track $index) {
+                  <button
+                    type="button"
+                    class="list-row w-full text-left"
+                    (click)="jumpToStackNode(site.toNodeId)"
+                  >
+                    <span class="shrink-0 w-8 text-2xs text-ink-subtle tabular-nums">{{ site.line > 0 ? site.line : '—' }}</span>
+                    <span class="shrink-0 text-2xs text-accent">{{ site.kind }}</span>
+                    <span class="min-w-0 flex-1 truncate font-mono text-2xs" [title]="site.toTitle">{{ site.toTitle }}</span>
+                    @if (site.resolution === 'Syntactic') { <span class="shrink-0 text-2xs text-warn">approx</span> }
+                  </button>
+                }
+              }
             } @else if (codeLoading()) {
               <div class="space-y-1 py-2">
                 <app-skeleton />
@@ -359,6 +392,11 @@ export class Inspector {
   protected readonly codeLoading = signal(false);
   protected readonly codeError = signal<string | null>(null);
   protected readonly codePathCopied = signal(false);
+  /** M1.1 — what the server actually returned, in the server's own numbers. A code pane that shows
+   * 2000 lines of a 5231-line file and says nothing is the same defect class as a trace that cuts
+   * six branches and prints only a count. */
+  protected readonly codeRange = signal<string | null>(null);
+  protected readonly fileOverlay = signal<FileOverlayResponse | null>(null);
   protected readonly highlightedCode = computed(() => highlightCSharp(this.codeContent()));
   private codeNodeId: string | null = null;
   /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
@@ -534,20 +572,51 @@ export class Inspector {
   protected loadCode(node: { id: string; title: string; filePath?: string }): void {
     const handle = this.session.handle();
     if (!handle) return;
-    this.codeLoading.set(true);
-    this.codeError.set(null);
-    this.codeContent.set('');
+    this.beginCodeLoad();
 
     this.api
       .readSource(handle, node.id)
       .then((res) => {
         this.codeContent.set(res.content);
+        this.codeRange.set(rangeNote(res));
       })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : 'Failed to load source';
         this.codeError.set(msg);
       })
       .finally(() => this.codeLoading.set(false));
+  }
+
+  /** M1.1 — the whole file (server-capped) plus the per-file edge overlay. Two RPCs, deliberately:
+   * the overlay is the answer to a different question ("what wiring is in here") and is worth
+   * showing even when the file itself comes back truncated. */
+  protected loadWholeFile(node: { id: string; filePath?: string }): void {
+    const handle = this.session.handle();
+    if (!handle) return;
+    this.beginCodeLoad();
+
+    void this.api
+      .readSourceFile(handle, { nodeId: node.id })
+      .then((res) => {
+        this.codeContent.set(res.content);
+        this.codeRange.set(rangeNote(res));
+        return res.filePath || node.filePath;
+      })
+      .then((path) => (path ? this.api.getFileOverlay(handle, path) : null))
+      .then((overlay) => this.fileOverlay.set(overlay))
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : 'Failed to load source';
+        this.codeError.set(msg);
+      })
+      .finally(() => this.codeLoading.set(false));
+  }
+
+  private beginCodeLoad(): void {
+    this.codeLoading.set(true);
+    this.codeError.set(null);
+    this.codeContent.set('');
+    this.codeRange.set(null);
+    this.fileOverlay.set(null);
   }
 
   /** M7.1: Extract base filename from a full path. */
@@ -569,6 +638,16 @@ export class Inspector {
         return '·';
     }
   }
+}
+
+/** M1.1 — states the returned range in the server's own numbers. It reports what came back and
+ * how big the file is; it does NOT interpret why (the same `truncated` flag means "the FILE cap
+ * fired" in one mode and "this is a member window" in another, and a note that guessed between
+ * them would be inventing). Null when the server reported no size — the error paths. */
+export function rangeNote(res: Pick<ReadSourceResponse, 'startLine' | 'endLine' | 'totalLines' | 'truncated'>): string | null {
+  if (res.totalLines <= 0) return null;
+  if (!res.truncated) return `whole file · ${res.totalLines} lines`;
+  return `lines ${res.startLine}–${res.endLine} of ${res.totalLines}`;
 }
 
 /** DFS lookup in a trace tree for a node by id. */

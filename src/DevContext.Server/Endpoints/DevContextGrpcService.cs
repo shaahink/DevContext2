@@ -371,6 +371,12 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.ReadSourceResponse> ReadSource(Proto.ReadSourceRequest request, ServerCallContext context)
         => WrapT(request.SessionId, session =>
         {
+            // M1.1 — FILE mode: the whole file, capped. It is addressable BY PATH, so it does not
+            // need a node at all; a caller that has a file:line (which every provenance now is)
+            // can read the file it names without first turning it back into a graph node.
+            if (request.Mode == Proto.ReadSourceMode.File && request.HasFilePath)
+                return ReadWholeFile(session, request.FilePath, request.MaxLines, nodeTitle: "");
+
             var nodeId = ResolveNode(session, request.NodeId);
             if (nodeId is null)
                 return new Proto.ReadSourceResponse
@@ -394,6 +400,9 @@ public sealed class DevContextGrpcService(
                     Language = "text",
                     FilePath = node.FilePath
                 };
+
+            if (request.Mode == Proto.ReadSourceMode.File)
+                return ReadWholeFile(session, node.FilePath, request.MaxLines, node.Title);
 
             var lines = File.ReadAllLines(node.FilePath);
             var anchorLine = node.LineNumber.Value;
@@ -420,26 +429,117 @@ public sealed class DevContextGrpcService(
             var selectedLines = lines[(startLine - 1)..endLine];
             var content = string.Join("\n", selectedLines);
 
-            var language = Path.GetExtension(node.FilePath)?.ToLowerInvariant() switch
-            {
-                ".cs" => "csharp",
-                ".razor" => "razor",
-                ".cshtml" => "csharp",
-                ".xaml" => "xml",
-                ".axaml" => "xml",
-                _ => "text"
-            };
-
             return new Proto.ReadSourceResponse
             {
                 Content = content,
-                Language = language,
+                Language = LanguageOf(node.FilePath),
                 FilePath = node.FilePath,
                 StartLine = startLine,
                 EndLine = endLine,
-                NodeTitle = node.Title
+                NodeTitle = node.Title,
+                // M1.1 — MEMBER/WINDOW are windows too; they just never said what they cut.
+                TotalLines = lines.Length,
+                Truncated = startLine > 1 || endLine < lines.Length,
             };
         });
+
+    /// <summary>M1.1 — the default FILE-mode cap. Big enough that most real C# files come back
+    /// whole, small enough that a generated 40k-line file cannot be turned into one gRPC message
+    /// by accident. A caller asking for more gets <see cref="MaxFileLinesCeiling"/> at most.</summary>
+    internal const int DefaultFileLines = 2000;
+    internal const int MaxFileLinesCeiling = 10000;
+
+    /// <summary>M1.1 — FILE mode. Reads a whole file, capped, and SAYS when the cap fired.
+    /// Refuses anything outside the analyzed root: this RPC takes a caller-supplied path, so
+    /// containment is the difference between "read the repo" and "read the disk".</summary>
+    private static Proto.ReadSourceResponse ReadWholeFile(
+        AnalysisSession session, string requestedPath, int maxLines, string nodeTitle)
+    {
+        if (ResolveInRoot(session, requestedPath) is not { } full)
+            return new Proto.ReadSourceResponse
+            {
+                Content = "Refused: path is outside the analyzed root (" + session.Snapshot.RootPath + ").",
+                Language = "text",
+                FilePath = requestedPath,
+            };
+
+        if (!File.Exists(full))
+            return new Proto.ReadSourceResponse
+            {
+                Content = "Source file not found: " + full,
+                Language = "text",
+                FilePath = full,
+            };
+
+        var lines = File.ReadAllLines(full);
+        var cap = maxLines > 0 ? Math.Min(maxLines, MaxFileLinesCeiling) : DefaultFileLines;
+        var end = Math.Min(lines.Length, cap);
+
+        return new Proto.ReadSourceResponse
+        {
+            Content = string.Join("\n", lines[..end]),
+            Language = LanguageOf(full),
+            FilePath = full,
+            StartLine = lines.Length == 0 ? 0 : 1,
+            EndLine = end,
+            NodeTitle = nodeTitle,
+            TotalLines = lines.Length,
+            Truncated = end < lines.Length,
+        };
+    }
+
+    /// <summary>M1.1 — per-file edge overlay. GraphQuery could always answer "which edges happen in
+    /// this file"; nothing could ASK it, because every browse RPC is node-first. This is the query
+    /// the code pane needs to render wiring in the margin — and, standing alone, the answer to
+    /// "what does this file actually reach" without first guessing which node to look up.</summary>
+    public override Task<Proto.FileOverlayResponse> GetFileOverlay(Proto.FileOverlayRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var full = ResolveInRoot(session, request.FilePath);
+            var resp = new Proto.FileOverlayResponse { FilePath = full ?? request.FilePath };
+            if (full is null) return resp;
+
+            foreach (var site in session.Query.EdgesInFile(full))
+            {
+                resp.Sites.Add(new Proto.FileOverlaySite
+                {
+                    Line = site.Line,
+                    Kind = site.Kind.ToString(),
+                    Resolution = site.Resolution.ToString(),
+                    ToNodeId = site.To.ToString(),
+                    ToTitle = site.ToTitle,
+                });
+                if (site.Line > 0) resp.PlacedSites++; else resp.UnplacedSites++;
+            }
+
+            return resp;
+        });
+
+    /// <summary>Resolves a caller-supplied path against the analyzed root, or null when it escapes it.
+    /// Both file-addressed RPCs go through here: a path parameter is the one place a query API can
+    /// turn into "read any file on the box".</summary>
+    private static string? ResolveInRoot(AnalysisSession session, string requestedPath)
+    {
+        if (string.IsNullOrWhiteSpace(requestedPath)) return null;
+        var root = session.Snapshot.RootPath;
+        var full = Path.IsPathRooted(requestedPath)
+            ? Path.GetFullPath(requestedPath)
+            : Path.GetFullPath(Path.Combine(root, requestedPath));
+        var rootFull = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var contained = string.Equals(full, rootFull, StringComparison.OrdinalIgnoreCase)
+            || full.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        return contained ? full : null;
+    }
+
+    private static string LanguageOf(string path) => Path.GetExtension(path)?.ToLowerInvariant() switch
+    {
+        ".cs" => "csharp",
+        ".razor" => "razor",
+        ".cshtml" => "csharp",
+        ".xaml" => "xml",
+        ".axaml" => "xml",
+        _ => "text"
+    };
 
     // M4.7 / T3.4 — config key lookup. The file scan + regex is now done ONCE per session
     // (AnalysisSession.ConfigBindings, cached) and filtered in-memory here — previously it re-scanned

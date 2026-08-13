@@ -29,6 +29,16 @@ public sealed record EdgeRef(
 /// <summary>G3.2 — one edge kind and how many edges carry it, in one direction from one node.</summary>
 public sealed record EdgeKindCount(EdgeKind Kind, int Count);
 
+/// <summary>M1.1 — one wiring site inside a file: the line it happens on and what it reaches.
+/// <paramref name="Line"/> is 0 when the edge names the file but not a line.</summary>
+public sealed record FileEdgeSite(
+    int Line,
+    EdgeKind Kind,
+    Resolution Resolution,
+    NodeId From,
+    NodeId To,
+    string ToTitle);
+
 /// <summary>A kind-filtered neighbour answer that still knows what it filtered out:
 /// <paramref name="Edges"/> is the filtered list, while <paramref name="TotalEdges"/> and
 /// <paramref name="KindsPresent"/> describe the UNFILTERED edges in the same direction.</summary>
@@ -639,6 +649,36 @@ public sealed class GraphQuery
 
     private static string NormalizePath(string path) =>
         path.Replace('\\', '/').TrimEnd('/');
+
+    /// <summary>M1.1 — the per-file edge overlay: every edge whose provenance SITE falls in one file,
+    /// ordered by line. This is the "read code with the wiring overlaid" query — the graph already
+    /// knows which line sends what; nothing until now could ask it file-first.
+    /// <para>Edges provenanced to the file with no parseable line are returned with Line 0 rather than
+    /// dropped: a site the graph knows but cannot place is a fact about coverage, and hiding it would
+    /// make an overlay look more complete than it is.</para></summary>
+    public ImmutableArray<FileEdgeSite> EdgesInFile(string filePath)
+    {
+        var target = NormalizePath(filePath);
+        var sites = ImmutableArray.CreateBuilder<FileEdgeSite>();
+
+        foreach (var edge in _graph.AllEdges)
+        {
+            if (edge.Provenance is not { Length: > 0 } prov) continue;
+            var (path, line) = Rendering.PathDisplay.SplitProvenance(prov);
+            if (!NormalizePath(path).Equals(target, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var to = _graph.Node(edge.To);
+            sites.Add(new FileEdgeSite(
+                Line: line ?? 0,
+                Kind: edge.Kind,
+                Resolution: edge.Resolution,
+                From: edge.From,
+                To: edge.To,
+                ToTitle: edge.TargetMember is { Length: > 0 } m ? $"{to?.Title ?? edge.To.Key}.{m}" : to?.Title ?? edge.To.Key));
+        }
+
+        return sites.ToImmutable().Sort((a, b) => a.Line != b.Line ? a.Line.CompareTo(b.Line) : string.CompareOrdinal(a.ToTitle, b.ToTitle));
+    }
 
     /// <summary>I5 F13 — Blast Radius: BFS over in-edges from a node to find which entry points
     /// reach it. Returns the entry titles with hop distances. Depth-capped, cycle-safe.

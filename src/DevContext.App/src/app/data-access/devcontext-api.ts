@@ -13,6 +13,7 @@ import type {
   InterestingPointsResponse,
   ListSessionsResponse,
   MapResponse,
+  FileOverlayResponse,
   NeighborsResponse,
   NodeResponse,
   ProgressEvent,
@@ -183,6 +184,23 @@ export class DevContextApi {
       mode: options?.mode ?? ReadSourceMode.MEMBER,
       windowLines: options?.windowLines ?? 0,
     });
+  }
+
+  /** M1.1 — the whole file, capped by the server. `maxLines` 0 takes the server's default; the
+   * response says what it cut (totalLines/truncated) rather than trailing off silently. */
+  readSourceFile(handle: string, target: { nodeId?: string; filePath?: string }, maxLines = 0): Promise<ReadSourceResponse> {
+    return this.client.readSource({
+      sessionId: handle,
+      nodeId: target.nodeId ?? '',
+      filePath: target.filePath,
+      mode: ReadSourceMode.FILE,
+      maxLines,
+    });
+  }
+
+  /** M1.1 — the wiring the graph knows inside one file, keyed by line. */
+  getFileOverlay(handle: string, filePath: string): Promise<FileOverlayResponse> {
+    return this.client.getFileOverlay({ handle, filePath });
   }
 
   async ping(): Promise<{ ready: boolean; version: string }> {

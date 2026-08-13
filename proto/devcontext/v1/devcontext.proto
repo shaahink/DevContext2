@@ -82,6 +82,11 @@ service DevContextService {
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
 
+  // M1.1 — per-file edge overlay: the wiring the graph knows INSIDE one file, keyed by line.
+  // Every other browse RPC is node-first; this one is file-first, which is the only way to read
+  // code with its edges in the margin.
+  rpc GetFileOverlay(FileOverlayRequest) returns (FileOverlayResponse);
+
   // L4.2 — Graph facets: service map, flow list, entry table, and per-node layer/feature
   // bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
   // surfaces without individual Node RPCs.
@@ -1018,13 +1023,21 @@ enum ReadSourceMode {
   READ_SOURCE_MODE_UNSPECIFIED = 0;
   READ_SOURCE_MODE_MEMBER = 1;    // full declaration body of the node's member
   READ_SOURCE_MODE_WINDOW = 2;    // context window around the node's line
+  // M1.1 — the whole file, capped. MEMBER and WINDOW both answer "what is at this node"; FILE
+  // answers "what is in this file", which is the question you ask once you want to READ rather
+  // than confirm. Addressable by file_path OR by node_id (the node's declaring file).
+  READ_SOURCE_MODE_FILE = 3;
 }
 
 message ReadSourceRequest {
   string session_id = 1;          // session handle
   string node_id = 2;             // graph node id to read source for
-  ReadSourceMode mode = 3;        // MEMBER (full span) or WINDOW (context window)
+  ReadSourceMode mode = 3;        // MEMBER (full span), WINDOW (context window), FILE (whole file)
   int32 window_lines = 4;         // lines above/below for WINDOW mode (default 50)
+  // M1.1 — FILE mode: read this file instead of resolving a node. Repo-relative or absolute;
+  // the server refuses anything outside the analyzed root.
+  optional string file_path = 5;
+  int32 max_lines = 6;            // FILE mode cap (0 = server default); clamped server-side
 }
 
 message ReadSourceResponse {
@@ -1034,6 +1047,36 @@ message ReadSourceResponse {
   int32 start_line = 4;           // first line of the returned range
   int32 end_line = 5;             // last line of the returned range
   string node_title = 6;          // node display title for headers
+  // M1.1 — a cap the caller cannot see is a cap that lies. These two say what was cut.
+  int32 total_lines = 7;          // lines in the whole file, whatever range came back
+  bool truncated = 8;             // the cap fired: the returned range is not the whole file
+}
+
+// ---------------------------------------------------------------------------
+// M1.1 — per-file edge overlay
+// ---------------------------------------------------------------------------
+
+message FileOverlayRequest {
+  string handle = 1;
+  string file_path = 2;           // repo-relative or absolute; refused outside the analyzed root
+}
+
+message FileOverlaySite {
+  int32 line = 1;                 // 1-based line in the requested file; 0 = the graph knows the
+                                  //   file but not the line (kept, not hidden — it is coverage truth)
+  string kind = 2;                // edge kind: Calls, Sends, Handles, Raises, Resolves, …
+  string resolution = 3;          // Semantic | Syntactic | Join — the verified/approx mark
+  // 4 is deliberately unused: the edge's FROM node is implicit (it is in this file), and a field
+  // no surface renders is the dead-by-construction defect eval/contract-sweep.ps1 exists to catch.
+  string to_node_id = 5;
+  string to_title = 6;            // what this site reaches, member-qualified when the edge knows it
+}
+
+message FileOverlayResponse {
+  string file_path = 1;           // resolved absolute path
+  repeated FileOverlaySite sites = 2;
+  int32 placed_sites = 3;         // sites with a line — what a gutter can actually mark
+  int32 unplaced_sites = 4;       // known-in-this-file but unplaceable; the honest remainder
 }
 
 // ---------------------------------------------------------------------------
