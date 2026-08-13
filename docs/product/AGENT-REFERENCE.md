@@ -42,7 +42,7 @@ Trace:     GetTrace · GetNeighbors · GetNode · GetImpact
 Search:    SearchNodes · FindTestsFor · ConfigLookup
 Source:    ReadSource · Render
 Context:   GetContext · GetContextPack · VerifyContext
-MCP mgmt:  StartMcp · StopMcp · ObserveToolCalls
+MCP mgmt:  StartMcp · StopMcp · GetMcpStatus · ObserveToolCalls
 ```
 
 Editing the proto: rebuild `DevContext.Contracts` (C# stubs) **and** run `pnpm gen:proto` (TypeScript)

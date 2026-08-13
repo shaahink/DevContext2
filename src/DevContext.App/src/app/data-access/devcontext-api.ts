@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { DEVCONTEXT_CLIENT } from '../core/grpc/client';
 import type {
@@ -191,19 +191,20 @@ export class DevContextApi {
     }
   }
 
-  protected readonly _mcpRunning = signal(false);
-  readonly mcpRunning = this._mcpRunning.asReadonly();
-
-  setMcpRunning(running: boolean): void {
-    this._mcpRunning.set(running);
-  }
-
-  async getMcpStatus(): Promise<boolean> {
+  /**
+   * N0.2 (audit §3.F.9) — reads the observability state; it does NOT change it. This used to
+   * call `startMcp`, a mutating RPC, so opening the MCP page switched telemetry on and then
+   * reported the state it had just caused. `null` = the server could not be asked.
+   *
+   * N0.2 (audit §3.F.14) — the `_mcpRunning` mirror signal that lived here went with it: it was
+   * written by the MCP page on every toggle and read by nobody.
+   */
+  async getMcpStatus(): Promise<{ telemetryStreaming: boolean; observerCount: number } | null> {
     try {
-      const resp = await this.client.startMcp({});
-      return resp.running;
+      const resp = await this.client.getMcpStatus({});
+      return { telemetryStreaming: resp.telemetryStreaming, observerCount: resp.observerCount };
     } catch {
-      return false;
+      return null;
     }
   }
 }

@@ -1,15 +1,24 @@
 import { Component, inject, signal, type WritableSignal, type OnDestroy, type OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { copyToClipboard } from '../../core/clipboard';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { ToastService } from '../../ui/toast/toast';
 
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/** N0.2 (audit §3.F.12) — render the instant the SERVER stamped on the call. */
+function fmtWireTime(timestampUtcMs: bigint | number): string {
+  const ms = Number(timestampUtcMs);
+  return ms > 0 ? new Date(ms).toLocaleTimeString() : '—';
+}
+
 interface ToolCallEntry {
   time: string;
   tool: string;
-  session: string;
   repo: string;
-  bytes: number;
   estTokens: number;
   elapsedMs: number;
   /** "ui" (the app's own gRPC-web traffic) or "agent" (MCP sidecar over native gRPC). */
@@ -24,7 +33,18 @@ interface SessionItem {
   nodes: number;
   edges: number;
   entries: number;
+  /** R4 item 10 — the ANALYSIS behind this session, which a cache hit makes much older than the session. */
+  fromCache: boolean;
+  analyzedAt: string;
 }
+
+// N0.2 (audit §3.F.10) — `devcontext-mcp` is NOT on PATH after a desktop install: the Tauri
+// bundle publishes only resources/server/**, and it is not a global dotnet tool
+// (docs/product/mcp-reference.md §Register). Every host snippet here used to name the bare
+// command, so a first-run user copied a config that could not resolve. Until N4.2 ships the
+// binary in the bundle and substitutes the resolved path, these carry the documented
+// build-output path with an explicit placeholder — one you can SEE is a placeholder.
+const MCP_COMMAND_PLACEHOLDER = 'C:/path/to/DevContext2/src/DevContext.Mcp/bin/Debug/net10.0/devcontext-mcp.exe';
 
 const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
   {
@@ -32,7 +52,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
     snippet: `{
   "mcpServers": {
     "devcontext": {
-      "command": "devcontext-mcp",
+      "command": "${MCP_COMMAND_PLACEHOLDER}",
       "args": []
     }
   }
@@ -43,7 +63,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
     snippet: `{
   "mcpServers": {
     "devcontext": {
-      "command": "devcontext-mcp"
+      "command": "${MCP_COMMAND_PLACEHOLDER}"
     }
   }
 }`,
@@ -54,7 +74,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
   "inputs": [],
   "servers": {
     "devcontext": {
-      "command": "devcontext-mcp"
+      "command": "${MCP_COMMAND_PLACEHOLDER}"
     }
   }
 }`,
@@ -70,49 +90,70 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
       <div class="rounded-lg border border-line bg-surface p-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
+            <!-- N0.2 (audit §3.F.9) — the dot reports TELEMETRY FORWARDING, which is the only
+                 thing Start/Stop actually toggles and the only thing this server can observe.
+                 It was labelled "MCP Endpoint Active/Stopped" while being read by calling the
+                 mutating StartMcp, i.e. it reported a state the read had just created. The real
+                 endpoint probe (is the binary there, has an agent called) is N4.1. -->
             <span
               class="flex h-3 w-3 rounded-full shrink-0"
-              [class.bg-green]="mcpRunning()"
-              [class.bg-ink-subtle]="!mcpRunning()"
+              [class.bg-green]="telemetryStreaming()"
+              [class.bg-ink-subtle]="!telemetryStreaming()"
+              data-testid="mcp-status-dot"
             ></span>
-            <span class="text-sm font-medium">
-              {{ mcpRunning() ? 'MCP Endpoint Active' : 'MCP Endpoint Stopped' }}
+            <span class="text-sm font-medium" data-testid="mcp-status-label">
+              {{ telemetryStreaming() ? 'Tool-call telemetry streaming' : 'Tool-call telemetry off' }}
             </span>
-  
           </div>
           <button
             class="rounded px-3 py-1.5 text-xs font-medium border transition-colors"
-            [class.border-warn/30]="mcpRunning()"
-            [class.text-warn]="mcpRunning()"
-            [class.hover:bg-warn/10]="mcpRunning()"
-            [class.border-line]="!mcpRunning()"
-            [class.text-ink]="!mcpRunning()"
-            [class.hover:bg-surface-raised]="!mcpRunning()"
+            [class.border-warn/30]="telemetryStreaming()"
+            [class.text-warn]="telemetryStreaming()"
+            [class.hover:bg-warn/10]="telemetryStreaming()"
+            [class.border-line]="!telemetryStreaming()"
+            [class.text-ink]="!telemetryStreaming()"
+            [class.hover:bg-surface-raised]="!telemetryStreaming()"
+            data-testid="mcp-toggle"
             (click)="toggleMcp()"
           >
-            {{ mcpRunning() ? 'Stop' : 'Start' }}
+            {{ telemetryStreaming() ? 'Stop' : 'Start' }}
           </button>
         </div>
-        <div class="mt-2 text-xs text-ink-subtle">
+        <div class="mt-2 text-xs text-ink-subtle" data-testid="mcp-status-text">
           {{ statusText() }}
         </div>
+        @if (statusError(); as err) {
+          <!-- N0.2 (audit §3.F.14) — the status read used to swallow its failure and render a
+               grey dot, which is also what a healthy-but-off endpoint looks like. -->
+          <div class="mt-1 text-xs text-danger" data-testid="mcp-status-error">{{ err }}</div>
+        }
       </div>
 
       <!-- Config snippets -->
       <div>
         <h3 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Host Config</h3>
-        <p class="mb-2 text-2xs text-ink-subtle">
-          Requires <code class="font-mono">devcontext-mcp</code> on PATH (ships with the desktop installer;
-          from source: <code class="font-mono">dotnet run --project src/DevContext.Mcp</code>).
+        <!-- N0.2 (audit §3.F.10) — this used to read "ships with the desktop installer", which is
+             false: the Tauri bundle publishes only resources/server/**, devcontext-mcp is not a
+             global dotnet tool, and nothing puts it on PATH. N4.2 makes the true version of that
+             sentence true; until then the page says what a user must actually do. -->
+        <p class="mb-2 text-2xs text-ink-subtle" data-testid="mcp-setup-note">
+          Build it first — <code class="font-mono">dotnet build src/DevContext.Mcp</code> — then point your host at
+          the built <code class="font-mono">devcontext-mcp</code> executable by full path. It is not on PATH after a
+          desktop install and it is not a global dotnet tool yet, so replace the placeholder path below.
         </p>
         <div class="grid grid-cols-3 gap-3">
           @for (cfg of configSnippets; track cfg.host) {
             <div class="rounded border border-line bg-surface p-3">
               <div class="flex items-center justify-between mb-1.5">
                 <span class="text-xs font-medium">{{ cfg.host }}</span>
+                <!-- N0.2 (audit §3.F.11) — copy() used to guess which card was clicked by
+                     sniffing the snippet text for the host name, and no snippet contains it,
+                     so every copy flipped the VS Code card to "Copied!". The card says which
+                     one it is; it does not need to be guessed. -->
                 <button
                   class="text-2xs text-ink-subtle hover:text-ink transition-colors"
-                  (click)="copy(cfg.snippet)"
+                  [attr.data-testid]="'copy-snippet-' + cfg.host"
+                  (click)="void copy(cfg.host, cfg.snippet)"
                 >{{ copied() === cfg.host ? 'Copied!' : 'Copy' }}</button>
               </div>
               <pre class="text-2xs text-ink-subtle overflow-x-auto max-h-24 font-mono">{{ cfg.snippet }}</pre>
@@ -127,6 +168,11 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
           <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Sessions</h3>
           <button class="text-2xs text-ink-subtle hover:text-ink" (click)="refreshSessions()">Refresh</button>
         </div>
+        @if (sessionsError(); as err) {
+          <!-- N0.2 (audit §3.F.14) — the 30s poll used to fail silently, so a dead server and a
+               repo with no sessions rendered the same empty table. -->
+          <p class="text-xs text-danger py-2" data-testid="sessions-error">{{ err }}</p>
+        }
         @if (sessions().length === 0) {
           <p class="text-xs text-ink-subtle py-4 text-center">No active sessions. Analyze a repo first.</p>
         } @else {
@@ -136,9 +182,16 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
                 <tr class="border-b border-line text-ink-subtle">
                   <th class="text-left p-2 font-medium">Repo</th>
                   <th class="text-left p-2 font-medium">Handle</th>
-                  <th class="text-right p-2 font-medium">Age</th>
+                  <th class="text-right p-2 font-medium" title="How long ago this session opened">Session</th>
+                  <!-- N0.2 (audit §3.F.13) — the age column said "Age" and showed the SESSION's
+                       age; on a snapshot-cache hit that is a brand-new session serving an
+                       analysis from days ago, so the number lied about the data's freshness.
+                       from_cache and analyzed_at were already on the wire, mapped, unrendered. -->
+                  <th class="text-right p-2 font-medium" title="How old the ANALYSIS behind this session is">Analyzed</th>
                   <th class="text-right p-2 font-medium">Calls</th>
                   <th class="text-right p-2 font-medium">Nodes</th>
+                  <th class="text-right p-2 font-medium">Edges</th>
+                  <th class="text-right p-2 font-medium">Entries</th>
                   <th class="p-2"></th>
                 </tr>
               </thead>
@@ -155,12 +208,17 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
                         class="hover:text-ink transition-colors"
                         [title]="s.handle + ' — click to copy'"
                         data-testid="session-handle-copy"
-                        (click)="copyHandle(s.handle)"
+                        (click)="void copyHandle(s.handle)"
                       >{{ copiedHandle() === s.handle ? 'Copied!' : s.handle.slice(0, 8) + '…' }}</button>
                     </td>
                     <td class="p-2 text-right font-mono tabular-nums">{{ fmtAge(s.ageSeconds) }}</td>
+                    <td class="p-2 text-right font-mono tabular-nums" data-testid="session-analyzed" [title]="analysisAgeTitle(s)">
+                      {{ analysisAge(s) }}
+                    </td>
                     <td class="p-2 text-right">{{ s.calls }}</td>
                     <td class="p-2 text-right">{{ s.nodes }}</td>
+                    <td class="p-2 text-right">{{ s.edges }}</td>
+                    <td class="p-2 text-right">{{ s.entries }}</td>
                     <td class="p-2 text-right">
                       <button
                         type="button"
@@ -197,10 +255,21 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
               [title]="showUiCalls() ? 'Showing everything, including the app’s own gRPC traffic' : 'UI-origin calls hidden — showing agent traffic only'"
               (click)="showUiCalls.set(!showUiCalls())"
             >{{ showUiCalls() ? 'all origins' : 'agents only' }}</button>
-            <span class="text-2xs text-ink-subtle tabular-nums">Total: {{ totalTokens() }} tok</span>
+            <!-- N0.2 (audit §3.F.12) — this was a running counter over every event ever seen,
+                 including the UI-origin rows the filter hides and the rows that fell off the
+                 200-row buffer, so "Total" described nothing on screen. It now sums exactly the
+                 visible rows and says so. -->
+            <span class="text-2xs text-ink-subtle tabular-nums" data-testid="feed-total"
+              title="Sum over the rows shown — switch the origin filter to change it">
+              Shown: {{ visibleTokens() }} tok
+            </span>
             <button class="text-2xs text-ink-subtle hover:text-ink" (click)="clearEvents()">Clear</button>
           </div>
         </div>
+        @if (feedError(); as err) {
+          <!-- N0.2 (audit §3.F.14) — the stream's catch-all used to end the feed in silence. -->
+          <p class="text-xs text-danger pb-2" data-testid="feed-error">{{ err }}</p>
+        }
         @if (visibleEvents().length === 0) {
           <p class="text-xs text-ink-subtle py-4 text-center">
             @if (events().length > 0 && !showUiCalls()) {
@@ -282,18 +351,27 @@ export class McpPage implements OnInit, OnDestroy {
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
 
-  protected readonly mcpRunning = signal(false);
-  private mcpStateSynced = false;
+  /** N0.2 (audit §3.F.9) — telemetry forwarding, which is what Start/Stop toggles. Not a claim
+   * about the devcontext-mcp process: the agent host spawns that over stdio, not this app. */
+  protected readonly telemetryStreaming = signal(false);
+  protected readonly observerCount = signal(0);
   protected readonly copied = signal<string | null>(null);
   protected readonly copiedHandle = signal<string | null>(null);
   protected readonly events: WritableSignal<ToolCallEntry[]> = signal([]);
-  protected readonly totalTokens = signal(0);
   protected readonly sessions = signal<SessionItem[]>([]);
   protected readonly tryResult = signal<string | null>(null);
+  /** N0.2 (audit §3.F.14) — the three catch-alls (status read, session poll, event stream) now
+   * each have a user-visible signal; they used to fail into a UI indistinguishable from idle. */
+  protected readonly statusError = signal<string | null>(null);
+  protected readonly sessionsError = signal<string | null>(null);
+  protected readonly feedError = signal<string | null>(null);
   /** Default OFF: the feed exists to watch AGENTS; the app's own render chatter drowns it. */
   protected readonly showUiCalls = signal(false);
   protected readonly visibleEvents = computed(() =>
     this.showUiCalls() ? this.events() : this.events().filter((e) => e.origin !== 'ui'));
+  /** N0.2 (audit §3.F.12) — the tokens of the rows actually on screen. */
+  protected readonly visibleTokens = computed(() =>
+    this.visibleEvents().reduce((n, e) => n + e.estTokens, 0));
 
   protected readonly configSnippets = CONFIG_SNIPPETS;
   /**
@@ -310,13 +388,18 @@ export class McpPage implements OnInit, OnDestroy {
   private streamAbort: AbortController | null = null;
   private sessionTimer: ReturnType<typeof setInterval> | null = null;
 
-  /** L6.6: Status text reflects live state instead of static toggle label. */
+  /** L6.6: Status text reflects live state instead of static toggle label.
+   * N0.2 (audit §3.F.9) — and it now describes what was measured. The old copy ("Accepting
+   * connections", "Endpoint stopped") described an MCP endpoint this server neither owns nor
+   * observes; what it can see is whether it is forwarding tool-call events and to how many
+   * watchers. Whether an agent host has actually spawned devcontext-mcp is N4.1's probe. */
   protected readonly statusText = computed(() => {
-    if (this.mcpRunning()) {
-      return 'Accepting connections. Tools served over stdio ↔ gRPC.';
-    }
+    const watchers = `${this.observerCount()} watcher(s) attached`;
     const live = this.sessions().length;
-    return live > 0 ? `Server running with ${live} session(s). Toggle to accept new MCP connections.` : 'Endpoint stopped. Toggle to allow new sessions.';
+    const sessions = live > 0 ? `${live} analysis session(s) open.` : 'No analysis sessions open.';
+    return this.telemetryStreaming()
+      ? `Forwarding every tool call this server serves — ${watchers}. ${sessions}`
+      : `Tool calls are still served; this server is not forwarding them to watchers. ${sessions}`;
   });
 
   async ngOnInit(): Promise<void> {
@@ -325,13 +408,17 @@ export class McpPage implements OnInit, OnDestroy {
       this.refreshSessions();
     }, 30_000);
 
-    const serverRunning = await this.api.getMcpStatus();
-    if (serverRunning) {
-      this.mcpRunning.set(true);
-      this.api.setMcpRunning(true);
-      this.startStream();
+    // N0.2 (audit §3.F.9) — a READ. This used to be `startMcp`, so opening the page turned
+    // telemetry on for every observer and then reported "active" because of its own call.
+    const status = await this.api.getMcpStatus();
+    if (status === null) {
+      this.statusError.set('Could not reach the DevContext server to read MCP status.');
+      return;
     }
-    this.mcpStateSynced = true;
+    this.statusError.set(null);
+    this.telemetryStreaming.set(status.telemetryStreaming);
+    this.observerCount.set(status.observerCount);
+    if (status.telemetryStreaming) this.startStream();
   }
 
   ngOnDestroy(): void {
@@ -340,34 +427,41 @@ export class McpPage implements OnInit, OnDestroy {
   }
 
   protected toggleMcp() {
-    if (this.mcpRunning()) {
+    if (this.telemetryStreaming()) {
       this.client.stopMcp({}).then(() => {
-        this.mcpRunning.set(false);
-        this.api.setMcpRunning(false);
+        this.telemetryStreaming.set(false);
         this.stopStream();
-      }).catch((err) => { this.mcpRunning.set(false); this.api.setMcpRunning(false); this.toast.show('Failed to stop MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
+      }).catch((err) => { this.telemetryStreaming.set(false); this.toast.show('Failed to stop MCP telemetry: ' + errorText(err), 'error'); });
     } else {
       this.client.startMcp({}).then((resp) => {
-        this.mcpRunning.set(resp.running);
-        this.api.setMcpRunning(resp.running);
+        this.telemetryStreaming.set(resp.running);
         if (resp.running) this.startStream();
-      }).catch((err) => { this.toast.show('Failed to start MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
+      }).catch((err) => { this.toast.show('Failed to start MCP telemetry: ' + errorText(err), 'error'); });
     }
   }
 
-  protected copy(text: string) {
-    navigator.clipboard.writeText(text).then(() => {
-      this.copied.set(text.includes('Claude') ? 'Claude Code' : text.includes('Cursor') ? 'Cursor' : 'VS Code');
+  /** N0.2 (audit §3.F.11) — the card names itself; the old version sniffed the snippet TEXT for
+   * a host name none of them contain, so every copy marked the VS Code card. Through the
+   * Tauri-aware helper, and a rejected write is reported instead of leaving a dead button. */
+  protected async copy(host: string, text: string): Promise<void> {
+    try {
+      await copyToClipboard(text);
+      this.copied.set(host);
       setTimeout(() => this.copied.set(null), 2000);
-    });
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
   }
 
   /** T6.10 — copy the FULL handle (the table shows a truncated one for width). */
-  protected copyHandle(handle: string) {
-    void navigator.clipboard.writeText(handle).then(() => {
+  protected async copyHandle(handle: string): Promise<void> {
+    try {
+      await copyToClipboard(handle);
       this.copiedHandle.set(handle);
       setTimeout(() => this.copiedHandle.set(null), 2000);
-    });
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
   }
 
   /** T6.10 — one click prefills TRY-A-TOOL with a live session: zero typing to a working call. */
@@ -377,6 +471,7 @@ export class McpPage implements OnInit, OnDestroy {
 
   protected refreshSessions() {
     this.client.listSessions({}).then((resp) => {
+      this.sessionsError.set(null);
       this.sessions.set(
         (resp.sessions || []).map((s) => ({
           handle: s.handle,
@@ -386,20 +481,42 @@ export class McpPage implements OnInit, OnDestroy {
           nodes: s.nodes,
           edges: s.edges,
           entries: s.entries,
+          fromCache: s.fromCache,
+          analyzedAt: s.analyzedAt,
         })),
       );
-    }).catch(() => { /* Polling failure is silent — sessions may be stale */ });
+    }).catch((err) => {
+      // N0.2 (audit §3.F.14) — a failed poll used to leave the last table on screen with no
+      // hint that it had stopped refreshing.
+      this.sessionsError.set(`Session list is stale — refresh failed: ${errorText(err)}`);
+    });
   }
 
   protected clearEvents() {
     this.events.set([]);
-    this.totalTokens.set(0);
   }
 
   protected fmtAge(seconds: number): string {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
     return `${Math.floor(seconds / 3600)}h`;
+  }
+
+  /** N0.2 (audit §3.F.13) — how old the ANALYSIS is, which after a snapshot-cache hit is the
+   * number that matters: the session is seconds old, the data behind it can be days old. */
+  protected analysisAge(s: SessionItem): string {
+    if (!s.analyzedAt) return '—';
+    const ms = Date.parse(s.analyzedAt);
+    if (Number.isNaN(ms)) return '—';
+    const age = this.fmtAge(Math.max(0, Math.round((Date.now() - ms) / 1000)));
+    return s.fromCache ? `${age} (cached)` : age;
+  }
+
+  protected analysisAgeTitle(s: SessionItem): string {
+    if (!s.analyzedAt) return 'The server did not report when this analysis ran';
+    return s.fromCache
+      ? `Analysis finished ${s.analyzedAt} and was rehydrated from the snapshot cache — the session is younger than the data`
+      : `Analysis finished ${s.analyzedAt}`;
   }
 
   protected tryTool() {
@@ -438,22 +555,26 @@ export class McpPage implements OnInit, OnDestroy {
 
     (async () => {
       try {
+        this.feedError.set(null);
         for await (const evt of stream) {
           const entry: ToolCallEntry = {
-            time: new Date().toLocaleTimeString(),
+            // N0.2 (audit §3.F.12) — the WIRE timestamp. This was the time the browser happened
+            // to receive the row, so a reconnect or a buffered burst stamped old calls "now";
+            // timestamp_utc_ms has been on the event since M3.3 and nothing read it.
+            time: fmtWireTime(evt.timestampUtcMs),
             tool: evt.tool,
-            session: evt.sessionHandle?.slice(0, 8) ?? '',
             repo: evt.sessionRepo ?? '',
-            bytes: Number(evt.bytes),
             estTokens: Number(evt.estTokens),
             elapsedMs: Number(evt.elapsedMs),
             origin: evt.origin || 'agent',
           };
           this.events.update((arr) => [entry, ...arr].slice(0, 200));
-          this.totalTokens.update((t) => t + entry.estTokens);
         }
-      } catch {
-        // Stream closed
+      } catch (err) {
+        // N0.2 (audit §3.F.14) — a dropped stream used to be indistinguishable from a quiet one.
+        if (!this.streamAbort?.signal.aborted) {
+          this.feedError.set(`Live feed disconnected: ${errorText(err)}`);
+        }
       }
     })();
   }

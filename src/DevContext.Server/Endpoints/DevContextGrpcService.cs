@@ -592,6 +592,16 @@ public sealed class DevContextGrpcService(
         return Task.FromResult(new Proto.StopMcpResponse { Stopped = true });
     }
 
+    /// <summary>N0.2 (audit §3.F.9) — the READ half. StartMcp is a mutation and the app used it
+    /// as its status probe, so opening the MCP page switched telemetry on and then reported the
+    /// state it had just caused. This observes; it never writes.</summary>
+    public override Task<Proto.GetMcpStatusResponse> GetMcpStatus(Proto.GetMcpStatusRequest request, ServerCallContext context)
+        => Task.FromResult(new Proto.GetMcpStatusResponse
+        {
+            TelemetryStreaming = mcpObs.IsRunning,
+            ObserverCount = mcpObs.ObserverCount,
+        });
+
     public override async Task ObserveToolCalls(
         Proto.ObserveToolCallsRequest request,
         IServerStreamWriter<Proto.ToolCallEvent> responseStream,

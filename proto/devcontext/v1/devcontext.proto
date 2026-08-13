@@ -99,6 +99,10 @@ service DevContextService {
   // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
   rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
   rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
+  // N0.2 (audit §3.F.9) — READ the observability state. The app used to read status by
+  // calling StartMcp, a mutating RPC: merely opening the MCP page turned telemetry on and
+  // then reported "active" because it had just made that true.
+  rpc GetMcpStatus(GetMcpStatusRequest) returns (GetMcpStatusResponse);
   rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
@@ -879,6 +883,18 @@ message StopMcpRequest {}
 
 message StopMcpResponse {
   bool stopped = 1;
+}
+
+message GetMcpStatusRequest {}
+
+// N0.2 (audit §3.F.9) — what this server can honestly say about MCP observability. It is NOT
+// a statement about the `devcontext-mcp` process: the agent host spawns that over stdio,
+// outside this server's control. N4.1 adds the binary probe and last-agent-call-at.
+message GetMcpStatusResponse {
+  // Whether tool-call telemetry is being forwarded — exactly what Start/Stop toggles.
+  bool telemetry_streaming = 1;
+  // How many clients are attached to ObserveToolCalls right now.
+  int32 observer_count = 2;
 }
 
 message ObserveToolCallsRequest {}
