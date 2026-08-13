@@ -79,6 +79,19 @@ public sealed class DevContextTools
     private static string Envelope(string error, string hint, string example, object? candidates = null)
         => JsonSerializer.Serialize(new { error, hint, example, candidates }, JsonOpts);
 
+    // T1.3 (BUG-BACKLOG #10) — an out-of-range enum is REJECTED, not quietly re-interpreted.
+    //
+    // Every one of these dials used to be a bare string forwarded to a `==` or a `switch` with a
+    // `_ =>` default: read_source(mode:"full") returned a 20-line window with found:true, and
+    // impact(direction:"sideways") computed Up and then ECHOED "sideways" back in the response. The
+    // agent has no way to notice — there is no field in either reply that disagrees with what it
+    // asked for. That is the confident-partial-truth family, and the fix is to answer the question
+    // it actually asked or say why not.
+    private static string? RejectBadEnum(string param, string value, string[] allowed, string example)
+        => allowed.Contains(value, StringComparer.Ordinal) ? null
+            : Envelope($"Invalid {param}: '{value}'.",
+                $"{param} must be one of: {string.Join(" | ", allowed)}.", example);
+
     // Map an RpcException from the server into an actionable envelope for the given tool.
     private static string FromRpc(RpcException ex, string tool, string example)
     {
@@ -921,6 +934,8 @@ public sealed class DevContextTools
             return Envelope("Missing required parameter 'focus' (or 'query').",
                 "Pass an entry route or symbol as 'focus' or 'query'.",
                 "trace(handle, focus:\"POST /basket/checkout\")");
+        if (RejectBadEnum("format", format, ["default", "compact"],
+            "trace(handle, focus:\"POST /basket/checkout\", format:\"compact\")") is { } badFormat) return badFormat;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "trace", "analyze(path) then trace(focus:\"POST /basket/checkout\")"); }
         try
@@ -1145,6 +1160,10 @@ public sealed class DevContextTools
             return Envelope("Missing 'nodeId' or 'query'.",
                 "Pass a precise nodeId (or a fuzzy query) and direction (out|in|usages).",
                 "neighbors(handle, query:\"OrderService\", direction:\"out\")");
+        // Server-side this is `Direction is "in" or "usages" ? In : Out`, so anything else was
+        // silently answered as `out` — and the reply echoed the word the caller sent.
+        if (RejectBadEnum("direction", direction, ["out", "in", "usages"],
+            "neighbors(handle, query:\"OrderService\", direction:\"in\")") is { } badDir) return badDir;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "neighbors", "analyze(path) then neighbors(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
@@ -1405,7 +1424,7 @@ public sealed class DevContextTools
         [Description(HandleDoc)] string? handle = null,
         [Description(NodeIdDoc)] string? nodeId = null,
         [Description("How many hops to walk (default 4).")] int maxDepth = 4,
-        [Description("\"up\" (default, what reaches this) or \"down\" (what this affects). Any other value is rejected.")] string direction = "up",
+        [Description("\"up\" (default, what reaches this), \"down\" (what this affects), or \"both\". Any other value is rejected.")] string direction = "up",
         [Description("Changed file paths for diff-aware impact, instead of a single symbol.")] string[]? files = null,
         [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
@@ -1413,6 +1432,10 @@ public sealed class DevContextTools
             return Envelope("Provide 'nodeId'/'query' or 'files'.",
                 "Give a symbol (nodeId or fuzzy query), or the changed files for diff-aware impact.",
                 "impact(handle, query:\"OrderService\", direction:\"down\")");
+        // MEASURED against DevContextGrpcService.GetImpact, not read off this file's own docs: the
+        // server switch accepts up | down | both and defaults everything else to Up.
+        if (RejectBadEnum("direction", direction, ["up", "down", "both"],
+            "impact(handle, query:\"OrderService\", direction:\"down\")") is { } badImpactDir) return badImpactDir;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "impact", "analyze(path) then impact(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId) && !string.IsNullOrWhiteSpace(query) && (files is null || files.Length == 0))
@@ -1675,6 +1698,8 @@ public sealed class DevContextTools
             return Envelope("Missing required parameter 'focus' (or 'query').",
                 "Pass the entry/symbol to build context for as 'focus' or 'query'.",
                 "get_context(handle, focus:\"POST /api/orders\")");
+        if (RejectBadEnum("intent", intent, ["trace", "explain", "review"],
+            "get_context(handle, focus:\"POST /api/orders\", intent:\"explain\")") is { } badIntent) return badIntent;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "get_context", "analyze(path) then get_context(focus:\"POST /api/orders\")"); }
         try
@@ -1805,6 +1830,8 @@ public sealed class DevContextTools
             return Envelope("Missing 'nodeId' or 'query'.",
                 "Pass a nodeId (or fuzzy query). mode: window|member.",
                 "read_source(handle, query:\"OrderService\", mode:\"member\")");
+        if (RejectBadEnum("mode", mode, ["window", "member"],
+            "read_source(handle, query:\"OrderService\", mode:\"member\")") is { } badMode) return badMode;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "read_source", "analyze(path) then read_source(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId

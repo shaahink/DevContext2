@@ -4,11 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-Fresh program. Nothing delivered yet. Start at T1.1 (bug 5 by measurement — a real
-tools/list call is the instrument, the SDK decides which mechanism reaches the wire).
-Read the stage notes for your stage plus the ONE strand doc they name; the plan doc's
-section 3 has the dependency map. E1 is a matrix batch — declare cells before coding.
-D1 is deliberately independent of E1. A1 runs its probe batch as a bg child.
+T1.1 + T1.2 DONE (claimed, evidence in eval-results/2026-08-13/t1-wire-truth/).
+T1.3 is PART-LANDED: bug #10 only. Take T1.3 next; #10 needs no re-work.
+
+MEASURED, do not re-litigate: GenerateDocumentationFile does NOT reach the wire
+(SDK reads [Description]). Menu is 14 advertised + 8 UNLISTED-but-callable
+specialists ([SpecialistTool] attr -> McpToolMenu -> UnknownToolHandler dispatch).
+Schema tax 2540 -> 6549 (described) -> 4863 (curated).
+
+T1.3 REMAINING: #6 trace-by-nodeId (server GetTrace line ~158 calls
+EntryPointResolver.Resolve and returns Found=false on null — so the "Type: Type"
+phantom is built INSIDE that resolver or in ToTraceResponse; get_context's working
+resolver is the target shape), #9 fillNote elision, #2 entrypoint-name round-trip.
+Instruments ready: eval/mcp-qa/wire-truth.js (menu+specialists+envelope) and
+eval-results/2026-08-13/t1-wire-truth/enum-probe.js (needs no analyze). T1.4 lifts
+both into eval/gates.ps1 and adds the trace/elision assertions.
+Trap paid for: PowerShell eats a bare `--`; use `conductor bg start --% ... -- cmd`.
 
 ## Baseline numbers
 
