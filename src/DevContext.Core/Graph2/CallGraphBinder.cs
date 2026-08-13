@@ -190,7 +190,7 @@ public static class CallGraphBinder
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
         sw.Stop();
-        var semanticCount = includedEdges.Count(e => e.Resolution == Graph.Resolution.Semantic);
+        var semanticCount = includedEdges.Count(e => Graph.EdgeConfidence.IsVerified(e.Resolution)); // V1.1 (#25)
         model.AddDiagnostic(DiagnosticLevel.Info, "CallGraphBinder",
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth} "
             + $"({semanticCount} semantic) from BodyFacts through SymbolTable in {sw.ElapsedMilliseconds}ms.");

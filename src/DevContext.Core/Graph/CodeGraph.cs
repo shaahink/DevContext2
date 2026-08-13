@@ -370,7 +370,7 @@ public sealed class CodeGraphBuilder
     /// new resolution is not an upgrade (Syntactic can go to Semantic; Semantic cannot go to Syntactic).</summary>
     public bool UpgradeEdge(NodeId from, NodeId to, EdgeKind kind, Resolution newResolution)
     {
-        if (newResolution == Resolution.Syntactic) return false;
+        if (EdgeConfidence.IsApproximate(newResolution)) return false; // V1.1 (#25) — one definition
         if (!_out.TryGetValue(from, out var list)) return false;
         for (var i = 0; i < list.Count; i++)
         {

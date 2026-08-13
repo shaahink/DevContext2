@@ -54,13 +54,14 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
         //
         // Left AT 0.5 and Semantic-only deliberately. This is the one claim in the product that gets
         // live code deleted when it is wrong (the audit's podcasts round: 3/5 orphans FALSE), so it
-        // asks for Roslyn-verified inbound edges specifically, not the dashboard's looser
-        // not-approximate — Resolution.Join is also the enum's default value, so an edge nobody
-        // labelled reads as high confidence. Recalibrating a floor DOWNWARDS to make a destructive
+        // asks for Roslyn-verified inbound edges specifically. V1.1 (#25): that reading is now the
+        // ENGINE'S ONLY reading — EdgeConfidence.IsVerified — and the dashboard's looser
+        // not-approximate is gone; Resolution.Join, the enum's default, is its own tier and never
+        // counts as verified anywhere. Recalibrating a floor DOWNWARDS to make a destructive
         // claim start firing is not a threshold correction; whether this source earns its keep is an
         // owner call, tracked as a conductor bug, not something to settle by moving the number.
         var calls = graph.AllEdges.Where(e => e.Kind == EdgeKind.Calls).ToList();
-        var verified = calls.Count(e => e.Resolution == Resolution.Semantic);
+        var verified = calls.Count(EdgeConfidence.IsVerified);
         var verifiedRatio = calls.Count > 0 ? (double)verified / calls.Count : 0;
         var wired = entries.Count(e => e.Target is not null);
         var wiredRatio = entries.Length > 0 ? (double)wired / entries.Length : 0;

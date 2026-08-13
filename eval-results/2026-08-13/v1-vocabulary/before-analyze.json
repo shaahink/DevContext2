@@ -1,0 +1,154 @@
+﻿Overview map (no focus).
+  from cache · 76fb19e · analyzed 2026-08-13 19:59 · 1396ms
+
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-08-13T19:00:00.0058504+00:00",
+  "archetype": "App",
+  "architectureStyle": "MinimalApi",
+  "styleConfidence": 0.65,
+  "projectCount": 8,
+  "projectNames": [
+    "DevContext.Benchmarks",
+    "DevContext.Cli",
+    "DevContext.Contracts",
+    "DevContext.Core",
+    "DevContext.Core.Tests",
+    "DevContext.Mcp",
+    "DevContext.Server",
+    "DevContext.Server.Tests"
+  ],
+  "typeCount": 586,
+  "entryCount": 30,
+  "topologyProjectCount": 5,
+  "graphNodeCount": 1267,
+  "graphEdgeCount": 1396,
+  "signals": [
+    {
+      "key": "cli-commands",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "grpc",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 1 consumed keys have no appsettings 
+default",
+      "detail": "",
+      "evidence": [
+        "x"
+      ]
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "1/1 endpoints anonymous",
+      "detail": "",
+      "evidence": [
+        "GET /health"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 28/30 (93%) \u2014 trace any entry for 
+its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 28 Singleton \u00B7 12 Extension (40 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 26 GrpcService \u00B7 1 HTTP",
+      "detail": "",
+      "evidence": [
+        "26 GrpcService",
+        "1 HTTP"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: DevContext.Core (2 dependents) \u00B7 
+DevContext.Core (2 dependents) \u00B7 DevContext.Contracts (2 dependents)",
+      "detail": "",
+      "evidence": [
+        "DevContext.Core (2 dependents)",
+        "DevContext.Core (2 dependents)",
+        "DevContext.Contracts (2 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: DiscoveryModel (105) \u00B7 SealableBag (72) \u00B7
+CodeGraph (66) \u00B7 IAnalysisCache (40) \u00B7 ImmutableArray (36)",
+      "detail": "",
+      "evidence": [
+        "DiscoveryModel (105)",
+        "SealableBag (72)",
+        "CodeGraph (66)",
+        "IAnalysisCache (40)",
+        "ImmutableArray (36)"
+      ]
+    }
+  ],
+  "scope": {
+    "analyzed": "DevContext.slnx",
+    "analyzedName": "DevContext",
+    "analyzedPath": "C:\\Code\\DevContext2-v11-before\\DevContext.slnx",
+    "solutionsOnDisk": 6,
+    "others": [
+      "tests/fixtures/CleanArchProject/CleanArch.sln",
+      "tests/fixtures/CompositionApp/CompositionApp.sln",
+      "tests/fixtures/ControllerApp/ControllerApp.sln",
+      "tests/fixtures/MinimalApiProject/MinimalApiProject.sln",
+      "eval/fixtures/ServiceSurfaces/ServiceSurfaces.slnx"
+    ],
+    "requested": false,
+    "partial": true,
+    "note": "analyzed DevContext.slnx \u2014 1 of 6 solutions in this repo; 
+analyze another by naming its solution"
+  }
+}
+analyzed 389 files · 0 types kept of 586 · 937/8000 tokens · 14.1s stage2 x3.0 
+stage3 x2.2
+┌──────────┬─────────────────────┐
+│  Metric  │        Value        │
+├──────────┼─────────────────────┤
+│ Solution │     DevContext      │
+│   Time   │       1452ms        │
+│  Tokens  │ ~937 (budget 8000)  │
+│ Version  │ v1.0.6-preview.0.65 │
+└──────────┴─────────────────────┘

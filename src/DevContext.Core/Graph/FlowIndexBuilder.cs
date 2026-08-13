@@ -113,7 +113,7 @@ public static class FlowIndexBuilder
             if (BoundarySeams.Contains(step.Seam)) boundaryCrossings++;
             if (step.Seam == SeamKind.Data) dataTouches++;
             else hubIds.Add(id);
-            if (step.Resolution == Resolution.Semantic) verified++;
+            if (EdgeConfidence.IsVerified(step.Resolution)) verified++; // V1.1 (#25) — one definition
             foreach (var child in step.Children) stack.Push(child);
         }
 

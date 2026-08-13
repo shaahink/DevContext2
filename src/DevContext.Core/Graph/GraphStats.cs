@@ -16,19 +16,29 @@ public static class GraphStats
     public static (ImmutableArray<SeamStat> Seams, int EntriesWithTarget, int EntriesWithDeepSpine, double DeepSpineRatio) Compute(
         CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var byKind = new Dictionary<EdgeKind, (int Count, int Approx)>();
+        // V1.1 (#25): the split is TALLIED per tier from EdgeConfidence — the one definition — and
+        // carried on the row. It used to record only Count and Approx, which left every consumer to
+        // infer "verified = Count - Approx"; that inference counts Resolution.Join (the enum's
+        // DEFAULT, i.e. every edge nobody labelled) as Roslyn-verified, and it is the reason the CLI
+        // and the desktop app printed opposite verdicts for the same edge.
+        var byKind = new Dictionary<EdgeKind, (int Count, int Verified, int Joined, int Approx)>();
         foreach (var node in graph.Nodes)
         {
             foreach (var e in graph.OutEdges(node.Id))
             {
                 byKind.TryGetValue(e.Kind, out var c);
-                byKind[e.Kind] = (c.Count + 1, c.Approx + (e.Resolution == Resolution.Syntactic ? 1 : 0));
+                var tier = EdgeConfidence.TierOf(e);
+                byKind[e.Kind] = (
+                    c.Count + 1,
+                    c.Verified + (tier == EdgeTier.Verified ? 1 : 0),
+                    c.Joined + (tier == EdgeTier.Joined ? 1 : 0),
+                    c.Approx + (tier == EdgeTier.Approximate ? 1 : 0));
             }
         }
 
         var seams = byKind
             .OrderBy(kv => kv.Key)
-            .Select(kv => new SeamStat(kv.Key.ToString(), kv.Value.Count, kv.Value.Approx))
+            .Select(kv => new SeamStat(kv.Key.ToString(), kv.Value.Count, kv.Value.Verified, kv.Value.Joined, kv.Value.Approx))
             .ToImmutableArray();
 
         var withTarget = entries.IsDefaultOrEmpty

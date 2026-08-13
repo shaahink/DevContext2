@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import cytoscape from 'cytoscape';
 
-import { nodeIdLabel } from '../../core/format';
+import { edgeTier, nodeIdLabel } from '../../core/format';
 import type { ProjectNode, ServiceCard, TransportLink } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
@@ -132,7 +132,7 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
       // Resolution tier drawn into the picture (T6.2): a semantic (Roslyn-verified) hop is a
       // solid line, an approximate one dashed — honesty visible without opening the inspector.
       els.push({ data: { id: `${parentElId}->${elId}`, source: parentElId, target: elId, seam: node.seam,
-        approx: node.resolution !== 'Semantic' } });
+        approx: edgeTier(node.resolution) === 'approx' } });
     }
     for (const child of node.children) walk(child, elId, depth + 1);
   };
@@ -259,7 +259,7 @@ function buildServiceLevelElements(
     const key = `${t.fromService}|${t.toService}|${vis.cls}`;
     // "Syntactic" is the engine's own word for a string-heuristic resolution; Join and Semantic are
     // both real joins of real detections. One inferred member makes the collapsed group inferred.
-    const approx = t.resolution === 'Syntactic';
+    const approx = edgeTier(t.resolution) === 'approx';
     const existing = groups.get(key);
     if (existing) {
       existing.count++;
@@ -392,7 +392,7 @@ function buildNeighborsElements(
     const source = e.from === centerId ? centerId : other;
     const target = source === centerId ? other : centerId;
     els.push({ data: { id: `edge${counter++}`, source, target, seam: e.kind,
-      approx: e.resolution !== 'Semantic' } });
+      approx: edgeTier(e.resolution) === 'approx' } });
   }
   return els;
 }
