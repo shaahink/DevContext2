@@ -4,11 +4,18 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-Fresh program. Nothing delivered yet. Start at N0.1. All four owner decisions for this
-run are already made (STUDIO-MCP-AUDIT §8: pins IMPLEMENT, convergence FULL, hand-off
-REPO FILE FIRST, MCP page FULL DECK + SHIP BINARY) — do not re-open them. N4 has a
-precondition: merge feat/pre-release-engine (T1's curated catalog) into this branch
-first; if T1 has not landed, deliver N4.1–N4.2 and leave N4.3 open.
+N0.1 (36bf916) + N0.2 (98c5067) DONE with evidence in eval-results/2026-08-13/.
+START AT N0.3 — it is small and half-built. Remaining: (a) file the §3.F 16-item
+inventory into docs/dev/research/BUG-BACKLOG.md (append after #25, keep the id/anchor
+format, mark 3/4/7/9-14 FIXED-in-N0 and cross-ref the commits); (b) two specs in
+mcp-page.spec.ts for the still-unreferenced data-testids session-handle-copy and
+session-use (feed-origin-filter, card-copy, provenance-chip are already referenced).
+Then N1.1. Audit file:line claims re-verified accurate — trust the doc, still measure.
+Traps paid for this session: `conductor bg start -- pnpm ...` dies on the corepack shim
+(run pnpm foreground, ~130s for pnpm test); `dotnet build DevContext.slnx` can flake
+with MSB4166 after a heavy ng build — re-run, it is not your code. N4.1 should EXTEND
+the new GetMcpStatus message (telemetry_streaming/observer_count), not add another RPC.
+All four owner decisions stand (STUDIO-MCP-AUDIT §8) — do not re-open them.
 
 ## Baseline numbers
 
