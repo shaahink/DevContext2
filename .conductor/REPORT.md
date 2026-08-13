@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 19:49 UTC · branch `feat/pre-release-desktop` · HEAD `8166821`_
+_Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `937adf1`_
 
-**Status:** Idle
-**Stage:** N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) · attempts used 0
-**Checkpoints:** 5/16 done · **Sessions run:** 5 · **Cost:** $43.3852 (agent $43.2556 + gates $0.1296) · **Tokens:** 718,455 in / 298,770 out
+**Status:** Idle — advisor: human intervention required [3s ago, 20:36:31Z]
+**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 6 · working ▸ N2.2
+**Checkpoints:** 6/16 done · **Sessions run:** 12 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
 **Confirmed phases:** N0, N1
 
 ## Stage progress
@@ -13,7 +13,7 @@ _Updated 2026-08-13 19:49 UTC · branch `feat/pre-release-desktop` · HEAD `8166
 |---|---|---|---|
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
-| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ░░░░░░░░░░ 0/2 | todo |
+| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | █████░░░░░ 1/2 | **← active** |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
@@ -38,12 +38,12 @@ _Updated 2026-08-13 19:49 UTC · branch `feat/pre-release-desktop` · HEAD `8166
 
 </details>
 
-<details><summary>N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) (0/2)</summary>
+<details><summary>N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) (1/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ⬜ TODO | - |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | ⬜ TODO | - |
+| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ✅ DONE | [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | 🔄 IN PROGRESS | - |
 
 </details>
 
@@ -93,6 +93,13 @@ _Updated 2026-08-13 19:49 UTC · branch `feat/pre-release-desktop` · HEAD `8166
 | 3 | N0 | Fix | 2 | 08-13 17:21 | 0:31 | Progress |  | 3 | fast-app:OK · guards:OK | $5.9230 | $0.0250 | 112,749/54,823 |
 | 4 | N1 | Deliver | 1 | 08-13 18:15 | 0:34 | Advanced | N1.1 | 11 | fast-app:OK · guards:OK | $12.0268 | $0.0288 | 194,917/79,115 |
 | 5 | N1 | Deliver | 1 | 08-13 18:54 | 0:22 | Advanced | N1.2 | 3 | fast-app:OK · guards:OK | $8.3882 | $0.0294 | 133,027/48,328 |
+| 6 | N2 | Deliver | 1 | 08-13 19:49 | 0:21 | Advanced | N2.1 | 3 | fast-app:OK · fast-engine:OK · guards:OK | $12.2349 | $0.0420 | 186,261/68,901 |
+| 7 | N2 | Deliver | 1 | 08-13 20:18 | 0:16 | AgentError |  | 0 | gates green (none configured) | $5.3309 |  | 116,243/35,230 |
+| 8 | N2 | Fix | 2 | 08-13 20:34 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 9 | N2 | Deliver | 3 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 10 | N2 | Deliver | 4 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 11 | N2 | Deliver | 5 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 12 | N2 | Deliver | 6 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 
 ## Money
 
@@ -100,40 +107,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
+| **run total** | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| 2026-08 | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
+| stage N2 | 6 | 24.3M | 98.3% | $17.62 | 1 | 24.3M | $17.62 |
+| stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
+| 2026-08 | 11 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
+| unknown | 1 | 0M | - | $0.00 | - | - | - |
 
-_Where the money goes: agent $43.26 (100%) · gate $0.13 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 17:16:02  ◆ run started · DevContext pre-release - desktop agent loop
-08-13 17:16:04  ▸ stage N0 entered — Truth batch - no-decision honesty fixes on Studio + MCP page
-08-13 17:16:05  • session #1 N0 Deliver started (attempt 1/4)
-08-13 17:56:12  ▪ gate fast-app pass [session]  (3m17s)
-08-13 17:56:12  ▪ gate guards pass [session]  (1m15s)
-08-13 17:56:18  • session #1 N0 → Advanced · done N0.1,N0.2 · 3 commit(s)  (40m13s)
-08-13 17:56:18  • session #2 N0 Deliver started (attempt 1/4)
-08-13 18:14:33  ▪ gate fast-app pass [session]  (2m14s)
-08-13 18:14:33  ▪ gate guards pass [session]  (55.0s)
-08-13 18:14:40  • session #2 N0 → Advanced · done N0.3 · 2 commit(s)  (18m22s)
-08-13 18:21:16  ▪ gate fast-app pass [phase]  (3m08s)
-08-13 18:21:16  ▪ gate guards pass [phase]  (1m35s)
-08-13 18:21:16  ▪ gate battery FAIL [phase]  (41.3s)
-08-13 18:21:20  • session #3 N0 Fix started (attempt 2/4)
-08-13 18:56:57  ▪ gate fast-app pass [session]  (2m54s)
-08-13 18:56:58  ▪ gate guards pass [session]  (1m15s)
-08-13 18:57:04  • session #3 N0 → Progress · 3 commit(s)  (35m43s)
-08-13 19:15:27  ▪ gate fast-app pass [phase]  (6m32s)
-08-13 19:15:27  ▪ gate guards pass [phase]  (1m41s)
-08-13 19:15:27  ▪ gate battery pass [phase]  (10m07s)
-08-13 19:15:27  ✓ checkpoint N0.1 confirmed
-08-13 19:15:27  ✓ checkpoint N0.2 confirmed
 08-13 19:15:27  ✓ checkpoint N0.3 confirmed
 08-13 19:15:27  ▸ stage N0 confirmed  (1h59m22s)
 08-13 19:15:34  ▸ stage N1 entered — Studio truth pass + pins made real (owner decision 1: IMPLEMENT)
@@ -150,6 +138,30 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 20:49:07  ▪ gate battery pass [phase]  (3m33s)
 08-13 20:49:07  ✓ checkpoint N1.1 confirmed
 08-13 20:49:07  ✓ checkpoint N1.2 confirmed
+08-13 20:49:07  ▸ stage N1 confirmed  (1h33m32s)
+08-13 20:49:13  ▸ stage N2 entered — Pack convergence - one pipeline, two faces (owner decision 2: FULL)
+08-13 20:49:14  • session #6 N2 Deliver started (attempt 1/6)
+08-13 21:18:12  ▪ gate fast-app pass [session]  (3m26s)
+08-13 21:18:12  ▪ gate fast-engine pass [session]  (2m09s)
+08-13 21:18:12  ▪ gate guards pass [session]  (1m24s)
+08-13 21:18:23  • session #6 N2 → Advanced · done N2.1 · 3 commit(s)  (29m09s)
+08-13 21:18:24  ◆ plan reloaded — v1 · 7 stages · 4 gates
+08-13 21:18:34  • session #7 N2 Deliver started (attempt 1/6)
+08-13 21:34:57  • session #7 N2 → AgentError  (16m23s)
+08-13 21:34:58  • session #8 N2 Fix started (attempt 2/6)
+08-13 21:35:12  ■ needs human — advisor: human intervention required
+08-13 21:35:18  • session #8 N2 → AgentError  (20.0s)
+08-13 21:35:18  • session #9 N2 Deliver started (attempt 3/6)
+08-13 21:35:32  ■ needs human — advisor: human intervention required
+08-13 21:35:37  • session #9 N2 → AgentError  (19.6s)
+08-13 21:35:38  • session #10 N2 Deliver started (attempt 4/6)
+08-13 21:35:51  ■ needs human — advisor: human intervention required
+08-13 21:35:57  • session #10 N2 → AgentError  (19.5s)
+08-13 21:35:57  • session #11 N2 Deliver started (attempt 5/6)
+08-13 21:36:11  ■ needs human — advisor: human intervention required
+08-13 21:36:17  • session #11 N2 → AgentError  (19.5s)
+08-13 21:36:17  • session #12 N2 Deliver started (attempt 6/6)
+08-13 21:36:31  ■ needs human — advisor: human intervention required
 ```
 
 ## Health
@@ -157,8 +169,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 5 · retries 1 (20 %) · overall Ok
-✓ no health concerns detected
+sessions 12 · retries 6 (50 %) · overall Alert
+⛔ [same-failure-loop] stage N2: 5 consecutive sessions made no progress
 ```
 
 ## Repo
@@ -167,7 +179,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs (+5 more)
 vs upstream: up to date
 ```
 
@@ -200,32 +212,29 @@ vs upstream: up to date
   - [`4d24d85`](https://github.com/shaahink/DevContext2/commit/4d24d85) docs(tracker): N1.2 handoff - pins are real, N1 closed, next is N2.1
   - [`366cc3a`](https://github.com/shaahink/DevContext2/commit/366cc3a) test(explore): p reports what it pinned + N1.2 evidence and backlog close
   - [`e448d64`](https://github.com/shaahink/DevContext2/commit/e448d64) feat(studio): pins seed the pack for real - TrailStore.pins() gains its reader (N1.2)
-
-## Last gate run
-
-fast-app:OK · guards:OK · battery:OK-retry
+- **s6 (N2 Deliver)** — 3 commit(s):
+  - [`108301a`](https://github.com/shaahink/DevContext2/commit/108301a) docs(tracker): N2.1 closed - pack convergence evidence + handoff to N2.2
+  - [`8c38e0b`](https://github.com/shaahink/DevContext2/commit/8c38e0b) feat(studio): the picker gets a Types tab, and rows that are different rows (N2.1)
+  - [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) feat(pack): BuildMulti resolves symbols, not just entries - and usage becomes a card (N2.1)
 
 ## Last session result
 
-> SESSION-RESULT: N1.2 landed and is claimed DONE with evidence `eval-results/2026-08-13/N1.2-pins-real.md` across three pushed commits (`e448d64`, `366cc3a`, `4d24d85`) — the audit's flag finding (backlog #26, owner decision 1 = IMPLEMENT) is closed. `TrailStore.pins()` now has four real readers where it had none outside its own store: `ContextStudio.onTrailSeed()` reads pins first and falls back to the raw trail; the picker's seed button states its source, its count and — at zero — why it does nothing; and `p` in Explore reports what it pinned, how many are held and where they go instead of toggling in silence. The load-bearing rule, measured not assumed: a seed resolves `step.focus` against…
+> You've hit your session limit · resets 9:40pm (Europe/London)
 
 ## Tracker handoff
 
 ```
-N1 IS CLOSED - N1.2 landed (e448d64 + 366cc3a; evidence eval-results/2026-08-13/N1.2-pins-real.md).
-START AT N2.1 (BuildMulti adopts ResolveEntry; `usage` joins CardTypeSections; picker Types tab).
-Pins are REAL: ContextStudio.onTrailSeed() (context-studio.ts:481) reads trailStore.pins() first
-and falls back to steps(). THE RULE N2/N3 MUST REUSE, MEASURED HERE: a seed resolves step.focus
-against the LIVE session.entryGroups() and takes the RESOLVED entry's nodeId+title, never the
-pinned step's - so a pin cannot carry a dead id across a re-analyze and needs NO invalidation
-effect. Every step kind resolves now (a `node` step carries its trace's focus), reroot never can.
-N3.1's "never opens empty" should call onTrailSeed, not re-derive seeding. Backlog #26 is under
-"FIXED in N1.2"; 27 open, 7 high. New run bug #3: icon.ts renders an EMPTY span for a name its
-REGISTRY lacks (box/edit/grip-vertical/lock still dead; bookmark+history added).
-TEST LOOP (unchanged): `pnpm exec ng test --watch=false --include=<spec>`; plain `pnpm vitest run`
-fails on TestBed.initTestEnvironment. Check the EXIT CODE, not filtered output - an escaped
-apostrophe in an Angular expression is a lexer error and cost a build here. `pnpm check` green
-this session: lint clean, 188/188, production build. Engine untouched by N1.2.
-`conductor bg start -- pnpm <script>` dies on corepack; wrap in `pwsh -NoProfile -Command`.
-Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
+N2.1 IS CLOSED (104c9d0 engine + 8c38e0b app; evidence eval-results/2026-08-13/N2.1-pack-convergence.md).
+START AT N2.2: honesty-note parity (fill-rate note + suggested focuses in the rail) and ONE stated
+budget default - UI is 4000 (prefs.studioBudget), everywhere else 8000 (ContextPackBuilder.Build/
+BuildMulti defaults). Its ACCEPTANCE is the real-repo FluentValidation pack: I CLONED IT for you at
+eval-repos/FluentValidation (sha 94397908, gitignored) but did NOT run it - only the server calls
+BuildMulti, so the cheapest real-repo proof is a [Trait("Category","Eval")] Core test that takes
+types off snapshot.Map.Surface (the SAME source the new Types tab reads) and asserts usage + verified
+counts, skipping silently when the clone is absent (BudgetIndependenceTests.cs is the pattern).
+Now true: BuildMulti resolves symbols via ResolveCardFocuses; card entryIds may be a bare type,
+Type:Member, or a NodeId string; `usage` is a card type; picker has a Types tab keyed on the
+namespace-qualified name. Fixed en route: a card naming one focus twice merged its section INTO
+ITSELF. Loop unchanged: `pnpm exec ng test --watch=false --include=<spec>`; check the EXIT CODE.
+`pnpm check` green (199/199). Open bugs unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
 ```
