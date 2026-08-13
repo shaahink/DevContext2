@@ -16,12 +16,11 @@
 > its locus **re-measured on 2026-08-13** rather than copied from the audit prose. **#32** is the
 > engine bug N0.1 found while fixing §3.F.3/4 and did not fix.
 
-**31 open — 9 high, 21 medium, 1 low.**
+**28 open — 8 high, 19 medium, 1 low.** ([#27](#fixed-n1), [#28](#fixed-n1) and [#29](#fixed-n1) were fixed by N1.1 on 2026-08-13 and moved to [FIXED in N1](#fixed-n1).)
 
 | # | Sev | Stage | Title |
 |---|-----|-------|-------|
 | [#26](#26) | high | N0 | Pins are advertised by three surfaces and read by none — `TrailStore.pins()` reaches only a counter and a colour, and no pack path ever consults it |
-| [#28](#28) | high | N0 | The verification ledger verifies a pack that was never built — full budget per focus, all sections, N RPCs — so a green "fresh" can describe content the pack on screen does not contain |
 | [#5](#5) | high | G4 | Every one of the 22 MCP tools ships with an EMPTY description — 31 carefully written XML doc summaries exist in the source and none of them reach the wire |
 | [#6](#6) | high | G4 | trace() handed a nodeId returns found:true with an EMPTY tree titled "Type: Type" — and its own error envelope tells the agent to pass a nodeId |
 | [#7](#7) | high | G4 | A METHOD is registered as a Type node and 26 BCL System.Type references bind to it — the mis-bound node is stats' #5 "wiring hub" on Hangfire |
@@ -45,8 +44,6 @@
 | [#23](#23) | medium | G10 | L3.4 hub-scope broadening never fires: sparseGraph=false + hubScopeNodes=0 on 11/11 poles including its own trigger population (Dapper/Serilog/MahApps/MediatR); identity-strip's sparse line has never rendered (G10.1) |
 | [#24](#24) | medium | G10 | Deep-spine ratio is saturated (1.000 on 5/11 poles, 0.96-0.98 on the rest): the report prints it as coverage but it separates no repo (G10.1) |
 | [#25](#25) | medium | G10 | Engine ships two definitions of a verified edge: GraphStats/SeamStat approx=Syntactic only (so Join counts as verified) while GraphOrphansSource counts Semantic only; Resolution.Join is also the enum default (G10.1) |
-| [#27](#27) | medium | N0 | The Studio body toggles are cosmetic — the eye icon and its opacity are the entire feature; `bodyEnabled` never reaches the wire |
-| [#29](#29) | medium | N0 | Studio cards are never invalidated — no writer of `cards` is keyed to the session handle, so a re-analyze leaves cards holding node ids from the previous graph |
 | [#30](#30) | medium | N0 | The zero-entry empty state tells the user to pick types from an omnibox that searches entries only — on a repo with no entries it can return nothing, ever |
 | [#31](#31) | medium | N0 | The `usage` section is built and then discarded: no card type maps to it, and the same table makes the "client-only type" omission branch unreachable |
 | [#32](#32) | medium | N0 | `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget |
@@ -54,7 +51,7 @@
 
 ---
 
-## HIGH — 9
+## HIGH — 8
 
 <a id="5"></a>
 
@@ -366,41 +363,7 @@ trail-seed path or delete the idiom from all three surfaces. That is Q1 of the a
 subject of checkpoint N1.2; N0 was the no-decision batch. Evidence: audit §3.A + §3.F.1.
 ```
 
-<a id="28"></a>
-
-### #28 · N0 · The verification ledger verifies a pack that was never built — full budget per focus, all sections, N RPCs — so a green "fresh" can describe content the pack on screen does not contain
-
-```text
-Re-measured 2026-08-13 (N0.3). Three distinct divergences between the pack that is BUILT and the
-pack that is VERIFIED:
-
-1. BUDGET. verifyPack (context-studio.ts:205-217) calls
-     this.api.verifyContext(handle, f, this.budgetTokens())
-   once per focus, handing EVERY focus the whole ceiling. The real build gives each focus a
-   proportional slice: ContextPackBuilder.cs:533 AllocateProportionalBudgets(...), consumed at
-   :546-547 as BuildSections(focus, budget, intent). With two focuses and a 4000-token ceiling the
-   ledger verifies two 4000-token packs against a pack whose halves were built at ~2000 each.
-
-2. SECTIONS. The ledger verifies whatever verifyContext returns for the focus. The built pack
-   keeps only the sections the CARD asked for — ContextPackBuilder.cs:567 `wanted` and :581
-   `if (!wanted.Contains(sa.Section)) continue`. So a section the pack dropped can be reported
-   fresh, and staleness in a section the pack never carried counts against it.
-
-3. COST. Promise.all over the focus list at :215-217 = one RPC per unique focus per repack, on a
-   path that reruns on every card edit (:387).
-
-Plus a dead field: `checkedAt` is set at context-studio.ts:243 and declared at
-verification-panel.ts:10, and the panel template never renders it — the user is shown a
-freshness verdict with no indication of WHEN it was taken.
-
-WHY NOT FIXED IN N0: the fix needs a mechanism decision (verify the built pack via a returned
-section digest, vs. a verify-with-the-same-spec RPC) — that is wire item 4 and checkpoint N1.1.
-Evidence: audit §3.B + §3.F.5.
-```
-
----
-
-## MEDIUM — 21
+## MEDIUM — 19
 
 <a id="1"></a>
 
@@ -713,51 +676,6 @@ _Found in session #28._
 
 ---
 
-<a id="27"></a>
-
-### #27 · N0 · The Studio body toggles are cosmetic — the eye icon and its opacity are the entire feature; `bodyEnabled` never reaches the wire
-
-```text
-Re-measured 2026-08-13 (N0.3). Every use of the flag, exhaustively:
-
-  composition-view.ts:26        bodyEnabled: boolean  (the card VM field)
-  composition-view.ts:107       [class.opacity-30]="!card.bodyEnabled"
-  composition-view.ts:108       [title]="card.bodyEnabled ? 'Hide code bodies' : 'Show code bodies'"
-  composition-view.ts:111       [name]="card.bodyEnabled ? 'eye' : 'eye-off'"
-  context-studio.ts:287         set from showAllBodies() when a card is seeded
-  context-studio.ts:414         per-card toggle
-  context-studio.ts:421         bulk toggle
-  budget-panel.ts:118-124,186,246   the "All bodies shown / All bodies hidden" pill
-
-There is no other reader. It is not in the buildContext request, so it does not filter the
-preview, the copy, or the save — a user who hides all bodies and copies the pack gets the bodies.
-The pill states the opposite in words ("All bodies hidden").
-
-WHY NOT FIXED IN N0: wiring it needs a wire decision (a per-card section filter on the request,
-vs. dropping "bodies" cards) and the honest alternative is deletion — a product call. Checkpoint
-N1.1 owns it. Evidence: audit §3.F.2.
-```
-
-<a id="29"></a>
-
-### #29 · N0 · Studio cards are never invalidated — no writer of `cards` is keyed to the session handle, so a re-analyze leaves cards holding node ids from the previous graph
-
-```text
-Re-measured 2026-08-13 (N0.3). `cards` is declared at context-studio.ts:132 and written at
-:156, :297, :356, :397, :406, :413, :420, :426, :464 — every one of those is a user action
-(seed, add, resolve, error, toggle, remove, reorder). The file contains NO effect() at all, so
-nothing observes session.handle(); the handle is only ever READ at call time (:206, :269, :309).
-
-Consequence: cards carry entryIds that are node ids from the graph that was live when they were
-seeded. After a re-analyze (onReanalyze at :264) or a repo switch, those ids are resolved against
-a new graph — ResolveFocus returns null for the ones that moved, and the card degrades to empty
-rather than saying it is stale. Studio state also survives a tab-switch, so the stale set is
-still on screen when the user comes back.
-
-WHY NOT FIXED IN N0: the choice is per-tab keying vs. handle-effect invalidation, and it is
-coupled to persisting budget/intent/format — checkpoint N1.1. Evidence: audit §3.F.6.
-```
-
 <a id="30"></a>
 
 ### #30 · N0 · The zero-entry empty state tells the user to pick types from an omnibox that searches entries only — on a repo with no entries it can return nothing, ever
@@ -891,7 +809,25 @@ first does not re-file them.
 | 14 | Dead state (`mcpStateSynced`, `DevContextApi._mcpRunning`, feed `session`/`bytes`) and three silent catch-alls with no user-visible signal | N0.2 · `98c5067` | Dead fields deleted; poll/stream/status failures now surface (`mcp-status-error`, `sessions-error`, `feed-error`). Two specs pin the error paths |
 | 16 | Neither page had a spec file; the page `data-testid`s were referenced by nothing | N0.2 + N0.3 | `mcp-page.spec.ts` (10 tests) and `context-studio.spec.ts` cover both pages; every `data-testid` on the two pages that the audit named is now asserted by a real spec |
 
-**Still open from the same inventory:** [#26](#26) (§3.F.1 pins), [#27](#27) (§3.F.2 body toggles),
-[#28](#28) (§3.F.5 verification), [#29](#29) (§3.F.6 card lifecycle), [#30](#30) (§3.F.8 empty
-state), [#31](#31) (§3.F.15 usage/dead branch). Each was left because it needs a product or wire
-decision — they are the substance of checkpoints N1.1, N1.2 and N2.1, not forgotten work.
+**Still open from the same inventory:** [#26](#26) (3.F.1 pins - N1.2), [#30](#30) (3.F.8 empty
+state), [#31](#31) (3.F.15 usage/dead branch - N2.1). 3.F.2, 3.F.5 and 3.F.6 were closed by N1.1;
+see below.
+
+<a id="fixed-n1"></a>
+
+## FIXED in N1.1 - the three 3.F items that needed a wire or product decision
+
+Stage N1.1 of the same run ("Studio truth pass") closed the three whose fix was blocked on a
+decision rather than on effort. The decisions are recorded in `STUDIO-MCP-AUDIT-2026-08-13.md`
+section 4 wire item 4 and section 8.
+
+| # | 3.F | Defect | Decision taken | Fix locus |
+|---|-----|--------|----------------|-----------|
+| 28 | 5 | The verification ledger verified a pack that was never built - full budget per focus, all sections, N RPCs per card edit | **Verification MOVES INTO `GetContextPack`'s response** rather than `VerifyContextRequest` gaining cards/intent: `ContextPackVerifier.Verify()` is a pure function of the sections, and `BuildMulti` already holds the ones it kept, so a divergence becomes impossible to write instead of merely fixed. `VerifyContext` stays the single-focus RPC for MCP's `verify_context`, which reads every field of its response. | `ContextPackBuilder.cs` BuildMulti tail (merge by section key then `ContextPackVerifier`); `ContextPackResponse.verification/any_stale/analyzed_git_head/current_git_head`; `context-studio.ts` `readVerification()` replaces `verifyPack()`. Dead `checkedAt` now renders (`verification-checked-at`). Gates: `ContextPackLedgerTests`, specs "the ledger IS the pack response - no VerifyContext RPC at all" + "refresh rebuilds the pack" |
+| 27 | 2 | Body toggles were cosmetic - an eye icon and an opacity; `bodyEnabled` never reached the wire while the pill claimed "All bodies hidden" | **WIRED, not deleted.** `ContextCardSpec.exclude_bodies` (negative sense, so proto3's default keeps an older caller's pack byte-for-byte); the builder drops the card's `bodies` section. The toggle renders only on card types that carry one - no inert control survives. | `ContextPackBuilder.cs` (`BodiesSection`, `BodyCapableCardTypes`, the `wanted` filter); `composition-view.ts` `canToggleBodies()`; `budget-panel.ts` pill hidden when no card can carry bodies. Gates: `ContextPackLedgerTests`, spec "bodyEnabled rides the request and a toggle re-packs" |
+| 29 | 6 | Studio cards were never invalidated - the file contained no `effect()`, so a re-analyze left cards holding node ids from the previous graph | **Handle-effect invalidation** over per-tab keying: the handle *is* the identity of the graph those ids are addressed in. Shaping (budget/intent/format) is a preference and is persisted instead - it is not session state. | `context-studio.ts` constructor effect + `resetPackState()`; `prefs.store.ts` `studioBudget/studioIntent/studioFormat`. Gates: specs "a new session handle clears the cards...", "budget / intent / format are persisted...", "restores the persisted shaping on construction" |
+
+Per-card `verified`/`approx` (audit section 3.B, not a numbered 3.F item) also landed here:
+`composition-view.ts` `provenanceMix()` renders the trust mix the wire has carried since T4.4 and
+no surface showed. Spec: "renders verified/approx PER CARD, and offers the body toggle only where
+it acts".

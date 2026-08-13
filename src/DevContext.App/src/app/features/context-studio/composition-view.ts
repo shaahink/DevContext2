@@ -31,6 +31,12 @@ export interface ContextCard {
   error: string | null;
 }
 
+/** N1.1 — card types whose server sections include the `bodies` section: the only cards where
+ * hiding bodies changes the pack. Single-sourced server-side as
+ * ContextPackBuilder.BodyCapableCardTypes (derived from CardTypeSections and asserted in
+ * ContextPackLedgerTests), which is what keeps this list from drifting into a second spelling. */
+export const BODY_CAPABLE_CARD_TYPES: readonly ContextCardType[] = ['bodies'];
+
 const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
   flow: 'Flow',
   signatures: 'Signatures',
@@ -101,15 +107,21 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
             >
               <app-icon name="copy" [size]="14" />
             </button>
-            <button
-              type="button"
-              class="shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
-              [class.opacity-30]="!card.bodyEnabled"
-              [title]="card.bodyEnabled ? 'Hide code bodies' : 'Show code bodies'"
-              (click)="onToggleBody(card.id)"
-            >
-              <app-icon [name]="card.bodyEnabled ? 'eye' : 'eye-off'" [size]="14" />
-            </button>
+            <!-- N1.1 (audit §3.F.2) — the toggle renders only where it can change the pack.
+                 It reaches the wire now (ContextCardSpec.exclude_bodies), and on every other
+                 card type it would still be a no-op, so it is not offered there. -->
+            @if (canToggleBodies(card)) {
+              <button
+                type="button"
+                class="shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
+                data-testid="card-body-toggle"
+                [class.opacity-30]="!card.bodyEnabled"
+                [title]="card.bodyEnabled ? 'Hide code bodies — drops this card from the pack' : 'Show code bodies'"
+                (click)="onToggleBody(card.id)"
+              >
+                <app-icon [name]="card.bodyEnabled ? 'eye' : 'eye-off'" [size]="14" />
+              </button>
+            }
             <button
               type="button"
               class="shrink-0 rounded p-0.5 text-ink-subtle hover:text-danger transition-colors"
@@ -164,6 +176,31 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
                   }
                 </span>
               }
+            </div>
+          }
+          <!-- N1.1 (audit §3.B) — PER-CARD PROVENANCE. verified/approx have ridden the wire
+               since T4.4 (SectionAllocation.verified/approx) and no surface rendered them, so
+               the one number that says how much of this card is trustworthy was invisible.
+               verified = resolved semantically or by a detection join; approx = matched by
+               syntax/string heuristics. Counts SUM across a multi-entry merge since N0.1. -->
+          @if (provenanceMix(card); as mix) {
+            <div class="flex items-center gap-1.5 px-2 py-0.5 border-t border-line/50 text-2xs tabular-nums"
+              data-testid="card-provenance-mix">
+              <span
+                class="shrink-0 rounded px-1 py-px font-medium"
+                [class.bg-success/15]="mix.approx === 0"
+                [class.text-success]="mix.approx === 0"
+                [class.bg-hover]="mix.approx > 0"
+                [class.text-ink-muted]="mix.approx > 0"
+                [title]="mix.verified + ' of ' + mix.total + ' items resolved semantically or by a detection join'"
+              >{{ mix.verified }} verified</span>
+              @if (mix.approx > 0) {
+                <span
+                  class="shrink-0 rounded bg-warn/15 px-1 py-px font-medium text-warn"
+                  [title]="mix.approx + ' of ' + mix.total + ' items matched by syntax/string heuristics — treat as approximate'"
+                >{{ mix.approx }} approx</span>
+              }
+              <span class="shrink-0 text-ink-subtle">{{ mix.verifiedPct }}% verified</span>
             </div>
           }
           @if (card.content !== null && !card.loading) {
@@ -234,6 +271,28 @@ export class CompositionView {
       for (const loc of s.sourceLocations) seen.add(loc);
     }
     return [...seen];
+  }
+
+  /** N1.1 (audit §3.B) — the card's resolution-tier mix, summed over its sections. Null while
+   * the card carries no server sections (nothing measured yet = nothing to claim). */
+  protected provenanceMix(card: ContextCard): { verified: number; approx: number; total: number; verifiedPct: number } | null {
+    let verified = 0;
+    let approx = 0;
+    for (const s of card.sections) {
+      verified += s.verified;
+      approx += s.approx;
+    }
+    const total = verified + approx;
+    if (total === 0) return null;
+    return { verified, approx, total, verifiedPct: Math.round((verified / total) * 100) };
+  }
+
+  /** N1.1 — only cards whose sections can carry code bodies get the eye toggle. Mirrors
+   * ContextPackBuilder.BodyCapableCardTypes, which is derived from CardTypeSections and pinned
+   * by ContextPackLedgerTests — if the server's table gains a body-carrying type, that test
+   * fails and names this list. */
+  protected canToggleBodies(card: ContextCard): boolean {
+    return BODY_CAPABLE_CARD_TYPES.includes(card.type);
   }
 
   /** Filename:line tail for the chip; the full repo-relative path lives on [title]. */

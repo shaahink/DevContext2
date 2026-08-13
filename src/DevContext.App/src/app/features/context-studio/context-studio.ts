@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { copyToClipboard } from '../../core/clipboard';
 import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { type EntryVm } from '../../models/view-models';
+import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
@@ -128,24 +129,75 @@ export class ContextStudio {
   private readonly api = inject(DevContextApi);
   private readonly trailStore = inject(TrailStore);
   private readonly toast = inject(ToastService);
+  private readonly prefs = inject(PrefsStore);
 
   protected readonly cards = signal<readonly ContextCard[]>([]);
   /** N0.1 (audit §3.F.7) — set only after the clipboard write resolves; drives Copy's label. */
   protected readonly copied = signal(false);
-  protected readonly selectedIntent = signal<ContextIntent>('trace');
-  protected readonly selectedFormat = signal<OutputFormat>('markdown');
+  // N1.1 (audit §3.F.6 / backlog #29) — shaping is a PREFERENCE and is restored from prefs;
+  // cards are session state and are dropped when the handle changes (see the effect below).
+  protected readonly selectedIntent = signal<ContextIntent>(this.prefs.studioIntent());
+  protected readonly selectedFormat = signal<OutputFormat>(this.prefs.studioFormat());
   protected readonly showAllBodies = signal(true);
-  protected readonly budgetTokens = signal(4000);
+  protected readonly budgetTokens = signal(this.prefs.studioBudget());
 
-  /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes. */
+  constructor() {
+    // N1.1 (audit §3.F.6 / backlog #29) — CARDS ARE KEYED TO THE HANDLE. The file had no
+    // effect() at all: every writer of `cards` was a user action and nothing observed
+    // session.handle(), so after a re-analyze or a repo switch the cards still held entryIds
+    // from the previous graph. ResolveFocus returned null for the ones that had moved and the
+    // card degraded to an empty body instead of saying it was stale — and Studio state
+    // survives a tab switch, so the stale set was still on screen on the way back.
+    // Chose handle-effect invalidation over per-tab keying: the handle is the identity of the
+    // graph the ids are addressed in, and it is the thing that actually invalidates them.
+    effect(() => {
+      const handle = this.session.handle();
+      untracked(() => {
+        if (handle === this.cardsHandle) return;
+        this.cardsHandle = handle;
+        if (this.cards().length > 0) {
+          this.toast.show('Repo re-analyzed — Studio cards cleared (they addressed the old graph)', 'info');
+        }
+        this.resetPackState();
+      });
+    });
+
+    // N1.1 — the output format is a two-way model on the budget panel, so it has no handler
+    // to persist from; observe it instead. Shaping preferences outlive the session.
+    effect(() => {
+      const format = this.selectedFormat();
+      untracked(() => this.prefs.setStudioFormat(format));
+    });
+  }
+
+  /** N1.1 — the handle the current cards were addressed in. Seeded from the live handle so the
+   * effect's own first run is a no-op; only a REAL change of graph clears anything. */
+  private cardsHandle: string | null = this.session.handle();
+
+  private resetPackState(): void {
+    if (this.packTimer !== null) clearTimeout(this.packTimer);
+    this.packTimer = null;
+    this.packSeq++;                 // orphan any repack still in flight for the old handle
+    this.cards.set([]);
+    this.serverPack.set(null);
+    this.packOmitted.set([]);
+    this.packTotals.set(null);
+    this.packVerification.set(null);
+    this.packPending.set(false);
+  }
+
+  /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes.
+   * N1.1 — and it is remembered: the ceiling reset to 4000 on every reload. */
   protected onBudgetChange(value: number): void {
     this.budgetTokens.set(value);
+    this.prefs.setStudioBudget(value);
     this.schedulePack();
   }
 
   /** T5.6 — intent reorders the cards AND re-packs (the server honors card order + intent). */
   protected onIntentChange(intent: ContextIntent): void {
     this.selectedIntent.set(intent);
+    this.prefs.setStudioIntent(intent);
     this.sortByIntent(intent);
     this.schedulePack();
   }
@@ -196,69 +248,39 @@ export class ContextStudio {
   private packTimer: ReturnType<typeof setTimeout> | null = null;
   private packSeq = 0;
 
-  /** T5.2 (audit R6) — the staleness ledger for the current pack; null until verified. */
+  /** T5.2 (audit R6) — the staleness ledger for the current pack; null until a pack lands.
+   * N1.1 (wire item 4 / backlog #28) — it is now the ledger the SERVER computed over the
+   * sections it actually assembled, read straight off the pack response. The client used to
+   * build it from one VerifyContext per focus, each handed the whole budget ceiling and each
+   * verifying every section of that focus: three divergences from the pack on screen (budget,
+   * section set, and N RPCs per card edit). There is no second source of this fact now, so
+   * there is nothing left to diverge. */
   protected readonly packVerification = signal<PackVerification | null>(null);
-  protected readonly verifying = signal(false);
-  private verifySeq = 0;
 
-  /** T5.2 — verify every unique focus the cards reference and merge per section. */
-  private async verifyPack(): Promise<void> {
-    const handle = this.session.handle();
-    const focuses = [...new Set(this.cards().flatMap((c) => c.entryIds))];
-    if (!handle || focuses.length === 0) {
-      this.packVerification.set(null);
-      return;
-    }
-    const seq = ++this.verifySeq;
-    this.verifying.set(true);
-    try {
-      const results = await Promise.all(
-        focuses.map((f) => this.api.verifyContext(handle, f, this.budgetTokens())),
-      );
-      if (seq !== this.verifySeq) return;
-      const found = results.filter((r) => r.found);
-      if (found.length === 0) {
-        this.packVerification.set(null);
-        return;
-      }
-      const byKey = new Map<string, { stale: boolean; filesChecked: number; changed: Map<string, SectionVerificationVm['changed'][number]> }>();
-      for (const r of found) {
-        for (const s of r.sections) {
-          let agg = byKey.get(s.key);
-          if (!agg) {
-            agg = { stale: false, filesChecked: 0, changed: new Map() };
-            byKey.set(s.key, agg);
-          }
-          agg.stale ||= s.stale;
-          agg.filesChecked += s.filesChecked;
-          for (const d of s.changed) {
-            agg.changed.set(d.file, { file: d.file, status: d.status, lineDelta: d.lineDelta });
-          }
-        }
-      }
-      this.packVerification.set({
-        anyStale: found.some((r) => r.anyStale),
-        analyzedGitHead: found[0].analyzedGitHead,
-        currentGitHead: found[0].currentGitHead,
-        checkedAt: Date.now(),
-        sections: [...byKey.entries()].map(([key, a]) => ({
-          key,
-          stale: a.stale,
-          filesChecked: a.filesChecked,
-          changed: [...a.changed.values()],
-        })),
-      });
-    } catch {
-      // Verification is advisory — a failed check must never block the Studio; the panel
-      // simply disappears rather than claiming fresh OR stale without evidence.
-      if (seq === this.verifySeq) this.packVerification.set(null);
-    } finally {
-      if (seq === this.verifySeq) this.verifying.set(false);
-    }
+  /** N1.1 — verification arrives WITH the pack, so "verifying" is "packing". */
+  protected readonly verifying = computed(() => this.packPending());
+
+  /** N1.1 — refresh re-checks the disk, and the only honest way to do that now is to rebuild
+   * the pack: the ledger is a property of a build, not a query you can re-issue beside it. */
+  protected onVerifyRefresh(): void {
+    if (this.cards().length === 0) return;
+    this.schedulePack(true);
   }
 
-  protected onVerifyRefresh(): void {
-    void this.verifyPack();
+  private readVerification(pack: ContextPackResponse): PackVerification | null {
+    if (pack.verification.length === 0) return null;
+    return {
+      anyStale: pack.anyStale,
+      analyzedGitHead: pack.analyzedGitHead,
+      currentGitHead: pack.currentGitHead,
+      checkedAt: Date.now(),
+      sections: pack.verification.map((s): SectionVerificationVm => ({
+        key: s.key,
+        stale: s.stale,
+        filesChecked: s.filesChecked,
+        changed: s.changed.map((d) => ({ file: d.file, status: d.status, lineDelta: d.lineDelta })),
+      })),
+    };
   }
 
   protected onReanalyze(): void {
@@ -325,7 +347,10 @@ export class ContextStudio {
 
   private async repack(handle: string): Promise<void> {
     const seq = ++this.packSeq;
-    const specs = this.cards().map((c) => ({ type: c.type, title: c.title, entryIds: [...c.entryIds] }));
+    // N1.1 (audit §3.F.2) — bodyEnabled rides the request. It used to stop at the eye icon.
+    const specs = this.cards().map((c) => ({
+      type: c.type, title: c.title, entryIds: [...c.entryIds], excludeBodies: !c.bodyEnabled,
+    }));
     try {
       const pack = await this.api.getContextPack(handle, specs, {
         budgetTokens: this.budgetTokens(),
@@ -384,7 +409,8 @@ export class ContextStudio {
       );
 
       // T5.2 (audit R6) — every fresh pack gets a fresh staleness ledger, unprompted.
-      void this.verifyPack();
+      // N1.1 — and it is the ledger for THIS pack, built server-side from its own sections.
+      this.packVerification.set(this.readVerification(pack));
     } catch (e) {
       if (seq !== this.packSeq) return;
       // T5.1 (audit R4) — a failed RPC must SAY so on the cards, not just stop the spinners.
@@ -409,10 +435,13 @@ export class ContextStudio {
     this.schedulePack(true);
   }
 
+  /** N1.1 — a body toggle is now pack-relevant, so it takes the one re-pack path like every
+   * other shaping change. Before, it repainted an icon and left the bytes alone. */
   protected onToggleBody(id: string): void {
     this.cards.update((prev) =>
       prev.map((c) => (c.id === id ? { ...c, bodyEnabled: !c.bodyEnabled } : c)),
     );
+    this.schedulePack();
   }
 
   protected onGlobalBodiesChange(): void {
@@ -420,6 +449,7 @@ export class ContextStudio {
     this.cards.update((prev) =>
       prev.map((c) => ({ ...c, bodyEnabled: showAll })),
     );
+    this.schedulePack();
   }
 
   protected onRemove(id: string): void {

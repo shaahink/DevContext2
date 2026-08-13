@@ -21,7 +21,6 @@ import type {
   SearchResponse,
   StatsResponse,
   TraceResponse,
-  VerifyContextResponse,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
@@ -159,18 +158,22 @@ export class DevContextApi {
     return this.client.getContext({ handle, focus, budgetTokens: options?.budgetTokens, intent: options?.intent });
   }
 
-  getContextPack(handle: string, cards: { type: string; title: string; entryIds: string[] }[], options?: { budgetTokens?: number; intent?: string }): Promise<ContextPackResponse> {
+  /** N1.1 — the response now also carries the staleness ledger FOR THIS PACK (wire item 4),
+   * so the Studio no longer fans out one verifyContext per focus to describe a pack that was
+   * never built. `excludeBodies` carries the per-card eye toggle to the builder. */
+  getContextPack(
+    handle: string,
+    cards: { type: string; title: string; entryIds: string[]; excludeBodies?: boolean }[],
+    options?: { budgetTokens?: number; intent?: string },
+  ): Promise<ContextPackResponse> {
     return this.client.getContextPack({
       handle,
-      cards: cards.map((c) => ({ type: c.type, title: c.title, entryIds: c.entryIds })),
+      cards: cards.map((c) => ({
+        type: c.type, title: c.title, entryIds: c.entryIds, excludeBodies: c.excludeBodies ?? false,
+      })),
       budgetTokens: options?.budgetTokens ?? 8000,
       intent: options?.intent ?? 'trace',
     });
-  }
-
-  /** T5.2 (audit R6) — per-section staleness of a focus's pack vs the disk (T4.5 RPC). */
-  verifyContext(handle: string, focus: string, budgetTokens?: number): Promise<VerifyContextResponse> {
-    return this.client.verifyContext({ handle, focus, budgetTokens });
   }
 
   readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {

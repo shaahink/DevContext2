@@ -2,14 +2,15 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
-import type { ContextPackResponse, VerifyContextResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import { ToastService } from '../../ui/toast/toast';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
-import type { ContextCardSeed, OutputFormat } from './scope-picker';
+import type { ContextCardSeed, ContextIntent, OutputFormat } from './scope-picker';
 import type { PackVerification } from './verification-panel';
 
 /** The protected surface the specs drive — kept in sync with ContextStudio by the cast site. */
@@ -23,6 +24,8 @@ interface StudioTestSurface {
   packVerification(): PackVerification | null;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
   onBudgetChange(value: number): void;
+  onIntentChange(intent: ContextIntent): void;
+  onToggleBody(id: string): void;
   onRemove(id: string): void;
   onRetry(): void;
   onVerifyRefresh(): void;
@@ -47,6 +50,11 @@ function packResponse(overrides: Partial<{
   omitted: string[];
   assembledMarkdown: string;
   cards: PackCardOverride[];
+  // N1.1 (wire item 4) — the ledger rides the pack it describes.
+  verification: { key: string; stale: boolean; filesChecked: number; changed: { file: string; status: string; lineDelta: number }[] }[];
+  anyStale: boolean;
+  analyzedGitHead: string;
+  currentGitHead: string;
 }> = {}): ContextPackResponse {
   // The server echoes the REQUEST card titles back on pack items (correlation key).
   const cards = (overrides.cards ?? [
@@ -69,30 +77,17 @@ function packResponse(overrides: Partial<{
     totalTokens: cards.reduce((n, c) => n + c.tokens, 0),
     allocatedTokens: 4000,
     omitted: overrides.omitted ?? [],
+    verification: overrides.verification ?? [
+      { key: 'trace', stale: false, filesChecked: 3, changed: [] },
+    ],
+    anyStale: overrides.anyStale ?? false,
+    analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
+    currentGitHead: overrides.currentGitHead ?? 'abc1234',
   } as unknown as ContextPackResponse;
 }
 
 function flowSeed(title = 'Flow: POST /checkout'): ContextCardSeed {
   return { type: 'flow', title, entryIds: ['node-1'], estimatedLines: 15 };
-}
-
-function verifyResponse(overrides: Partial<{
-  found: boolean;
-  anyStale: boolean;
-  analyzedGitHead: string;
-  currentGitHead: string;
-  sections: { key: string; stale: boolean; filesChecked: number; changed: { file: string; status: string; lineDelta: number }[] }[];
-}> = {}): VerifyContextResponse {
-  return {
-    found: overrides.found ?? true,
-    focus: 'POST /checkout',
-    anyStale: overrides.anyStale ?? false,
-    analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
-    currentGitHead: overrides.currentGitHead ?? 'abc1234',
-    sections: overrides.sections ?? [
-      { key: 'trace', stale: false, filesChecked: 3, changed: [] },
-    ],
-  } as unknown as VerifyContextResponse;
 }
 
 /** One macrotask hop — enough for the 0ms-debounce timer plus the RPC microtasks. */
@@ -103,20 +98,37 @@ async function flush(): Promise<void> {
 
 describe('ContextStudio', () => {
   let getContextPack: Mock;
+  /** N1.1 — kept as a mock precisely so the specs can prove it is NEVER called: the ledger
+   * rides the pack response now, so a VerifyContext RPC from the Studio is a regression. */
   let verifyContext: Mock;
   let reAnalyze: Mock;
+  let handle: ReturnType<typeof signal<string | null>>;
+  let prefs: {
+    studioBudget: Mock; studioIntent: Mock; studioFormat: Mock;
+    setStudioBudget: Mock; setStudioIntent: Mock; setStudioFormat: Mock;
+  };
 
   beforeEach(() => {
     getContextPack = vi.fn();
-    verifyContext = vi.fn().mockResolvedValue(verifyResponse());
+    verifyContext = vi.fn();
     reAnalyze = vi.fn();
+    handle = signal<string | null>('h1');
+    prefs = {
+      studioBudget: vi.fn().mockReturnValue(4000),
+      studioIntent: vi.fn().mockReturnValue('trace'),
+      studioFormat: vi.fn().mockReturnValue('markdown'),
+      setStudioBudget: vi.fn(),
+      setStudioIntent: vi.fn(),
+      setStudioFormat: vi.fn(),
+    };
     TestBed.configureTestingModule({
       providers: [
         { provide: DevContextApi, useValue: { getContextPack, verifyContext } },
+        { provide: PrefsStore, useValue: prefs },
         {
           provide: SessionStore,
           useValue: {
-            handle: signal('h1'),
+            handle,
             entryGroups: signal([]),
             summary: signal({ label: 'eshop-microservices' }),
             // R3 C-3: the Studio now tells the scope picker whether a repo was analyzed at all,
@@ -360,7 +372,7 @@ describe('ContextStudio', () => {
     expect(pre?.textContent?.trim()).not.toBe('Flow: POST /checkout'); // the audit's echo
   });
 
-  it('verifies the pack after every successful re-pack, unprompted (T5.2 R6)', async () => {
+  it('the ledger IS the pack response — no VerifyContext RPC at all (N1.1 wire item 4)', async () => {
     getContextPack.mockResolvedValue(packResponse());
     const { fixture, studio } = createStudio();
 
@@ -368,7 +380,12 @@ describe('ContextStudio', () => {
     await flush();
     fixture.detectChanges();
 
-    expect(verifyContext).toHaveBeenCalledWith('h1', 'node-1', 4000);
+    // The whole point of moving verification onto GetContextPack: the Studio used to fan out
+    // one VerifyContext per focus, each handed the WHOLE budget and each verifying every
+    // section of that focus — a ledger for a pack that was never built (backlog #28).
+    expect(verifyContext).not.toHaveBeenCalled();
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+
     const v = studio.packVerification();
     expect(v).not.toBeNull();
     expect(v!.anyStale).toBe(false);
@@ -377,18 +394,19 @@ describe('ContextStudio', () => {
     expect(el.querySelector('[data-testid="verification-panel"]')).not.toBeNull();
     expect(el.querySelector('[data-testid="verification-fresh"]')).not.toBeNull();
     expect(el.querySelector('[data-testid="verification-stale"]')).toBeNull();
+    // backlog #28's dead field: checkedAt was set and declared and never rendered.
+    expect(el.querySelector('[data-testid="verification-checked-at"]')?.textContent)
+      .toContain('Checked');
   });
 
-  it('merges verification across focuses; stale renders the warning + Re-analyze (T5.2 R6)', async () => {
-    getContextPack.mockResolvedValue(packResponse());
-    verifyContext.mockImplementation((_h: string, focus: string) =>
-      Promise.resolve(focus === 'node-2'
-        ? verifyResponse({
-            anyStale: true,
-            currentGitHead: 'def5678',
-            sections: [{ key: 'trace', stale: true, filesChecked: 2, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] }],
-          })
-        : verifyResponse()));
+  it('a stale pack renders the warning, the drifted file and Re-analyze (T5.2 R6 / N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      anyStale: true,
+      currentGitHead: 'def5678',
+      verification: [
+        { key: 'trace', stale: true, filesChecked: 5, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] },
+      ],
+    }));
     const { fixture, studio } = createStudio();
 
     studio.onCardsChange([
@@ -406,14 +424,14 @@ describe('ContextStudio', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('[data-testid="verification-stale"]')).not.toBeNull();
     expect(el.textContent).toContain('Handler.cs');
+    expect(el.textContent).toContain('abc1234');   // HEAD moved line
 
     (el.querySelector('[data-testid="verification-reanalyze"]') as HTMLButtonElement).click();
     expect(reAnalyze).toHaveBeenCalledTimes(1);
   });
 
-  it('a failed verification is advisory — panel disappears, Studio unaffected (T5.2)', async () => {
-    getContextPack.mockResolvedValue(packResponse());
-    verifyContext.mockRejectedValue(new Error('no fingerprints'));
+  it('a pack the server could not verify shows no ledger, and exports are unaffected (T5.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({ verification: [] }));
     const { studio } = createStudio();
 
     studio.onCardsChange([flowSeed()]);
@@ -422,6 +440,129 @@ describe('ContextStudio', () => {
     expect(studio.packVerification()).toBeNull();
     expect(studio.exportReady()).toBe(true); // exports unaffected
     expect(studio.cards()[0].error).toBeNull();
+  });
+
+  it('refresh rebuilds the pack — the ledger is a property of a build (N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+
+    studio.onVerifyRefresh();
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    expect(verifyContext).not.toHaveBeenCalled();
+  });
+
+  // ---- N1.1: body toggles reach the wire (audit §3.F.2 / backlog #27) --------------
+
+  it('bodyEnabled rides the request and a toggle re-packs (N1.1 §3.F.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [{ type: 'bodies', title: 'Bodies: POST /checkout', tokens: 300 }],
+    }));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], estimatedLines: 40 }]);
+    await flush();
+
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1',
+      [{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], excludeBodies: false }],
+      { budgetTokens: 4000, intent: 'trace' },
+    );
+
+    // The toggle used to repaint an icon and leave the bytes alone.
+    studio.onToggleBody(studio.cards()[0].id);
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1',
+      [{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], excludeBodies: true }],
+      { budgetTokens: 4000, intent: 'trace' },
+    );
+  });
+
+  it('renders verified/approx PER CARD, and offers the body toggle only where it acts (N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [
+        { type: 'flow', title: 'Flow: POST /checkout', tokens: 120 },
+        { type: 'bodies', title: 'Bodies: POST /checkout', tokens: 300 },
+      ],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([
+      flowSeed(),
+      { type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], estimatedLines: 40 },
+    ]);
+    await flush();
+    fixture.detectChanges();
+
+    // verified/approx have ridden the wire since T4.4 and no surface rendered them.
+    const el: HTMLElement = fixture.nativeElement;
+    const mixes = [...el.querySelectorAll('[data-testid="card-provenance-mix"]')];
+    expect(mixes).toHaveLength(2);
+    expect(mixes[0].textContent).toContain('2 verified');
+    expect(mixes[0].textContent).toContain('1 approx');
+    expect(mixes[0].textContent).toContain('67% verified');
+
+    // …and no inert control survives: only the bodies card can act on the toggle.
+    expect(el.querySelectorAll('[data-testid="card-body-toggle"]')).toHaveLength(1);
+  });
+
+  // ---- N1.1: state lifecycle (audit §3.F.6 / backlog #29) -------------------------
+
+  it('a new session handle clears the cards that addressed the old graph (N1.1 §3.F.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.cards()).toHaveLength(1);
+    expect(studio.serverPack()).not.toBeNull();
+
+    handle.set('h2');            // re-analyze / repo switch
+    fixture.detectChanges();
+    await flush();
+
+    expect(studio.cards()).toHaveLength(0);
+    expect(studio.serverPack()).toBeNull();
+    expect(studio.packVerification()).toBeNull();
+    expect(studio.packPending()).toBe(false);
+    // and no pack was requested for the new handle off the back of the old cards
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('budget / intent / format are persisted as preferences (N1.1 §3.F.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onBudgetChange(12000);
+    studio.onIntentChange('review');
+    studio.selectedFormat.set('json');
+    fixture.detectChanges();
+    await flush();
+
+    expect(prefs.setStudioBudget).toHaveBeenCalledWith(12000);
+    expect(prefs.setStudioIntent).toHaveBeenCalledWith('review');
+    expect(prefs.setStudioFormat).toHaveBeenCalledWith('json');
+  });
+
+  it('restores the persisted shaping on construction (N1.1 §3.F.6)', async () => {
+    prefs.studioBudget.mockReturnValue(16000);
+    prefs.studioIntent.mockReturnValue('explain');
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1', expect.anything(), { budgetTokens: 16000, intent: 'explain' },
+    );
   });
 
   it('saves as ${repo}-context-${date} with the format extension (T5.1 R5 + T5.6)', () => {

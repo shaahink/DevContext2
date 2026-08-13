@@ -8,7 +8,18 @@ export interface Prefs {
   readonly autoCleanup: boolean;
   /** Inspector dock level on the Workbench (0 = hidden, 3 = focus mode). Proposal §8.2. */
   readonly dockLevel: number;
+  /** N1.1 — Context Studio shaping. Cards are session state and die with the handle; how you
+   * like your packs shaped is a preference and must survive the tab switch that used to keep
+   * stale cards alive and the reload that used to reset the budget to 4000. */
+  readonly studioBudget: number;
+  readonly studioIntent: StudioIntent;
+  readonly studioFormat: StudioFormat;
 }
+
+/** Mirrors ContextIntent / OutputFormat in the Studio's scope-picker (kept structural rather
+ * than imported so the root prefs store does not depend on a feature module). */
+export type StudioIntent = 'trace' | 'explain' | 'review';
+export type StudioFormat = 'markdown' | 'plain' | 'json';
 
 const STORAGE_KEY = 'devcontext-prefs';
 
@@ -19,6 +30,9 @@ const DEFAULTS: Prefs = {
   useRoslyn: true,
   autoCleanup: true,
   dockLevel: 2,
+  studioBudget: 4000,
+  studioIntent: 'trace',
+  studioFormat: 'markdown',
 };
 
 /**
@@ -37,6 +51,9 @@ export class PrefsStore {
   readonly useRoslyn = () => this._prefs().useRoslyn;
   readonly autoCleanup = () => this._prefs().autoCleanup;
   readonly dockLevel = () => this._prefs().dockLevel;
+  readonly studioBudget = () => this._prefs().studioBudget;
+  readonly studioIntent = () => this._prefs().studioIntent;
+  readonly studioFormat = () => this._prefs().studioFormat;
 
   setDepth(d: number): void {
     this.update({ defaultDepth: clamp(d, 1, 10) });
@@ -56,6 +73,20 @@ export class PrefsStore {
 
   setDockLevel(level: number): void {
     this.update({ dockLevel: clamp(level, 0, 3) });
+  }
+
+  /** N1.1 — Studio shaping, persisted. Clamped to the budget panel's own slider range so a
+   * hand-edited localStorage cannot put the Studio in a state its UI cannot represent. */
+  setStudioBudget(tokens: number): void {
+    this.update({ studioBudget: clamp(Math.round(tokens), 500, 32000) });
+  }
+
+  setStudioIntent(intent: StudioIntent): void {
+    this.update({ studioIntent: intent });
+  }
+
+  setStudioFormat(format: StudioFormat): void {
+    this.update({ studioFormat: format });
   }
 
   /** Returns a partial AnalyzeSpec with the user's defaults, ready to merge. */

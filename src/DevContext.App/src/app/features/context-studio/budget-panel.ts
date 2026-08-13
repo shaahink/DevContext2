@@ -1,8 +1,8 @@
-import { Component, input, model, output } from '@angular/core';
+import { Component, computed, input, model, output } from '@angular/core';
 
 import { Icon } from '../../ui/icon/icon';
 import { allCardsPriced, cardTokens as cardTokensOf, totalCardTokens } from './card-tokens';
-import type { ContextCard } from './composition-view';
+import { BODY_CAPABLE_CARD_TYPES, type ContextCard } from './composition-view';
 import type { ContextIntent, OutputFormat } from './scope-picker';
 
 const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
@@ -110,20 +110,26 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         </div>
       </div>
 
-      <div class="mt-2 border-t border-line pt-2">
-        <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Bodies</h3>
-        <button
-          type="button"
-          class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
-          [class.text-success]="showAllBodies()"
-          [class.text-ink-subtle]="!showAllBodies()"
-          [class.hover:bg-hover]="true"
-          (click)="toggleAllBodies()"
-        >
-          <app-icon [name]="showAllBodies() ? 'eye' : 'eye-off'" [size]="14" />
-          {{ showAllBodies() ? 'All bodies shown' : 'All bodies hidden' }}
-        </button>
-      </div>
+      <!-- N1.1 (audit §3.F.2) — the pill only appears when the pack HAS a card that carries
+           code bodies. It used to claim "All bodies hidden" over a pack that still contained
+           every body, and it said it even when no card could carry one. -->
+      @if (bodyCardCount() > 0) {
+        <div class="mt-2 border-t border-line pt-2">
+          <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Bodies</h3>
+          <button
+            type="button"
+            class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+            data-testid="all-bodies-toggle"
+            [class.text-success]="showAllBodies()"
+            [class.text-ink-subtle]="!showAllBodies()"
+            [class.hover:bg-hover]="true"
+            (click)="toggleAllBodies()"
+          >
+            <app-icon [name]="showAllBodies() ? 'eye' : 'eye-off'" [size]="14" />
+            {{ showAllBodies() ? 'Bodies included' : 'Bodies excluded from the pack' }}
+          </button>
+        </div>
+      }
 
       <div class="mt-2 border-t border-line pt-2">
         <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Format</h3>
@@ -241,6 +247,10 @@ export class BudgetPanel {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     this.budget.set(value);
   }
+
+  /** N1.1 — how many cards the bodies switch can actually act on. Zero means no switch. */
+  readonly bodyCardCount = computed(() =>
+    this.cards().filter((c) => BODY_CAPABLE_CARD_TYPES.includes(c.type)).length);
 
   toggleAllBodies(): void {
     this.showAllBodies.update((v) => !v);
