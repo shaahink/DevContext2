@@ -107,12 +107,13 @@ public static class BodyFactExtractor
                             Line(v),
                             v.Identifier.ValueText,
                             declaredTypeText is null ? null : Ref(declaredTypeText, v, filePath, project),
-                            inferred is null ? null : Ref(inferred, v, filePath, project)));
+                            inferred is null ? null : Ref(inferred, v, filePath, project))
+                        { Span = v.Span });
                     }
                     break;
                 }
                 case ObjectCreationExpressionSyntax oc:
-                    ops.Add(new CreationOp(Line(oc), Ref(oc.Type.ToString(), oc, filePath, project)));
+                    ops.Add(new CreationOp(Line(oc), Ref(oc.Type.ToString(), oc, filePath, project)) { Span = oc.Span });
                     break;
                 case InvocationExpressionSyntax inv:
                     ops.Add(BuildInvocation(inv, scope, methodReturns, filePath, project));
@@ -121,7 +122,7 @@ public static class BodyFactExtractor
                 {
                     var text = id.Identifier.ValueText;
                     if (seenIdentifiers.Add(text))
-                        ops.Add(new IdentifierUseOp(Line(id), text));
+                        ops.Add(new IdentifierUseOp(Line(id), text) { Span = id.Span });
                     break;
                 }
             }
@@ -180,6 +181,9 @@ public static class BodyFactExtractor
         return new InvocationOp(Line(inv), receiverText, receiverType, methodName, genericArgs, args.ToImmutable())
         {
             ReceiverMember = receiverMember,
+            // E1.2 (#12): the invocation's OWN span, so the semantic upgrade relocates THIS call and not
+            // whatever statement happens to share its line.
+            Span = inv.Span,
         };
     }
 
