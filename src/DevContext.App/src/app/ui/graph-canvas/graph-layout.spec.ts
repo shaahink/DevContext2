@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutEdgeIn, type LayoutNodeIn } from './graph-layout';
 
@@ -38,6 +38,18 @@ function shuffled<T>(arr: readonly T[]): T[] {
 }
 
 describe('graph-layout (D4.1 determinism + no-clip contract)', () => {
+  // graph-layout loads elkjs lazily: the FIRST layoutGraph call in the process pays a dynamic
+  // import of elk.bundled.js (a ~1.4 MB GWT-compiled bundle) plus instantiation. Whichever `it`
+  // ran first was billed that one-time cost against vitest's 5000ms default, and on a loaded
+  // machine it lost: the 2026-08-13 phase battery failed here at 5249ms while the same file
+  // passes in 1.28s of test time in isolation and the whole 173-test suite runs in 11s on an
+  // idle box. Pay the bootstrap once, in a hook that asserts nothing, so every test's clock
+  // measures layout and not module loading. layoutGraph returns early on an empty node list,
+  // so the warm-up needs a real (one-node) graph to reach ELK.
+  beforeAll(async () => {
+    await layoutGraph([{ id: 'warmup', label: 'warmup' }], []);
+  }, 60_000);
+
   it('same input twice → identical geometry', async () => {
     const { nodes, edges } = bigFixture();
     const a = await layoutGraph(nodes, edges);
