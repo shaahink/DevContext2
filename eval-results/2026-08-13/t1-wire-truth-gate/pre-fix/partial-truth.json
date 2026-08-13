@@ -1,9 +1,15 @@
 {
-  "measuredAt": "2026-08-13T17:25:16.186Z",
+  "measuredAt": "2026-08-13T17:43:40.251Z",
   "mcpExe": "C:\\Code\\DevContext2-prefix-t1\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
   "repo": "C:\\Code\\DevContext2-engine\\eval-repos\\TodoApi",
-  "handle": "9bd34f994c974b0f962293404e59a028",
+  "handle": "6b865d49ecf8475f8449c1ff1bee69a0",
   "checks": [
+    {
+      "bug": "env",
+      "label": "the server answering is THIS repo's fresh build",
+      "ok": true,
+      "detail": "C:\\Code\\DevContext2-prefix-t1\\src\\DevContext.Server\\bin\\Debug\\net10.0\\ (pid 24784, started 2026-08-13T17:43:05.0629386Z)"
+    },
     {
       "bug": 2,
       "label": "every entrypoints title resolves in get_context AND trace",

@@ -2,7 +2,9 @@ partial-truth: C:\Code\DevContext2-prefix-t1\src\DevContext.Mcp\bin\Debug\net10.
   repo: C:\Code\DevContext2-engine\eval-repos\TodoApi
   out:  C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix
 
-  handle: 9bd34f994c974b0f962293404e59a028
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\server-identity.json
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-prefix-t1\src\DevContext.Server\bin\Debug\net10.0\ (pid 24784, started 2026-08-13T17:43:05.0629386Z)
+  handle: 6b865d49ecf8475f8449c1ff1bee69a0
 
   wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\entry-roundtrip.json
   PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
