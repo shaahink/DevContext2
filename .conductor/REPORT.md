@@ -1,18 +1,18 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `8502785`_
+_Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-engine` · HEAD `af29f58`_
 
 **Status:** Idle
-**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0 · working ▸ V1.3
-**Checkpoints:** 6/20 done · **Sessions run:** 6 · **Cost:** $70.1017 (agent $69.9141 + gates $0.1876) · **Tokens:** 1,029,647 in / 453,882 out
-**Confirmed phases:** T1
+**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0
+**Checkpoints:** 7/20 done · **Sessions run:** 7 · **Cost:** $84.8880 (agent $84.7005 + gates $0.1876) · **Tokens:** 1,253,322 in / 536,003 out
+**Confirmed phases:** T1, V1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
-| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ███████░░░ 2/3 | **← active** |
+| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
@@ -30,13 +30,13 @@ _Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `85027
 
 </details>
 
-<details><summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (2/3)</summary>
+<details> ✅<summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (3/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
 | V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) |
-| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ⬜ TODO | - |
+| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ✅ DONE | [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) |
 
 </details>
 
@@ -98,6 +98,7 @@ _Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `85027
 | 4 | T1 | Fix | 2 | 08-13 17:59 | 0:31 | Progress |  | 5 | fast-engine:OK · guards:OK | $13.9168 | $0.0271 | 164,370/78,266 |
 | 5 | V1 | Deliver | 1 | 08-13 18:46 | 0:28 | Advanced | V1.1 | 4 | fast-engine:OK-retry · guards:OK | $12.8408 | $0.0606 | 186,202/82,566 |
 | 6 | V1 | Deliver | 1 | 08-13 19:25 | 0:27 | Advanced | V1.2 | 2 | fast-engine:OK · guards:OK | $8.7991 | $0.0181 | 153,341/57,563 |
+| 7 | V1 | Deliver | 1 | 08-13 19:56 | 0:26 | Advanced | V1.3 | 3 | gates green (none configured) | $14.7864 |  | 223,675/82,121 |
 
 ## Money
 
@@ -105,25 +106,18 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
+| **run total** | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
-| stage V1 | 2 | 30M | 98.4% | $21.72 | 2 | 15M | $10.86 |
-| 2026-08 | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
+| stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
+| 2026-08 | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
 
-_Where the money goes: agent $69.91 (100%) · gate $0.19 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $84.70 (100%) · gate $0.19 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 17:16:00  ◆ run started · DevContext pre-release - engine and agent face
-08-13 17:16:01  ▸ stage T1 entered — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate)
-08-13 17:16:01  • session #1 T1 Deliver started (attempt 1/6)
-08-13 17:50:24  ▪ gate fast-engine pass [session]  (3m16s)
-08-13 17:50:24  ▪ gate guards pass [session]  (1m20s)
-08-13 17:50:28  • session #1 T1 → Advanced · done T1.1,T1.2 · 4 commit(s)  (34m26s)
-08-13 17:50:29  • session #2 T1 Deliver started (attempt 1/6)
 08-13 18:19:07  ▪ gate fast-engine pass [session]  (3m01s)
 08-13 18:19:07  ▪ gate guards pass [session]  (1m35s)
 08-13 18:19:11  • session #2 T1 → Advanced · done T1.3 · 2 commit(s)  (28m42s)
@@ -155,6 +149,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 20:56:18  ▪ gate fast-engine pass [session]  (1m52s)
 08-13 20:56:18  ▪ gate guards pass [session]  (1m08s)
 08-13 20:56:24  • session #6 V1 → Advanced · done V1.2 · 2 commit(s)  (30m38s)
+08-13 20:56:25  ◆ plan reloaded — v1 · 7 stages · 3 gates
+08-13 20:56:29  • session #7 V1 Deliver started (attempt 1/4)
+08-13 21:22:43  • session #7 V1 → Advanced · done V1.3 · 3 commit(s)  (26m13s)
+08-13 21:34:00  ▪ gate fast-engine pass [phase]  (2m18s)
+08-13 21:34:00  ▪ gate guards pass [phase]  (1m21s)
+08-13 21:34:00  ▪ gate battery pass [phase]  (7m35s)
+08-13 21:34:01  ✓ checkpoint V1.1 confirmed
+08-13 21:34:01  ✓ checkpoint V1.2 confirmed
+08-13 21:34:01  ✓ checkpoint V1.3 confirmed
 ```
 
 ## Health
@@ -162,8 +165,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 6 · retries 1 (17 %) · overall Warn
+sessions 7 · retries 1 (14 %) · overall Warn
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #7: 20,985,542 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -205,36 +209,36 @@ vs upstream: up to date
 - **s6 (V1 Deliver)** — 2 commit(s):
   - [`e1f40e3`](https://github.com/shaahink/DevContext2/commit/e1f40e3) docs(v1): V1.2 evidence gates + handoff for V1.3
   - [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) fix(graph): one Member-title vocabulary, derived from the key (V1.2, #17)
+- **s7 (V1 Deliver)** — 3 commit(s):
+  - [`44e5319`](https://github.com/shaahink/DevContext2/commit/44e5319) docs(v1): V1.3 gate results — Core 766/0, Server 108/0; matrix + guards left to the battery
+  - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
+  - [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) fix(graph): two standing invariants, enforced where a node is made (V1.3, #7 rider + #18)
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> SESSION-RESULT:** V1.2 (backlog #17, one Member-title vocabulary) is DONE and claimed via `conductor task --done V1.2 --evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md`, on commits `fd47300` (fix) and `e1f40e3` (evidence gates + handoff), branch `feat/pre-release-engine` pushed and clean. The engine shipped two Member-title vocabularies because a dozen producers each spelled one and titles merge first-write-wins, so pass ORDER decided whether a node read `CatalogApi.GetAllItemsV1` or a bare `Send`; a Member title is now a pure function of its key — `SymbolCanon.MemberTitle` (owner short name + `.` + member) applied in exactly one place, `CodeGraphBuilder.AddNode` — wi…
+> SESSION-RESULT: V1.3 landed and is claimed, closing stage V1. Both standing invariants are now enforced at `CodeGraphBuilder.AddNode` — the same choke point V1.2 used — via one predicate pair in `SymbolCanon`: a Type node whose key is a member key (`::`) or expression text is refused, so `AddEdge` drops the edge with it and no phantom leaves a half behind. Three Kind-blind producers were the cause and were fixed at source (`GraphBuilder.Seams.cs:429/597`, `PlainCallDetector.cs:54`, where the doc comment said "type" and the code said "not null"); `CallGraphBinder` already had it right, and loom-guards rule 11 now fails any future Kind-blind resolution→Type-node-id. Measured on nine poles with…
 
 ## Tracker handoff
 
 ```
-V1.2 IS DONE (`fd47300`, evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md).
-A Member title is now a FUNCTION OF ITS KEY: `SymbolCanon.MemberTitle` (owner short name + "." +
-member), applied in ONE place -- `CodeGraphBuilder.AddNode` -- so no producer and no pass ORDER can
-pick a vocabulary. All 12 producer sites pass it; **loom-guards rule 10** fails a Member title
-spelled anywhere else. Measured with the probe that filed #17, 7 poles: Member 1092 mismatches -> 0,
-member COUNT identical pole by pole, and Type 1893/58 + EntryPoint 84/87 + Service + Store UNMOVED.
-Eval matrix 74 passed / 0 failed -- no cell moved. Truth gate 0 failures.
-
-NEXT: V1.3 -- the two standing invariants, RED FIRST (#7 rider: no node has kind Type with a member
-id; #18: lambda/expression TEXT never becomes a node title). The probe measures #18 for free: those
-58 Type mismatches ARE its population -- re-run `eval-results/2026-08-13/v1-vocabulary/
-member-title-probe.ps1` (poles are `name=ABSOLUTE_PATH`; the 4 not in eval-repos are cloned at
-C:/Code/eval-poles). #18's producers: GraphBuilder.Seams.cs titles from detection ServiceType/
-ImplementationType; its "sp =>"/"(" filter is on the DirectBinding path only.
-STILL OPEN, #17's other half (NOT in V1.2's acceptance): EntryPoint titles 84/87 -- some producers
-keep the key's scheme prefix (`grpc:`/`domain:`/`worker:`), some drop it.
-TRAPS PAID FOR: two `dotnet test` hosts at once prints "Test host process crashed" NEXT TO two
-"Passed!" lines -- a false red (R-T5), re-run serially; `$LASTEXITCODE` inside `bg start -- powershell
--Command` is eaten by the outer shell (use a .ps1 with -File); inside `namespace DevContext.Core.Tests`
-`Graph2.SymbolCanon` resolves to the TEST namespace -- fully qualify it.
+V1.3 IS DONE (`3eb2f34`, evidence eval-results/2026-08-13/v1-invariants/INVARIANT-EVIDENCE.md) and
+V1 IS CLOSED. Both invariants are enforced at `CodeGraphBuilder.AddNode` (V1.2's choke point): a Type
+node whose key is a MEMBER key or is `SymbolCanon.IsExpressionText` is REFUSED, so AddEdge drops the
+edge too. Measured 9 poles (Hangfire cloned to C:/Code/eval-poles): INV-A 4->0, INV-B 76->0, the 7
+deliberately-exempt nodes (channel key, `<OnModelCreating>`, `2.0`/`1.0`) UNMOVED; Member titles
+still 1714/0, Type mismatch 58->14. Red-first: 7 fail / 20 pass pre-fix, 27/27 after.
+NEXT: E1 (edge completeness). Read conductor BUG #3 FIRST -- V1.3 legitimately dropped 25 `typeof(X)`
+DI registrations whose argument IS a real type name (MediatR's whole behaviour pipeline). Unwrapping
+whole-text `typeof(X)` before `SymbolTable.ResolveName` recovers them; it ADDS edges, so it belongs
+with E1's matrix. Re-run `eval-results/2026-08-13/v1-invariants/invariant-probe.ps1` after: INV-B
+before-count should fall 76->~51, violations stay 0.
+UNVERIFIED BY ME: the 4/4 gate script (Core, Server, eval matrix, loom-guards rule 11) was still
+running at session end -- log .conductor/bg-logs/v13-checks-20260813-201900820.log; Conductor's
+battery is the authority. TRAPS PAID FOR: stashing ALL changed files for a red-first gives a COMPILE
+error, not a red -- stash only the BEHAVIOURAL files; `git stash pop` inside a bg script can fail
+SILENTLY while racing the build (check `git status` after, its exit leg is a false red).
 ```
