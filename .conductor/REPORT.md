@@ -1,19 +1,18 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 20:22 UTC · branch `feat/pre-release-engine` · HEAD `44e5319`_
+_Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-engine` · HEAD `af29f58`_
 
 **Status:** Idle
 **Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0
 **Checkpoints:** 7/20 done · **Sessions run:** 7 · **Cost:** $84.8880 (agent $84.7005 + gates $0.1876) · **Tokens:** 1,253,322 in / 536,003 out
-**Confirmed phases:** T1
-**Pending:** full-battery phase gate for V1
+**Confirmed phases:** T1, V1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
-| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | gating… |
+| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
@@ -37,7 +36,7 @@ _Updated 2026-08-13 20:22 UTC · branch `feat/pre-release-engine` · HEAD `44e53
 |---|---|---|---|
 | V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
 | V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) |
-| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ✅ DONE | - |
+| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ✅ DONE | [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) |
 
 </details>
 
@@ -107,25 +106,18 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
+| **run total** | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
-| stage V1 | 2 | 30M | 98.4% | $21.72 | 2 | 15M | $10.86 |
-| 2026-08 | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
+| stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
+| 2026-08 | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
 
-_Where the money goes: agent $69.91 (100%) · gate $0.19 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $84.70 (100%) · gate $0.19 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 17:16:00  ◆ run started · DevContext pre-release - engine and agent face
-08-13 17:16:01  ▸ stage T1 entered — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate)
-08-13 17:16:01  • session #1 T1 Deliver started (attempt 1/6)
-08-13 17:50:24  ▪ gate fast-engine pass [session]  (3m16s)
-08-13 17:50:24  ▪ gate guards pass [session]  (1m20s)
-08-13 17:50:28  • session #1 T1 → Advanced · done T1.1,T1.2 · 4 commit(s)  (34m26s)
-08-13 17:50:29  • session #2 T1 Deliver started (attempt 1/6)
 08-13 18:19:07  ▪ gate fast-engine pass [session]  (3m01s)
 08-13 18:19:07  ▪ gate guards pass [session]  (1m35s)
 08-13 18:19:11  • session #2 T1 → Advanced · done T1.3 · 2 commit(s)  (28m42s)
@@ -159,6 +151,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 20:56:24  • session #6 V1 → Advanced · done V1.2 · 2 commit(s)  (30m38s)
 08-13 20:56:25  ◆ plan reloaded — v1 · 7 stages · 3 gates
 08-13 20:56:29  • session #7 V1 Deliver started (attempt 1/4)
+08-13 21:22:43  • session #7 V1 → Advanced · done V1.3 · 3 commit(s)  (26m13s)
+08-13 21:34:00  ▪ gate fast-engine pass [phase]  (2m18s)
+08-13 21:34:00  ▪ gate guards pass [phase]  (1m21s)
+08-13 21:34:00  ▪ gate battery pass [phase]  (7m35s)
+08-13 21:34:01  ✓ checkpoint V1.1 confirmed
+08-13 21:34:01  ✓ checkpoint V1.2 confirmed
+08-13 21:34:01  ✓ checkpoint V1.3 confirmed
 ```
 
 ## Health
@@ -168,6 +167,7 @@ _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)
 ```
 sessions 7 · retries 1 (14 %) · overall Warn
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #7: 20,985,542 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -176,7 +176,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M eval-results/2026-08-13/mcp-qa.md
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -213,6 +213,10 @@ vs upstream: up to date
   - [`44e5319`](https://github.com/shaahink/DevContext2/commit/44e5319) docs(v1): V1.3 gate results — Core 766/0, Server 108/0; matrix + guards left to the battery
   - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
   - [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) fix(graph): two standing invariants, enforced where a node is made (V1.3, #7 rider + #18)
+
+## Last gate run
+
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
