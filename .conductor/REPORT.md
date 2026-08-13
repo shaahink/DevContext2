@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 23:16 UTC · branch `feat/pre-release-desktop` · HEAD `951a836`_
+_Updated 2026-08-13 23:50 UTC · branch `feat/pre-release-desktop` · HEAD `2ddf983`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 39m ago, 20:36:43Z]
-**Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 1
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 13m ago, 20:36:43Z]
+**Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 0
 **Checkpoints:** 9/16 done · **Sessions run:** 16 · **Cost:** $99.7996 (agent $99.6281 + gates $0.1716) · **Tokens:** 1,590,346 in / 633,124 out
-**Confirmed phases:** N0, N1, N2
-**Pending:** full-battery phase gate for M1
+**Confirmed phases:** N0, N1, N2, M1
 
 ## Stage progress
 
@@ -15,7 +14,7 @@ _Updated 2026-08-13 23:16 UTC · branch `feat/pre-release-desktop` · HEAD `951a
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
-| M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | gating… |
+| M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
@@ -112,27 +111,20 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 15 | 135M | 98.4% | $97.18 | 9 | 15M | $10.80 |
+| **run total** | 16 | 138M | 98.4% | $99.82 | 9 | 15.3M | $11.09 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
-| stage M1 | 2 | 40.1M | 98.7% | $27.13 | 2 | 20M | $13.57 |
-| 2026-08 | 15 | 135M | 98.4% | $97.18 | 9 | 15M | $10.80 |
+| stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
+| 2026-08 | 16 | 138M | 98.4% | $99.82 | 9 | 15.3M | $11.09 |
 
-_Where the money goes: agent $96.99 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $99.63 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:18:12  ▪ gate guards pass [session]  (1m24s)
-08-13 21:18:23  • session #6 N2 → Advanced · done N2.1 · 3 commit(s)  (29m09s)
-08-13 21:18:24  ◆ plan reloaded — v1 · 7 stages · 4 gates
-08-13 21:18:34  • session #7 N2 Deliver started (attempt 1/6)
-08-13 21:34:57  • session #7 N2 → AgentError  (16m23s)
-08-13 21:34:58  • session #8 N2 Fix started (attempt 2/6)
-08-13 21:35:12  ■ needs human — advisor: human intervention required
 08-13 21:35:18  • session #8 N2 → AgentError  (20.0s)
 08-13 21:35:18  • session #9 N2 Deliver started (attempt 3/6)
 08-13 21:35:32  ■ needs human — advisor: human intervention required
@@ -166,6 +158,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:05:42  ▪ gate guards pass [phase]  (1m06s)
 08-14 00:05:42  ▪ gate battery FAIL [phase]  (56.6s)
 08-14 00:05:51  • session #16 M1 Fix started (attempt 2/4)
+08-14 00:16:09  • session #16 M1 → Progress · 2 commit(s)  (10m17s)
+08-14 00:50:30  ▪ gate fast-app pass [phase]  (6m39s)
+08-14 00:50:30  ▪ gate fast-engine pass [phase]  (2m03s)
+08-14 00:50:30  ▪ gate guards pass [phase]  (1m18s)
+08-14 00:50:31  ▪ gate battery pass [phase]  (14m26s)
+08-14 00:50:31  ✓ checkpoint M1.1 confirmed
+08-14 00:50:31  ✓ checkpoint M1.2 confirmed
 ```
 
 ## Health
@@ -176,6 +175,7 @@ _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)
 sessions 16 · retries 7 (44 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
+⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
 ```
 
 ## Repo
@@ -184,7 +184,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -237,6 +237,10 @@ vs upstream: up to date
 - **s16 (M1 Fix)** — 2 commit(s):
   - [`951a836`](https://github.com/shaahink/DevContext2/commit/951a836) docs(tracker): handoff for the M1 gate-red fix + file bug #8
   - [`ad0eaff`](https://github.com/shaahink/DevContext2/commit/ad0eaff) fix(app): the lint error that failed M1 twice
+
+## Last gate run
+
+fast-app:OK · fast-engine:OK · guards:OK · battery:OK-retry
 
 ## Last session result
 
