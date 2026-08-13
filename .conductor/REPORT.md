@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 19:25 UTC · branch `feat/pre-release-engine` · HEAD `e5d825b`_
+_Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `8502785`_
 
 **Status:** Idle
-**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0 · working ▸ V1.2
-**Checkpoints:** 5/20 done · **Sessions run:** 5 · **Cost:** $61.2844 (agent $61.1149 + gates $0.1695) · **Tokens:** 876,306 in / 396,319 out
+**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0 · working ▸ V1.3
+**Checkpoints:** 6/20 done · **Sessions run:** 6 · **Cost:** $70.1017 (agent $69.9141 + gates $0.1876) · **Tokens:** 1,029,647 in / 453,882 out
 **Confirmed phases:** T1
 
 ## Stage progress
@@ -12,7 +12,7 @@ _Updated 2026-08-13 19:25 UTC · branch `feat/pre-release-engine` · HEAD `e5d82
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
-| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ███░░░░░░░ 1/3 | **← active** |
+| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ███████░░░ 2/3 | **← active** |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
@@ -30,12 +30,12 @@ _Updated 2026-08-13 19:25 UTC · branch `feat/pre-release-engine` · HEAD `e5d82
 
 </details>
 
-<details><summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (1/3)</summary>
+<details><summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (2/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | - |
-| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ⬜ TODO | - |
+| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
+| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) |
 | V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ⬜ TODO | - |
 
 </details>
@@ -97,6 +97,7 @@ _Updated 2026-08-13 19:25 UTC · branch `feat/pre-release-engine` · HEAD `e5d82
 | 3 | T1 | Deliver | 1 | 08-13 17:19 | 0:28 | Advanced | T1.4 | 4 | fast-engine:OK · guards:OK | $9.0504 | $0.0264 | 149,249/71,678 |
 | 4 | T1 | Fix | 2 | 08-13 17:59 | 0:31 | Progress |  | 5 | fast-engine:OK · guards:OK | $13.9168 | $0.0271 | 164,370/78,266 |
 | 5 | V1 | Deliver | 1 | 08-13 18:46 | 0:28 | Advanced | V1.1 | 4 | fast-engine:OK-retry · guards:OK | $12.8408 | $0.0606 | 186,202/82,566 |
+| 6 | V1 | Deliver | 1 | 08-13 19:25 | 0:27 | Advanced | V1.2 | 2 | fast-engine:OK · guards:OK | $8.7991 | $0.0181 | 153,341/57,563 |
 
 ## Money
 
@@ -104,11 +105,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
+| **run total** | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
-| 2026-08 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
+| stage V1 | 2 | 30M | 98.4% | $21.72 | 2 | 15M | $10.86 |
+| 2026-08 | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
 
-_Where the money goes: agent $48.27 (100%) · gate $0.11 (0%) · blended $0.71/M tokens._
+_Where the money goes: agent $69.91 (100%) · gate $0.19 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
@@ -148,6 +150,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 19:46:38  • session #5 V1 Deliver started (attempt 1/4)
 08-13 20:25:37  ▪ gate fast-engine pass [session]  (3m06s)
 08-13 20:25:37  ▪ gate guards pass [session]  (1m49s)
+08-13 20:25:45  • session #5 V1 → Advanced · done V1.1 · 4 commit(s)  (39m06s)
+08-13 20:25:46  • session #6 V1 Deliver started (attempt 1/4)
+08-13 20:56:18  ▪ gate fast-engine pass [session]  (1m52s)
+08-13 20:56:18  ▪ gate guards pass [session]  (1m08s)
+08-13 20:56:24  • session #6 V1 → Advanced · done V1.2 · 2 commit(s)  (30m38s)
 ```
 
 ## Health
@@ -155,7 +162,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 5 · retries 1 (20 %) · overall Warn
+sessions 6 · retries 1 (17 %) · overall Warn
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
 ```
 
@@ -165,7 +172,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M eval-results/2026-08-13/mcp-qa.md
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -195,32 +202,39 @@ vs upstream: up to date
   - [`131265c`](https://github.com/shaahink/DevContext2/commit/131265c) fix(graph): one definition of a verified edge, and every surface reads it (V1.1, #25)
   - [`651e524`](https://github.com/shaahink/DevContext2/commit/651e524) chore(conductor): s4 T1 Progress — Idle
   - [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) chore(conductor): s4 T1 Progress — Idle
+- **s6 (V1 Deliver)** — 2 commit(s):
+  - [`e1f40e3`](https://github.com/shaahink/DevContext2/commit/e1f40e3) docs(v1): V1.2 evidence gates + handoff for V1.3
+  - [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) fix(graph): one Member-title vocabulary, derived from the key (V1.2, #17)
 
 ## Last gate run
 
-fast-engine:OK-retry · guards:OK
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **V1.1 landed and claimed** (`c0a22e8`, evidence `eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md`) — backlog #25 is closed by measurement. The engine had two live definitions of "verified edge" and both reached users: the MCP `stats` tool, the CLI `query stats` and the report all computed `verified = count - approx`, which counts `Resolution.Join` — the enum's *default*, i.e. every edge no producer labelled — as Roslyn-verified, while `GraphOrphansSource`/`FlowIndexBuilder`/the desktop explorer counted Semantic only and `ConfidenceLedger` used a fourth spelling that could put one edge in two buckets at once. There is now one definition (`src/DevContext.Core/Graph/EdgeConfi…
+> SESSION-RESULT:** V1.2 (backlog #17, one Member-title vocabulary) is DONE and claimed via `conductor task --done V1.2 --evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md`, on commits `fd47300` (fix) and `e1f40e3` (evidence gates + handoff), branch `feat/pre-release-engine` pushed and clean. The engine shipped two Member-title vocabularies because a dozen producers each spelled one and titles merge first-write-wins, so pass ORDER decided whether a node read `CatalogApi.GetAllItemsV1` or a bare `Send`; a Member title is now a pure function of its key — `SymbolCanon.MemberTitle` (owner short name + `.` + member) applied in exactly one place, `CodeGraphBuilder.AddNode` — wi…
 
 ## Tracker handoff
 
 ```
-V1.1 IS DONE (`c0a22e8`, evidence eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md).
-ONE definition of a verified edge now lives in `src/DevContext.Core/Graph/EdgeConfidence.cs`
-(Verified=Semantic, Joined=Join, Approximate=Syntactic; Confidence is a SEPARATE axis and
-stays out of the tier). The app mirrors it in `edgeTier()` in `src/DevContext.App/src/app/
-core/format.ts`. **loom-guards rule 9** now fails any tier verdict decided outside those two.
-Measured on this repo with a pre-change CLI built in a worktree at HEAD: graphdump
-BYTE-IDENTICAL (zero graph movement) while 45/283 "verified" edges were not -- Resolves
-14->0, ServiceLink 1->0, Calls 268->238 of 1379. That is E1's currency, now honest.
+V1.2 IS DONE (`fd47300`, evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md).
+A Member title is now a FUNCTION OF ITS KEY: `SymbolCanon.MemberTitle` (owner short name + "." +
+member), applied in ONE place -- `CodeGraphBuilder.AddNode` -- so no producer and no pass ORDER can
+pick a vocabulary. All 12 producer sites pass it; **loom-guards rule 10** fails a Member title
+spelled anywhere else. Measured with the probe that filed #17, 7 poles: Member 1092 mismatches -> 0,
+member COUNT identical pole by pole, and Type 1893/58 + EntryPoint 84/87 + Service + Store UNMOVED.
+Eval matrix 74 passed / 0 failed -- no cell moved. Truth gate 0 failures.
 
-NEXT: V1.2 (#17, two Member-title vocabularies -- 343 owner-qualified vs 627 bare, wants one
-helper next to `SymbolCanon`; producers split between GraphBuilder.EntryPoints/* and
-GraphBuilder.Seams.cs) then V1.3 (the #7-rider and #18 invariants, red-first).
-TRAPS PAID FOR: `query` takes its OP POSITIONALLY (`query stats --path X`); PS 5.1 `>` writes
-UTF-16 -- use `Out-File -Encoding utf8`; an Angular template cannot call an imported function
-(`protected readonly x = x;`); `McpQaGateTests` is a FALSE red on the first run after a Core
-change (backlog #1) -- it passes on re-run.
+NEXT: V1.3 -- the two standing invariants, RED FIRST (#7 rider: no node has kind Type with a member
+id; #18: lambda/expression TEXT never becomes a node title). The probe measures #18 for free: those
+58 Type mismatches ARE its population -- re-run `eval-results/2026-08-13/v1-vocabulary/
+member-title-probe.ps1` (poles are `name=ABSOLUTE_PATH`; the 4 not in eval-repos are cloned at
+C:/Code/eval-poles). #18's producers: GraphBuilder.Seams.cs titles from detection ServiceType/
+ImplementationType; its "sp =>"/"(" filter is on the DirectBinding path only.
+STILL OPEN, #17's other half (NOT in V1.2's acceptance): EntryPoint titles 84/87 -- some producers
+keep the key's scheme prefix (`grpc:`/`domain:`/`worker:`), some drop it.
+TRAPS PAID FOR: two `dotnet test` hosts at once prints "Test host process crashed" NEXT TO two
+"Passed!" lines -- a false red (R-T5), re-run serially; `$LASTEXITCODE` inside `bg start -- powershell
+-Command` is eaten by the outer shell (use a .ps1 with -File); inside `namespace DevContext.Core.Tests`
+`Graph2.SymbolCanon` resolves to the TEST namespace -- fully qualify it.
 ```
