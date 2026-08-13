@@ -116,9 +116,9 @@
     },
     {
       "id": "Z1",
-      "title": "Close-out: docs + backlog reconciliation, full battery, push",
-      "sessions": 1,
-      "notes": "STRAND DOC: docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md sections 3 and 6-7. Reconcile STUDIO-MCP-AUDIT statuses, DECISIONS.md (D-G settled by N2 - say so), BUG-BACKLOG.md; update the PRE-RELEASE-PLAN stage table for this run. Leave the tree clean and pushed. Merging to develop is owner-signed and NOT this stage's job.",
+      "title": "Close-out: docs + backlog + README screenshot sync, full battery, push",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md sections 3 and 6-7. Reconcile STUDIO-MCP-AUDIT statuses, DECISIONS.md (D-G settled by N2 - say so), BUG-BACKLOG.md; update the PRE-RELEASE-PLAN stage table for this run. Then the README screenshot sync (Z1.2): this run rebuilt Studio and the MCP page, so docs/screenshots is stale - refresh via the EXISTING capture pipeline (src/DevContext.App/scripts/screenshot-readme.mts or capture-readme.mts; restart start-dev-bg.ps1 first per trap 5; run long captures via conductor bg start). At minimum 08-context-studio, 09-export, 10-mcp, plus any page this run visibly changed; update README captions where the UI changed but do NOT touch the README's agent-story claims (the engine run's Z1 owns those). GitHub sync of tracker + report happens continuously via report.push - add no extra sync machinery. Leave the tree clean and pushed. Merging to develop is owner-signed and NOT this stage's job.",
       "ownerGate": false,
       "kind": "deliver"
     }

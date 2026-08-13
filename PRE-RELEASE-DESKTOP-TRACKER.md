@@ -14,7 +14,7 @@ first; if T1 has not landed, deliver N4.1–N4.2 and leave N4.3 open.
 
 | Metric | Value |
 |---|---|
-| Total checkpoints | 15 |
+| Total checkpoints | 16 |
 | Done | 0 |
 
 ## Checkpoints
@@ -73,3 +73,4 @@ into the handoff block — only when escalating right now, never as prose.
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | Z1.1 | STUDIO-MCP-AUDIT statuses + DECISIONS.md (D-G settled by N2) + BUG-BACKLOG reconciled; PRE-RELEASE-PLAN §3 table updated for this run; full battery green; branch pushed | TODO | | |
+| Z1.2 | README screenshot sync: docs/screenshots refreshed via the existing capture pipeline (screenshot-readme.mts / capture-readme.mts) against the post-N4 app — at minimum 08-context-studio, 09-export, 10-mcp plus any visibly changed page; README captions updated where the UI changed (agent-story claims untouched — engine Z1 owns those); committed and pushed | TODO | | |
