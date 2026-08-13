@@ -58,8 +58,13 @@ import { TrailStore, type TrailStep } from '../state/trail.store';
           }
         </div>
 
+        <!-- N1.2 (audit §3.A): the title claimed a mechanism that had no reader. Studio's
+             seed button reads TrailStore.pins() as of N1.2, so it now names the button. -->
         @if (trail.pinCount() > 0) {
-          <span class="chip active shrink-0 tabular-nums" title="Pinned steps seed the export pack">
+          <span
+            class="chip active shrink-0 tabular-nums"
+            [title]="trail.pinCount() + ' pinned — Context Studio\'s From-pinned-steps button seeds a card from each'"
+          >
             ◈ {{ trail.pinCount() }}
           </span>
         }

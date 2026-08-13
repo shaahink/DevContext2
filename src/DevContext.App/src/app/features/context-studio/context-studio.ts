@@ -41,6 +41,8 @@ function errorText(err: unknown): string {
         [entryGroups]="session.entryGroups()"
         [analyzed]="session.ready()"
         [isLibrary]="session.mapResponse()?.isLibrary ?? false"
+        [pinCount]="pinCount()"
+        [trailCount]="trailCount()"
         (cardsChange)="onCardsChange($event)"
         (trailSeedRequest)="onTrailSeed()"
         (omniboxCard)="onCardsChange([$event])"
@@ -130,6 +132,11 @@ export class ContextStudio {
   private readonly trailStore = inject(TrailStore);
   private readonly toast = inject(ToastService);
   private readonly prefs = inject(PrefsStore);
+
+  /** N1.2 — the picker's seed button states its SOURCE and its COUNT, so it can no longer be a
+   * button that silently does nothing (audit §3.A). Both are read straight off the trail store. */
+  protected readonly pinCount = computed(() => this.trailStore.pins().length);
+  protected readonly trailCount = computed(() => this.trailStore.steps().length);
 
   protected readonly cards = signal<readonly ContextCard[]>([]);
   /** N0.1 (audit §3.F.7) — set only after the clipboard write resolves; drives Copy's label. */
@@ -457,28 +464,64 @@ export class ContextStudio {
     this.schedulePack();
   }
 
+  /** N1.2 (audit §3.A / backlog #26) — THE reader for `TrailStore.pins()`. Until this, the
+   * pin idiom was advertised on three surfaces and implemented on none: `pins()` had no reader
+   * outside the store and its own spec, so pinning changed nothing about any pack, ever.
+   *
+   * Pins WIN over the raw trail when there are any — a pin is an explicit "this one matters",
+   * the trail is just where the user has been. The old body read `steps()` unconditionally and
+   * kept `kind === 'entry'` only, which also meant a pinned graph NODE seeded nothing at all;
+   * every kind now resolves through its `focus` (a node step carries the focus of the trace it
+   * was explored under — workbench-page.ts:255), so a pin can never be silently worthless.
+   *
+   * Resolution is by FOCUS against the live `entryGroups()`, never by the pinned nodeId: that
+   * is what keeps a pin from carrying a dead id across a re-analyze (the trap N1.1's card
+   * invalidation was about). A pin that no longer resolves is REPORTED, not dropped in silence
+   * — the old body returned early on an empty result and the click looked broken. */
   protected onTrailSeed(): void {
-    const steps = this.trailStore.steps();
-    if (steps.length === 0) return;
+    const pins = this.trailStore.pins();
+    const fromPins = pins.length > 0;
+    const steps = fromPins ? pins : this.trailStore.steps();
+    const source = fromPins ? 'pins' : 'the trail';
+    if (steps.length === 0) {
+      this.toast.show('Nothing to seed from — explore an entry, then press p to pin it', 'info');
+      return;
+    }
+
     const seeds: ContextCardSeed[] = [];
     const seen = new Set<string>();
+    let unresolved = 0;
     for (const step of steps) {
-      if (step.kind === 'entry') {
-        const found = this.findEntryByFocus(step.focus);
-        if (found && !seen.has(found.nodeId)) {
-          seen.add(found.nodeId);
-          seeds.push({
-            type: 'flow',
-            title: `Flow: ${step.title}`,
-            entryIds: [found.nodeId],
-            estimatedLines: 15,
-          });
-        }
+      const found = step.focus ? this.findEntryByFocus(step.focus) : null;
+      if (!found) {
+        unresolved++;
+        continue;
       }
+      if (seen.has(found.nodeId)) continue;
+      seen.add(found.nodeId);
+      seeds.push({
+        type: 'flow',
+        // The LIVE entry's title, not the step's: the step's was captured at push time and a
+        // re-analyze can have renamed it. Same reason the id comes from the resolved entry.
+        title: `Flow: ${found.title}`,
+        entryIds: [found.nodeId],
+        estimatedLines: 15,
+      });
     }
-    if (seeds.length > 0) {
-      this.onCardsChange(seeds);
+
+    if (seeds.length === 0) {
+      this.toast.show(
+        `Nothing in ${source} resolves to an entry in this graph (${unresolved} of ${steps.length} unresolved)`,
+        'error',
+      );
+      return;
     }
+    this.onCardsChange(seeds);
+    const tail = unresolved > 0 ? ` — ${unresolved} did not resolve in this graph` : '';
+    this.toast.show(
+      `Seeded ${seeds.length} card${seeds.length === 1 ? '' : 's'} from ${steps.length} ${fromPins ? 'pinned step' + (steps.length === 1 ? '' : 's') : 'trail steps'}${tail}`,
+      unresolved > 0 ? 'info' : 'success',
+    );
   }
 
   private findEntryByFocus(focus: string) {

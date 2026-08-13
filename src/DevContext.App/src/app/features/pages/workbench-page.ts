@@ -17,6 +17,7 @@ import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
 import { TableLens } from '../table-lens/table-lens';
+import { ToastService } from '../../ui/toast/toast';
 
 const TRACE_DEBOUNCE_MS = 150;
 /** Inspector width per dock level (% of the workbench). Level 3 = focus mode. */
@@ -136,6 +137,7 @@ export class WorkbenchPage implements OnDestroy {
   private readonly prefs = inject(PrefsStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly dockLevel = signal(this.prefs.dockLevel());
   protected readonly dockWidth = computed(() => DOCK_WIDTHS[this.dockLevel()]);
@@ -232,6 +234,27 @@ export class WorkbenchPage implements OnDestroy {
   ngOnDestroy(): void {
     if (this.pendingTrace !== null) clearTimeout(this.pendingTrace);
     if (this.vTimer !== null) clearTimeout(this.vTimer);
+  }
+
+  /** N1.2 (audit §3.A) — `p` used to toggle the pin and show NOTHING: the only feedback was a
+   * glyph turning accent-coloured in the inspector, which is closed at dock level 0, and with no
+   * current step it returned in silence. Pins seed the Studio pack now (context-studio.ts
+   * onTrailSeed), so the toast says what was pinned, how many are held, and where they go. */
+  protected onPin(): void {
+    const current = this.trail.current();
+    if (!current) {
+      this.toast.show('Nothing to pin — pick an entry or a node first', 'info');
+      return;
+    }
+    const wasPinned = this.trail.isPinned(current);
+    this.trail.togglePin(current);
+    const count = this.trail.pinCount();
+    this.toast.show(
+      wasPinned
+        ? `Unpinned ${current.title} — ${count} pinned`
+        : `Pinned ${current.title} — ${count} pinned, seeding Context Studio's pack`,
+      wasPinned ? 'info' : 'success',
+    );
   }
 
   /** Deck scrub — debounced so j/k sweeps commit once, then trace + trail push. */
@@ -338,11 +361,8 @@ export class WorkbenchPage implements OnDestroy {
       return;
     }
     if (event.key === 'p' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTypingTarget(event.target)) {
-      const current = this.trail.current();
-      if (current) {
-        event.preventDefault();
-        this.trail.togglePin(current);
-      }
+      event.preventDefault();
+      this.onPin();
       return;
     }
     if (event.key === 'v' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTypingTarget(event.target)) {

@@ -269,7 +269,7 @@ function isAlphanumeric(c: string): boolean {
                   [class.text-accent]="trail.isPinned(step)"
                   [class.text-ink-subtle]="!trail.isPinned(step)"
                   (click)="pin(step, $event)"
-                  title="Pin to export pack (p)"
+                  [title]="pinTitle(step)"
                 >
                   ◈
                 </button>
@@ -296,7 +296,7 @@ function isAlphanumeric(c: string): boolean {
               [class.text-accent]="trail.isPinned(step)"
               [class.text-ink-subtle]="!trail.isPinned(step)"
               (click)="pin(step, $event)"
-              title="Pin to export pack (p)"
+              [title]="pinTitle(step)"
             >
               ◈
             </button>
@@ -304,8 +304,11 @@ function isAlphanumeric(c: string): boolean {
           }
         }
       } @empty {
+        <!-- N1.2: this sentence was an advertisement for a mechanism with no reader. It is
+             true as of N1.2 — Context Studio's seed button reads TrailStore.pins(). -->
         <p class="px-2 py-3 text-2xs text-ink-subtle">
-          Your exploration path collects here — pins seed the export pack.
+          Your exploration path collects here — press p to pin a step, and Context Studio seeds
+          a card from each pin.
         </p>
       }
     }
@@ -479,6 +482,13 @@ export class Inspector {
   protected pin(step: TrailStep, event: Event): void {
     event.stopPropagation();
     this.trail.togglePin(step);
+  }
+
+  /** N1.2 — the glyph's tooltip names the destination, and says which way the click goes. */
+  protected pinTitle(step: TrailStep): string {
+    return this.trail.isPinned(step)
+      ? 'Pinned — Context Studio seeds a card from this step. Click to unpin'
+      : 'Pin to the export pack (p) — Context Studio seeds a card per pinned step';
   }
 
   /** M7.3: Whether the cursor falls within this group's step range. */

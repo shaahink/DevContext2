@@ -6,7 +6,8 @@ import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devc
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
-import { TrailStore } from '../../state/trail.store';
+import { TrailStore, type TrailStep } from '../../state/trail.store';
+import type { EntryGroupVm } from '../../models/view-models';
 import { ToastService } from '../../ui/toast/toast';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
@@ -103,6 +104,10 @@ describe('ContextStudio', () => {
   let verifyContext: Mock;
   let reAnalyze: Mock;
   let handle: ReturnType<typeof signal<string | null>>;
+  // N1.2 — the trail/pins the Studio seeds from, and the graph it resolves them against.
+  let trailSteps: ReturnType<typeof signal<TrailStep[]>>;
+  let pins: ReturnType<typeof signal<TrailStep[]>>;
+  let entryGroups: ReturnType<typeof signal<EntryGroupVm[]>>;
   let prefs: {
     studioBudget: Mock; studioIntent: Mock; studioFormat: Mock;
     setStudioBudget: Mock; setStudioIntent: Mock; setStudioFormat: Mock;
@@ -113,6 +118,9 @@ describe('ContextStudio', () => {
     verifyContext = vi.fn();
     reAnalyze = vi.fn();
     handle = signal<string | null>('h1');
+    trailSteps = signal<TrailStep[]>([]);
+    pins = signal<TrailStep[]>([]);
+    entryGroups = signal<EntryGroupVm[]>([]);
     prefs = {
       studioBudget: vi.fn().mockReturnValue(4000),
       studioIntent: vi.fn().mockReturnValue('trace'),
@@ -129,7 +137,7 @@ describe('ContextStudio', () => {
           provide: SessionStore,
           useValue: {
             handle,
-            entryGroups: signal([]),
+            entryGroups,
             summary: signal({ label: 'eshop-microservices' }),
             // R3 C-3: the Studio now tells the scope picker whether a repo was analyzed at all,
             // so the picker can stop reporting "zero entries" as "no analysis".
@@ -138,7 +146,7 @@ describe('ContextStudio', () => {
             reAnalyze,
           },
         },
-        { provide: TrailStore, useValue: { steps: signal([]) } },
+        { provide: TrailStore, useValue: { steps: trailSteps, pins } },
       ],
     });
   });
@@ -684,6 +692,134 @@ describe('ContextStudio', () => {
     await flush();
     expect(toast.messages().map((m) => [m.text, m.kind]))
       .toEqual([['Copy failed: no clipboard', 'error']]);
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N1.2 (audit §3.A / backlog #26) — pins seed the pack. Before this, `TrailStore.pins()` had
+  // no reader outside its own store and spec while three surfaces advertised the mechanism.
+  // ---------------------------------------------------------------------------------------
+
+  function step(kind: TrailStep['kind'], id: string, title: string, focus: string): TrailStep {
+    return { kind, id, title, focus, ts: 1 };
+  }
+
+  function entry(nodeId: string, title: string, focus: string) {
+    return { kind: 'http', title, nodeId, focus, project: 'Web' };
+  }
+
+  function seedGraph(...entries: ReturnType<typeof entry>[]): void {
+    entryGroups.set([{ kind: 'http', label: 'HTTP', entries }]);
+  }
+
+  /** Clicks the picker's seed button — the product path, not the handler directly. */
+  function clickSeed(fixture: { nativeElement: HTMLElement }): void {
+    (fixture.nativeElement.querySelector('[data-testid="trail-seed"]') as HTMLButtonElement).click();
+  }
+
+  it('seeds the pack from PINS, not the raw trail, when any step is pinned (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(
+      entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      entry('node-orders', 'GET /orders', 'OrdersController.Get'),
+    );
+    trailSteps.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get'),
+    ]);
+    pins.set([step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get')]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    // ONE card, for the pinned entry — the trail's other step is not in the pack.
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-orders']]);
+    expect(studio.cards()[0].title).toBe('Flow: GET /orders');
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+    expect(TestBed.inject(ToastService).messages().map((m) => m.text))
+      .toEqual(['Seeded 1 card from 1 pinned step']);
+  });
+
+  it('falls back to the trail when nothing is pinned, and seeds node steps too (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    // A pinned graph NODE carries the focus of the trace it was explored under, so it resolves
+    // to that entry. The pre-N1.2 body kept `kind === 'entry'` only and seeded nothing for it.
+    trailSteps.set([
+      step('node', 'node-handler', 'CheckoutHandler.Handle', 'CheckoutController.Post'),
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+    ]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    // Both steps resolve to the same entry — deduped to one card.
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout']]);
+    expect(TestBed.inject(ToastService).messages().map((m) => m.text))
+      .toEqual(['Seeded 1 card from 2 trail steps']);
+  });
+
+  it('resolves pins against the LIVE graph and reports the ones that no longer exist (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    // The graph moved on: only one of the two pinned focuses still exists, and the surviving
+    // entry has a NEW node id. Seeding by focus is what keeps a dead id out of the pack.
+    seedGraph(entry('node-checkout-v2', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-gone', 'DELETE /legacy', 'LegacyController.Delete'),
+    ]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout-v2']]);
+    expect(TestBed.inject(ToastService).messages().map((m) => [m.text, m.kind])).toEqual([
+      ['Seeded 1 card from 2 pinned steps — 1 did not resolve in this graph', 'info'],
+    ]);
+  });
+
+  it('says why nothing happened instead of no-opping in silence (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    // A reroot step carries no focus, so it can never resolve to an entry.
+    pins.set([step('reroot', 'node-x', 'CheckoutHandler', '')]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    expect(studio.cards()).toEqual([]);
+    expect(getContextPack).not.toHaveBeenCalled();
+    expect(TestBed.inject(ToastService).messages().map((m) => [m.text, m.kind])).toEqual([
+      ['Nothing in pins resolves to an entry in this graph (1 of 1 unresolved)', 'error'],
+    ]);
+  });
+
+  it('the seed button names its source and count, and is disabled at zero (N1.2)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+    const button = () =>
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="trail-seed"]') as HTMLButtonElement;
+
+    expect(button().disabled).toBe(true);
+    expect(button().title).toContain('Nothing to seed from yet');
+
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    fixture.detectChanges();
+    expect(button().disabled).toBe(false);
+    expect(button().textContent).toContain('From current trail (1)');
+
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    fixture.detectChanges();
+    expect(button().textContent).toContain('From 1 pinned step');
+    expect(button().title).toContain('pins win over the raw trail');
   });
 
   it('renders the preview pane with highlighted fences, open by default (D4.5 L4)', async () => {

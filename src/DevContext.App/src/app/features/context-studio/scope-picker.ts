@@ -144,15 +144,21 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
       </p>
     </div>
 
+    <!-- N1.2 (audit §3.A) — this said "From current trail" whatever the trail held, and
+         no-opped in silence when it held nothing pinnable. It now names its SOURCE (pins beat
+         the raw trail) and its COUNT, and is disabled with a stated reason at zero. -->
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
-        title="Seed cards from current explore trail"
+        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-ink-subtle hover:bg-hover hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        [class.text-accent]="pinCount() > 0"
+        [disabled]="pinCount() === 0 && trailCount() === 0"
+        [title]="seedTitle()"
+        data-testid="trail-seed"
         (click)="trailSeedRequest.emit()"
       >
-        <app-icon name="history" [size]="14" />
-        From current trail
+        <app-icon [name]="pinCount() > 0 ? 'bookmark' : 'history'" [size]="14" />
+        {{ seedLabel() }}
       </button>
     </div>
 
@@ -254,6 +260,9 @@ export class ScopePicker {
    * carried out, and false on every library. */
   readonly analyzed = input(false);
   readonly isLibrary = input(false);
+  /** N1.2 — how many steps the seed button would actually draw on, by source. Pins win. */
+  readonly pinCount = input(0);
+  readonly trailCount = input(0);
 
   readonly cardsChange = output<readonly ContextCardSeed[]>();
   readonly trailSeedRequest = output<void>();
@@ -262,6 +271,21 @@ export class ScopePicker {
   readonly filterText = model('');
 
   protected readonly showPresetPicker = signal(false);
+
+  /** N1.2 — label and title state the source, the count, and (at zero) why nothing happens. */
+  protected readonly seedLabel = computed(() => {
+    const pins = this.pinCount();
+    if (pins > 0) return `From ${pins} pinned step${pins === 1 ? '' : 's'}`;
+    const trail = this.trailCount();
+    return trail > 0 ? `From current trail (${trail})` : 'From current trail';
+  });
+
+  protected readonly seedTitle = computed(() => {
+    const pins = this.pinCount();
+    if (pins > 0) return `Seeds one flow card per pinned step (${pins}) — pins win over the raw trail`;
+    if (this.trailCount() > 0) return 'Seeds one flow card per trail step. Press p in Explore to pin the ones that matter — pins take priority here';
+    return 'Nothing to seed from yet — explore an entry, then press p to pin it';
+  });
 
   protected readonly selectedEntries = signal<ReadonlySet<string>>(new Set());
 

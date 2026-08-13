@@ -64,6 +64,8 @@ export class TrailStore {
 
   readonly steps = computed(() => this.active().steps);
   readonly cursor = computed(() => this.active().cursor);
+  /** The export seed. N1.2: read by `ContextStudio.onTrailSeed()` — until then this signal had
+   * no reader outside this file and its spec, while three surfaces advertised it. */
   readonly pins = computed(() => this.active().pins);
   readonly pinCount = computed(() => this.pins().length);
   /** Steps from the root up to and including the current one — the breadcrumb. */

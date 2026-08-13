@@ -1,4 +1,4 @@
-# DevContext pre-release - desktop agent loop Phase Tracker
+﻿# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
@@ -21,13 +21,14 @@ TEST LOOP (unchanged, still true): `pnpm exec ng test --watch=false --include=<s
 `pnpm test` 179/179, lint clean, contract-sweep GATE PASS, dotnet build 0w/0e - all this session.
 Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
 
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 0 |
-| Claimed (unconfirmed) | 3 |
+| Done | 3 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -38,15 +39,15 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | DONE | 36bf916 | eval-results/2026-08-13/N0.1-studio-truth.md |
-| N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | DONE | 36bf916 | eval-results/2026-08-13/N0.2-mcp-truth.md |
-| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | DONE | 823de02 | eval-results/2026-08-13/N0.3-testid-coverage.txt |
+| N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | DONE ✓ | 36bf916 | eval-results/2026-08-13/N0.1-studio-truth.md |
+| N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | DONE ✓ | 36bf916 | eval-results/2026-08-13/N0.2-mcp-truth.md |
+| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | DONE ✓ | 823de02 | eval-results/2026-08-13/N0.3-testid-coverage.txt |
 
 ### N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | TODO | - | - |
+| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | DONE | d57b59d | eval-results/2026-08-13/N1.1-studio-truth.md |
 | N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | TODO | - | - |
 
 ### N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL)
