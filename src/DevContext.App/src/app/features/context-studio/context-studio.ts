@@ -17,10 +17,14 @@ import { packPreviewHtml } from './pack-preview';
 import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
 import { type PackVerification, type SectionVerificationVm, VerificationPanel } from './verification-panel';
 
+// N2.1 — `usage` (the inbound direction of a symbol-rooted pack) takes a different seat per
+// intent: a reader TRACING wants the outbound spine first and callers after it, a reader
+// EXPLAINING wants to know who depends on this before reading its body, and a REVIEW of a change
+// leads with blast radius. Every card type must appear in every row or it sorts to the end.
 const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
-  trace: ['flow', 'signatures', 'bodies', 'di_wiring', 'config', 'entities', 'contracts', 'tests', 'identity'],
-  explain: ['identity', 'di_wiring', 'entities', 'contracts', 'signatures', 'bodies', 'flow', 'tests', 'config'],
-  review: ['flow', 'bodies', 'signatures', 'di_wiring', 'entities', 'contracts', 'tests', 'config', 'identity'],
+  trace: ['flow', 'signatures', 'bodies', 'usage', 'di_wiring', 'config', 'entities', 'contracts', 'tests', 'identity'],
+  explain: ['identity', 'usage', 'di_wiring', 'entities', 'contracts', 'signatures', 'bodies', 'flow', 'tests', 'config'],
+  review: ['usage', 'flow', 'bodies', 'signatures', 'di_wiring', 'entities', 'contracts', 'tests', 'config', 'identity'],
 };
 
 /** T5.6 — debounce between a pack-relevant change and the re-pack RPC. */
@@ -41,6 +45,7 @@ function errorText(err: unknown): string {
         [entryGroups]="session.entryGroups()"
         [analyzed]="session.ready()"
         [isLibrary]="session.mapResponse()?.isLibrary ?? false"
+        [surface]="session.mapResponse()?.surface"
         [pinCount]="pinCount()"
         [trailCount]="trailCount()"
         (cardsChange)="onCardsChange($event)"

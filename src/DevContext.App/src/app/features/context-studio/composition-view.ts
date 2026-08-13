@@ -47,6 +47,7 @@ const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
   contracts: 'Contracts',
   tests: 'Tests',
   identity: 'Identity',
+  usage: 'Usage',
 };
 
 // T5.5 — danger is reserved for ERROR states (a red type badge reads as a failure), and
@@ -62,6 +63,7 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
   contracts: 'var(--vibe-info)',
   tests: 'var(--vibe-warn)',
   identity: 'var(--vibe-ink-muted)',
+  usage: 'var(--vibe-accent-dim)',
 };
 
 @Component({

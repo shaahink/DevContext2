@@ -108,6 +108,8 @@ describe('ContextStudio', () => {
   let trailSteps: ReturnType<typeof signal<TrailStep[]>>;
   let pins: ReturnType<typeof signal<TrailStep[]>>;
   let entryGroups: ReturnType<typeof signal<EntryGroupVm[]>>;
+  /** N2.1 — the Types tab reads MapResponse.surface, so the specs need to be able to put one there. */
+  let mapResponse: ReturnType<typeof signal<{ isLibrary?: boolean; surface?: unknown } | null>>;
   let prefs: {
     studioBudget: Mock; studioIntent: Mock; studioFormat: Mock;
     setStudioBudget: Mock; setStudioIntent: Mock; setStudioFormat: Mock;
@@ -121,6 +123,7 @@ describe('ContextStudio', () => {
     trailSteps = signal<TrailStep[]>([]);
     pins = signal<TrailStep[]>([]);
     entryGroups = signal<EntryGroupVm[]>([]);
+    mapResponse = signal<{ isLibrary?: boolean; surface?: unknown } | null>(null);
     prefs = {
       studioBudget: vi.fn().mockReturnValue(4000),
       studioIntent: vi.fn().mockReturnValue('trace'),
@@ -142,7 +145,7 @@ describe('ContextStudio', () => {
             // R3 C-3: the Studio now tells the scope picker whether a repo was analyzed at all,
             // so the picker can stop reporting "zero entries" as "no analysis".
             ready: signal(true),
-            mapResponse: signal(null),
+            mapResponse,
             reAnalyze,
           },
         },
@@ -835,5 +838,78 @@ describe('ContextStudio', () => {
     // The mock pack carries a ```csharp fence — Prism token spans prove real rendering.
     expect(pane!.innerHTML).toContain('token');
     expect(pane!.textContent).toContain('# repo — Context Pack');
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N2.1 (audit §3.C, owner decision 2) — pack convergence. Studio scope was ENTRIES ONLY in a
+  // symbol-rooted product: the kernel has resolved types and members since G1.2 and BuildMulti
+  // resolved card ids against the entry inventory alone, so every library rendered a picker with
+  // nothing in it and `usage` was a section no card type could ask for.
+  // ---------------------------------------------------------------------------------------
+
+  function librarySurface() {
+    return {
+      isLibrary: true,
+      surface: {
+        groups: [{
+          namespace: 'FluentValidation',
+          types: [
+            { name: 'AbstractValidator', kind: 'class', members: ['RuleFor', 'Validate'], doc: '' },
+            { name: 'IValidator', kind: 'interface', members: ['Validate'], doc: '' },
+          ],
+        }],
+        internals: [], entryApi: [], abstractions: [], generators: [], consumerPaths: [],
+      },
+    };
+  }
+
+  it('opens on Types and lists the public surface when a library has no entries (N2.1)', () => {
+    mapResponse.set(librarySurface());
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="picker-tab-types"]')?.textContent).toContain('2');
+    const rows = [...el.querySelectorAll('[data-testid="picker-type-row"]')];
+    // name · kind · public-member count — everything the row needs to be a different row.
+    expect(rows.map((r) => r.textContent?.trim())).toEqual(['AbstractValidatorclass2', 'IValidatorinterface1']);
+    expect(rows[0].getAttribute('title')).toContain('FluentValidation.AbstractValidator');
+  });
+
+  it('a type-scoped pack reaches the server as symbol focuses, usage included (N2.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [{ type: 'usage', title: 'Who uses AbstractValidator', tokens: 90 }],
+    }));
+    mapResponse.set(librarySurface());
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    (el.querySelectorAll('[data-testid="picker-type-row"]')[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (el.querySelector('[data-testid="add-to-context"]') as HTMLButtonElement).click();
+    await flush();
+
+    // The card set a TYPE gets — usage present, and no card a type cannot answer.
+    const types = studio.cards().map((c) => c.type);
+    expect(types).toContain('usage');
+    expect(types).not.toContain('di_wiring');
+    // Namespace-qualified focus, the notation the server's resolver takes.
+    expect(studio.cards().every((c) => c.entryIds[0] === 'FluentValidation.AbstractValidator')).toBe(true);
+
+    const [, specs] = getContextPack.mock.calls.at(-1)!;
+    expect(specs.find((s: { type: string }) => s.type === 'usage').entryIds)
+      .toEqual(['FluentValidation.AbstractValidator']);
+  });
+
+  it('an app with entries still opens on Entries (N2.1 — the tab default is a count, not a guess)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    mapResponse.set({ isLibrary: false, surface: undefined });
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="picker-tab-entries"]')?.getAttribute('aria-selected')).toBe('true');
+    expect(el.querySelectorAll('[data-testid="picker-type-row"]')).toHaveLength(0);
   });
 });
