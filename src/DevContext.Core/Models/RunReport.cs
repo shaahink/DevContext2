@@ -34,7 +34,10 @@ public sealed record GraphSummary(int Nodes, int Edges, int Entries, int? TraceD
     public int EntriesWithTarget { get; init; }
 }
 
-/// <summary>One edge-kind's coverage: total edges and how many were resolved only syntactically (approx).</summary>
-public sealed record SeamStat(string Seam, int Count, int Approx);
+/// <summary>One edge-kind's coverage, split by <see cref="Graph.EdgeTier"/>: the three counts are an
+/// exhaustive partition of <paramref name="Count"/>. V1.1 (#25) — <paramref name="Verified"/> is carried
+/// rather than inferred, because every consumer that inferred it computed <c>Count - Approx</c> and so
+/// called every unlabelled (Join-default) edge verified.</summary>
+public sealed record SeamStat(string Seam, int Count, int Verified, int Joined, int Approx);
 public sealed record ParallelismStats(TimeSpan Stage2Wall, TimeSpan Stage2CpuSum,
     TimeSpan Stage3Wall, TimeSpan Stage3CpuSum);

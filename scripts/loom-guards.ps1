@@ -25,6 +25,10 @@
 # graph-v2 G6.2 rule (R3 D-4):
 #   8. The desktop app may not derive a label from a canonical node id, nor print one raw. One
 #      fallback only: `nodeIdLabel` in src/DevContext.App/src/app/core/format.ts.
+# pre-release V1.1 rule (backlog #25):
+#   9. No file in src/ may decide an edge's confidence TIER for itself by comparing against a
+#      Resolution member. One definition: DevContext.Core.Graph.EdgeConfidence. Assigning a
+#      Resolution is fine (that is a producer stating a fact); COMPARING one is a verdict.
 
 param(
     [switch]$Quiet
@@ -167,6 +171,71 @@ foreach ($f in $appFiles) {
         if (-not $Quiet) { Write-Host "  BANNED: a label falling back to a bare node id in ${rel}:$($m.LineNumber) -- use nodeIdLabel from core/format.ts" }
         $script:failures++
     }
+}
+
+# Rule 9 (pre-release V1.1, backlog #25): ONE definition of a verified edge.
+#
+# The engine shipped two. GraphStats/SeamStat counted only Syntactic as approximate, so the MCP
+# stats tool, the CLI `query stats` and the report's "Verified edges %" each computed
+# `verified = count - approx` and called every Resolution.Join edge Roslyn-verified -- Join being
+# the enum's DEFAULT, that included every edge no producer labelled at all. GraphOrphansSource,
+# ConfidenceLedger and FlowIndexBuilder counted Semantic only, and the desktop explorer rendered
+# the very same edge "approx" that the CLI called "verified". No two numbers were comparable.
+#
+# The tier now lives in exactly one place: DevContext.Core.Graph.EdgeConfidence (Verified=Semantic,
+# Joined=Join, Approximate=Syntactic -- an exhaustive partition, with Confidence kept as a separate
+# axis). ASSIGNING a resolution is a producer stating a fact and stays legal; COMPARING one is a
+# verdict about trust and must go through the helper.
+$tierCensus = 0
+$coreSrcDirs = @('src\DevContext.Core', 'src\DevContext.Cli', 'src\DevContext.Mcp', 'src\DevContext.Server')
+foreach ($dir in $coreSrcDirs) {
+    $full = Join-Path $repoRoot $dir
+    if (-not (Test-Path $full)) { continue }
+    $files = Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.cs -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.FullName -notmatch '\\obj\\' -and $_.FullName -notmatch '\\bin\\' -and
+            $_.Name -ne 'EdgeConfidence.cs'
+        }
+    foreach ($f in $files) {
+        $hits = Select-String -LiteralPath $f.FullName -CaseSensitive 2>$null `
+            -Pattern '(==|!=|\bis\s+(not\s+)?)\s*(Graph\.)?Resolution\.(Semantic|Syntactic|Join)'
+        foreach ($m in $hits) {
+            # A comment may quote the old shape while explaining why it died -- that is documentation,
+            # not a verdict.
+            if ($m.Line -match '^\s*(//|\*|/\*)') { continue }
+            $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
+            if (-not $Quiet) { Write-Host "  BANNED: edge-tier verdict decided outside EdgeConfidence in ${rel}:$($m.LineNumber) (use EdgeConfidence.IsVerified/IsApproximate/TierOf)" }
+            $script:failures++
+            $tierCensus++
+        }
+    }
+}
+
+# Rule 9b: the same rule for the desktop app, which had the split INSIDE itself -- the trace node
+# badges tested `=== 'Syntactic'` (right) while the explorer neighbour list, the canvas and the
+# approx-only tree filter tested `!== 'Semantic'` (wrong), so one Join edge was labelled "approx"
+# on one page, left unmarked on another, and called "verified" by the CLI. One reading: `edgeTier`
+# in src/DevContext.App/src/app/core/format.ts. Assigning a resolution in a fixture stays legal.
+$appSrc = Join-Path $repoRoot 'src\DevContext.App\src\app'
+if (Test-Path $appSrc) {
+    $appFiles = Get-ChildItem -LiteralPath $appSrc -Recurse -File -Include *.ts, *.html -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\gen\\' -and $_.Name -ne 'format.ts' -and $_.Name -notmatch '\.spec\.ts$' }
+    foreach ($f in $appFiles) {
+        $hits = Select-String -LiteralPath $f.FullName -CaseSensitive 2>$null `
+            -Pattern "(resolution|provenance)\s*(\(\))?\s*(===|!==)\s*'(Semantic|Syntactic|Join)'"
+        foreach ($m in $hits) {
+            # A comment may quote the old shape while explaining why it died -- that is documentation,
+            # not a verdict.
+            if ($m.Line -match '^\s*(//|\*|/\*)') { continue }
+            $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
+            if (-not $Quiet) { Write-Host "  BANNED: edge-tier verdict decided outside core/format.ts in ${rel}:$($m.LineNumber) (use edgeTier())" }
+            $script:failures++
+            $tierCensus++
+        }
+    }
+}
+if (-not $Quiet -and $tierCensus -eq 0) {
+    Write-Host "  PASSED: edge-tier verdicts all read the one definition (rule 9)" -ForegroundColor Green
 }
 
 # Advisory: count remaining banned patterns in Graph/ (fixed by later stages)

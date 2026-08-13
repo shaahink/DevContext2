@@ -75,7 +75,7 @@ public sealed class ContextPackBuilder
     {
         var prefix = new string(' ', indent * 2);
         sb.Append($"{prefix}- [{step.Seam}] {step.Node.Title}");
-        if (step.Resolution == Resolution.Syntactic)
+        if (EdgeConfidence.IsApproximate(step.Resolution)) // V1.1 (#25) — one definition
             sb.Append(" [approx]");
         if (step.Truncated)
             sb.Append($" (truncated, {step.Omitted} omitted)");
@@ -433,7 +433,7 @@ public sealed class ContextPackBuilder
                 sb.Append($" declared in {rel}");
                 prov.Locations.Add(rel);
             }
-            if (u.Resolution == Resolution.Syntactic) sb.Append(" [approx]");
+            if (EdgeConfidence.IsApproximate(u.Resolution)) sb.Append(" [approx]"); // V1.1 (#25)
             sb.AppendLine();
             prov.Tally(u.Resolution);
             shown++;
@@ -839,7 +839,10 @@ public sealed class ContextPackBuilder
         if (prov is { IsEmpty: false })
         {
             if (!text.EndsWith('\n')) text += "\n";
-            text += $"_provenance: {prov.Locations.Count} source sites · {prov.Verified} verified · {prov.Approx} approx_\n";
+            // V1.1 (#25): "joined" is printed rather than folded into "verified" — the agent reading
+            // this line is the one who decides how far to trust the section.
+            text += $"_provenance: {prov.Locations.Count} source sites · {prov.Verified} verified · "
+                + $"{prov.Joined} joined · {prov.Approx} approx_\n";
         }
 
         var tokens = EstimateTokens(text);
@@ -866,6 +869,7 @@ public sealed class ContextPackBuilder
             {
                 SourceLocations = prov is null ? [] : [.. prov.Locations.OrderBy(l => l, StringComparer.Ordinal).Take(20)],
                 Verified = prov?.Verified ?? 0,
+                Joined = prov?.Joined ?? 0,
                 Approx = prov?.Approx ?? 0,
             };
     }
@@ -1043,25 +1047,35 @@ public sealed record SectionAllocation(string Section, int Tokens, string Conten
 {
     /// <summary>T4.4 (R10) — the repo-relative file:line set this section derived from (deduped, capped).</summary>
     public ImmutableArray<string> SourceLocations { get; init; } = [];
-    /// <summary>T4.4 (R10) — items resolved semantically or by detection join (trustworthy).</summary>
+    /// <summary>T4.4 (R10) — items a Roslyn SemanticModel resolved. V1.1 (#25): semantic ONLY; detection
+    /// joins used to be counted here and are now <see cref="Joined"/>.</summary>
     public int Verified { get; init; }
+    /// <summary>V1.1 (#25) — items resolved by joining two detections (also the unlabelled default).</summary>
+    public int Joined { get; init; }
     /// <summary>T4.4 (R10) — items resolved by syntax/string heuristics (approximate).</summary>
     public int Approx { get; init; }
 }
 
-/// <summary>T4.4 (R10) — accumulates a section's provenance while it renders: every source site
-/// it drew from plus the resolution-tier mix (Semantic/Join = verified, Syntactic = approx).</summary>
+/// <summary>T4.4 (R10) — accumulates a section's provenance while it renders: every source site it
+/// drew from plus the <see cref="EdgeTier"/> mix. V1.1 (#25): the mix used to be two buckets with
+/// "else Verified++", so a Join step — the Resolution default — was reported to the agent as
+/// Roslyn-verified. The three counters now partition what was tallied.</summary>
 internal sealed class SectionProvenance
 {
     public HashSet<string> Locations { get; } = new(StringComparer.Ordinal);
     public int Verified { get; private set; }
+    public int Joined { get; private set; }
     public int Approx { get; private set; }
-    public bool IsEmpty => Locations.Count == 0 && Verified == 0 && Approx == 0;
+    public bool IsEmpty => Locations.Count == 0 && Verified == 0 && Joined == 0 && Approx == 0;
 
     public void Tally(Resolution resolution)
     {
-        if (resolution == Resolution.Syntactic) Approx++;
-        else Verified++;
+        switch (EdgeConfidence.TierOf(resolution))
+        {
+            case EdgeTier.Verified: Verified++; break;
+            case EdgeTier.Approximate: Approx++; break;
+            default: Joined++; break;
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, effect, inject, model, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
-import { nodeIdLabel } from '../../core/format';
+import { edgeTier, nodeIdLabel } from '../../core/format';
 import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { filterApproxTree, type EntryVm, type TraceNodeVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
@@ -240,10 +240,10 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
                     <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || nodeLabel(edge.to) }}</span>
                     <span
                       class="shrink-0 text-2xs"
-                      [class.text-success]="edge.resolution === 'Semantic'"
-                      [class.text-warn]="edge.resolution !== 'Semantic'"
+                      [class.text-success]="edgeTier(edge.resolution) === 'verified'"
+                      [class.text-warn]="edgeTier(edge.resolution) === 'approx'"
                     >
-                      {{ edge.resolution === 'Semantic' ? 'verified' : 'approx' }}
+                      {{ edgeTier(edge.resolution) }}
                     </span>
                   </div>
                 } @empty {
@@ -324,7 +324,7 @@ export class Stage {
     while (stack.length > 0) {
       const node = stack.pop()!;
       total++;
-      if (node.resolution === 'Semantic') verified++;
+      if (edgeTier(node.resolution) === 'verified') verified++;
       for (const child of node.children) stack.push(child);
     }
     return total > 0 ? Math.round((verified / total) * 100) : null;
@@ -419,4 +419,6 @@ export class Stage {
    * render: the neighbours header (there IS no title for the centre until GetNode lands), the
    * canvas centre label in that same window, and an edge whose otherTitle came back empty. */
   protected readonly nodeLabel = nodeIdLabel;
+  /** V1.1 (#25) — the app's one reading of a wire resolution string (core/format). */
+  protected readonly edgeTier = edgeTier;
 }

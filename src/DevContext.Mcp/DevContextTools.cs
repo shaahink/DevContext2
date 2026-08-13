@@ -602,7 +602,10 @@ public sealed class DevContextTools
             {
                 kind = seam.Seam,
                 total = seam.Count,
-                verified = seam.Count - seam.Approx,
+                // V1.1 (#25): read the carried tier split. This was `seam.Count - seam.Approx`, which
+                // reported every unlabelled (Join-default) edge to the agent as Roslyn-verified.
+                verified = seam.Verified,
+                joined = seam.Joined,
                 approx = seam.Approx,
             }).ToArray(),
             insights = resp.Insights.Select(i => new

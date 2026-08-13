@@ -447,8 +447,14 @@ public sealed class ContextPackBuilderTests
     public void Sections_carry_provenance_footer_and_structured_tiers()
     {
         // T4.4 (R10) — each section says where it came from (repo-relative file:line set) and
-        // how sure it is (verified = Semantic/Join, approx = Syntactic), both in the markdown
-        // footer and as structured fields for the UI's provenance chips (T5.3).
+        // how sure it is, both in the markdown footer and as structured fields for the UI's
+        // provenance chips (T5.3).
+        //
+        // V1.1 (backlog #25): the tier mix is three buckets, not two. It used to be "verified =
+        // Semantic OR Join, approx = Syntactic" — and this very fixture is the demonstration: every
+        // step it walks is Join-resolved, so the section this test looks at was reported to the
+        // agent as fully Roslyn-verified when NOTHING in it was semantically resolved. Those steps
+        // are now `Joined`, which is why the assertion below counts all three.
         var (query, snapshot) = Arrange();
 
         var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders");
@@ -458,7 +464,11 @@ public sealed class ContextPackBuilderTests
         Assert.Contains("verified", signatures.Content, StringComparison.Ordinal);
         Assert.NotEmpty(signatures.SourceLocations);
         Assert.Contains("src/App/OrdersController.cs:11", signatures.SourceLocations);
-        Assert.True(signatures.Verified + signatures.Approx > 0, "tier mix is empty");
+        Assert.True(signatures.Verified + signatures.Joined + signatures.Approx > 0, "tier mix is empty");
+        // The honest reading of THIS fixture, pinned so a regression to the old two-bucket tally
+        // (which reported these same steps as verified) fails here.
+        Assert.Equal(0, signatures.Verified);
+        Assert.True(signatures.Joined > 0, "join-resolved steps must land in the joined tier");
         // Structured locations are repo-relative like everything else in the pack.
         Assert.DoesNotContain(signatures.SourceLocations, l => l.Contains(":\\") || l.StartsWith("C:/"));
     }

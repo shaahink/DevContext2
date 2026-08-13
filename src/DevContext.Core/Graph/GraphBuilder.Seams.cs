@@ -179,7 +179,7 @@ public sealed partial class GraphBuilder
             {
                 Provenance = ce.CallSiteLocation,
                 Resolution = ce.Resolution,
-                Confidence = ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f,
+                Confidence = EdgeConfidence.IsVerified(ce.Resolution) ? 0.95f : 0.6f,
             });
         }
     }
@@ -269,7 +269,7 @@ public sealed partial class GraphBuilder
             {
                 Provenance = ce.CallSiteLocation,
                 Resolution = ce.Resolution,
-                Confidence = (ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f) * 0.8f,
+                Confidence = (EdgeConfidence.IsVerified(ce.Resolution) ? 0.95f : 0.6f) * 0.8f,
             }))
                 added++;
         }
