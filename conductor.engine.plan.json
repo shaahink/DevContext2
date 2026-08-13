@@ -128,7 +128,7 @@
       "name": "fast-engine",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -SkipEval -Scope engine",
       "optional": false,
-      "tier": "fast",
+      "tier": "full",
       "parallel": false,
       "timeoutMinutes": 25
     },
@@ -137,7 +137,7 @@
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\loom-guards.ps1",
       "optional": false,
       "skipIfMissing": "scripts/loom-guards.ps1",
-      "tier": "fast",
+      "tier": "full",
       "parallel": false,
       "timeoutMinutes": 10
     },

@@ -98,6 +98,18 @@ owns it. The **EntryPoint** node's own title is untouched (that surface is uncha
   producer: it prints the humanized key when no title is on hand (D-4's rule 8). It is not a third
   member vocabulary, but it does print a fuller string than the engine's title for the same node.
 
+## Gates (fast loop, this session — the full battery is Conductor's to run)
+
+| gate | result |
+|---|---|
+| `dotnet build src/DevContext.Cli` | 0 warnings / 0 errors |
+| `dotnet test tests/DevContext.Core.Tests --filter Category!=Eval` | 739 passed, 2 skipped, **exit 0** |
+| `dotnet test tests/DevContext.Server.Tests --filter Category!=Eval` | 108 passed, **exit 0** |
+| `scripts/loom-guards.ps1` | PASSED — incl. new **rule 10** and the truth gate (0 failures) |
+| `dotnet test tests/DevContext.Core.Tests --filter Category=Eval` (the matrix) | 74 passed, 9 skipped (repos absent locally), **0 failed — no cell moved** |
+
+Logs: `.conductor/bg-logs/unit-tests4-*.log`, `loom-guards-*.log`, `eval-matrix-*.log`.
+
 ## Files
 
 - `member-title-probe.ps1` — the instrument (re-runnable)

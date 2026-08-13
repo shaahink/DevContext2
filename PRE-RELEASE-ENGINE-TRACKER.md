@@ -2,33 +2,36 @@
 
 **Plan:** DevContext pre-release - engine and agent face | **Branch:** `feat/pre-release-engine` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
-## Handoff (overwrite this block, <=12 lines, no history)
+## Handoff (overwrite this block, ≤12 lines, no history)
 
-V1.1 IS DONE (`c0a22e8`, evidence eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md).
-ONE definition of a verified edge now lives in `src/DevContext.Core/Graph/EdgeConfidence.cs`
-(Verified=Semantic, Joined=Join, Approximate=Syntactic; Confidence is a SEPARATE axis and
-stays out of the tier). The app mirrors it in `edgeTier()` in `src/DevContext.App/src/app/
-core/format.ts`. **loom-guards rule 9** now fails any tier verdict decided outside those two.
-Measured on this repo with a pre-change CLI built in a worktree at HEAD: graphdump
-BYTE-IDENTICAL (zero graph movement) while 45/283 "verified" edges were not -- Resolves
-14->0, ServiceLink 1->0, Calls 268->238 of 1379. That is E1's currency, now honest.
+V1.2 IS DONE (`fd47300`, evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md).
+A Member title is now a FUNCTION OF ITS KEY: `SymbolCanon.MemberTitle` (owner short name + "." +
+member), applied in ONE place -- `CodeGraphBuilder.AddNode` -- so no producer and no pass ORDER can
+pick a vocabulary. All 12 producer sites pass it; **loom-guards rule 10** fails a Member title
+spelled anywhere else. Measured with the probe that filed #17, 7 poles: Member 1092 mismatches -> 0,
+member COUNT identical pole by pole, and Type 1893/58 + EntryPoint 84/87 + Service + Store UNMOVED.
+Eval matrix 74 passed / 0 failed -- no cell moved. Truth gate 0 failures.
 
-NEXT: V1.2 (#17, two Member-title vocabularies -- 343 owner-qualified vs 627 bare, wants one
-helper next to `SymbolCanon`; producers split between GraphBuilder.EntryPoints/* and
-GraphBuilder.Seams.cs) then V1.3 (the #7-rider and #18 invariants, red-first).
-TRAPS PAID FOR: `query` takes its OP POSITIONALLY (`query stats --path X`); PS 5.1 `>` writes
-UTF-16 -- use `Out-File -Encoding utf8`; an Angular template cannot call an imported function
-(`protected readonly x = x;`); `McpQaGateTests` is a FALSE red on the first run after a Core
-change (backlog #1) -- it passes on re-run.
-
+NEXT: V1.3 -- the two standing invariants, RED FIRST (#7 rider: no node has kind Type with a member
+id; #18: lambda/expression TEXT never becomes a node title). The probe measures #18 for free: those
+58 Type mismatches ARE its population -- re-run `eval-results/2026-08-13/v1-vocabulary/
+member-title-probe.ps1` (poles are `name=ABSOLUTE_PATH`; the 4 not in eval-repos are cloned at
+C:/Code/eval-poles). #18's producers: GraphBuilder.Seams.cs titles from detection ServiceType/
+ImplementationType; its "sp =>"/"(" filter is on the DirectBinding path only.
+STILL OPEN, #17's other half (NOT in V1.2's acceptance): EntryPoint titles 84/87 -- some producers
+keep the key's scheme prefix (`grpc:`/`domain:`/`worker:`), some drop it.
+TRAPS PAID FOR: two `dotnet test` hosts at once prints "Test host process crashed" NEXT TO two
+"Passed!" lines -- a false red (R-T5), re-run serially; `$LASTEXITCODE` inside `bg start -- powershell
+-Command` is eaten by the outer shell (use a .ps1 with -File); inside `namespace DevContext.Core.Tests`
+`Graph2.SymbolCanon` resolves to the TEST namespace -- fully qualify it.
 
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
-| Done | 0 |
-| Claimed (unconfirmed) | 4 |
+| Done | 4 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -39,16 +42,16 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | DONE | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.1-EVIDENCE.md |
-| T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | DONE | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.2-EVIDENCE.md |
-| T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | DONE | cdb152c | eval-results/2026-08-13/t1-partial-truth/T1.3-EVIDENCE.md |
-| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | DONE | c246d77 | eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md |
+| T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | DONE ✓ | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.1-EVIDENCE.md |
+| T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | DONE ✓ | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.2-EVIDENCE.md |
+| T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | DONE ✓ | cdb152c | eval-results/2026-08-13/t1-partial-truth/T1.3-EVIDENCE.md |
+| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | DONE ✓ | c246d77 | eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md |
 
 ### V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | TODO | - | - |
+| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | DONE | abfa564 | eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md |
 | V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | TODO | - | - |
 | V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | TODO | - | - |
 
