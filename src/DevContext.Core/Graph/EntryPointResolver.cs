@@ -24,6 +24,18 @@ public static class EntryPointResolver
             string.Equals(e.Title, f, StringComparison.OrdinalIgnoreCase));
         if (byTitle is not null) return byTitle;
 
+        // T1.3 (BUG-BACKLOG #6) — the nodeId form ("Type:Ns.Foo", "Member:Ns.Foo::Bar"), recognised as
+        // an ID before anything below reads it as a name. Every other tool in the menu takes a nodeId
+        // and trace's own did-you-mean envelope hands nodeIds back, so "read the id off resolve/find
+        // and pass it to trace" is the first thing an agent does. Without this tier the string fell
+        // through to ResolveFromNode, which splits at the FIRST colon and read the KIND PREFIX as the
+        // type name: MEASURED on TodoApi 2026-08-13, trace("EntryPoint:GET /") and
+        // trace("Type:Todo.Web.Server.ExternalProviders") answered found:false while the same nodes'
+        // bare titles traced 5 and 2 steps; MEASURED on Hangfire 2026-07-29, a graph that happens to
+        // carry a node titled "Type" instead matched THAT node and returned a confident found:true
+        // trace of a phantom. One tier kills both shapes.
+        if (ResolveNodeIdForm(entries, graph, f) is { } byNodeId) return byNodeId;
+
         // Bare route ("/products", no HTTP verb prefix): match HttpEndpoint entries by Route so an
         // agent that just learned the route from `entrypoints` doesn't need a round-trip through
         // resolve()/find() first. A single match resolves directly; an ambiguous route (several verbs
@@ -43,6 +55,50 @@ public static class EntryPointResolver
 
         return ResolveFromNode(graph, f) ?? ResolveFromMember(graph, f);
     }
+
+    /// <summary>T1.3 — resolves the <c>Kind:Key</c> nodeId form the rest of the tool menu speaks.
+    /// An exact hit returns the INVENTORY entry when the node is one (so an HTTP endpoint keeps its
+    /// kind, route and provenance instead of becoming a synthetic PublicApi). When the key names no
+    /// node, the remainder is re-resolved AS A KEY — never as <c>&lt;type&gt;:&lt;method&gt;</c> with the
+    /// kind prefix standing in for a type name, which is the bug this tier exists to kill. Returns
+    /// null when the prefix is not a node kind, so an ordinary <c>Type:Method</c> focus is untouched.</summary>
+    private static EntryPoint? ResolveNodeIdForm(IReadOnlyList<EntryPoint> entries, CodeGraph graph, string focus)
+    {
+        var colon = focus.IndexOf(':');
+        if (colon <= 0) return null;
+        var prefix = focus[..colon];
+        // Match the kind by NAME only: Enum.TryParse also accepts the underlying number ("0:Foo"),
+        // which no caller means — the same rejection GraphQuery.TryParseEdgeKind makes.
+        var kind = default(NodeKind);
+        var isKind = false;
+        foreach (var n in Enum.GetNames<NodeKind>())
+            if (string.Equals(n, prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                kind = Enum.Parse<NodeKind>(n);
+                isKind = true;
+                break;
+            }
+        if (!isKind) return null;
+
+        var key = focus[(colon + 1)..].Trim();
+        if (key.Length == 0) return null;
+
+        var exact = graph.Node(new NodeId(kind, key));
+        if (exact is not null)
+            return AsEntry(entries, exact);
+
+        // The prefix WAS a kind, so the caller meant an id. Resolve the key as a key (FQN suffix,
+        // "Owner::Member"); a still-unmatched key is a genuine miss, and a miss is the honest answer.
+        var byKey = ResolveFromNode(graph, key) ?? ResolveFromMember(graph, key);
+        return byKey;
+    }
+
+    /// <summary>The entry that OWNS this node when the inventory has one — so a nodeId round-trip
+    /// lands on the real entry (kind, route, provenance) rather than a synthetic stand-in — else a
+    /// synthetic PublicApi entry rooted on the node, the same shape the name tiers produce.</summary>
+    private static EntryPoint AsEntry(IReadOnlyList<EntryPoint> entries, GraphNode node)
+        => entries.FirstOrDefault(e => e.Node == node.Id)
+           ?? new EntryPoint(EntryPointKind.PublicApi, node.Title, node.Id) { Provenance = node.FilePath };
 
     /// <summary>Picks the most-connected of several same-named types: out-degree first (the "goes
     /// somewhere" rule this resolver has always had), then in-degree, then the ordinal-least key — so a

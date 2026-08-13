@@ -179,6 +179,87 @@ public sealed class ContextPackBuilderTests
         Assert.NotEqual(signatures, contracts);
     }
 
+    // ── T1.3 (BUG-BACKLOG #9) — a cut pack must declare its cuts ─────────────
+    // MEASURED on eval-repos/TodoApi 2026-08-13 via a real MCP session:
+    // get_context(focus:"Extensions", budgetTokens:1500) rendered "… (+64 lines)" in its own content,
+    // declared NOTHING in omitted[] but five "empty — omitted" lines, and its fillNote said "the pack
+    // already contains everything reachable from this focus". At budgetTokens:20000 the elision was
+    // gone and the content doubled — so the lever worked and the reply denied there was one.
+    // BuildBodiesToFill counted only bodies dropped WHOLE; a body cut in half was recorded nowhere.
+
+    /// <summary>Entry → member whose declaration is long enough that its full text cannot fit a small
+    /// budget but its salient opening lines can — the discriminating shape, per the backlog: a focus
+    /// with NO body proves nothing because the assertion passes trivially.</summary>
+    private static (GraphQuery Query, AnalysisSnapshot Snapshot) ArrangeLongBody()
+    {
+        var g = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /orders");
+        var calleeId = NodeId.ForMember("App.OrderService", "CreateOrder");
+        var serviceTypeId = NodeId.ForType("App.OrderService");
+
+        var longMethod = string.Join("\n",
+            Enumerable.Range(1, 90).Select(i => $"        var step{i} = Compute({i}); // work {i}"));
+        g.AddNode(new GraphNode(entryId, "POST /orders", NodeKind.EntryPoint));
+        g.AddNode(new GraphNode(serviceTypeId, "OrderService", NodeKind.Type)
+        {
+            SourceBody = "public class OrderService\n{\n    public void CreateOrder(Order o)\n    {\n"
+                + longMethod + "\n    }\n}",
+        });
+        g.AddNode(new GraphNode(calleeId, "OrderService.CreateOrder", NodeKind.Member)
+        {
+            FilePath = @"C:\repo\src\App\OrderService.cs",
+            LineNumber = 3,
+        });
+        g.AddEdge(new GraphEdge(entryId, calleeId, EdgeKind.Calls));
+
+        var graph = g.Build();
+        var entries = ImmutableArray.Create(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "POST /orders", entryId));
+        return (new GraphQuery(graph, entries), MakeSnapshot(graph, entries));
+    }
+
+    [Fact]
+    public void A_truncated_body_is_declared_in_omitted_with_the_budgetTokens_lever()
+    {
+        var (query, snapshot) = ArrangeLongBody();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 400);
+
+        // Guard the discriminator itself: if nothing elided, the assertions below are vacuous.
+        Assert.Contains("… (+", pack.Content, StringComparison.Ordinal);
+        Assert.True(ContextPackBuilder.DeclaresElision(pack.Omitted),
+            "pack elided in its content but declared no cut: " + string.Join(" | ", pack.Omitted));
+        Assert.Contains(pack.Omitted, o =>
+            o.StartsWith(ContextPackBuilder.ElidedPrefix, StringComparison.Ordinal)
+            && o.Contains("raise budgetTokens", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void The_same_focus_at_a_wide_budget_declares_no_elision()
+    {
+        // The ratchet in the other direction: "declares an elision" must not become an always-on
+        // disclaimer, or it stops carrying information. Same graph, budget that fits everything.
+        var (query, snapshot) = ArrangeLongBody();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 20000);
+
+        Assert.DoesNotContain("… (+", pack.Content, StringComparison.Ordinal);
+        Assert.False(ContextPackBuilder.DeclaresElision(pack.Omitted),
+            "nothing was cut but the pack declared a cut: " + string.Join(" | ", pack.Omitted));
+    }
+
+    [Fact]
+    public void An_empty_section_is_not_reported_as_an_elision()
+    {
+        // "we looked and found nothing" and "we cut this" are opposite claims that read alike.
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 20000);
+
+        Assert.Contains("entities: empty — omitted", pack.Omitted);
+        Assert.False(ContextPackBuilder.DeclaresElision(pack.Omitted));
+    }
+
     [Fact]
     public void Empty_sections_are_dropped_and_recorded_in_omitted()
     {

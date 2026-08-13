@@ -87,10 +87,19 @@ path or put the directory on `PATH`):
   for a handle rather than guessing.
 - Symbols are addressed two ways: a precise `nodeId` (`Kind:Key`, from `resolve`/`find`) or a fuzzy
   `query`. Ambiguity is honest: a query matching several nodes returns the candidates — no tool
-  ever silently picks one.
+  ever silently picks one. **`focus` accepts a nodeId everywhere `nodeId` does** — `trace` and
+  `get_context` included — so an id read off `resolve`/`find`/`entrypoints`, or off a did-you-mean
+  candidate list, can be handed straight back (T1.3; before it, `trace` was the one tool that
+  answered a nodeId with a miss or a confident empty tree).
 - Budgeted tools (`trace`, `get_context`) take `budgetTokens` and name what they cut
   ("N omitted") instead of truncating silently. A dial you do not name is left UNSET on the wire, so
   the server's one trace policy applies it — the MCP no longer carries its own copy of the defaults.
+- **A reply's completeness claim is a fact, not an inference.** Every cut `get_context` makes is
+  declared on an `omitted[]` line beginning `elided ` and naming the lever that undoes it; `fillNote`
+  reads those lines. So "the pack already contains everything reachable from this focus" is only ever
+  said when nothing was cut — and a pack that elided anything says `INCOMPLETE` at any fill level
+  (T1.3). `trace` likewise: a `found:true` with `steps:0` carries a `note` saying nothing outbound
+  resolved and naming the `neighbors(direction:"in")` call that shows the other direction.
 
 ## Tool catalog — 14 advertised, 8 unlisted (†)
 

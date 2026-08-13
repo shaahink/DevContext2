@@ -37,6 +37,13 @@ public sealed class DevContextTools
     private const string HandleDoc = "Session handle from analyze(). Omit to use this client's last analyzed session.";
     private const string NodeIdDoc = "Exact node id, as returned by resolve/find/neighbors.";
 
+    /// <summary>T1.3 (BUG-BACKLOG #9) — the marker Core's ContextPackBuilder puts on every omitted[]
+    /// line that reports a CUT (as opposed to an empty section). MCP references Contracts only, not
+    /// Core, so this is a MIRROR of <c>ContextPackBuilder.ElidedPrefix</c> — and a mirrored constant
+    /// is exactly the drift class this program has been bitten by, so
+    /// <c>McpElisionContractTests</c> (Server.Tests sees both assemblies) pins the two together.</summary>
+    public const string ElidedPrefix = "elided ";
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = false,
@@ -958,6 +965,18 @@ public sealed class DevContextTools
                     suggestions.Length > 0 ? suggestions : null);
             }
 
+            // T1.3 (BUG-BACKLOG #6) — `found:true` with zero steps is the VACUOUS shape: it passes any
+            // "did I get a trace" assertion and tells the agent nothing. A trace that resolved to a
+            // node with no outgoing wiring must SAY that, and name the call that would show the other
+            // direction — otherwise "this type calls nothing" and "trace could not walk this" are the
+            // same reply. Kept next to the response so both formats carry it.
+            var stepCount = CountTraceSteps(resp.Root);
+            var emptyNote = stepCount == 0 && resp.Root is { } r0
+                ? $"0 steps: nothing outbound was resolved from '{r0.Title}' — it calls, sends or handles "
+                  + $"nothing the graph could bind. Its callers are the other direction: "
+                  + $"neighbors(nodeId:\"{r0.NodeId}\", direction:\"in\"), or usages(nodeId:\"{r0.NodeId}\")."
+                : null;
+
             if (format == "compact")
             {
                 // M4.3 — compact flow: indented text with file:line per step, seam glyphs
@@ -982,7 +1001,8 @@ public sealed class DevContextTools
                     found = true,
                     format = "compact",
                     focus,
-                    steps = CountTraceSteps(resp.Root),
+                    steps = stepCount,
+                    note = emptyNote,
                     touches = resp.TouchedEntities.Count,
                     emits = resp.EmittedEvents.Count,
                     tokens,
@@ -1004,6 +1024,8 @@ public sealed class DevContextTools
                     title = resp.Root.Title,
                     kind = resp.Root.Kind,
                 } : null,
+                steps = stepCount,
+                note = emptyNote,
                 budgetTokens,
                 budgetSource = budgetTokens is null ? "server trace policy" : "caller",
                 omitted = OmittedNodes(resp.Root),
@@ -1728,25 +1750,32 @@ public sealed class DevContextTools
             // connected subgraph is small — everything reachable is already in the pack), and a
             // content-exhausted under-fill suggests better-connected focuses so the agent has a
             // next move instead of a near-empty pack.
+            // T1.3 (BUG-BACKLOG #9) — two different claims used to be welded to one number. "fill %"
+            // is totalTokens/budgetTokens and legitimately FALLS as the budget rises; "the pack is
+            // complete" is a property of what got cut. Reading completeness off the ratio produced
+            // the silent-wrong-answer shape: MEASURED on TodoApi, get_context("Extensions", 1500)
+            // rendered "… (+64 lines)" in its own content and said "the pack already contains
+            // everything reachable from this focus" — the one reply that should say "ask for more"
+            // was the one that said "there is no more" (raising to 20000 doubled the content).
+            // The completeness half is now ANSWERED BY THE PACK: the builder declares every cut it
+            // made on an `elided ` line, so this reads a fact instead of inferring one from a ratio.
             string? fillNote = null;
             object[]? suggestedFocuses = null;
             var fillPct = budgetTokens > 0 ? (int)(resp.TotalTokens * 100L / budgetTokens) : 100;
-            if (fillPct < 85)
+            var elisions = resp.Omitted.Where(o => o.StartsWith(ElidedPrefix, StringComparison.Ordinal)).ToArray();
+            var legacyCut = resp.Omitted.Any(o => o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+            if (elisions.Length > 0 || legacyCut)
             {
-                var budgetCut = resp.Omitted.Any(o =>
-                    o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
-                    o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
-                if (budgetCut)
-                {
-                    fillNote = $"fill {fillPct}%: sections were cut to fit the budget — raise budgetTokens for the rest (see omitted).";
-                }
-                else
-                {
-                    fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
-                    suggestedFocuses = await SuggestConnectedAsync(handle, focus);
-                    if (suggestedFocuses.Length > 0)
-                        fillNote += " Better-connected focuses in suggestedFocuses.";
-                }
+                // Named at ANY fill: an elision at 90% fill is still content the agent did not get.
+                fillNote = $"fill {fillPct}%: INCOMPLETE — {elisions.Length + (legacyCut ? 1 : 0)} cut(s) were made to fit "
+                    + $"budgetTokens={budgetTokens}; each is named in omitted[]. Raise budgetTokens for the rest.";
+            }
+            else if (fillPct < 85)
+            {
+                fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
+                suggestedFocuses = await SuggestConnectedAsync(handle, focus);
+                if (suggestedFocuses.Length > 0)
+                    fillNote += " Better-connected focuses in suggestedFocuses.";
             }
 
             return JsonSerializer.Serialize(new

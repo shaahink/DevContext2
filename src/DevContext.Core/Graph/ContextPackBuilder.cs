@@ -14,6 +14,21 @@ namespace DevContext.Core.Graph;
 /// </summary>
 public sealed class ContextPackBuilder
 {
+    /// <summary>T1.3 (BUG-BACKLOG #9) — the marker every <see cref="ContextPack.Omitted"/> line that
+    /// reports a CUT begins with. It distinguishes "this section was shortened, here is the lever"
+    /// from "this section was empty, there was nothing to say" — two lines that read alike and mean
+    /// opposite things. MEASURED before it existed: a pack whose bodies had been truncated to
+    /// "… (+64 lines)" told the agent it "already contains everything reachable from this focus",
+    /// because the only cut it declared was the one class of cut it happened to count.</summary>
+    public const string ElidedPrefix = "elided ";
+
+    private static string Plural(int n, string one, string many) => n == 1 ? one : many;
+
+    /// <summary>True when any line of an <see cref="ContextPack.Omitted"/> list reports a cut — the
+    /// ONE place a consumer asks "is this pack complete", so the answer cannot drift per surface.</summary>
+    public static bool DeclaresElision(IEnumerable<string> omitted)
+        => omitted.Any(o => o.StartsWith(ElidedPrefix, StringComparison.Ordinal));
+
     private readonly GraphQuery _query;
     private readonly AnalysisSnapshot _snapshot;
 
@@ -72,7 +87,7 @@ public sealed class ContextPackBuilder
     /// <summary>T4.2 — signatures stay structural: spine-first (BFS) up to a token cap so a deep
     /// trace can't starve the bodies section (shamshir at depth 6 grew this to 2.5k of a 4k pack).
     /// The cut is named — the reader knows how many members the list left out.</summary>
-    private string BuildCalleeSignatures(Trace trace, int tokenBudget, SectionProvenance prov)
+    private string BuildCalleeSignatures(Trace trace, int tokenBudget, SectionProvenance prov, out int cutMembers)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
@@ -101,6 +116,7 @@ public sealed class ContextPackBuilder
         }
         if (omittedCount > 0)
             sb.AppendLine($"- … (+{omittedCount} more members — raise budgetTokens for the full list)");
+        cutMembers = omittedCount;
         return sb.ToString();
     }
 
@@ -123,14 +139,22 @@ public sealed class ContextPackBuilder
     /// <summary>T4.2 — bodies are where the tokens go. Fills up to <paramref name="tokenBudget"/>
     /// spine-first (breadth-first, closest to the entry first): each step gets its FULL declaration
     /// text when that fits (capped per body so one god-class can't eat the pack), else its salient
-    /// snippet with a visible `… (+N lines)` truncation marker, else it is counted omitted.</summary>
-    private (string Text, int OmittedBodies) BuildBodiesToFill(Trace trace, int tokenBudget, SectionProvenance prov)
+    /// snippet with a visible `… (+N lines)` truncation marker, else it is counted omitted.
+    /// <para>T1.3 (BUG-BACKLOG #9) — the truncation case is now COUNTED, not just marked in the text.
+    /// It used to be recorded nowhere, so the pack's own completeness note could not know a body had
+    /// been cut: MEASURED on TodoApi, <c>get_context("Extensions", budgetTokens:1500)</c> rendered
+    /// "… (+64 lines)" and still reported "the pack already contains everything reachable from this
+    /// focus". A body the reader cannot see is elided whether it was cut in half or dropped whole.</para></summary>
+    private (string Text, int OmittedBodies, int TruncatedBodies, int ElidedLines) BuildBodiesToFill(
+        Trace trace, int tokenBudget, SectionProvenance prov)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
         var remaining = tokenBudget;
         var perBodyCap = Math.Max(150, tokenBudget * 2 / 5);
         var omitted = 0;
+        var truncated = 0;
+        var elidedLines = 0;
 
         foreach (var step in WalkStepsBreadthFirst(trace.Root))
         {
@@ -169,6 +193,7 @@ public sealed class ContextPackBuilder
                     sb.Append(snippetBlock);
                     remaining -= snippetTokens;
                     TallyBody(prov, step);
+                    if (moreLines > 0) { truncated++; elidedLines += moreLines; }
                     continue;
                 }
             }
@@ -176,7 +201,7 @@ public sealed class ContextPackBuilder
             omitted++;
         }
 
-        return (sb.ToString(), omitted);
+        return (sb.ToString(), omitted, truncated, elidedLines);
 
         void TallyBody(SectionProvenance p, TraceStep step)
         {
@@ -708,7 +733,7 @@ public sealed class ContextPackBuilder
                 skeletonProv.Locations.Add(Location(fp, step.Node.LineNumber));
         }
         var sigProv = new SectionProvenance();
-        var signatures = BuildCalleeSignatures(trace, signaturesCap, sigProv);
+        var signatures = BuildCalleeSignatures(trace, signaturesCap, sigProv, out var cutSignatures);
         var contractsProv = new SectionProvenance();
         var contracts = BuildContracts(trace, contractsProv);
         var diProv = new SectionProvenance();
@@ -771,10 +796,28 @@ public sealed class ContextPackBuilder
         var bodiesProv = new SectionProvenance();
         // −30: headroom for the provenance footer tokensAddSection appends, so an exact fill
         // can't tip the section over the remaining budget.
-        var (bodies, omittedBodies) = BuildBodiesToFill(trace, budgetTokens - 30, bodiesProv);
+        var (bodies, omittedBodies, truncatedBodies, elidedLines) =
+            BuildBodiesToFill(trace, budgetTokens - 30, bodiesProv);
         tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens, bodiesProv);
+
+        // T1.3 (BUG-BACKLOG #9) — EVERY cut this pack made is declared here, each with the lever that
+        // undoes it, and each on a line the reader can recognise as a cut rather than a "we looked and
+        // found nothing" (the `<section>: empty — omitted` shape). The ELIDED_PREFIX is the contract:
+        // a consumer decides "is this pack complete" by looking for it, not by sniffing prose.
         if (omittedBodies > 0)
-            omitted.Add($"bodies: {omittedBodies} member bodies omitted (budget) — raise budgetTokens or read_source the member");
+            omitted.Add($"{ElidedPrefix}bodies: {omittedBodies} member {Plural(omittedBodies, "body", "bodies")}"
+                + " omitted entirely (budget) — raise budgetTokens or read_source the member");
+        if (truncatedBodies > 0)
+            omitted.Add($"{ElidedPrefix}bodies: {truncatedBodies} {Plural(truncatedBodies, "body", "bodies")}"
+                + $" truncated to the salient lines (+{elidedLines} lines hidden)"
+                + " — raise budgetTokens for the full text");
+        if (cutSignatures > 0)
+            omitted.Add($"{ElidedPrefix}signatures: {cutSignatures} callee"
+                + $" {Plural(cutSignatures, "signature", "signatures")} cut from the list"
+                + " — raise budgetTokens for the full list");
+        if (!ReferenceEquals(shapedTrace, trace))
+            omitted.Add($"{ElidedPrefix}trace: the skeleton was shaped to fit the budget"
+                + " — raise budgetTokens for the full tree");
 
         return ([.. sections], [.. omitted]);
     }

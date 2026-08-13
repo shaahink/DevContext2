@@ -1,0 +1,122 @@
+[
+  {
+    "nodeId": "EntryPoint:GET /",
+    "title": "GET /",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 5
+  },
+  {
+    "nodeId": "EntryPoint:POST /todos/",
+    "title": "POST /todos/",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "EntryPoint:GET /todos/",
+    "title": "GET /todos/",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:GET /todos/{id}",
+    "title": "GET /todos/{id}",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:PUT /todos/{id}",
+    "title": "PUT /todos/{id}",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:DELETE /todos/{id}",
+    "title": "DELETE /todos/{id}",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:POST /auth/register",
+    "title": "POST /auth/register",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "EntryPoint:POST /auth/login",
+    "title": "POST /auth/login",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "Type:Todo.Web.Server.ExternalProviders",
+    "title": "ExternalProviders",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "Type:EphemeralDataProtectionProvider",
+    "title": "EphemeralDataProtectionProvider",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 0
+  },
+  {
+    "nodeId": "Type:Microsoft.Extensions.Hosting.Extensions",
+    "title": "Extensions",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 4
+  },
+  {
+    "nodeId": "Type:TodoApi.ExternalUserInfo",
+    "title": "ExternalUserInfo",
+    "found": false,
+    "steps": null,
+    "note": null,
+    "entryLine": "",
+    "bareFound": true,
+    "bareSteps": 0
+  }
+]

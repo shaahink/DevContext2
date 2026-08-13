@@ -1,0 +1,479 @@
+{
+  "discriminator": {
+    "focus": "Extensions",
+    "budgetTokens": 1500,
+    "totalTokens": 937,
+    "elisions": [
+      {
+        "count": 64,
+        "what": "lines"
+      }
+    ],
+    "fillNote": "fill 62%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+    "omitted": [
+      "usage: empty — omitted",
+      "contracts: empty — omitted",
+      "di_wiring: empty — omitted",
+      "entities: empty — omitted",
+      "tests: empty — omitted"
+    ],
+    "namesElision": false,
+    "claimsComplete": true,
+    "atWideBudget": {
+      "budgetTokens": 20000,
+      "totalTokens": 1927,
+      "elisions": [],
+      "fillNote": "fill 9%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses."
+    }
+  },
+  "rows": [
+    {
+      "focus": "GET /",
+      "budgetTokens": 1500,
+      "totalTokens": 854,
+      "elisions": [],
+      "fillNote": "fill 56%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "POST /todos/",
+      "budgetTokens": 1500,
+      "totalTokens": 613,
+      "elisions": [],
+      "fillNote": "fill 40%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "GET /todos/",
+      "budgetTokens": 1500,
+      "totalTokens": 456,
+      "elisions": [],
+      "fillNote": "fill 30%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "GET /todos/{id}",
+      "budgetTokens": 1500,
+      "totalTokens": 504,
+      "elisions": [],
+      "fillNote": "fill 33%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "PUT /todos/{id}",
+      "budgetTokens": 1500,
+      "totalTokens": 596,
+      "elisions": [],
+      "fillNote": "fill 39%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "DELETE /todos/{id}",
+      "budgetTokens": 1500,
+      "totalTokens": 515,
+      "elisions": [],
+      "fillNote": "fill 34%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "POST /auth/register",
+      "budgetTokens": 1500,
+      "totalTokens": 652,
+      "elisions": [],
+      "fillNote": "fill 43%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "POST /auth/login",
+      "budgetTokens": 1500,
+      "totalTokens": 645,
+      "elisions": [],
+      "fillNote": "fill 43%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ExternalProviders",
+      "budgetTokens": 1500,
+      "totalTokens": 857,
+      "elisions": [],
+      "fillNote": "fill 57%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EphemeralDataProtectionProvider",
+      "budgetTokens": 1500,
+      "totalTokens": 234,
+      "elisions": [],
+      "fillNote": "fill 15%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 937,
+      "elisions": [
+        {
+          "count": 64,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 62%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true,
+      "atWideBudget": {
+        "budgetTokens": 20000,
+        "totalTokens": 1927,
+        "elisions": [],
+        "fillNote": "fill 9%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses."
+      }
+    },
+    {
+      "focus": "ExternalUserInfo",
+      "budgetTokens": 1500,
+      "totalTokens": 265,
+      "elisions": [],
+      "fillNote": "fill 17%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 937,
+      "elisions": [
+        {
+          "count": 64,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 62%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ExternalUserInfo",
+      "budgetTokens": 1500,
+      "totalTokens": 265,
+      "elisions": [],
+      "fillNote": "fill 17%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ExternalProviders.GetProviderNamesAsync",
+      "budgetTokens": 1500,
+      "totalTokens": 583,
+      "elisions": [],
+      "fillNote": "fill 38%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ExternalProviders.GetProviderNamesAsyncCore",
+      "budgetTokens": 1500,
+      "totalTokens": 482,
+      "elisions": [],
+      "fillNote": "fill 32%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "TodoDbContext",
+      "budgetTokens": 1500,
+      "totalTokens": 819,
+      "elisions": [],
+      "fillNote": "fill 54%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "TodoClient",
+      "budgetTokens": 1500,
+      "totalTokens": 424,
+      "elisions": [
+        {
+          "count": 32,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 28%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "AuthClient",
+      "budgetTokens": 1500,
+      "totalTokens": 904,
+      "elisions": [],
+      "fillNote": "fill 60%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "dbContextOptionsBuilder.Options",
+      "budgetTokens": 1500,
+      "totalTokens": 241,
+      "elisions": [],
+      "fillNote": "fill 16%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "AddHttpClient",
+      "budgetTokens": 1500,
+      "totalTokens": 134,
+      "elisions": [],
+      "fillNote": "fill 8%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "IServiceCollection",
+      "budgetTokens": 1500,
+      "totalTokens": 243,
+      "elisions": [],
+      "fillNote": "fill 16%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "CheckCurrentUserAuthHandler",
+      "budgetTokens": 1500,
+      "totalTokens": 488,
+      "elisions": [],
+      "fillNote": "fill 32%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ClaimsTransformation",
+      "budgetTokens": 1500,
+      "totalTokens": 525,
+      "elisions": [],
+      "fillNote": "fill 35%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "TodoUser",
+      "budgetTokens": 1500,
+      "totalTokens": 271,
+      "elisions": [],
+      "fillNote": "fill 18%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "HttpAuthenticationStateProvider",
+      "budgetTokens": 1500,
+      "totalTokens": 411,
+      "elisions": [],
+      "fillNote": "fill 27%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "AddDbContextFactory",
+      "budgetTokens": 1500,
+      "totalTokens": 143,
+      "elisions": [],
+      "fillNote": "fill 9%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    }
+  ]
+}
