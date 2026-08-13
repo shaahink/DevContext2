@@ -1,0 +1,114 @@
+﻿V1.3 GRAPH INVARIANT PROBE
+  INV-A    no node has kind Type with a MEMBER id (key contains '::')
+  INV-B    no Type node key/title is expression text  [ENFORCED rule: expression syntax]
+  (wider)  Type key/title not type-name shaped        [DIAGNOSTIC only - channels live here]
+cli: C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli mtime: 2026-08-13T20:59:56
+
+POLE eShop              nodes   1136  Type    568   INV-A    1   INV-B   22   (wider    3)
+      A: eShop.ClientApp.Converters.WebNavigatingEventArgsConverter::Convert(4)
+      B: options => \n { \n     // Include "api-supported-versions" and "api-deprecated-versions" headers in all respon ...
+      B: typeof(T)
+      B: o => o.BaseAddress = new(MobileBffHost)
+      B: options => \n { \n     //options.IssuerUri = "null"; \n     options.Authentication.CookieLifetime = TimeSpan.F ...
+      B: Config.GetApis()
+      B: Config.GetApiScopes()
+      B: Config.GetClients(builder.Configuration)
+      B: Config.GetResources()
+      B: options => \n         { \n             options.UseNpgsql(builder.Configuration.GetConnectionString("orderingdb ...
+      B: cfg => \n         { \n             cfg.RegisterServicesFromAssemblyContaining(typeof(Program)); \n  \n         ...
+      B: o => o.Address = new("http://basket-api")
+      B: o => o.BaseAddress = new("https+http://catalog-api")
+      B: o => o.BaseAddress = new("https+http://ordering-api")
+      B: options => \n         { \n             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationSche ...
+      B: options => options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime)
+      B: options => \n         { \n             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationSchem ...
+      B: o => o.BaseAddress = new("http://webhooks-api")
+      B: options => \n         { \n             options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime); \ ...
+      B: options => \n         { \n             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationSchem ...
+      B: options => \n         { \n             var identityUrl = identitySection.GetRequiredValue("Url"); \n           ...
+      B: "self"
+      B: new AutoAuthorizeStartupFilter()
+      w: <OnModelCreating> | title='<OnModelCreating>'
+      w: 2.0 | title='2.0'
+      w: 1.0 | title='1.0'
+
+POLE FluentValidation   nodes    319  Type    204   INV-A    0   INV-B    1   (wider    0)
+      B: typeof(T).Assembly
+
+POLE AutoMapper         nodes    468  Type    259   INV-A    0   INV-B    1   (wider    0)
+      B: opt => opt.AddMaps(typeof(Source))
+
+POLE MediatR            nodes    192  Type    170   INV-A    0   INV-B   20   (wider    0)
+      B: typeof(IStreamRequestHandler<Sing, Song>)
+      B: typeof(SingHandler)
+      B: typeof(IPipelineBehavior<,>)
+      B: typeof(GenericPipelineBehavior<,>)
+      B: typeof(IRequestPreProcessor<>)
+      B: typeof(GenericRequestPreProcessor<>)
+      B: typeof(IRequestPostProcessor<,>)
+      B: typeof(GenericRequestPostProcessor<,>)
+      B: typeof(IStreamPipelineBehavior<,>)
+      B: typeof(GenericStreamPipelineBehavior<,>)
+      B: new MediatRServiceConfiguration { LicenseKey = "not-a-real-license-key" }
+      B: new Logger()
+      B: typeof(ConstructorTestBehavior<,>)
+      B: new MediatR.Tests.PipelineTests.Logger()
+      B: new MediatR.Tests.StreamPipelineTests.Logger()
+      B: new MediatR.Tests.SendTests.Dependency()
+      B: new System.IO.StringWriter()
+      B: typeof(IBlogger<>)
+      B: typeof(Blogger<>)
+      B: "Foo"
+
+POLE CleanArchitecture  nodes    139  Type     93   INV-A    0   INV-B    6   (wider    1)
+      B: options => \n          options.UseSqlite(connectionString)
+      B: typeof(IReadRepository<>)
+      B: typeof(EfRepository<>)
+      B: typeof(IRepository<>)
+      B: "self"
+      B: options => \n     { \n       // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported. \n   ...
+      w: <OnModelCreating> | title='<OnModelCreating>'
+
+POLE dotnet-podcasts    nodes    344  Type    165   INV-A    0   INV-B   11   (wider    2)
+      B: new QueueClient(queueConnectionString, "feed-queue")
+      B: "modify_feeds"
+      B: options => \n { \n     options.DefaultApiVersion = new ApiVersion(2, 0); \n     options.ReportApiVersions = tr ...
+      B: setup => \n { \n     setup.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod( ...
+      B: options => options.AddFixedWindowLimiter("feeds", options => \n { \n     options.PermitLimit = 5; \n     optio ...
+      B: tracing => \n         tracing.SetResourceBuilder(serviceResource) \n         .AddAzureMonitorTraceExporter(o = ...
+      B: metrics => \n     { \n         metrics \n         .SetResourceBuilder(serviceResource) \n         .AddPromethe ...
+      B: options => \n         { \n             options.UseSqlServer( \n                 hostContext.Configuration.GetC ...
+      B: options => \n             { \n                 options.UseSqlServer( \n                     hostContext.Config ...
+      B: client => { \n         client.BaseAddress = new Uri(builder.Configuration["PodcastApi:BaseAddress"]!); \n      ...
+      B: client => \n { \n     client.BaseAddress = new Uri(builder.Configuration["PodcastApi:BaseAddress"]!); \n     c ...
+      w: <OnModelCreating> | title='<OnModelCreating>'
+      w: feed-queue [AzureStorageQueue] | title='feed-queue [AzureStorageQueue]'
+
+POLE Hangfire           nodes    928  Type    479   INV-A    2   INV-B    1   (wider    0)
+      A: Hangfire.StackTraceHtmlFragments::Type(1)
+      A: ConsoleSample.Services::Random(1)
+      B: options => \n                     { \n                         options.StopTimeout = TimeSpan.FromSeconds(15); ...
+
+POLE TodoApi            nodes    124  Type     71   INV-A    0   INV-B    7   (wider    1)
+      B: o => o.UseSqlite(_sqliteConnection)
+      B: o => o.ApplicationDiscriminator = "TodoApp"
+      B: options => options.AddBearerTokenAuthentication()
+      B: o => \n { \n     if (builder.Environment.IsDevelopment()) \n     { \n         o.CombineLogs = true; \n         ...
+      B: client => \n { \n     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); \n  \n     // The coo ...
+      B: client => \n { \n     client.BaseAddress = new("http://todoapi"); \n }
+      B: "self"
+      w: <OnModelCreating> | title='<OnModelCreating>'
+
+POLE DevContext         nodes   1269  Type    492   INV-A    1   INV-B    7   (wider    0)
+      A: DevContext.Core.Tests.NullLogger`1::Log(5)
+      B: LoggerFactory.Create(_ => { }).CreateLogger<DiscoveryPipeline>()
+      B: "."
+      B: _loggerFactory.CreateLogger<DiscoveryPipeline>()
+      B: b => b.AddSerilog(dispose: true)
+      B: options => \n     { \n         options.ServerInfo = new() \n         { \n             Name = "devcontext", \n  ...
+      B: options => options.AddPolicy("web", policy => policy \n     .SetIsOriginAllowed(_ => true) \n     .AllowAnyHea ...
+      B: prior with { SnapshotCacheRoot = _cacheRoot }
+
+=== TOTALS ===
+  nodes 4919   Type nodes 2501   INV-A 4   INV-B 76   (wider 7)

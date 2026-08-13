@@ -1,0 +1,73 @@
+backup patch written
+=== STASHING THE BEHAVIOURAL FIX (tests + SymbolCanon predicates stay) ===
+Saved working directory and index state On pre-release-engine: v13-redfirst
+=== PRE-FIX RUN (must FAIL) ===
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(String shipped) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 115
+   at InvokeStub_GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(shipped: "new MediatR.Tests.PipelineTests.Logger()") [< 1 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(String shipped) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 115
+   at InvokeStub_GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(shipped: "Config.GetClients(builder.Configuration)") [< 1 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(String shipped) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 115
+   at InvokeStub_GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(shipped: "\"self\"") [< 1 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(String shipped) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 115
+   at InvokeStub_GraphInvariantTests.Lambda_or_expression_text_never_becomes_a_Type_node(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:01.73]     DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id [FAIL]
+  Failed DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id [1 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 83
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     7, Passed:    20, Skipped:     0, Total:    27, Duration: 524 ms - DevContext.Core.Tests.dll (net10.0)
+PREFIX_EXIT=1
+=== RESTORING THE FIX ===
+The stash entry is kept in case you need it again.
+ M PRE-RELEASE-ENGINE-TRACKER.md
+ M eval-results/2026-08-13/mcp-qa.md
+ M scripts/loom-guards.ps1
+ M src/DevContext.Core/Graph2/SymbolCanon.cs
+?? eval-results/2026-08-13/v1-invariants/
+?? tests/DevContext.Core.Tests/GraphInvariantTests.cs
+=== POST-FIX RUN (must PASS) ===
+[xUnit.net 00:00:01.94]     DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id [FAIL]
+  Failed DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id [< 1 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at DevContext.Core.Tests.GraphInvariantTests.No_node_carries_kind_Type_with_a_member_id() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\GraphInvariantTests.cs:line 83
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     7, Passed:    20, Skipped:     0, Total:    27, Duration: 390 ms - DevContext.Core.Tests.dll (net10.0)
+POSTFIX_EXIT=1
+RED-FIRST DONE

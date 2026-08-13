@@ -1,0 +1,146 @@
+﻿diff --git a/src/DevContext.Core/Graph/CodeGraph.cs b/src/DevContext.Core/Graph/CodeGraph.cs
+index 8ff9177..3fe3b29 100644
+--- a/src/DevContext.Core/Graph/CodeGraph.cs
++++ b/src/DevContext.Core/Graph/CodeGraph.cs
+@@ -323,7 +323,9 @@ public sealed class CodeGraphBuilder
+     /// to one Type node touched by many passes (AddTypeNodes seeds the declaration; each join adds a role
+     /// tag), merge = union of <see cref="GraphNode.Tags"/> + first-non-null declaration info
+     /// (FilePath/SourceBody/Project). Order-independent: a name-only node added by a join is later enriched
+-    /// when its declaration appears, and vice-versa. Returns the resulting node.</summary>
++    /// when its declaration appears, and vice-versa. Returns the resulting node ΓÇö which for a node
++    /// REFUSED by the V1.3 invariants below is the unstored input, so callers must not read the
++    /// return as proof of membership (<see cref="HasNode"/> answers that; no caller in Core does).</summary>
+     public GraphNode AddNode(GraphNode node)
+     {
+         // V1.2 (backlog #17): a Member node's title is DERIVED from its key, never supplied. Titles
+@@ -337,6 +339,28 @@ public sealed class CodeGraphBuilder
+                 node = node with { Title = title };
+         }
+ 
++        // V1.3 ΓÇö the two standing invariants, enforced where a node is MADE, so no producer and no
++        // pass order can reach a surface with either shape. Both are refusals, not repairs: the
++        // engine does not know which type these nodes mean, and inventing one is how #7 happened.
++        //
++        //  (a) backlog #7's rider ΓÇö a Type node may not carry a MEMBER id. Hangfire's explicit
++        //      interface implementation `string IStackTraceFormatter<string>.Type(string)` shipped
++        //      as Type:Hangfire.StackTraceHtmlFragments::Type(1) and 26 BCL System.Type references
++        //      bound onto it, ranking a dashboard formatter fragment #5 in the repo by connectivity.
++        //  (b) backlog #18 ΓÇö a Type node may not be minted from lambda/expression TEXT. A 20-line
++        //      DI lambda, comments and all, reached the UI as a node title.
++        //
++        // A refused node is not stored, so AddEdge (which requires both endpoints) drops the edge
++        // that wanted it ΓÇö the phantom leaves no half behind.
++        if (node.Id.Kind == NodeKind.Type)
++        {
++            if (Graph2.SymbolCanon.IsMemberKey(node.Id.Key)) return node;
++            if (Graph2.SymbolCanon.IsExpressionText(node.Id.Key)) return node;
++            // Key is a name but the title is not: the title is derived, as V1.2 does for members.
++            if (Graph2.SymbolCanon.IsExpressionText(node.Title))
++                node = node with { Title = Graph2.SymbolCanon.ShortNameOf(node.Id.Key) };
++        }
++
+         if (_nodes.TryGetValue(node.Id, out var existing))
+         {
+             var mergedTags = existing.Tags.IsDefaultOrEmpty
+diff --git a/src/DevContext.Core/Graph/GraphBuilder.Seams.cs b/src/DevContext.Core/Graph/GraphBuilder.Seams.cs
+index 1857a5e..63491f9 100644
+--- a/src/DevContext.Core/Graph/GraphBuilder.Seams.cs
++++ b/src/DevContext.Core/Graph/GraphBuilder.Seams.cs
+@@ -426,7 +426,13 @@ public sealed partial class GraphBuilder
+                         NodeId targetId;
+                         string targetDisplayName = match.Target.Text;
+ 
+-                        if (resolved.Resolved is { } symId)
++                        // V1.3 (backlog #7 rider): SymbolTable.Resolve answers with a SymbolKind, and
++                        // its member tier fires when no TYPE candidate exists ΓÇö so a reference to BCL
++                        // `Type`/`Convert` lands on a same-named local METHOD. Taking that canonical
++                        // here is what minted Type:...StackTraceHtmlFragments::Type(1). A non-type
++                        // answer is no answer: fall back to the written text, the same leaf every
++                        // other unresolved (external) target gets.
++                        if (resolved.Resolved is { Kind: Graph2.SymbolKind.Type } symId)
+                             targetId = NodeId.ForType(symId.Canonical);
+                         else
+                             targetId = NodeId.ForType(match.Target.Text);
+@@ -593,8 +599,10 @@ public sealed partial class GraphBuilder
+                                 var resolved = ctx.Symbols!.Resolve(match.Target);
+                                 if (resolved.Tier == ResolutionTier.Ambiguous) continue;
+ 
++                                // V1.3 (backlog #7 rider) ΓÇö the lambda-body twin of the Kind gate in
++                                // AddSeamsFromDetectors: a member answer is not a type answer.
+                                 NodeId targetId;
+-                                if (resolved.Resolved is { } symId)
++                                if (resolved.Resolved is { Kind: Graph2.SymbolKind.Type } symId)
+                                     targetId = NodeId.ForType(symId.Canonical);
+                                 else
+                                     targetId = NodeId.ForType(match.Target.Text);
+diff --git a/src/DevContext.Core/Graph2/Seams/PlainCallDetector.cs b/src/DevContext.Core/Graph2/Seams/PlainCallDetector.cs
+index a151a9b..6e2ae55 100644
+--- a/src/DevContext.Core/Graph2/Seams/PlainCallDetector.cs
++++ b/src/DevContext.Core/Graph2/Seams/PlainCallDetector.cs
+@@ -47,11 +47,19 @@ public sealed class PlainCallDetector : ISeamDetector
+             var key = $"{receiverText}@{inv.Line}";
+             if (!emitted.Add(key)) continue;
+ 
+-            // Only emit when the receiver type resolves to an in-solution type (SymbolTable has it).
++            // Only emit when the receiver type resolves to an in-solution TYPE (SymbolTable has it).
+             // Framework types (ILogger, IMapper, HttpClient, DbContext wrappers, etc.) return
+             // Resolved==null and are silently excluded ΓÇö no phantom type nodes, no noise.
++            //
++            // V1.3 (backlog #7 rider): the sentence above says TYPE and the test said "not null",
++            // and the gap is a measured defect. SymbolTable's member tier fires when NO type
++            // candidate exists, so `Convert.ToInt32(...)` inside a converter class resolved onto
++            // that class's own `Convert` METHOD and the seam target became a member id wearing
++            // kind Type (eShop WebNavigatingEventArgsConverter::Convert(4); Hangfire's ::Type(1) is
++            // the same shape, and it collected 26 phantom in-edges). A member answer is not a type
++            // answer ΓÇö drop the invocation, exactly as an unresolved framework receiver is dropped.
+             var resolved = ctx.Symbols.Resolve(inv.ReceiverType);
+-            if (resolved.Resolved is null) continue;
++            if (resolved.Resolved is not { Kind: SymbolKind.Type }) continue;
+ 
+             // Batch C (DC4) ΓÇö receiver CHAIN hop. `_appEnvironmentService.OrderService.CreateOrderAsync()`
+             // used to emit Calls ΓåÆ IAppEnvironmentService: the aggregator that HOLDS the collaborator,
+diff --git a/src/DevContext.Core/Graph2/SymbolCanon.cs b/src/DevContext.Core/Graph2/SymbolCanon.cs
+index f9cb4fd..a941d03 100644
+--- a/src/DevContext.Core/Graph2/SymbolCanon.cs
++++ b/src/DevContext.Core/Graph2/SymbolCanon.cs
+@@ -148,6 +148,40 @@ public static class SymbolCanon
+     public static string MemberTitle(string typeCanonical, string memberName)
+         => ShortNameOf(typeCanonical) + "." + memberName;
+ 
++    /// <summary>True when a key is a MEMBER key ΓÇö it carries the member separator
++    /// (<c>Ns.Owner::Handle</c>, and with the BodyFacts arity suffix still on,
++    /// <c>Ns.Owner::Handle(2)</c>). One place answers that question, because the answer decides
++    /// whether a node may be minted as a <c>Type</c> (pre-release V1.3, backlog #7's rider).</summary>
++    public static bool IsMemberKey(string? key)
++        => !string.IsNullOrEmpty(key) && key.Contains(MemberSep, StringComparison.Ordinal);
++
++    /// <summary>True when text is source EXPRESSION or LAMBDA text rather than a NAME ΓÇö it carries
++    /// syntax no type reference can contain: <c>=</c> (so <c>=&gt;</c> too), a parenthesis, a brace,
++    /// a semicolon, a quote, or a newline/tab. The engine shipped ~76 Type nodes across nine poles
++    /// whose id AND title were raw source ΓÇö a 20-line DI lambda with its comments, <c>new
++    /// System.IO.StringWriter()</c>, <c>Config.GetApis()</c>, the string literal <c>"self"</c> ΓÇö
++    /// because a registration detection recorded the ARGUMENT EXPRESSION as a type name and the
++    /// graph trusted it (pre-release V1.3, backlog #18).
++    /// <para>The rule is deliberately about SYNTAX, not shape. A queue channel is keyed by its
++    /// display text on purpose (<c>feed-queue [AzureStorageQueue]</c>, B5/Prism D1.2d), so a
++    /// "must look like a type name" rule would delete real event wiring; the seven nodes in that
++    /// gap are named in the V1.3 evidence rather than swept up. A dotted expression carrying no
++    /// syntax at all (<c>type.Assembly</c>) is indistinguishable from a nested type here and is
++    /// not claimed to be caught.</para></summary>
++    public static bool IsExpressionText(string? text)
++    {
++        if (string.IsNullOrWhiteSpace(text)) return true;
++        foreach (var c in text)
++        {
++            switch (c)
++            {
++                case '=' or '(' or ')' or '{' or '}' or ';' or '"' or '\'' or '\n' or '\r' or '\t':
++                    return true;
++            }
++        }
++        return false;
++    }
++
+     /// <summary>Bare display short name of a canonical id's last segment ΓÇö nested chain and arity
+     /// marker stripped (<c>Ns.Outer.Inner`2</c> ΓåÆ <c>Inner</c>). For member keys, pass the owner
+     /// type through <see cref="OwnerTypeOf"/> first.</summary>

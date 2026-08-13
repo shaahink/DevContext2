@@ -1,0 +1,34 @@
+﻿V1.3 GRAPH INVARIANT PROBE
+  INV-A    no node has kind Type with a MEMBER id (key contains '::')
+  INV-B    no Type node key/title is expression text  [ENFORCED rule: expression syntax]
+  (wider)  Type key/title not type-name shaped        [DIAGNOSTIC only - channels live here]
+cli: C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli mtime: 2026-08-13T21:14:05
+
+POLE eShop              nodes   1112  Type    545   INV-A    0   INV-B    0   (wider    3)
+      w: <OnModelCreating> | title='<OnModelCreating>'
+      w: 2.0 | title='2.0'
+      w: 1.0 | title='1.0'
+
+POLE FluentValidation   nodes    318  Type    203   INV-A    0   INV-B    0   (wider    0)
+
+POLE AutoMapper         nodes    467  Type    258   INV-A    0   INV-B    0   (wider    0)
+
+POLE MediatR            nodes    172  Type    150   INV-A    0   INV-B    0   (wider    0)
+
+POLE CleanArchitecture  nodes    133  Type     87   INV-A    0   INV-B    0   (wider    1)
+      w: <OnModelCreating> | title='<OnModelCreating>'
+
+POLE dotnet-podcasts    nodes    333  Type    154   INV-A    0   INV-B    0   (wider    2)
+      w: <OnModelCreating> | title='<OnModelCreating>'
+      w: feed-queue [AzureStorageQueue] | title='feed-queue [AzureStorageQueue]'
+
+POLE Hangfire           nodes    903  Type    476   INV-A    0   INV-B    0   (wider    0)
+
+POLE TodoApi            nodes    117  Type     64   INV-A    0   INV-B    0   (wider    1)
+      w: <OnModelCreating> | title='<OnModelCreating>'
+
+POLE DevContext         nodes   1260  Type    484   INV-A    0   INV-B    0   (wider    0)
+
+=== TOTALS ===
+  nodes 4815   Type nodes 2421   INV-A 0   INV-B 0   (wider 7)
