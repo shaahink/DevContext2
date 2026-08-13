@@ -4,27 +4,28 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-STAGE T1 IS CLOSED — T1.1–T1.4 all DONE, and the phase-gate RED that followed them
-is FIXED in `fa7d4b6`. None of T1's own bars were involved: all thirteen wire-truth
-and eight partial-truth bars were green in BOTH red runs. Next stage is V1.
+STAGE T1 IS CLOSED. The phase-gate RED after it was **the battery, not T1's work** —
+all 13 wire-truth and 8 partial-truth bars were green in BOTH red runs. Two separate
+faults, the second hidden behind the first. Read
+eval-results/2026-08-13/t1-battery-fix/EVIDENCE.md. Next stage is V1.
 
-THE RED WAS THE BATTERY, NOT THE WORK. `eval/gates.ps1` died at exit 1 with the
-transcript cut at the Step 3 banner. `Get-FileHash` is a SCRIPT function in Windows
-PowerShell 5.1's Microsoft.PowerShell.Utility; PS7 ships a module of the same name
-and sits ahead of System32 on this machine's PSModulePath, so a conductor-spawned
-5.1 binds PS7's manifest and Get-FileHash is simply absent. Get-EngineStamp now uses
-.NET SHA256 — proven byte-identical (eval-results/2026-08-13/t1-battery-fix/, read
-EVIDENCE.md) — and a script-level trap turns any future abort into a named failure
-with exit 9 instead of a silent 1. **Run your battery through `conductor bg`, not
-your own shell:** an agent-launched battery inherits a clean environment and will
-not show you what the phase gate sees.
+1. `fa7d4b6` — Step 3 aborted before running anything: exit 1, transcript cut at the
+   banner. `Get-FileHash` is a SCRIPT function in Windows PowerShell 5.1's
+   Microsoft.PowerShell.Utility; PS7 ships a module of the same name and precedes
+   System32 on this PSModulePath, so a conductor-spawned 5.1 binds PS7's manifest and
+   the command does not exist. Get-EngineStamp now uses .NET SHA256, proven
+   byte-identical. A script-level trap now names any abort and exits 9, never 1.
+2. `5360be2` — with that gone the battery reached its end for the first time and
+   failed Step 5: `src/DevContext.App/node_modules` was absent. **Installed** (pnpm
+   install --frozen-lockfile, exit 0); Step 5 now names that cause instead of forty
+   lines of ng-lint noise. Steps 0–4b are green with a REAL step 3 (A 50/0, B 27/0).
 
-T1.4 = gates.ps1 **Step 2c**: a real MCP handshake, both probes, exit 2 on either.
-+~90s to full/engine scope, 0 to app. eval-results/2026-08-13/t1-wire-truth-gate/.
-MCP measurements on this machine can be served by the OTHER run's engine (hardcoded
-127.0.0.1:5179); every probe must require() eval/mcp-qa/server-identity.js, which
-fails anything not served by THIS repo's fresh build. To re-prove a red cheaply:
-eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs the step's own TEXT anywhere.
+**RUN YOUR BATTERY THROUGH `conductor bg`, NEVER YOUR OWN SHELL** — your environment
+is not the phase gate's, and this whole RED was invisible from an agent-launched one.
+`pnpm` only works via its PowerShell shim: `& pnpm ...` from a .ps1, never bare.
+Open: bug #2 — the eval stamp never transfers (Get-EngineStamp sweeps obj/, and
+sourcelink.json/AssemblyInfo.cs are rewritten on every build), so step 3 costs full
+price every run. Measured, filed, not fixed — do not change it inside a fix session.
 
 
 ## Baseline numbers (from run.db)
