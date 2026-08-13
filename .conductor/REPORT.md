@@ -1,17 +1,17 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 17:57 UTC · branch `feat/pre-release-desktop` · HEAD `c1da823`_
+_Updated 2026-08-13 18:15 UTC · branch `feat/pre-release-desktop` · HEAD `15ffaa5`_
 
 **Status:** Idle
-**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 1
+**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 0
 **Checkpoints:** 3/16 done · **Sessions run:** 3 · **Cost:** $22.9119 (agent $22.8406 + gates $0.0713) · **Tokens:** 390,511 in / 171,327 out
-**Pending:** full-battery phase gate for N0
+**Confirmed phases:** N0
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | gating… |
+| N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ░░░░░░░░░░ 0/2 | todo |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ░░░░░░░░░░ 0/2 | todo |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
@@ -98,11 +98,11 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
-| stage N0 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
-| 2026-08 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+| **run total** | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
+| stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
+| 2026-08 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 
-_Where the money goes: agent $16.92 (100%) · gate $0.05 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $22.84 (100%) · gate $0.07 (0%) · blended $0.77/M tokens._
 
 ## Timeline
 
@@ -125,6 +125,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 18:21:20  • session #3 N0 Fix started (attempt 2/4)
 08-13 18:56:57  ▪ gate fast-app pass [session]  (2m54s)
 08-13 18:56:58  ▪ gate guards pass [session]  (1m15s)
+08-13 18:57:04  • session #3 N0 → Progress · 3 commit(s)  (35m43s)
+08-13 19:15:27  ▪ gate fast-app pass [phase]  (6m32s)
+08-13 19:15:27  ▪ gate guards pass [phase]  (1m41s)
+08-13 19:15:27  ▪ gate battery pass [phase]  (10m07s)
+08-13 19:15:27  ✓ checkpoint N0.1 confirmed
+08-13 19:15:27  ✓ checkpoint N0.2 confirmed
+08-13 19:15:27  ✓ checkpoint N0.3 confirmed
 ```
 
 ## Health
@@ -142,7 +149,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -162,7 +169,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:OK
 
 ## Last session result
 
