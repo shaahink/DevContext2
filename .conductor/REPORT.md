@@ -1,10 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 17:21 UTC · branch `feat/pre-release-desktop` · HEAD `d57b59d`_
+_Updated 2026-08-13 17:57 UTC · branch `feat/pre-release-desktop` · HEAD `c1da823`_
 
 **Status:** Idle
 **Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 1
-**Checkpoints:** 3/16 done · **Sessions run:** 2 · **Cost:** $16.9640 (agent $16.9176 + gates $0.0463) · **Tokens:** 277,762 in / 116,504 out
+**Checkpoints:** 3/16 done · **Sessions run:** 3 · **Cost:** $22.9119 (agent $22.8406 + gates $0.0713) · **Tokens:** 390,511 in / 171,327 out
+**Pending:** full-battery phase gate for N0
 
 ## Stage progress
 
@@ -89,6 +90,7 @@ _Updated 2026-08-13 17:21 UTC · branch `feat/pre-release-desktop` · HEAD `d57b
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | N0 | Deliver | 1 | 08-13 16:16 | 0:35 | Advanced | N0.1 N0.2 | 3 | fast-app:OK · guards:OK | $12.1600 | $0.0273 | 177,163/77,582 |
 | 2 | N0 | Deliver | 1 | 08-13 16:56 | 0:15 | Advanced | N0.3 | 2 | fast-app:OK · guards:OK | $4.7577 | $0.0190 | 100,599/38,922 |
+| 3 | N0 | Fix | 2 | 08-13 17:21 | 0:31 | Progress |  | 3 | fast-app:OK · guards:OK | $5.9230 | $0.0250 | 112,749/54,823 |
 
 ## Money
 
@@ -120,6 +122,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 18:21:16  ▪ gate fast-app pass [phase]  (3m08s)
 08-13 18:21:16  ▪ gate guards pass [phase]  (1m35s)
 08-13 18:21:16  ▪ gate battery FAIL [phase]  (41.3s)
+08-13 18:21:20  • session #3 N0 Fix started (attempt 2/4)
+08-13 18:56:57  ▪ gate fast-app pass [session]  (2m54s)
+08-13 18:56:58  ▪ gate guards pass [session]  (1m15s)
 ```
 
 ## Health
@@ -127,7 +132,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 2 · retries 0 (0 %) · overall Ok
+sessions 3 · retries 1 (33 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -137,7 +142,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, ?? eval-results/2026-08-13/mcp-qa.md
+working tree: clean
 vs upstream: up to date
 ```
 
@@ -150,55 +155,44 @@ vs upstream: up to date
 - **s2 (N0 Deliver)** — 2 commit(s):
   - [`1097e7a`](https://github.com/shaahink/DevContext2/commit/1097e7a) docs(tracker): N0 closed - handoff points at N1.1 and names the four backlog entries it should read instead of re-measuring
   - [`823de02`](https://github.com/shaahink/DevContext2/commit/823de02) docs(backlog): N0.3 - the 3.F inventory filed with re-measured loci, and the pages get their smoke coverage
+- **s3 (N0 Fix)** — 3 commit(s):
+  - [`c1da823`](https://github.com/shaahink/DevContext2/commit/c1da823) docs(tracker): N0 phase gate is GREEN - both reds were pre-existing, neither was N0's
+  - [`32639c6`](https://github.com/shaahink/DevContext2/commit/32639c6) fix(app-tests): pay the elkjs bootstrap in a hook, not in the first assertion
+  - [`5fd9911`](https://github.com/shaahink/DevContext2/commit/5fd9911) fix(gates): Step 3 no longer dies on Get-FileHash under a pwsh-7 parent
 
 ## Last gate run
 
-fast-app:OK · guards:OK · battery:FAIL-retry
-
-<details><summary>battery — exit 1</summary>
-
-```
-[conductor] retried once (SC4.1): the first attempt exited 1 after 69s. Below is the SECOND run.
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 0 orphaned process(es)
-
---- Step 1: Build solution ---
-  PASS  Build succeeded
-
---- Step 1a: Contract sweep (dead proto fields) ---
-  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
-
---- Step 2: Fast unit tests ---
-  PASS  Fast tests passed
-
---- Step 2b: MCP QA gate (serial) ---
-  PASS  MCP QA gate passed
-
---- Step 3: Eval expectation tests ---
-```
-</details>
+fast-app:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **N0.3 landed and claimed** (`conductor task --done N0.3`, commit `823de02`; handoff `1097e7a`; branch `feat/pre-release-desktop` pushed, tree clean) — which closes stage N0 entirely (N0.1/N0.2/N0.3). Two deliverables: (1) the audit's §3.F 16-item truth inventory is now a durable triaged record in `docs/dev/research/BUG-BACKLOG.md` — six new open entries plus the engine bug N0.1 found (24 open → 31; #26 pins-never-read and #28 verification-verifies-an-unbuilt-pack are the two new HIGHs), with **every locus re-measured today rather than copied from the audit prose** — that measurement caught real detail the prose didn't have: `verifyPack` hands the *full* budget to every focus…
+> SESSION-RESULT: The N0 phase gate is GREEN — full battery, full form, `GATE: PASS`, with Step 3 running **uncached** (50 passed/9 skipped and 27 passed/1 skipped across both hosts, exit 0/0), Steps 4/4b CLI green and Step 5 `pnpm check` green; log `.conductor/bg-logs/battery-final-*`, evidence `eval-results/2026-08-13/N0-battery-red-gate-script.md`. I fixed two unrelated defects, both of which predate this stage: `5fd9911` makes `eval/gates.ps1` hash via `[System.Security.Cryptography.SHA256]` instead of `Get-FileHash`, which Windows PowerShell 5.1 resolves as a module function through `PSModulePath` and therefore cannot find when the battery is launched from a pwsh-7 parent (Conductor) — pr…
 
 ## Tracker handoff
 
 ```
-STAGE N0 IS CLOSED — N0.1 (36bf916), N0.2 (98c5067), N0.3 (823de02), evidence in
-eval-results/2026-08-13/. START AT N1.1 (Studio truth pass).
-DO NOT re-measure the four things N1.1 needs — N0.3 already did, with today's loci:
-BUG-BACKLOG.md #28 (verification: full budget per focus at context-studio.ts:216 vs the
-build's proportional slice at ContextPackBuilder.cs:533/546, plus the card `wanted`
-filter at :581, plus dead `checkedAt`), #27 (bodyEnabled's complete reader list — it is
-an icon and an opacity), #29 (no effect() in context-studio.ts at all; cards never keyed
-to the handle), #31 (CardTypeSections' 9 keys == the card-type union). Read those four
-entries, then edit. Verified/Approx now SUM across a multi-entry merge
-(ContextPackBuilder.cs:583-601), so per-card verified/approx has real data to render.
+STAGE N0 IS CLOSED AND THE BATTERY IS GREEN — `GATE: PASS`, full form, uncached eval
+(77 passed / 10 skipped over two hosts), log `.conductor/bg-logs/battery-final-*`,
+evidence `eval-results/2026-08-13/N0-battery-red-gate-script.md`. START AT N1.1.
+The phase-gate red was NEVER N0's work — two unrelated pre-existing defects, both fixed:
+(1) 5fd9911 — gates.ps1 Step 3 died on `Get-FileHash`, which in Windows PowerShell 5.1 is
+a MODULE FUNCTION resolved via PSModulePath; from a pwsh-7 parent (Conductor) the 5.1 child
+autoloads PS7's Utility module and the name vanishes. NEVER call module-autoloaded cmdlets
+in a gate script — AGENTS.md §Gate battery now says so. (2) 32639c6 — graph-layout.spec.ts
+paid elkjs's ~1.4MB lazy `import()` inside one test's 5000ms clock; warm-up hoisted to
+`beforeAll`. Nothing was weakened: no test deleted/skipped, no expectation relaxed.
+N1.1 STILL NEEDS NO RE-MEASURING — read BUG-BACKLOG.md #28 (verification: full budget per
+focus at context-studio.ts:216 vs the build's proportional slice at
+ContextPackBuilder.cs:533/546, plus the card `wanted` filter at :581, plus dead
+`checkedAt`), #27 (bodyEnabled = an icon and an opacity), #29 (no effect() in
+context-studio.ts; cards never keyed to the handle), #31 (CardTypeSections' 9 keys ==
+the card-type union). Verified/Approx now SUM across a multi-entry merge
+(ContextPackBuilder.cs:583-601), so per-card provenance has real data to render.
 TEST LOOP TRAP: `pnpm vitest run <spec>` fails with "Need to call
-TestBed.initTestEnvironment()" — the setup file only loads through the Angular builder.
-Use `pnpm exec ng test --watch=false --include=src/app/.../x.spec.ts` (~18s); full
-`pnpm test` is ~50s / 173 tests. Prior traps still stand: `conductor bg start -- pnpm`
-dies on the corepack shim (run pnpm foreground); N4.1 should EXTEND GetMcpStatus, not
-add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
+TestBed.initTestEnvironment()" — use `pnpm exec ng test --watch=false --include=<spec>`
+(~18s); full `pnpm test` is ~11s idle but 90s under battery load. `conductor bg start --
+pnpm` dies on the corepack shim (run pnpm foreground). Open: bug #1 (negative budget for
+the last focus), bug #2 (the eval stamp cache never hits — Get-EngineStamp hashes bin/obj,
+which Step 1 rewrites, so Step 3 re-runs its ~6 min every battery). N4.1 should EXTEND
+GetMcpStatus, not add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
 ```
