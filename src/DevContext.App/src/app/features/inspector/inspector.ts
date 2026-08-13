@@ -209,7 +209,7 @@ function isAlphanumeric(c: string): boolean {
             <span class="shrink-0 text-2xs text-ink-subtle">{{ step.depth === 0 ? '⌂' : step.depth > selectionDepth() ? '↳' : '·' }}</span>
             <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
             @if (step.provenance) {
-              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1" [title]="step.provenance">{{ relProvenance(step.provenance) }}</span>
+              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1" [title]="step.provenance">{{ relProvenance(step) }}</span>
             }
           </div>
         }
@@ -330,12 +330,15 @@ export class Inspector {
     return repoRelativePath(filePath, this.workspace.activeTab()?.path);
   }
 
-  /** Same, for `path:line` provenance strings (Call Stack rows). */
-  protected relProvenance(provenance: string): string {
-    const idx = provenance.lastIndexOf(':');
-    const path = idx > 1 ? provenance.slice(0, idx) : provenance;
-    const line = idx > 1 ? provenance.slice(idx) : '';
-    return repoRelativePath(path, this.workspace.activeTab()?.path) + line;
+  /** Same, for a Call Stack row's provenance site. M1.1 — the wire now carries the site split
+   * (`filePath`/`lineNumber`), so this no longer guesses which colon ends a drive letter; the
+   * string fallback stays for steps whose provenance is a bare path with no line. */
+  protected relProvenance(step: TraceNodeVm): string {
+    const root = this.workspace.activeTab()?.path;
+    if (step.filePath) {
+      return repoRelativePath(step.filePath, root) + (step.lineNumber ? `:${step.lineNumber}` : '');
+    }
+    return repoRelativePath(step.provenance ?? '', root);
   }
 
   /** §3.4 impact lens. Null (not 0) when no node is selected — `count` can legitimately

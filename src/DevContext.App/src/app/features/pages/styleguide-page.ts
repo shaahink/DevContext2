@@ -45,6 +45,10 @@ const MOCK_TRACE: TraceNodeVm = {
   resolution: 'Semantic',
   truncated: false,
   omitted: 0,
+  omittedNames: [],
+  multiImplCount: 0,
+  diHostCount: 0,
+  testOnly: false,
   tags: [],
   children: [
     {
@@ -56,6 +60,12 @@ const MOCK_TRACE: TraceNodeVm = {
       resolution: 'Semantic',
       truncated: false,
       omitted: 0,
+      omittedNames: [],
+      // M1.1 — a Resolves step DI can bind more than one way. The styleguide shows the
+      // annotations so a reviewer can see what "honest about the wiring" looks like.
+      multiImplCount: 3,
+      diHostCount: 0,
+      testOnly: true,
       tags: [],
       children: [
         {
@@ -67,6 +77,10 @@ const MOCK_TRACE: TraceNodeVm = {
           resolution: 'Syntactic',
           truncated: true,
           omitted: 2,
+          omittedNames: ['PricingService.Handle', 'AuditService.Handle'],
+          multiImplCount: 0,
+          diHostCount: 0,
+          testOnly: false,
           tags: [],
           children: [],
         },

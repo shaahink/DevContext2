@@ -1,4 +1,5 @@
 using DevContext.Core.Insights;
+using DevContext.Core.Rendering;
 using DevContext.Server.Sessions;
 
 using Proto = DevContext.Protos;
@@ -828,8 +829,24 @@ internal static class ProtoMapper
             Resolution = step.Resolution.ToString(),
             Truncated = step.Truncated,
             Omitted = step.Omitted,
+            // M1.1 item 4 — the four honesty annotations the CLI has always rendered and the wire
+            // dropped. Zero/false/empty carry the same "nothing to say" meaning they do in Core.
+            MultiImplCount = step.MultiImplCount,
+            DiHostCount = step.DiHostCount,
+            TestOnly = step.TestOnly,
         };
-        if (step.Provenance is { } prov) node.Provenance = prov;
+        if (step.Provenance is { } prov)
+        {
+            node.Provenance = prov;
+            // M1.1 item 1 — the same site as data. One parse, in Core, beside the rule that formats it.
+            var (path, line) = PathDisplay.SplitProvenance(prov);
+            if (line is { } n)
+            {
+                node.FilePath = path;
+                node.LineNumber = n;
+            }
+        }
+        if (!step.OmittedNames.IsDefaultOrEmpty) node.OmittedNames.AddRange(step.OmittedNames);
         if (!step.Salient.IsDefaultOrEmpty) node.Salient = string.Join('\n', step.Salient);
         node.Tags.AddRange(step.Node.Tags);
         if (!step.Pipeline.IsDefaultOrEmpty) node.Pipeline.AddRange(step.Pipeline);

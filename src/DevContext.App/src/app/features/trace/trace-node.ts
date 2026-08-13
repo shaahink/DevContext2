@@ -19,7 +19,19 @@ import { SeamChip } from '../../ui/seam-chip/seam-chip';
             @if (node().resolution === 'Syntactic') { <app-badge variant="warn">approx</app-badge> }
             @if (node().resolution === 'Semantic') { <app-badge variant="success">verified</app-badge> }
             @if (node().truncated) { <app-badge variant="default">truncated</app-badge> }
-            @if (node().omitted > 0) { <span class="text-ink-subtle">{{ node().omitted }} omitted</span> }
+            @if (node().omitted > 0) { <span class="text-ink-subtle">{{ omittedLabel() }}</span> }
+            <!-- M1.1 - the three DI honesty annotations the CLI has rendered since I1.6/C5/T2.1.
+                 They were computed, they rode Core, and the wire dropped them; the app showed a
+                 resolve step as if it were the only binding. -->
+            @if (node().multiImplCount > 1) {
+              <app-badge variant="warn" title="Dependency injection has this many implementations for this service type">{{ node().multiImplCount }} impls</app-badge>
+            }
+            @if (node().diHostCount > 1) {
+              <app-badge variant="warn" title="Registered by this many hosts, none of them the traced host - the cited site is the deterministic first">{{ node().diHostCount }} hosts</app-badge>
+            }
+            @if (node().testOnly) {
+              <app-badge variant="warn" title="This binding comes only from a test project - it is not the production wiring">test-only</app-badge>
+            }
           </div>
         </div>
       </div>
@@ -77,6 +89,17 @@ export class TraceNodeComponent {
   private readonly expanded = signal<ReadonlySet<string>>(new Set());
 
   protected readonly displayedChildren = computed(() => groupServiceHops(this.node().children));
+
+  /** M1.1 — CLI parity for the truncation marker. The count alone says something was cut; the
+   * names say whether it mattered and where to point the next trace. Ellipsis when the engine
+   * capped the name list below the omitted count (TraceBuilder.MaxOmittedNames). */
+  protected readonly omittedLabel = computed(() => {
+    const n = this.node();
+    const names = n.omittedNames;
+    if (names.length === 0) return `${n.omitted} omitted`;
+    const tail = names.length < n.omitted ? ', …' : '';
+    return `${n.omitted} omitted: ${names.join(', ')}${tail}`;
+  });
 
   protected isOpen(id: string): boolean {
     return this.expanded().has(id);

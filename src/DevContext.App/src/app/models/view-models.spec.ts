@@ -1,8 +1,15 @@
 import { create } from '@bufbuild/protobuf';
 import { describe, expect, it } from 'vitest';
 
-import { EntryPointSchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
-import { groupEntries, groupServiceHops, isServiceHopGroup, toEntryVm, type TraceNodeVm } from './view-models';
+import { EntryPointSchema, TraceNodeSchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import {
+  groupEntries,
+  groupServiceHops,
+  isServiceHopGroup,
+  toEntryVm,
+  toTraceVm,
+  type TraceNodeVm,
+} from './view-models';
 
 function ep(init: {
   kind: string;
@@ -37,6 +44,45 @@ describe('view-models', () => {
   });
 });
 
+describe('toTraceVm (M1.1 — the wire fields the mapper used to drop)', () => {
+  it('carries structured provenance and the four honesty fields, recursively', () => {
+    const wire = create(TraceNodeSchema, {
+      nodeId: 'Method:OrdersApi.Create',
+      title: 'OrdersApi.Create',
+      kind: 'Method',
+      seam: 'Entry',
+      provenance: 'C:/repo/src/OrdersApi.cs:47',
+      filePath: 'C:/repo/src/OrdersApi.cs',
+      lineNumber: 47,
+      truncated: true,
+      omitted: 6,
+      omittedNames: ['PricingService', 'AuditService'],
+      multiImplCount: 3,
+      diHostCount: 2,
+      testOnly: true,
+      children: [
+        create(TraceNodeSchema, { nodeId: 'Method:Child', title: 'Child', omitted: 1, omittedNames: ['Deep'] }),
+      ],
+    });
+
+    const vm = toTraceVm(wire);
+    expect(vm.filePath).toBe('C:/repo/src/OrdersApi.cs');
+    expect(vm.lineNumber).toBe(47);
+    expect(vm.omittedNames).toEqual(['PricingService', 'AuditService']);
+    expect(vm.multiImplCount).toBe(3);
+    expect(vm.diHostCount).toBe(2);
+    expect(vm.testOnly).toBe(true);
+    expect(vm.children[0]?.omittedNames).toEqual(['Deep']);
+  });
+
+  it('leaves the site undefined when the server could not split it — no invented line 0', () => {
+    const vm = toTraceVm(create(TraceNodeSchema, { nodeId: 'n', title: 'n', provenance: 'C:/repo/src/X.cs' }));
+    expect(vm.filePath).toBeUndefined();
+    expect(vm.lineNumber).toBeUndefined();
+    expect(vm.omittedNames).toEqual([]);
+  });
+});
+
 function tn(init: Partial<TraceNodeVm> & { id: string; title: string; seam: string }): TraceNodeVm {
   return {
     kind: 'Type',
@@ -44,6 +90,10 @@ function tn(init: Partial<TraceNodeVm> & { id: string; title: string; seam: stri
     resolution: 'Semantic',
     truncated: false,
     omitted: 0,
+    omittedNames: [],
+    multiImplCount: 0,
+    diHostCount: 0,
+    testOnly: false,
     tags: [],
     children: [],
     ...init,

@@ -389,6 +389,17 @@ message TraceNode {
   repeated TraceNode children = 13;
   optional string layer = 14;     // D9: architectural layer
   optional string feature = 15;   // D9: feature area
+  // M1.1 — structured provenance. `provenance` is the "file:line" TEXT; these two are the same
+  // site as data, so a client never has to guess where the drive-letter colon ends and the line
+  // colon begins. Absent when the step has no provenance or it did not parse as file:line.
+  optional string file_path = 16;
+  optional int32 line_number = 17;
+  // M1.1 — the honesty annotations the CLI has rendered since Batch E / I1.6 / C5 / T2.1 and the
+  // wire dropped on the floor (TraceRenderer renders all four; ProtoMapper mapped none).
+  repeated string omitted_names = 18;   // WHO was cut, up to TraceBuilder.MaxOmittedNames
+  int32 multi_impl_count = 19;          // >1: DI has this many impls for this Resolves step
+  int32 di_host_count = 20;             // >1: N hosts register it and none is the focus host
+  bool test_only = 21;                  // the binding comes only from a test project
 }
 
 // ---------------------------------------------------------------------------

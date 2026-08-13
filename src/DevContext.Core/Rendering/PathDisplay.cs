@@ -38,13 +38,23 @@ public static class PathDisplay
     {
         if (string.IsNullOrEmpty(provenance)) return provenance;
 
-        var colon = provenance.LastIndexOf(':');
-        if (colon > 1 && int.TryParse(provenance[(colon + 1)..], out _))
-        {
-            var path = provenance[..colon];
-            var line = provenance[colon..];
-            return Relative(basePath, path) + line;
-        }
+        if (SplitProvenance(provenance) is var (path, line) && line is not null)
+            return Relative(basePath, path) + ":" + line;
         return Relative(basePath, provenance);
+    }
+
+    /// <summary>M1.1 — the same "file:line" rule as <see cref="RelativeProvenance"/>, but returning the
+    /// two halves as DATA. Every surface that wants the site structured (the wire's
+    /// <c>TraceNode.file_path</c>/<c>line_number</c>, and so every client that would otherwise
+    /// re-invent the split) goes through here, so the drive-letter-colon rule lives in one place.
+    /// Line is null when the string is a bare path or the suffix is not a number.</summary>
+    public static (string Path, int? Line) SplitProvenance(string? provenance)
+    {
+        if (string.IsNullOrEmpty(provenance)) return ("", null);
+
+        var colon = provenance.LastIndexOf(':');
+        if (colon > 1 && int.TryParse(provenance[(colon + 1)..], out var line))
+            return (provenance[..colon], line);
+        return (provenance, null);
     }
 }

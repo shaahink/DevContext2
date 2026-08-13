@@ -1,4 +1,4 @@
-# DevContext pre-release - desktop agent loop Phase Tracker
+﻿# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
@@ -19,13 +19,14 @@ it resolves to a stale corepack shim. Loop: pnpm check green 202/202. New bug #5
 nothing: 58 of FluentValidation's 90 public types have zero in-repo usages, so their usage card is
 silently empty). Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
 
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
 | Done | 5 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -52,7 +53,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | DONE | 104c9d0 | eval-results/2026-08-13/N2.1-pack-convergence.md |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | IN PROGRESS | - | - |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | DONE | aab7cf3 | eval-results/2026-08-13/N2.2-honesty-parity.md |
 
 ### M1 — Hygiene + Reader prerequisites (proto/mapper shopping list)
 
