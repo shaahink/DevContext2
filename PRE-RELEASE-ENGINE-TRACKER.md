@@ -2,30 +2,24 @@
 
 **Plan:** DevContext pre-release - engine and agent face | **Branch:** `feat/pre-release-engine` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
-## Handoff (overwrite this block, ≤12 lines, no history)
+## Handoff (overwrite this block, <=12 lines, no history)
 
-STAGE T1 IS CLOSED. The phase-gate RED after it was **the battery, not T1's work** —
-all 13 wire-truth and 8 partial-truth bars were green in BOTH red runs. Two separate
-faults, the second hidden behind the first. Read
-eval-results/2026-08-13/t1-battery-fix/EVIDENCE.md. Next stage is V1.
+V1.1 IS DONE (`c0a22e8`, evidence eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md).
+ONE definition of a verified edge now lives in `src/DevContext.Core/Graph/EdgeConfidence.cs`
+(Verified=Semantic, Joined=Join, Approximate=Syntactic; Confidence is a SEPARATE axis and
+stays out of the tier). The app mirrors it in `edgeTier()` in `src/DevContext.App/src/app/
+core/format.ts`. **loom-guards rule 9** now fails any tier verdict decided outside those two.
+Measured on this repo with a pre-change CLI built in a worktree at HEAD: graphdump
+BYTE-IDENTICAL (zero graph movement) while 45/283 "verified" edges were not -- Resolves
+14->0, ServiceLink 1->0, Calls 268->238 of 1379. That is E1's currency, now honest.
 
-1. `fa7d4b6` — Step 3 aborted before running anything: exit 1, transcript cut at the
-   banner. `Get-FileHash` is a SCRIPT function in Windows PowerShell 5.1's
-   Microsoft.PowerShell.Utility; PS7 ships a module of the same name and precedes
-   System32 on this PSModulePath, so a conductor-spawned 5.1 binds PS7's manifest and
-   the command does not exist. Get-EngineStamp now uses .NET SHA256, proven
-   byte-identical. A script-level trap now names any abort and exits 9, never 1.
-2. `5360be2` — with that gone the battery reached its end for the first time and
-   failed Step 5: `src/DevContext.App/node_modules` was absent. **Installed** (pnpm
-   install --frozen-lockfile, exit 0); Step 5 now names that cause instead of forty
-   lines of ng-lint noise. Steps 0–4b are green with a REAL step 3 (A 50/0, B 27/0).
-
-**RUN YOUR BATTERY THROUGH `conductor bg`, NEVER YOUR OWN SHELL** — your environment
-is not the phase gate's, and this whole RED was invisible from an agent-launched one.
-`pnpm` only works via its PowerShell shim: `& pnpm ...` from a .ps1, never bare.
-Open: bug #2 — the eval stamp never transfers (Get-EngineStamp sweeps obj/, and
-sourcelink.json/AssemblyInfo.cs are rewritten on every build), so step 3 costs full
-price every run. Measured, filed, not fixed — do not change it inside a fix session.
+NEXT: V1.2 (#17, two Member-title vocabularies -- 343 owner-qualified vs 627 bare, wants one
+helper next to `SymbolCanon`; producers split between GraphBuilder.EntryPoints/* and
+GraphBuilder.Seams.cs) then V1.3 (the #7-rider and #18 invariants, red-first).
+TRAPS PAID FOR: `query` takes its OP POSITIONALLY (`query stats --path X`); PS 5.1 `>` writes
+UTF-16 -- use `Out-File -Encoding utf8`; an Angular template cannot call an imported function
+(`protected readonly x = x;`); `McpQaGateTests` is a FALSE red on the first run after a Core
+change (backlog #1) -- it passes on re-run.
 
 
 ## Baseline numbers (from run.db)
