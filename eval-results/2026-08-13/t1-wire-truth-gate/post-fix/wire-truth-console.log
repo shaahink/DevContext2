@@ -1,0 +1,25 @@
+wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\server-identity.json
+  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 25344, started 2026-08-13T17:36:52.6868899Z)
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\tools-list.json
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\wire-truth.json
+
+  tools: 14 | described: 14 | params: 52/52 described
+  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
+
+  PASS  every tool on the wire has a non-empty description - all described
+  PASS  every tool parameter on the wire has a description - all described
+  PASS  tools/list is non-empty - 14 tools
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
+  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\enum-dials.json
+  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\wire-truth.json
+
+wire-truth: GREEN

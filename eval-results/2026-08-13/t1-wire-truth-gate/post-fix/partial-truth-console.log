@@ -1,0 +1,23 @@
+partial-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  repo: C:\Code\DevContext2-engine\eval-repos\TodoApi
+  out:  C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix
+
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\server-identity.json
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 36216, started 2026-08-13T17:37:08.5016318Z)
+  handle: cfe41cf219a841558b0a91b96381d8e2
+
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\entry-roundtrip.json
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\trace-by-nodeid.json
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\elision-honesty.json
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\transcript.json
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\post-fix\partial-truth.json
+
+partial-truth: GREEN

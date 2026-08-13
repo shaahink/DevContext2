@@ -8,6 +8,7 @@
 // Writes:
 //   <outDir>/tools-list.json      the RAW tools/list result, verbatim
 //   <outDir>/wire-truth.json      the derived measurement (per-tool description + schema sizes)
+//   <outDir>/enum-dials.json      every out-of-range enum call and the envelope it got back
 // Prints PASS/FAIL lines and exits non-zero on any FAIL, so it can be lifted into the battery.
 
 const { spawn } = require("child_process");
@@ -15,13 +16,15 @@ const { join, resolve } = require("path");
 const { createInterface } = require("readline");
 const { existsSync, mkdirSync, writeFileSync } = require("fs");
 
+const { ENDPOINT, probeEnv, verifyServerIdentity } = require("./server-identity");
+
 const REPO_ROOT = join(__dirname, "..", "..");
 const OUT_DIR = resolve(process.argv[2]
   ?? join(REPO_ROOT, "eval-results", new Date().toISOString().slice(0, 10), "t1-wire-truth"));
 const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
 
 function mcpClient(exePath) {
-  const proc = spawn(exePath, [], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+  const proc = spawn(exePath, [], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true, env: probeEnv() });
   const rl = createInterface({ input: proc.stdout, crlfDelay: Infinity });
   let nextId = 1;
   const pending = new Map();
@@ -50,7 +53,19 @@ function mcpClient(exePath) {
   function notify(method, params = {}) {
     proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", method, params }) + "\n");
   }
-  return { call, notify, close: () => { rl.close(); proc.kill(); } };
+  // Close stdin FIRST and give the host a moment: proc.kill() alone orphans the DevContext.Server
+  // this MCP spawned, and that orphan holds DevContext.Core.dll — the next `dotnet build` then dies
+  // MSB3027. Measured twice in T1.3; the kill is only the backstop for a host that ignores EOF.
+  async function close() {
+    rl.close();
+    proc.stdin.end();
+    await new Promise((res) => {
+      const t = setTimeout(res, 5000);
+      proc.once("exit", () => { clearTimeout(t); res(); });
+    });
+    if (proc.exitCode === null) proc.kill();
+  }
+  return { call, notify, close };
 }
 
 function dump(name, obj) {
@@ -88,6 +103,12 @@ function sizeOf(obj) {
     }, 180000);
     if (init.error) throw new Error(`init failed: ${JSON.stringify(init.error)}`);
     client.notify("notifications/initialized", {});
+
+    // Before any verdict: WHICH engine answered? (see server-identity.js — a probe served by
+    // another checkout's build reported this repo's fixes as still broken.)
+    const identity = await verifyServerIdentity(ENDPOINT, REPO_ROOT);
+    dump("server-identity.json", { endpoint: ENDPOINT, ...identity });
+    check("the server answering is THIS repo's fresh build", identity.ok, identity.detail);
 
     const listed = await client.call("tools/list", {}, 60000);
     if (listed.error) throw new Error(`tools/list failed: ${JSON.stringify(listed.error)}`);
@@ -181,11 +202,52 @@ function sizeOf(obj) {
       !Object.keys(unkBody?.specialistTools ?? {}).some((n) => listedNames.includes(n)),
       "menu and specialists are disjoint");
 
+    // T1.3 #10 — the enum dials. Folded in here from the T1.3 spot probe (which lived under
+    // eval-results/, where no gate could ever reach it) because the T1.4 bar is "invalid
+    // mode/direction/format rejected" and one of those three was never gated. Costs nothing:
+    // every case below is answered BEFORE ResolveHandle, so no analyze is needed.
+    // The two null-param cases are the control: a valid value must still reach the real code path
+    // (it fails on "no session", a DIFFERENT error) — otherwise a guard that rejects everything
+    // would score as a pass.
+    const ENUM_CASES = [
+      ["read_source", { query: "X", mode: "full" }, "mode"],
+      ["neighbors", { query: "X", direction: "sideways" }, "direction"],
+      ["impact", { query: "X", direction: "sideways" }, "direction"],
+      ["trace", { focus: "X", format: "verbose" }, "format"],
+      ["get_context", { focus: "X", intent: "summarise" }, "intent"],
+      ["read_source", { query: "X", mode: "member" }, null],
+      ["impact", { query: "X", direction: "both" }, null],
+    ];
+    const enumRows = [];
+    for (const [name, args, param] of ENUM_CASES) {
+      const r = await client.call("tools/call", { name, arguments: args }, 60000);
+      const text = (r.result?.content ?? []).map((c) => c.text ?? "").join("");
+      let body = null;
+      try { body = JSON.parse(text); } catch { /* plain text reply */ }
+      const rejected = typeof body?.error === "string" && body.error.startsWith("Invalid ");
+      enumRows.push({
+        tool: name, arguments: args, dial: param,
+        expect: param ? `reject ${param}` : "pass the guard",
+        ok: param ? rejected : !rejected, reply: body ?? text,
+      });
+    }
+    dump("enum-dials.json", enumRows);
+    const enumBad = enumRows.filter((r) => !r.ok);
+    check("every out-of-range enum dial is rejected, not silently re-read",
+      enumBad.filter((r) => r.dial).length === 0,
+      enumBad.filter((r) => r.dial).map((r) => `${r.tool}.${r.dial}=${r.arguments[r.dial]}`).join(" | ")
+        || `${enumRows.filter((r) => r.dial).length} dials reject`);
+    check("a VALID enum value still reaches the real code path (the guard is not a blanket reject)",
+      enumBad.filter((r) => !r.dial).length === 0,
+      enumBad.filter((r) => !r.dial).map((r) => `${r.tool} ${JSON.stringify(r.arguments)}`).join(" | ")
+        || "valid values pass the guard");
+
     measurement.advertised = listedNames;
     measurement.specialists = unkBody?.specialistTools ?? null;
+    measurement.enumDials = enumRows;
     dump("wire-truth.json", measurement);
   } finally {
-    client.close();
+    await client.close();
   }
   console.log(failed === 0 ? "\nwire-truth: GREEN" : `\nwire-truth: RED (${failed} failed)`);
 })().catch((e) => { console.error(e); process.exit(1); });

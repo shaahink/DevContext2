@@ -1,0 +1,23 @@
+wire-truth: C:\Code\DevContext2-prefix-t1\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\tools-list.json
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\wire-truth.json
+
+  tools: 22 | described: 0 | params: 0/68 described
+  tools/list payload: 6055 chars (~1514 tokens), 275 chars/tool
+
+  FAIL  every tool on the wire has a non-empty description - top_flows seam tests_for impact list_sessions verify_context get_context status trace read_source close_session overview resolve stats analyze find usages entrypoints node neighbors config map
+  FAIL  every tool parameter on the wire has a description - top_flows(handle) seam(handle,from,to,maxDepth,maxPaths) tests_for(handle,nodeId,maxDepth,query) impact(handle,nodeId,maxDepth,direction,files,query) verify_context(handle,focus,budgetTokens,query) get_context(handle,focus,budgetTokens,intent,query) status(handle) trace(handle,focus,depth,format,query,budgetTokens) read_source(handle,nodeId,windowLines,mode,query) close_session(handle) overview(handle) resolve(handle,query,limit) stats(handle) analyze(path,sln) find(handle,query,kind,limit,cursor) usages(handle,nodeId,query) entrypoints(handle,kind,full,top) node(handle,nodeId,query) neighbors(handle,nodeId,direction,query,kind) config(handle,key) map(handle)
+  PASS  tools/list is non-empty - 22 tools
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (listed) -> {"count":0,"sessions":[]}
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 22 vs 22
+  FAIL  the envelope names the unlisted specialists, each with what it answers - none named
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\enum-dials.json
+  FAIL  every out-of-range enum dial is rejected, not silently re-read - read_source.mode=full | neighbors.direction=sideways | impact.direction=sideways | trace.format=verbose | get_context.intent=summarise
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Code\DevContext2-engine\eval-results\2026-08-13\t1-wire-truth-gate\pre-fix\wire-truth.json
+
+wire-truth: RED (4 failed)

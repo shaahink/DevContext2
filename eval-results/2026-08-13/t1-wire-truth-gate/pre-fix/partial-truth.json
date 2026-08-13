@@ -1,0 +1,57 @@
+{
+  "measuredAt": "2026-08-13T17:25:16.186Z",
+  "mcpExe": "C:\\Code\\DevContext2-prefix-t1\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+  "repo": "C:\\Code\\DevContext2-engine\\eval-repos\\TodoApi",
+  "handle": "9bd34f994c974b0f962293404e59a028",
+  "checks": [
+    {
+      "bug": 2,
+      "label": "every entrypoints title resolves in get_context AND trace",
+      "ok": true,
+      "detail": "12 titles round-tripped"
+    },
+    {
+      "bug": 6,
+      "label": "trace(nodeId) never renders a phantom whose title IS its kind",
+      "ok": true,
+      "detail": "12 nodeIds"
+    },
+    {
+      "bug": 6,
+      "label": "a found:true trace with 0 steps says WHY (note) instead of an empty tree",
+      "ok": true,
+      "detail": "no silent empty trace"
+    },
+    {
+      "bug": 6,
+      "label": "trace(nodeId) is not weaker than trace(bare name) for the same node",
+      "ok": false,
+      "detail": "EntryPoint:GET /: id=null bare=5 | EntryPoint:POST /todos/: id=null bare=3 | EntryPoint:GET /todos/: id=null bare=2 | EntryPoint:GET /todos/{id}: id=null bare=2 | EntryPoint:PUT /todos/{id}: id=null bare=2 | EntryPoint:DELETE /todos/{id}: id=null bare=2 | EntryPoint:POST /auth/register: id=null bare=3 | EntryPoint:POST /auth/login: id=null bare=3 | Type:Todo.Web.Server.ExternalProviders: id=null bare=2 | Type:Microsoft.Extensions.Hosting.Extensions: id=null bare=4"
+    },
+    {
+      "bug": 9,
+      "label": "the probe found a real elided pack to judge (else the check is vacuous)",
+      "ok": true,
+      "detail": "Extensions elides +64 lines"
+    },
+    {
+      "bug": 9,
+      "label": "no pack claims 'everything reachable' while its own text shows an elision",
+      "ok": false,
+      "detail": "Extensions | Extensions | TodoClient"
+    },
+    {
+      "bug": 9,
+      "label": "every elided pack names the elision AND the budgetTokens lever",
+      "ok": false,
+      "detail": "Extensions (note: fill 62%: the pack already contains everything reachable fro) | Extensions (note: fill 62%: the pack already contains everything reachable fro) | TodoClient (note: fill 28%: the pack already contains everything reachable fro)"
+    },
+    {
+      "bug": 10,
+      "label": "an out-of-range enum is rejected, not silently re-read",
+      "ok": false,
+      "detail": "{\"found\":true,\"nodeId\":\"EntryPoint:GET /\",\"title\":\"GET /\",\"filePath\":\"Todo.Web/Server/App."
+    }
+  ],
+  "failed": 4
+}

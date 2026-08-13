@@ -19,6 +19,8 @@ const { join, resolve } = require("path");
 const { createInterface } = require("readline");
 const { existsSync, mkdirSync, writeFileSync } = require("fs");
 
+const { ENDPOINT, probeEnv, verifyServerIdentity } = require("./server-identity");
+
 const REPO_ROOT = join(__dirname, "..", "..");
 const OUT_DIR = resolve(process.argv[2]
   ?? join(REPO_ROOT, "eval-results", new Date().toISOString().slice(0, 10), "t1-partial-truth"));
@@ -26,7 +28,7 @@ const REPO_PATH = resolve(process.argv[3] ?? join(REPO_ROOT, "eval-repos", "Todo
 const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
 
 function mcpClient(exePath) {
-  const proc = spawn(exePath, [], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+  const proc = spawn(exePath, [], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true, env: probeEnv() });
   const rl = createInterface({ input: proc.stdout, crlfDelay: Infinity });
   let nextId = 1;
   const pending = new Map();
@@ -124,6 +126,14 @@ function elisionsIn(text) {
     }, 180000);
     if (init.error) throw new Error(`init failed: ${JSON.stringify(init.error)}`);
     client.notify("notifications/initialized", {});
+
+    // Every verdict below is a verdict about a GRAPH, and the graph is built by the server — so
+    // which server answered decides what this file measures. Measured 2026-08-13: served by another
+    // checkout's build, this probe reported this repo's landed fixes as still broken. See
+    // server-identity.js. Checked FIRST, and it is a real FAIL: an unattributed red teaches nothing.
+    const identity = await verifyServerIdentity(ENDPOINT, REPO_ROOT);
+    dump("server-identity.json", { endpoint: ENDPOINT, ...identity });
+    check("env", "the server answering is THIS repo's fresh build", identity.ok, identity.detail);
 
     const analyzed = await tool(client, "analyze", { path: REPO_PATH }, 600000);
     const handle = analyzed.body?.handle ?? analyzed.body?.sessionId;

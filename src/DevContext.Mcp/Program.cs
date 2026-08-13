@@ -22,8 +22,14 @@ try
     var services = new ServiceCollection();
     services.AddLogging(b => b.AddSerilog(dispose: true));
 
-    // M3.1 — connect to the DevContext server; spawn it if not running
-    var serverEndpoint = "http://127.0.0.1:5179";
+    // M3.1 — connect to the DevContext server; spawn it if not running.
+    // DEVCONTEXT_ENDPOINT (T1.4): EnsureServerRunning reuses ANY server already answering /health
+    // here, whichever checkout built it — measured 2026-08-13, a probe in this repo was silently
+    // served by a second repo's engine on the same machine. The server the shim spawns inherits
+    // this process's environment, so setting one variable pins a whole probe/gate run to its own
+    // port and its own build.
+    var serverEndpoint = Environment.GetEnvironmentVariable("DEVCONTEXT_ENDPOINT")
+        ?? "http://127.0.0.1:5179";
     var serverProcess = ServerShim.EnsureServerRunning(serverEndpoint);
 
     // gRPC-Web uses HTTP/1.1 transport — force version 1.1
