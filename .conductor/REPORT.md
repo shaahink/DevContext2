@@ -1,11 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 17:52 UTC · branch `feat/pre-release-engine` · HEAD `788e0d4`_
+_Updated 2026-08-13 17:59 UTC · branch `feat/pre-release-engine` · HEAD `86c15b6`_
 
 **Status:** Idle
-**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 0
+**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 1
 **Checkpoints:** 4/20 done · **Sessions run:** 3 · **Cost:** $34.4391 (agent $34.3573 + gates $0.0817) · **Tokens:** 525,734 in / 235,487 out
-**Pending:** full-battery phase gate for T1
 
 ## Stage progress
 
@@ -26,7 +25,7 @@ _Updated 2026-08-13 17:52 UTC · branch `feat/pre-release-engine` · HEAD `788e0
 | T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
 | T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
 | T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | ✅ DONE | [`cdb152c`](https://github.com/shaahink/DevContext2/commit/cdb152c) |
-| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | ✅ DONE | - |
+| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | ✅ DONE | [`c246d77`](https://github.com/shaahink/DevContext2/commit/c246d77) |
 
 </details>
 
@@ -102,11 +101,11 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
-| stage T1 | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
-| 2026-08 | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
+| **run total** | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
+| stage T1 | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
+| 2026-08 | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
 
-_Where the money goes: agent $25.31 (100%) · gate $0.06 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $34.36 (100%) · gate $0.08 (0%) · blended $0.73/M tokens._
 
 ## Timeline
 
@@ -126,6 +125,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 18:19:12  • session #3 T1 Deliver started (attempt 1/6)
 08-13 18:52:04  ▪ gate fast-engine pass [session]  (2m56s)
 08-13 18:52:04  ▪ gate guards pass [session]  (1m26s)
+08-13 18:52:13  • session #3 T1 → Advanced · done T1.4 · 4 commit(s)  (33m00s)
+08-13 18:59:42  ▪ gate fast-engine pass [phase]  (2m38s)
+08-13 18:59:43  ▪ gate guards pass [phase]  (2m01s)
+08-13 18:59:43  ▪ gate battery FAIL [phase]  (1m23s)
 ```
 
 ## Health
@@ -143,7 +146,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M eval-results/2026-08-13/mcp-qa.md
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -165,7 +168,53 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:FAIL-retry
+
+<details><summary>battery — exit 1</summary>
+
+```
+wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\server-identity.json
+  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 49300, started 2026-08-13T17:59:22.4042278Z)
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\tools-list.json
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+  tools: 14 | described: 14 | params: 52/52 described
+  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
+
+  PASS  every tool on the wire has a non-empty description - all described
+  PASS  every tool parameter on the wire has a description - all described
+  PASS  tools/list is non-empty - 14 tools
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
+  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\enum-dials.json
+  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+wire-truth: GREEN
+  PASS  wire truth: every tool + parameter described, menu curated, enum dials reject
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 49456, started 2026-08-13T17:59:29.3653519Z)
+  handle: 085403002549499380f789019733b48e
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+partial-truth: GREEN
+  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
+
+--- Step 3: Eval expectation tests ---
+```
+</details>
 
 ## Last session result
 

@@ -62,6 +62,20 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $exitCode = 0
 
+# A terminating error anywhere in this script used to surface as a bare exit 1 with the transcript
+# truncated at whichever banner had just printed and NO diagnostic at all — indistinguishable from
+# a step verdict, and unreadable by whoever reads the gate log next. That cost the T1 phase gate two
+# full battery runs and a fix session on 2026-08-13 (Get-FileHash absent under a PS7-polluted
+# PSModulePath; see Get-EngineStamp). This trap costs nothing on a green run: it names the error and
+# exits 9, a code no step uses, so an abort can never again be mistaken for a measurement.
+trap {
+    Write-Host ""
+    Write-Host "GATE: FAIL (step ABORTED by an unhandled error - this is NOT a step verdict)" -ForegroundColor Red
+    Write-Host "  $($_.Exception.GetType().Name): $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Red
+    exit 9
+}
+
 function Write-Step {
     param([string]$Text)
     Write-Host ""
@@ -261,22 +275,39 @@ if (-not (Test-Path (Join-Path $ptRepo "TodoApp.sln"))) {
 # T7.0 engine stamp: a content hash over everything that can change an eval verdict. If it
 # matches the stamp written by the last GREEN eval run, that verdict transfers and the step
 # is skipped — an app-only battery stays a citable full gate at ~zero eval cost.
+#
+# The digest is computed with .NET's SHA256 rather than `Get-FileHash`, and that is not a style
+# choice. In Windows PowerShell 5.1 `Get-FileHash` is not a binary cmdlet — it is a SCRIPT function
+# inside the 5.1 copy of Microsoft.PowerShell.Utility. When PowerShell 7's Modules directory sits
+# ahead of C:\Windows\System32\WindowsPowerShell\v1.0\Modules on PSModulePath (pwsh installs it
+# there; a process spawned from a pwsh shell inherits it), 5.1 resolves the PS7 manifest for that
+# module, which exports none of the 5.1 script functions — so Get-FileHash simply does not exist.
+# Measured 2026-08-13: the T1 phase-gate battery died here twice with a CommandNotFoundException
+# and exit 1, output truncated at the "Step 3" banner, while every measurement underneath was
+# green — the same empty-diagnostic shape Invoke-NativeCapture was written for, from a different
+# cause. Same algorithm, same digest (uppercase hex, so an existing stamp still transfers); the
+# only change is that the gate no longer depends on which shell launched it.
 function Get-EngineStamp {
     $stampPaths = @('src\DevContext.Core', 'src\DevContext.Cli', 'tests\DevContext.Core.Tests',
                     'eval\expectations', 'eval\fixtures', 'tests\fixtures')
     $exts = @('.cs', '.csproj', '.json', '.razor', '.props', '.proto', '.slnx', '.cshtml')
-    $sb = New-Object System.Text.StringBuilder
-    foreach ($p in $stampPaths) {
-        $dir = Join-Path $repoRoot $p
-        if (-not (Test-Path $dir)) { continue }
-        Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
-            Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
-                [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash)
-            }
-    }
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
-    $stream = New-Object System.IO.MemoryStream(,$bytes)
-    (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $sb = New-Object System.Text.StringBuilder
+        foreach ($p in $stampPaths) {
+            $dir = Join-Path $repoRoot $p
+            if (-not (Test-Path $dir)) { continue }
+            Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
+                    $fs = [System.IO.File]::OpenRead($_.FullName)
+                    try { $fileHash = $sha.ComputeHash($fs) } finally { $fs.Dispose() }
+                    [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' +
+                        [System.BitConverter]::ToString($fileHash).Replace('-', ''))
+                }
+        }
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
+        [System.BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '')
+    } finally { $sha.Dispose() }
 }
 $stampFile = Join-Path $repoRoot "eval\.eval-stamp.json"
 
