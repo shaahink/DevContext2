@@ -4,22 +4,19 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N1 IS CLOSED - N1.2 landed (e448d64 + 366cc3a; evidence eval-results/2026-08-13/N1.2-pins-real.md).
-START AT N2.1 (BuildMulti adopts ResolveEntry; `usage` joins CardTypeSections; picker Types tab).
-Pins are REAL: ContextStudio.onTrailSeed() (context-studio.ts:481) reads trailStore.pins() first
-and falls back to steps(). THE RULE N2/N3 MUST REUSE, MEASURED HERE: a seed resolves step.focus
-against the LIVE session.entryGroups() and takes the RESOLVED entry's nodeId+title, never the
-pinned step's - so a pin cannot carry a dead id across a re-analyze and needs NO invalidation
-effect. Every step kind resolves now (a `node` step carries its trace's focus), reroot never can.
-N3.1's "never opens empty" should call onTrailSeed, not re-derive seeding. Backlog #26 is under
-"FIXED in N1.2"; 27 open, 7 high. New run bug #3: icon.ts renders an EMPTY span for a name its
-REGISTRY lacks (box/edit/grip-vertical/lock still dead; bookmark+history added).
-TEST LOOP (unchanged): `pnpm exec ng test --watch=false --include=<spec>`; plain `pnpm vitest run`
-fails on TestBed.initTestEnvironment. Check the EXIT CODE, not filtered output - an escaped
-apostrophe in an Angular expression is a lexer error and cost a build here. `pnpm check` green
-this session: lint clean, 188/188, production build. Engine untouched by N1.2.
-`conductor bg start -- pnpm <script>` dies on corepack; wrap in `pwsh -NoProfile -Command`.
-Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
+N2.1 IS CLOSED (104c9d0 engine + 8c38e0b app; evidence eval-results/2026-08-13/N2.1-pack-convergence.md).
+START AT N2.2: honesty-note parity (fill-rate note + suggested focuses in the rail) and ONE stated
+budget default - UI is 4000 (prefs.studioBudget), everywhere else 8000 (ContextPackBuilder.Build/
+BuildMulti defaults). Its ACCEPTANCE is the real-repo FluentValidation pack: I CLONED IT for you at
+eval-repos/FluentValidation (sha 94397908, gitignored) but did NOT run it - only the server calls
+BuildMulti, so the cheapest real-repo proof is a [Trait("Category","Eval")] Core test that takes
+types off snapshot.Map.Surface (the SAME source the new Types tab reads) and asserts usage + verified
+counts, skipping silently when the clone is absent (BudgetIndependenceTests.cs is the pattern).
+Now true: BuildMulti resolves symbols via ResolveCardFocuses; card entryIds may be a bare type,
+Type:Member, or a NodeId string; `usage` is a card type; picker has a Types tab keyed on the
+namespace-qualified name. Fixed en route: a card naming one focus twice merged its section INTO
+ITSELF. Loop unchanged: `pnpm exec ng test --watch=false --include=<spec>`; check the EXIT CODE.
+`pnpm check` green (199/199). Open bugs unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
 
 
 ## Baseline numbers (from run.db)
@@ -28,7 +25,7 @@ Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cac
 |---|---|
 | Total checkpoints | 16 |
 | Done | 3 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -48,7 +45,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | DONE | d57b59d | eval-results/2026-08-13/N1.1-studio-truth.md |
-| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | TODO | - | - |
+| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | DONE | e448d64 | eval-results/2026-08-13/N1.2-pins-real.md |
 
 ### N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL)
 
