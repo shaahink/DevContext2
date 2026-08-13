@@ -43,7 +43,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
                 // Entry builders run before AddCallEdges (GraphBuilder.Build), so the member node never
                 // exists yet — the builder creates it, exactly as HttpEntryPointBuilder does for a
                 // controller action.
-                g.AddNode(new GraphNode(handlerId, $"{cmd.CommandType}.{executeMember}", NodeKind.Member)
+                g.AddNode(new GraphNode(handlerId, SymbolCanon.MemberTitle(handlerId.Key), NodeKind.Member)
                 {
                     FilePath = cmd.SourceFile,
                 });
