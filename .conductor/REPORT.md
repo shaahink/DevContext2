@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-engine` · HEAD `af29f58`_
+_Updated 2026-08-13 20:37 UTC · branch `feat/pre-release-engine` · HEAD `814b64c`_
 
-**Status:** Idle
-**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0
-**Checkpoints:** 7/20 done · **Sessions run:** 7 · **Cost:** $84.8880 (agent $84.7005 + gates $0.1876) · **Tokens:** 1,253,322 in / 536,003 out
+**Status:** NeedsHuman — advisor: human intervention required [1s ago, 20:37:08Z]
+**Stage:** E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant · attempts used 8 · working ▸ E1.1
+**Checkpoints:** 7/20 done · **Sessions run:** 15 · **Cost:** $85.2211 (agent $85.0335 + gates $0.1876) · **Tokens:** 1,278,621 in / 536,894 out
 **Confirmed phases:** T1, V1
 
 ## Stage progress
@@ -13,7 +13,7 @@ _Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-engine` · HEAD `af29f
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
-| E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
+| E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | **← active** |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
@@ -99,6 +99,14 @@ _Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-engine` · HEAD `af29f
 | 5 | V1 | Deliver | 1 | 08-13 18:46 | 0:28 | Advanced | V1.1 | 4 | fast-engine:OK-retry · guards:OK | $12.8408 | $0.0606 | 186,202/82,566 |
 | 6 | V1 | Deliver | 1 | 08-13 19:25 | 0:27 | Advanced | V1.2 | 2 | fast-engine:OK · guards:OK | $8.7991 | $0.0181 | 153,341/57,563 |
 | 7 | V1 | Deliver | 1 | 08-13 19:56 | 0:26 | Advanced | V1.3 | 3 | gates green (none configured) | $14.7864 |  | 223,675/82,121 |
+| 8 | E1 | Deliver | 1 | 08-13 20:34 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.3330 |  | 25,299/891 |
+| 9 | E1 | Fix | 2 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 10 | E1 | Deliver | 3 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 11 | E1 | Deliver | 4 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 12 | E1 | Deliver | 5 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 13 | E1 | Deliver | 6 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 14 | E1 | Deliver | 7 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 15 | E1 | Deliver | 8 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 
 ## Money
 
@@ -106,41 +114,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
+| **run total** | 15 | 119.4M | 98.5% | $85.24 | 7 | 17.1M | $12.18 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
-| 2026-08 | 7 | 119.3M | 98.5% | $84.89 | 7 | 17M | $12.13 |
+| stage E1 | 7 | 0.13M | 80.1% | $0.35 | - | - | - |
+| stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
+| 2026-08 | 14 | 119.4M | 98.5% | $85.24 | 7 | 17.1M | $12.18 |
+| unknown | 1 | 0M | - | $0.00 | - | - | - |
 
-_Where the money goes: agent $84.70 (100%) · gate $0.19 (0%) · blended $0.71/M tokens._
+_Where the money goes: agent $85.03 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 18:19:07  ▪ gate fast-engine pass [session]  (3m01s)
-08-13 18:19:07  ▪ gate guards pass [session]  (1m35s)
-08-13 18:19:11  • session #2 T1 → Advanced · done T1.3 · 2 commit(s)  (28m42s)
-08-13 18:19:12  • session #3 T1 Deliver started (attempt 1/6)
-08-13 18:52:04  ▪ gate fast-engine pass [session]  (2m56s)
-08-13 18:52:04  ▪ gate guards pass [session]  (1m26s)
-08-13 18:52:13  • session #3 T1 → Advanced · done T1.4 · 4 commit(s)  (33m00s)
-08-13 18:59:42  ▪ gate fast-engine pass [phase]  (2m38s)
-08-13 18:59:43  ▪ gate guards pass [phase]  (2m01s)
-08-13 18:59:43  ▪ gate battery FAIL [phase]  (1m23s)
-08-13 18:59:50  • session #4 T1 Fix started (attempt 2/6)
-08-13 19:36:05  ▪ gate fast-engine pass [session]  (3m22s)
-08-13 19:36:05  ▪ gate guards pass [session]  (1m08s)
-08-13 19:36:11  • session #4 T1 → Progress · 5 commit(s)  (36m21s)
-08-13 19:46:33  ▪ gate fast-engine pass [phase]  (2m16s)
-08-13 19:46:33  ▪ gate guards pass [phase]  (51.7s)
-08-13 19:46:33  ▪ gate battery pass [phase]  (7m12s)
-08-13 19:46:33  ✓ checkpoint T1.1 confirmed
-08-13 19:46:33  ✓ checkpoint T1.2 confirmed
-08-13 19:46:33  ✓ checkpoint T1.3 confirmed
-08-13 19:46:33  ✓ checkpoint T1.4 confirmed
-08-13 19:46:33  ▸ stage T1 confirmed  (2h30m32s)
-08-13 19:46:38  ▸ stage V1 entered — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18)
 08-13 19:46:38  • session #5 V1 Deliver started (attempt 1/4)
 08-13 20:25:37  ▪ gate fast-engine pass [session]  (3m06s)
 08-13 20:25:37  ▪ gate guards pass [session]  (1m49s)
@@ -158,6 +146,29 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:34:01  ✓ checkpoint V1.1 confirmed
 08-13 21:34:01  ✓ checkpoint V1.2 confirmed
 08-13 21:34:01  ✓ checkpoint V1.3 confirmed
+08-13 21:34:01  ▸ stage V1 confirmed  (1h47m22s)
+08-13 21:34:06  ▸ stage E1 entered — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant
+08-13 21:34:06  • session #8 E1 Deliver started (attempt 1/8)
+08-13 21:35:03  • session #8 E1 → AgentError  (57.0s)
+08-13 21:35:04  • session #9 E1 Fix started (attempt 2/8)
+08-13 21:35:18  ■ needs human — advisor: human intervention required
+08-13 21:35:22  • session #9 E1 → AgentError  (18.5s)
+08-13 21:35:23  • session #10 E1 Deliver started (attempt 3/8)
+08-13 21:35:37  ■ needs human — advisor: human intervention required
+08-13 21:35:42  • session #10 E1 → AgentError  (19.2s)
+08-13 21:35:42  • session #11 E1 Deliver started (attempt 4/8)
+08-13 21:35:56  ■ needs human — advisor: human intervention required
+08-13 21:36:01  • session #11 E1 → AgentError  (19.1s)
+08-13 21:36:01  • session #12 E1 Deliver started (attempt 5/8)
+08-13 21:36:16  ■ needs human — advisor: human intervention required
+08-13 21:36:20  • session #12 E1 → AgentError  (18.8s)
+08-13 21:36:20  • session #13 E1 Deliver started (attempt 6/8)
+08-13 21:36:35  ■ needs human — advisor: human intervention required
+08-13 21:36:40  • session #13 E1 → AgentError  (19.4s)
+08-13 21:36:40  • session #14 E1 Deliver started (attempt 7/8)
+08-13 21:36:52  ■ needs human — advisor: human intervention required
+08-13 21:36:55  • session #14 E1 → AgentError  (15.4s)
+08-13 21:36:55  • session #15 E1 Deliver started (attempt 8/8)
 ```
 
 ## Health
@@ -165,9 +176,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 7 · retries 1 (14 %) · overall Warn
+sessions 15 · retries 8 (53 %) · overall Alert
+⛔ [same-failure-loop] stage E1: 7 consecutive sessions made no progress
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #7: 20,985,542 context tokens (≥ 20,000,000)
+⚠ [high-retry-rate] 8/15 sessions were retries (53 %)
 ```
 
 ## Repo
@@ -176,8 +189,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
-vs upstream: up to date
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+vs upstream: 12 ahead, 14 behind
 ```
 
 ### Commits by session
@@ -214,13 +227,9 @@ vs upstream: up to date
   - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
   - [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) fix(graph): two standing invariants, enforced where a node is made (V1.3, #7 rider + #18)
 
-## Last gate run
-
-fast-engine:OK · guards:OK · battery:OK
-
 ## Last session result
 
-> SESSION-RESULT: V1.3 landed and is claimed, closing stage V1. Both standing invariants are now enforced at `CodeGraphBuilder.AddNode` — the same choke point V1.2 used — via one predicate pair in `SymbolCanon`: a Type node whose key is a member key (`::`) or expression text is refused, so `AddEdge` drops the edge with it and no phantom leaves a half behind. Three Kind-blind producers were the cause and were fixed at source (`GraphBuilder.Seams.cs:429/597`, `PlainCallDetector.cs:54`, where the doc comment said "type" and the code said "not null"); `CallGraphBinder` already had it right, and loom-guards rule 11 now fails any future Kind-blind resolution→Type-node-id. Measured on nine poles with…
+> You've hit your session limit · resets 9:40pm (Europe/London)
 
 ## Tracker handoff
 
