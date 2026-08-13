@@ -26,7 +26,7 @@
 
 ## Transport checks
 - [x] Cold start: server started and accepted initialize
-- [x] Analyze: the call returned its own handle in 18.2s
+- [x] Analyze: the call returned its own handle in 9.5s
 - [x] Session lifecycle: create, list, close
 
 ## Tool coverage
