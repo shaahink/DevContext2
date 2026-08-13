@@ -1,34 +1,25 @@
-﻿# DevContext pre-release - desktop agent loop Phase Tracker
+# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-STAGE N0 IS CLOSED AND THE BATTERY IS GREEN — `GATE: PASS`, full form, uncached eval
-(77 passed / 10 skipped over two hosts), log `.conductor/bg-logs/battery-final-*`,
-evidence `eval-results/2026-08-13/N0-battery-red-gate-script.md`. START AT N1.1.
-The phase-gate red was NEVER N0's work — two unrelated pre-existing defects, both fixed:
-(1) 5fd9911 — gates.ps1 Step 3 died on `Get-FileHash`, which in Windows PowerShell 5.1 is
-a MODULE FUNCTION resolved via PSModulePath; from a pwsh-7 parent (Conductor) the 5.1 child
-autoloads PS7's Utility module and the name vanishes. NEVER call module-autoloaded cmdlets
-in a gate script — AGENTS.md §Gate battery now says so. (2) 32639c6 — graph-layout.spec.ts
-paid elkjs's ~1.4MB lazy `import()` inside one test's 5000ms clock; warm-up hoisted to
-`beforeAll`. Nothing was weakened: no test deleted/skipped, no expectation relaxed.
-N1.1 STILL NEEDS NO RE-MEASURING — read BUG-BACKLOG.md #28 (verification: full budget per
-focus at context-studio.ts:216 vs the build's proportional slice at
-ContextPackBuilder.cs:533/546, plus the card `wanted` filter at :581, plus dead
-`checkedAt`), #27 (bodyEnabled = an icon and an opacity), #29 (no effect() in
-context-studio.ts; cards never keyed to the handle), #31 (CardTypeSections' 9 keys ==
-the card-type union). Verified/Approx now SUM across a multi-entry merge
-(ContextPackBuilder.cs:583-601), so per-card provenance has real data to render.
-TEST LOOP TRAP: `pnpm vitest run <spec>` fails with "Need to call
-TestBed.initTestEnvironment()" — use `pnpm exec ng test --watch=false --include=<spec>`
-(~18s); full `pnpm test` is ~11s idle but 90s under battery load. `conductor bg start --
-pnpm` dies on the corepack shim (run pnpm foreground). Open: bug #1 (negative budget for
-the last focus), bug #2 (the eval stamp cache never hits — Get-EngineStamp hashes bin/obj,
-which Step 1 rewrites, so Step 3 re-runs its ~6 min every battery). N4.1 should EXTEND
-GetMcpStatus, not add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
-
+N1.1 IS CLOSED (56ebc25 engine + e3a9bc2 app; evidence eval-results/2026-08-13/N1.1-studio-truth.md).
+START AT N1.2 (pins, backlog #26 - the ONLY §3.F item left in N1). Wire item 4 is DECIDED AND SHIPPED:
+verification MOVED INTO GetContextPack's response (verification/any_stale/analyzed_git_head/
+current_git_head); VerifyContext stays single-focus for MCP. Do not re-open that. Also landed:
+per-card verified/approx, handle-effect card invalidation + PrefsStore studioBudget/Intent/Format,
+exclude_bodies on the wire. #27/#28/#29 are now under BUG-BACKLOG "FIXED in N1.1"; 28 open.
+FOR N1.2, MEASURED HERE, DO NOT RE-DERIVE: the pack path is `ContextPackBuilder.BuildMulti` and a
+card is `ContextCardSpec(type,title,entryIds,excludeBodies)` - seeding a pack from pins means
+producing seeds, NOT a new RPC. `ContextStudio.onTrailSeed()` already walks `trailStore.steps()`
+and only handles `step.kind === 'entry'` via `findEntryByFocus`; that is the hook pins plug into.
+Studio cards now DIE with the handle (constructor effect) - a pin store that outlives the handle
+must be invalidated the same way or it will reseed dead node ids.
+TEST LOOP (unchanged, still true): `pnpm exec ng test --watch=false --include=<spec>`; plain
+`pnpm vitest run` fails on TestBed.initTestEnvironment. Check pnpm build's EXIT CODE, not output.
+`pnpm test` 179/179, lint clean, contract-sweep GATE PASS, dotnet build 0w/0e - all this session.
+Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
 
 ## Baseline numbers (from run.db)
 
