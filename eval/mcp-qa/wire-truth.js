@@ -143,6 +143,47 @@ function sizeOf(obj) {
     check("every tool parameter on the wire has a description",
       toolsWithUndescribedParams.length === 0, toolsWithUndescribedParams.join(" ") || "all described");
     check("tools/list is non-empty", tools.length > 0, `${tools.length} tools`);
+
+    // T1.2 — curation must not be a capability cut. An UNLISTED specialist has to answer for real,
+    // and an actually-unknown name has to teach. list_sessions needs no analysis, so both checks
+    // are cheap enough to live in the gate. Read the reply, not the exit code: the whole defect
+    // family here is a confident-looking envelope where an answer should be.
+    const spec = await client.call("tools/call",
+      { name: "list_sessions", arguments: {} }, 60000);
+    const specText = (spec.result?.content ?? []).map((c) => c.text ?? "").join("\n");
+    let specBody = null;
+    try { specBody = JSON.parse(specText); } catch { /* not JSON */ }
+    dump("specialist-list_sessions.json", { protocolError: spec.error ?? null, result: spec.result ?? null });
+    const listedNames = tools.map((t) => t.name);
+    check("an unlisted specialist is still callable and answers for real",
+      !spec.error && spec.result?.isError !== true && specBody !== null && !("availableTools" in specBody),
+      `list_sessions ${listedNames.includes("list_sessions") ? "(listed)" : "(unlisted)"} -> ${specText.slice(0, 90)}`);
+
+    const unknown = await client.call("tools/call",
+      { name: "no_such_tool_xyz", arguments: {} }, 30000);
+    const unkText = (unknown.result?.content ?? []).map((c) => c.text ?? "").join("\n");
+    let unkBody = null;
+    try { unkBody = JSON.parse(unkText); } catch { /* not JSON */ }
+    dump("unknown-tool-envelope.json", unknown.result ?? { protocolError: unknown.error });
+    const advertised = unkBody?.availableTools ?? [];
+    check("an unknown name gets the did-you-mean envelope",
+      unkBody !== null && typeof unkBody.error === "string" && Array.isArray(unkBody.availableTools),
+      unkText.slice(0, 90));
+    check("the envelope's availableTools equals the advertised menu",
+      advertised.length === listedNames.length
+      && [...advertised].sort().join(",") === [...listedNames].sort().join(","),
+      `${advertised.length} vs ${listedNames.length}`);
+    check("the envelope names the unlisted specialists, each with what it answers",
+      unkBody?.specialistTools && Object.keys(unkBody.specialistTools).length > 0
+      && Object.values(unkBody.specialistTools).every((v) => typeof v === "string" && v.length > 0),
+      Object.keys(unkBody?.specialistTools ?? {}).join(" ") || "none named");
+    check("no specialist is also on the advertised menu",
+      !Object.keys(unkBody?.specialistTools ?? {}).some((n) => listedNames.includes(n)),
+      "menu and specialists are disjoint");
+
+    measurement.advertised = listedNames;
+    measurement.specialists = unkBody?.specialistTools ?? null;
+    dump("wire-truth.json", measurement);
   } finally {
     client.close();
   }

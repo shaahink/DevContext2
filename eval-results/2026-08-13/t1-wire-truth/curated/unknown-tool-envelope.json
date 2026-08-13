@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":\"Unknown tool \\u0027no_such_tool_xyz\\u0027.\",\"hint\":\"Use one of availableTools.\",\"example\":\"overview(handle)\",\"availableTools\":[\"analyze\",\"entrypoints\",\"find\",\"get_context\",\"impact\",\"map\",\"neighbors\",\"overview\",\"read_source\",\"resolve\",\"seam\",\"stats\",\"trace\",\"usages\"],\"specialistTools\":{\"close_session\":\"session lifecycle - sessions expire on their own; this is server housekeeping, not agent work\",\"config\":\"ask it when the question is specifically about configuration keys\",\"list_sessions\":\"session lifecycle - when two sessions make a handle-less call ambiguous the error already names them\",\"node\":\"resolve() already returns title, kind, service and path; neighbors() carries the degrees\",\"status\":\"session lifecycle - analyze() is idempotent and hands back the handle, so most agents never need this\",\"tests_for\":\"ask it when the question is specifically about test coverage of a symbol\",\"top_flows\":\"entrypoints() already returns the top-N by the same score, alongside the per-kind counts\",\"verify_context\":\"ask it when a pack has been open long enough that the files behind it may have changed\"}}"
+    }
+  ],
+  "isError": true
+}

@@ -46,18 +46,45 @@ public static class UnknownToolHandler
         ("interesting_points", "overview", "overview(handle)"),
     ];
 
+    // T1.2 — the UNLISTED specialists, by tool name. A name that is not on `tools/list` is not
+    // automatically a mistake: the curated menu is what an agent READS, not the limit of what it may
+    // ask for. These are built from the same methods with the same schemas (McpToolMenu), so a
+    // specialist call takes the identical arguments it always did and returns the identical answer.
+    private static IReadOnlyDictionary<string, McpServerTool> _specialists =
+        new Dictionary<string, McpServerTool>(StringComparer.Ordinal);
+    private static IReadOnlyDictionary<string, string> _specialistWhy =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>Seed the unlisted specialists. Called once at startup, alongside UseToolNames.</summary>
+    public static void UseSpecialists(IEnumerable<McpServerTool> tools, IReadOnlyDictionary<string, string> why)
+    {
+        _specialists = tools.ToDictionary(t => t.ProtocolTool.Name, t => t, StringComparer.Ordinal);
+        _specialistWhy = why;
+    }
+
+    /// <summary>The specialist names, for the envelope and for the tests.</summary>
+    public static IReadOnlyList<string> SpecialistNames
+        => [.. _specialists.Keys.OrderBy(n => n, StringComparer.Ordinal)];
+
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };
 
-    public static ValueTask<CallToolResult> Handle(
+    public static async ValueTask<CallToolResult> Handle(
         RequestContext<CallToolRequestParams> request, CancellationToken ct)
     {
-        var payload = JsonSerializer.Serialize(Describe(request.Params?.Name ?? "(none)"), JsonOpts);
+        var name = request.Params?.Name ?? "(none)";
 
-        return ValueTask.FromResult(new CallToolResult
+        // A specialist is served, not scolded. Answering "unknown tool" here would make the
+        // curation a capability cut, which is exactly what it is not.
+        if (_specialists.TryGetValue(name, out var specialist))
+            return await specialist.InvokeAsync(request, ct).ConfigureAwait(false);
+
+        var payload = JsonSerializer.Serialize(Describe(name), JsonOpts);
+
+        return new CallToolResult
         {
             IsError = true,
             Content = [new TextContentBlock { Text = payload }],
-        });
+        };
     }
 
     /// <summary>The reply body. Separated from the transport so it can be asserted without a server.</summary>
@@ -86,6 +113,9 @@ public static class UnknownToolHandler
                 : "Call tools/list for the current menu.",
             example = $"{closest ?? "overview"}(handle)",
             availableTools = _toolNames,
+            // T1.2 — the unlisted half, named so it is discoverable rather than secret. Each entry
+            // says what its tool is for, because "there are also these six" is not an answer.
+            specialistTools = _specialistWhy.Count == 0 ? null : _specialistWhy,
         };
     }
 

@@ -1,0 +1,231 @@
+{
+  "prompt": "reply with the word ok",
+  "isolation": "no-settings-fallback",
+  "maxBudgetUsd": "1.50",
+  "rates": {
+    "inPerMTok": 5,
+    "outPerMTok": 25,
+    "cacheWriteMult": 2,
+    "cacheReadMult": 0.1
+  },
+  "medianRunCostUsd": 0.39481675000000005,
+  "medianOverNRuns": 54,
+  "rows": [
+    {
+      "arm": "G",
+      "rep": 1,
+      "exitCode": 0,
+      "timedOut": false,
+      "wallMs": 5657,
+      "subtype": "success",
+      "isError": false,
+      "reply": "ok",
+      "toolsOffered": 4,
+      "mcpToolsOffered": 0,
+      "mcpServers": [],
+      "turn1": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4,
+        "designTax": 2,
+        "prefixTokens": 4094,
+        "coldPrefix": false,
+        "pricedUsd": 0.002156
+      },
+      "runUsage": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4
+      },
+      "numTurns": 1,
+      "costUsd": 0.002732,
+      "stderrTail": ""
+    },
+    {
+      "arm": "B",
+      "rep": 1,
+      "exitCode": 0,
+      "timedOut": false,
+      "wallMs": 8574,
+      "subtype": "success",
+      "isError": false,
+      "reply": "ok",
+      "toolsOffered": 18,
+      "mcpToolsOffered": 14,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "turn1": {
+        "input": 2,
+        "cacheCreation": 8955,
+        "cacheRead": 0,
+        "output": 4,
+        "designTax": 8957,
+        "prefixTokens": 8957,
+        "coldPrefix": true,
+        "pricedUsd": 0.08966
+      },
+      "runUsage": {
+        "input": 2,
+        "cacheCreation": 8955,
+        "cacheRead": 0,
+        "output": 4
+      },
+      "numTurns": 1,
+      "costUsd": 0.09024599999999999,
+      "stderrTail": ""
+    },
+    {
+      "arm": "G",
+      "rep": 2,
+      "exitCode": 0,
+      "timedOut": false,
+      "wallMs": 5847,
+      "subtype": "success",
+      "isError": false,
+      "reply": "ok",
+      "toolsOffered": 4,
+      "mcpToolsOffered": 0,
+      "mcpServers": [],
+      "turn1": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4,
+        "designTax": 2,
+        "prefixTokens": 4094,
+        "coldPrefix": false,
+        "pricedUsd": 0.002156
+      },
+      "runUsage": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4
+      },
+      "numTurns": 1,
+      "costUsd": 0.0027419999999999996,
+      "stderrTail": ""
+    },
+    {
+      "arm": "B",
+      "rep": 2,
+      "exitCode": 0,
+      "timedOut": false,
+      "wallMs": 7623,
+      "subtype": "success",
+      "isError": false,
+      "reply": "ok",
+      "toolsOffered": 18,
+      "mcpToolsOffered": 14,
+      "mcpServers": [
+        "devcontext:connected"
+      ],
+      "turn1": {
+        "input": 2,
+        "cacheCreation": 231,
+        "cacheRead": 8719,
+        "output": 4,
+        "designTax": 233,
+        "prefixTokens": 8952,
+        "coldPrefix": false,
+        "pricedUsd": 0.006779
+      },
+      "runUsage": {
+        "input": 2,
+        "cacheCreation": 231,
+        "cacheRead": 8719,
+        "output": 4
+      },
+      "numTurns": 1,
+      "costUsd": 0.007360499999999999,
+      "stderrTail": ""
+    }
+  ],
+  "deltas": [
+    {
+      "rep": 1,
+      "designTaxTokens": 8955,
+      "prefixTaxTokens": 4863,
+      "schemasOffered": 14,
+      "prefixState": "warm (schemas arrived as cache_read)",
+      "gTurn1": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4,
+        "designTax": 2,
+        "prefixTokens": 4094,
+        "coldPrefix": false,
+        "pricedUsd": 0.002156
+      },
+      "bTurn1": {
+        "input": 2,
+        "cacheCreation": 8955,
+        "cacheRead": 0,
+        "output": 4,
+        "designTax": 8957,
+        "prefixTokens": 8957,
+        "coldPrefix": true,
+        "pricedUsd": 0.08966
+      }
+    },
+    {
+      "rep": 2,
+      "designTaxTokens": 231,
+      "prefixTaxTokens": 4858,
+      "schemasOffered": 14,
+      "prefixState": "warm (schemas arrived as cache_read)",
+      "gTurn1": {
+        "input": 2,
+        "cacheCreation": 0,
+        "cacheRead": 4092,
+        "output": 4,
+        "designTax": 2,
+        "prefixTokens": 4094,
+        "coldPrefix": false,
+        "pricedUsd": 0.002156
+      },
+      "bTurn1": {
+        "input": 2,
+        "cacheCreation": 231,
+        "cacheRead": 8719,
+        "output": 4,
+        "designTax": 233,
+        "prefixTokens": 8952,
+        "coldPrefix": false,
+        "pricedUsd": 0.006779
+      }
+    }
+  ],
+  "coldCrossCheck": {
+    "G": {
+      "toolsOffered": 4,
+      "input": 2,
+      "cacheCreation": 4161,
+      "cacheRead": 0,
+      "designTax": 4163,
+      "coldPrefix": true
+    },
+    "M": {
+      "toolsOffered": 22,
+      "input": 2,
+      "cacheCreation": 3318,
+      "cacheRead": 0,
+      "designTax": 3320,
+      "coldPrefix": true
+    },
+    "B": {
+      "toolsOffered": 26,
+      "input": 2,
+      "cacheCreation": 6692,
+      "cacheRead": 0,
+      "designTax": 6694,
+      "coldPrefix": true
+    },
+    "taxTokens": 2531,
+    "allCold": true
+  }
+}

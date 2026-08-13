@@ -489,6 +489,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("session lifecycle - analyze() is idempotent and hands back the handle, so most agents never need this")]
     [Description("Check whether a session handle is still valid. Example: status(\"abc123\")")]
     public async Task<string> Status([Description(HandleDoc)] string? handle = null)
     {
@@ -507,6 +508,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("session lifecycle - sessions expire on their own; this is server housekeeping, not agent work")]
     [Description("Release a session's resources (engine + any clone). Idempotent. Example: close_session(\"abc123\")")]
     public async Task<string> CloseSession([Description(HandleDoc)] string? handle = null)
     {
@@ -530,6 +532,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("session lifecycle - when two sessions make a handle-less call ambiguous the error already names them")]
     [Description("List all active analysis sessions on the server, with the repo each one covers. Example: list_sessions()")]
     public async Task<string> ListSessions()
     {
@@ -818,6 +821,7 @@ public sealed class DevContextTools
         }).ToArray();
 
     [McpServerTool]
+    [SpecialistTool("entrypoints() already returns the top-N by the same score, alongside the per-kind counts")]
     [Description("Top 20 entry points ranked by importance score - the shortlist of flows worth tracing. Example: top_flows(\"abc123\")")]
     public async Task<string> TopFlows([Description(HandleDoc)] string? handle = null)
     {
@@ -1082,6 +1086,7 @@ public sealed class DevContextTools
     };
 
     [McpServerTool]
+    [SpecialistTool("resolve() already returns title, kind, service and path; neighbors() carries the degrees")]
     [Description("Detail card for a graph node: title, kind, file path, in/out degrees. Address with 'nodeId' (precise) or 'query' (fuzzy). Example: node(\"abc123\", query:\"OrderService\")")]
     public async Task<string> Node(
         [Description(HandleDoc)] string? handle = null,
@@ -1542,6 +1547,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("ask it when the question is specifically about configuration keys")]
     [Description("Find config key usage sites (IConfiguration, GetValue, GetSection) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
     public async Task<string> Config(
         [Description(HandleDoc)] string? handle = null,
@@ -1599,6 +1605,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("ask it when the question is specifically about test coverage of a symbol")]
     [Description("Best-effort: find test methods whose call closure reaches a node. Method: walks in-edges up to maxDepth and classifies callers as tests by name/path/project. 0 results means none reached in the graph, NOT \"untested\". Example: tests_for(\"abc123\", query:\"OrderService\")")]
     public async Task<string> TestsFor(
         [Description(HandleDoc)] string? handle = null,
@@ -1733,6 +1740,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
+    [SpecialistTool("ask it when a pack has been open long enough that the files behind it may have changed")]
     [Description("Has the source drifted since analyze? Compares analyze-time file hashes against disk, per pack section for a focus. Returns per-section stale flags, changed files with line deltas, and repo HEAD then/now. Method: hash + line-count delta only, no diff. Example: verify_context(\"abc123\", \"POST /api/orders\")")]
     public async Task<string> VerifyContext(
         [Description(HandleDoc)] string? handle = null,
