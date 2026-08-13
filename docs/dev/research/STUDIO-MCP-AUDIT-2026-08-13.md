@@ -1,6 +1,7 @@
 # Context Studio + MCP page — feature-design audit → plan
 
-> **DRAFT — for owner decisions, then into the master plan.** 2026-08-13. Written on
+> **DECIDED 2026-08-13 — §8's four calls made by the owner (all four: the recommended
+> option); ready for master-plan consolidation.** Written 2026-08-13. Written on
 > `feat/agent-probe` as the second desktop iteration — the deep pass on the two surfaces the
 > first desktop audit (`DESKTOP-PRODUCT-AUDIT-2026-08-13.md`) deliberately compressed: **Context
 > Studio** and the **MCP page**. Method: full source inventory of both features (three subagent
@@ -349,21 +350,20 @@ probe's dashboard.
 
 ---
 
-## 8. Owner decisions (the refinement agenda)
+## 8. Owner decisions — DECIDED 2026-08-13
 
-1. **Pins: implement or delete?** The loop is advertised; make it real (pins seed the pack,
-   `p` works from Explore) or remove the idiom from inspector/trail-bar/ticker. Recommendation:
-   implement — it is the cheapest true differentiator and N3 depends on it.
-2. **Pack convergence: full (symbol-rooted Studio, one pipeline) or minimal truth fixes only?**
-   Full unlocks libraries, usage, and D-G's type-rooted packs; minimal is merge-fix + rendered
-   trust only. Recommendation: full — it is the D-G decision and the re-probe twin.
-3. **The hand-off: repo-file convention, server-registered packs (`get_context` serves the
-   human's pack), both, or clipboard-only?** Recommendation: repo file first (zero wire work,
-   real today), registration second.
-4. **MCP page ambition: truth-pass only (N0+N4 status/setup), full observation deck (catalog +
-   feed vocabulary + replay), and does `devcontext-mcp` ship in the installer or as a dotnet
-   tool?** Recommendation: full deck, behind W1; ship in installer (the page's promise already
-   says so — make the copy true rather than false).
+1. **Pins: IMPLEMENT.** Pins seed the pack for real; `p` works from Explore; Studio's default
+   state becomes the proposed pack. (N1 carries the wiring, N3 the affordances.)
+2. **Pack convergence: FULL.** `BuildMulti` adopts `ResolveEntry`; type/member-scoped cards;
+   `usage` card; honesty-note parity. This settles S11's D-G. Acceptance: a FluentValidation
+   pack composed from types, with usage and verified counts, end to end.
+3. **Hand-off: REPO FILE FIRST.** Save writes `.devcontext/packs/<slug>.md` + a copyable
+   "point your agent here" line for CLAUDE.md. Server-registered packs (`SavePack` +
+   `get_context(pack:<name>)`) staged second, after W1's curation freeze.
+4. **MCP page: FULL DECK + SHIP IN INSTALLER.** Real status (binary probe, observer count,
+   handshake), write-config buttons, server-served catalog via `ListTools` after W1 curation,
+   feed in MCP vocabulary with replay-in-Studio. `devcontext-mcp` ships in the Tauri bundle —
+   the page's existing claim becomes true instead of false.
 
 ---
 
