@@ -17,9 +17,10 @@ C:\Code\DevContext2-desktop's server and called T1.3's landed fixes broken.
 Fixed: DEVCONTEXT_ENDPOINT on both hosts (probes use 5279) + /health now carries
 baseDirectory/pid/startedAt + eval/mcp-qa/server-identity.js FAILS any probe not
 served by THIS repo's fresh build. Any new probe you write must require() it.
-To re-prove a red cheaply: eval/mcp-qa/step2c-harness.ps1 -RepoRoot <worktree>
-runs the gate step's own TEXT. Pre-fix worktree C:/Code/DevContext2-prefix-t1
-(detached 5853ac0, built) is LEFT IN PLACE; `git worktree remove --force` it.
+To re-prove a red cheaply: eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs
+the gate step's own TEXT against any checkout. Recipe (~50s): worktree add
+--detach <pre-fix sha>, `git checkout HEAD -- eval/mcp-qa src/DevContext.Server`
+into it, build the slnx, point the harness at it. Mine is removed.
 
 
 ## Baseline numbers (from run.db)
