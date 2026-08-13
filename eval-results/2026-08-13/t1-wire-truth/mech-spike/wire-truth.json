@@ -1,0 +1,344 @@
+{
+  "measuredAt": "2026-08-13T16:20:57.049Z",
+  "mcpExe": "C:\\Code\\DevContext2-engine\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+  "toolCount": 22,
+  "toolsWithEmptyDescription": 21,
+  "undescribedTools": [
+    "top_flows",
+    "seam",
+    "tests_for",
+    "impact",
+    "list_sessions",
+    "verify_context",
+    "get_context",
+    "status",
+    "trace",
+    "read_source",
+    "close_session",
+    "overview",
+    "resolve",
+    "stats",
+    "find",
+    "usages",
+    "entrypoints",
+    "node",
+    "neighbors",
+    "config",
+    "map"
+  ],
+  "paramCount": 68,
+  "paramsWithDescription": 2,
+  "toolsWithUndescribedParams": [
+    "top_flows(handle)",
+    "seam(handle,from,to,maxDepth,maxPaths)",
+    "tests_for(handle,nodeId,maxDepth,query)",
+    "impact(handle,nodeId,maxDepth,direction,files,query)",
+    "verify_context(handle,focus,budgetTokens,query)",
+    "get_context(handle,focus,budgetTokens,intent,query)",
+    "status(handle)",
+    "trace(handle,focus,depth,format,query,budgetTokens)",
+    "read_source(handle,nodeId,windowLines,mode,query)",
+    "close_session(handle)",
+    "overview(handle)",
+    "resolve(handle,query,limit)",
+    "stats(handle)",
+    "find(handle,query,kind,limit,cursor)",
+    "usages(handle,nodeId,query)",
+    "entrypoints(handle,kind,full,top)",
+    "node(handle,nodeId,query)",
+    "neighbors(handle,nodeId,direction,query,kind)",
+    "config(handle,key)",
+    "map(handle)"
+  ],
+  "payload": {
+    "chars": 6478,
+    "approxTokens": 1620
+  },
+  "perToolChars": 294,
+  "tools": [
+    {
+      "name": "top_flows",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 174
+    },
+    {
+      "name": "seam",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 5,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "from",
+        "to",
+        "maxDepth",
+        "maxPaths"
+      ],
+      "schemaChars": 349
+    },
+    {
+      "name": "tests_for",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 4,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "maxDepth",
+        "query"
+      ],
+      "schemaChars": 317
+    },
+    {
+      "name": "impact",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 6,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "maxDepth",
+        "direction",
+        "files",
+        "query"
+      ],
+      "schemaChars": 443
+    },
+    {
+      "name": "list_sessions",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 0,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [],
+      "schemaChars": 128
+    },
+    {
+      "name": "verify_context",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 4,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "focus",
+        "budgetTokens",
+        "query"
+      ],
+      "schemaChars": 328
+    },
+    {
+      "name": "get_context",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 5,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "focus",
+        "budgetTokens",
+        "intent",
+        "query"
+      ],
+      "schemaChars": 370
+    },
+    {
+      "name": "status",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 171
+    },
+    {
+      "name": "trace",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 6,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "focus",
+        "depth",
+        "format",
+        "query",
+        "budgetTokens"
+      ],
+      "schemaChars": 426
+    },
+    {
+      "name": "read_source",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 5,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "windowLines",
+        "mode",
+        "query"
+      ],
+      "schemaChars": 367
+    },
+    {
+      "name": "close_session",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 178
+    },
+    {
+      "name": "overview",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 173
+    },
+    {
+      "name": "resolve",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 3,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "query",
+        "limit"
+      ],
+      "schemaChars": 262
+    },
+    {
+      "name": "stats",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 170
+    },
+    {
+      "name": "analyze",
+      "descriptionChars": 224,
+      "description": "Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. Example: analyze(\"C:/repos/MyApp\"), analyze(\"C:/repos/GitVersion\", sln:\"GitVersion.slnx\")",
+      "params": 2,
+      "paramsDescribed": 2,
+      "paramsUndescribed": [],
+      "schemaChars": 637
+    },
+    {
+      "name": "find",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 5,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "query",
+        "kind",
+        "limit",
+        "cursor"
+      ],
+      "schemaChars": 348
+    },
+    {
+      "name": "usages",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 3,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "query"
+      ],
+      "schemaChars": 272
+    },
+    {
+      "name": "entrypoints",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 4,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "kind",
+        "full",
+        "top"
+      ],
+      "schemaChars": 305
+    },
+    {
+      "name": "node",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 3,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "query"
+      ],
+      "schemaChars": 270
+    },
+    {
+      "name": "neighbors",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 5,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "nodeId",
+        "direction",
+        "query",
+        "kind"
+      ],
+      "schemaChars": 370
+    },
+    {
+      "name": "config",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 2,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle",
+        "key"
+      ],
+      "schemaChars": 219
+    },
+    {
+      "name": "map",
+      "descriptionChars": 0,
+      "description": "",
+      "params": 1,
+      "paramsDescribed": 0,
+      "paramsUndescribed": [
+        "handle"
+      ],
+      "schemaChars": 168
+    }
+  ]
+}

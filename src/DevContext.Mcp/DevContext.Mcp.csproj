@@ -8,6 +8,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- T1.1 (BUG-BACKLOG #5) — do NOT re-add <GenerateDocumentationFile>. MEASURED 2026-08-13:
+         with it on, devcontext-mcp.xml is emitted next to the exe and `tools/list` still returns
+         description:"" on all 22 tools and 0/68 parameters — ModelContextProtocol 1.4.0 does not
+         read the XML doc file. The carrier that reaches the wire is [Description] in
+         DevContextTools.cs. Evidence: eval-results/2026-08-13/t1-wire-truth/mech-xmldoc/. -->
   </PropertyGroup>
 
   <ItemGroup>
