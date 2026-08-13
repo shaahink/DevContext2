@@ -1,0 +1,226 @@
+{
+  "version": "1.0",
+  "planVersion": 1,
+  "name": "DevContext pre-release - desktop agent loop",
+  "repo": "C:/Code/DevContext2-desktop",
+  "satelliteRepos": [],
+  "tracker": "PRE-RELEASE-DESKTOP-TRACKER.md",
+  "planDoc": "docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md",
+  "branchPattern": "^feat/pre-release-desktop$",
+  "pauseOnBlocked": true,
+  "agent": {
+    "command": "claude",
+    "args": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model",
+      "{model}",
+      "--session-id",
+      "{sessionId}"
+    ],
+    "resumeArgs": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model",
+      "{model}",
+      "--resume",
+      "{claudeSessionId}"
+    ],
+    "output": "stream-json",
+    "model": "claude-opus-5"
+  },
+  "advisor": {
+    "command": "claude",
+    "args": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "json",
+      "--model",
+      "claude-haiku-4-5-20251001"
+    ],
+    "output": "json",
+    "timeoutMinutes": 6
+  },
+  "progress": {
+    "kind": "markdown-table"
+  },
+  "conventions": {
+    "stageIdPattern": "(?<stage>[A-Za-z]+\\d+)(?:\\.\\d+)?[a-z]?",
+    "handoffMarker": "## Handoff",
+    "humanToken": "HUMAN:",
+    "status": {
+      "done": ["DONE"],
+      "blocked": ["BLOCKED"],
+      "inProgress": ["IN PROGRESS"],
+      "todo": ["TODO"],
+      "skipped": ["SKIPPED"]
+    }
+  },
+  "stages": [
+    {
+      "id": "N0",
+      "title": "Truth batch - no-decision honesty fixes on Studio + MCP page",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md section 3.F (the numbered truth-defect inventory) and section 5 N0. Only the no-decision items: 3, 4, 7, 9, 10, 11, 12, 13, 14, 15. Re-verify every audit file:line before editing (sweep date 2026-08-13). The merge bug (3) is server-side in ContextPackBuilder - a Core edit, rebuild the CLI after. Splitting status from StartMcp (9) is the honest-semantics half only; the full Room-2 rebuild is N4's job, do not start it here. File the whole 3.F list into BUG-BACKLOG.md as triaged bugs and add spec smoke coverage for both pages.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "N1",
+      "title": "Studio truth pass + pins made real (owner decision 1: IMPLEMENT)",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md section 5 N1 and section 8 decision 1. Verified/approx rendered per card (the wire already carries them); the verification ledger must verify the pack that was actually built - wire item 4 in section 4: either VerifyContextRequest gains cards/intent or verification moves into GetContextPack's response, pick with a stated reason. State lifecycle: per-tab keying or handle-effect invalidation, budget/intent/format persisted in prefs. Body toggles get wired to the wire or deleted - no cosmetic toggles survive. Pins: TrailStore.pins() gains real readers; p pins from Explore; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) become true.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "N2",
+      "title": "Pack convergence - one pipeline, two faces (owner decision 2: FULL)",
+      "sessions": 3,
+      "notes": "STRAND DOC: docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md sections 4 (Room 1 + wire items 4-5) and 5 N2; section 8 decision 2. BuildMulti adopts the ResolveEntry path get_context uses (symbol-rooted cards); usage joins CardTypeSections; the picker gains a Types tab (LibrarySurface list) and the D-G row identity (target member + route tail + project). Honesty-note parity: fill-rate note and suggested focuses rendered in the rail. Budget default reconciled (UI 4000 vs everywhere-else 8000 - one number, stated). This settles S11's D-G. ACCEPTANCE, hand-verified end to end: a FluentValidation pack composed from types, with usage and verified counts. Core edits here (ContextPackBuilder) - rebuild the CLI; proto changes need DevContext.Contracts rebuild AND pnpm gen:proto in lockstep.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "M1",
+      "title": "Hygiene + Reader prerequisites (proto/mapper shopping list)",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/DESKTOP-PRODUCT-AUDIT-2026-08-13.md section 4 (the shopping list, items 1-4) and section 5 M7 - the no-decision subset only; the Reader itself is owner-refinement work and OUT of this run. Shopping list: TraceNode gains structured file_path + line_number; ReadSource file mode (or GetFileSource) with caps; a per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount / DiHostCount / TestOnly / OmittedNames. Hygiene: MapResponse.stack populated or its three consumers stop rendering it (file the bug either way); Layer/Feature lens slots hidden until D9 data exists; createTab MAX_TABS lie fixed; dock resizer; high-contrast theme selectable or removed. Leave the GitHub-URL dead code alone - that is an owner call, file it, do not decide it.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "N3",
+      "title": "Loop joints - routes into Studio + repo-file hand-off (owner decision 3)",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md sections 4 (Room 1) and 5 N3; section 8 decision 3. Send-to-Studio from Explore (selection, trail, pins), Insights cards, and NodeCard. Studio default state = the current trail plus pins rendered as a PROPOSED pack - never opens empty after exploration; archetype preset on a fresh session. Hand-off is REPO FILE FIRST: Save writes .devcontext/packs/<slug>.md (gitignored by default) plus a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes THROUGH Studio. Server-registered packs are explicitly deferred - do not build SavePack.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "N4",
+      "title": "MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)",
+      "sessions": 3,
+      "notes": "STRAND DOC: docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md sections 4 (Room 2 + wire items 1-3) and 5 N4; section 8 decision 4. PRECONDITION: the engine run's T1 (curated described catalog) should be reachable - merge feat/pre-release-engine into this branch first and record the merge in the handoff; if T1 has not landed yet, deliver N4.1 and N4.2 and leave N4.3 open rather than rendering the pre-curation soup. Status must MEASURE: binary fs probe, ObserverCount + last-agent-call-at on the wire, a handshake that runs one real MCP tools/list round-trip; Start/Stop is killed or renamed to what it does (a global telemetry mute is a trap). Ship devcontext-mcp in the Tauri bundle so the page's existing claim becomes true; snippets carry the resolved absolute path; write-config-for-me per host. Feed keyed by MCP tool names (analyze wrapped and visible, args digest restored, wire timestamps); rows deep-link - trace into Explore, get_context into replay-in-Studio.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "Z1",
+      "title": "Close-out: docs + backlog reconciliation, full battery, push",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md sections 3 and 6-7. Reconcile STUDIO-MCP-AUDIT statuses, DECISIONS.md (D-G settled by N2 - say so), BUG-BACKLOG.md; update the PRE-RELEASE-PLAN stage table for this run. Leave the tree clean and pushed. Merging to develop is owner-signed and NOT this stage's job.",
+      "ownerGate": false,
+      "kind": "deliver"
+    }
+  ],
+  "gates": [
+    {
+      "name": "fast-app",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -Scope app",
+      "optional": false,
+      "tier": "fast",
+      "parallel": false,
+      "timeoutMinutes": 20
+    },
+    {
+      "name": "fast-engine",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -SkipEval -Scope engine",
+      "optional": false,
+      "tier": "fast",
+      "parallel": false,
+      "stages": ["N2", "M1", "N4"],
+      "timeoutMinutes": 25
+    },
+    {
+      "name": "guards",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\loom-guards.ps1",
+      "optional": false,
+      "skipIfMissing": "scripts/loom-guards.ps1",
+      "tier": "fast",
+      "parallel": false,
+      "timeoutMinutes": 10
+    },
+    {
+      "name": "battery",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1",
+      "optional": false,
+      "tier": "full",
+      "parallel": false,
+      "timeoutMinutes": 45
+    }
+  ],
+  "gatePolicy": "perPhase",
+  "verifyEachDelivery": true,
+  "limits": {
+    "stallMinutes": 20,
+    "stallGraceMinutes": 3,
+    "sessionTimeoutMinutes": 180,
+    "batterySettleSeconds": 120,
+    "authPreflight": true,
+    "maxResumesPerSession": 2,
+    "stageSlackFactor": 2,
+    "backoffMinutes": 30,
+    "maxBackoffs": 10,
+    "maxRunCostUsd": 300,
+    "approvalMode": false,
+    "maxSessionTokens": 26000000,
+    "softBreakRatio": 0.62,
+    "maxConcurrentLanes": 2,
+    "stallPatternTermination": true,
+    "sameFailureCircuitBreaker": true,
+    "stallBackoffMinutes": 12,
+    "overheadCostPerSecond": 0.0001,
+    "verifierThreshold": 80
+  },
+  "report": {
+    "commit": true,
+    "push": true,
+    "heartbeatMinutes": 0
+  },
+  "telegram": {
+    "allowedChatIds": ["99205495"],
+    "pollIntervalSeconds": 4,
+    "enableTwoWay": true
+  },
+  "promptExtra": "TRAPS THIS PROGRAM HAS ALREADY PAID FOR - do not rediscover them:\n1. A backtick inside an HTML comment TERMINATES an Angular template literal. This has fired three times. Worse, pnpm ng build piped through grep for error markers looks CLEAN because esbuild emits ANSI colour codes before the failure marker. CHECK the exit code, never the filtered output. Write field names in comments without backticks.\n2. Every node scripts/... command needs an absolute cd in the SAME command - a drifted working directory has cost this program two sessions.\n3. Rebuild src/DevContext.Cli after ANY Core edit - the CLI carries its own DevContext.Core.dll (stale-dll trap).\n4. A proto change means rebuilding DevContext.Contracts AND pnpm gen:proto, wiring server + app in lockstep.\n5. Restart src/DevContext.App/scripts/start-dev-bg.ps1 before any Playwright capture that follows a build; a stale vite-error-overlay silently eats clicks.\n6. MEASURE a verdict, do not read it off a doc comment. This audit's own file:line claims are dated 2026-08-13 - re-verify before editing.\n7. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no softened gate. If a bar is genuinely wrong, escalate via the tracker handoff and stop.\n8. Never merge to develop. That is an owner-signed event.\n9. If node_modules is missing in this worktree, run pnpm install under src/DevContext.App first; if eval-repos submodules are empty, git submodule update --init first.\n10. Long child processes (e2e suites, batch captures) run via conductor bg start --purpose <label> -- <cmd> so the watchdog sees a live child.",
+  "templatesDir": "templates",
+  "packs": [],
+  "batteryCollapse": false,
+  "readOrder": [
+    "AGENTS.md",
+    "docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md"
+  ],
+  "analysisLanes": [],
+  "mutatingLanes": [],
+  "workflows": {
+    "deliver": {
+      "name": "deliver",
+      "description": "Deliver until the stage's checkpoints are confirmed. Conductor's battery is the QA; no separate verify session.",
+      "steps": [
+        {
+          "id": "deliver",
+          "kind": "deliver",
+          "deliver": true
+        },
+        {
+          "id": "fix-if-red",
+          "kind": "fix",
+          "runIf": "!gatesGreen",
+          "deliver": true
+        }
+      ],
+      "repeat": true
+    }
+  },
+  "defaultWorkflow": "deliver"
+}
