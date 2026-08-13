@@ -303,7 +303,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var intent = request.HasIntent ? request.Intent : null;
             var pack = builder.Build(request.Focus, budget, intent);
             return ProtoMapper.ToContextResponse(request.Focus, pack);
@@ -316,7 +316,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.BudgetTokens > 0 ? request.BudgetTokens : 8000;
+            var budget = request.BudgetTokens > 0 ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var intent = request.Intent is { Length: > 0 } s ? s : null;
 
             // N1.1 — exclude_bodies rides the spec: the Studio's eye toggle is a pack filter now,
@@ -335,7 +335,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var pack = builder.Build(request.Focus, budget);
 
             var sections = new ContextPackVerifier(session.Snapshot).Verify(pack.Sections);

@@ -21,6 +21,21 @@ export interface Prefs {
 export type StudioIntent = 'trace' | 'explain' | 'review';
 export type StudioFormat = 'markdown' | 'plain' | 'json';
 
+/**
+ * N2.2 — THE pack budget default, and the app's statement of the number the engine already uses:
+ * ContextPackBuilder.DefaultBudgetTokens, the MCP get_context signature and this all read 8000.
+ *
+ * It was 4000 here alone, which meant the Studio opened at half the ceiling an agent gets for the
+ * same pack and said nothing about it — the same pipeline answering two sizes depending on which
+ * face you asked. The likely origin is TracePolicy.DefaultBudgetTokens (4000), which budgets one
+ * TRACE rather than a whole pack; both constants now document what they budget.
+ *
+ * A value already in localStorage is left alone on purpose: since N1.1 the slider position is a
+ * remembered CHOICE, and 4000 is one of its stops. This changes what the Studio opens with when
+ * nobody has chosen, which is what "default" means.
+ */
+export const DEFAULT_STUDIO_BUDGET = 8000;
+
 const STORAGE_KEY = 'devcontext-prefs';
 
 const DEFAULTS: Prefs = {
@@ -30,7 +45,7 @@ const DEFAULTS: Prefs = {
   useRoslyn: true,
   autoCleanup: true,
   dockLevel: 2,
-  studioBudget: 4000,
+  studioBudget: DEFAULT_STUDIO_BUDGET,
   studioIntent: 'trace',
   studioFormat: 'markdown',
 };

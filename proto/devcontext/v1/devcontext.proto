@@ -796,6 +796,22 @@ message ContextPackResponse {
   bool any_stale = 7;
   string analyzed_git_head = 8;     // HEAD at analyze time ("" outside git)
   string current_git_head = 9;      // HEAD now
+  // N2.2 (audit §4) — honesty-note parity with the MCP get_context layer. The engine has told
+  // AGENTS why an under-filled pack under-filled since D5.1 (budget-cut vs content-exhausted)
+  // and offered better-connected focuses; the Studio rendered the same pack with none of it.
+  // Both are computed in ContextPackBuilder now, so the two faces cannot drift apart.
+  // Empty string = the pack met the >=85% fill promise and owes no explanation.
+  string fill_note = 10;
+  repeated SuggestedFocus suggested_focuses = 11;
+}
+
+// N2.2 — a next-move candidate for a content-exhausted pack. `focus` is a string GetContextPack
+// and GetContext both accept verbatim (route form when the entry has one, else its title).
+message SuggestedFocus {
+  string focus = 1;
+  string kind = 2;      // EntryPointKind
+  double score = 3;     // entry rank
+  int32 depth = 4;      // spine steps — why it is "better connected"
 }
 
 message ContextCardItem {

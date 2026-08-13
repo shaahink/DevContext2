@@ -87,45 +87,7 @@ public sealed class ContextPackLedgerTests
         Assert.Equal(flowPlain.TotalTokens, flowUnaffected.TotalTokens);
     }
 
-    private static async Task<(ContextPackBuilder Builder, ImmutableArray<string> EntryIds)> BuildFixtureAsync()
-    {
-        var repoPath = RepoPath(Path.Combine("tests", "fixtures", "CompositionApp"));
-        Assert.True(Directory.Exists(repoPath), $"fixture missing: {repoPath}");
-
-        var fs = new RealFileSystem();
-        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
-        using var loggerFactory = LoggerFactory.Create(_ => { });
-        var ctx = new DiscoveryContext
-        {
-            RootPath = rootResult.EffectiveRootPath,
-            ScopedProjectDirs = rootResult.ScopeProjectDirs,
-            Options = new ExtractionOptions { MaxOutputTokens = 8000, OutputFormat = OutputFormat.Markdown, AllowRoslyn = true },
-            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
-            Observer = new NullDiscoveryObserver(),
-            FileSystem = fs,
-            Cache = new AnalysisCache(fs),
-            Analysis = new SharedAnalysisContext(),
-            Logger = loggerFactory.CreateLogger("PackLedger"),
-        };
-
-        var snapshot = await TestPipeline.Build(loggerFactory).AnalyzeAsync(ctx);
-        Assert.NotNull(snapshot.Graph);
-        Assert.False(snapshot.Entries.IsDefaultOrEmpty);
-
-        var query = new GraphQuery(snapshot.Graph!, snapshot.Entries, snapshot.Map);
-        return (new ContextPackBuilder(query, snapshot),
-                snapshot.Entries.Select(e => e.Node.ToString()).ToImmutableArray());
-    }
-
-    private static string RepoPath(string relativePath)
-    {
-        var dir = AppContext.BaseDirectory;
-        while (dir is not null && !File.Exists(Path.Combine(dir, "DevContext.slnx")))
-        {
-            var parent = Path.GetDirectoryName(dir);
-            if (parent == dir) break;
-            dir = parent;
-        }
-        return Path.Combine(dir ?? ".", relativePath);
-    }
+    // N2.2 — the fixture moved to ContextPackFixture so the honesty tests build the same graph.
+    private static Task<(ContextPackBuilder Builder, ImmutableArray<string> EntryIds)> BuildFixtureAsync()
+        => ContextPackFixture.BuildAsync();
 }
