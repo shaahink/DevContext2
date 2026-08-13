@@ -1,18 +1,19 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 18:54 UTC · branch `feat/pre-release-desktop` · HEAD `a6ab4e2`_
+_Updated 2026-08-13 19:22 UTC · branch `feat/pre-release-desktop` · HEAD `4d24d85`_
 
 **Status:** Idle
-**Stage:** N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) · attempts used 0 · working ▸ N1.2
-**Checkpoints:** 4/16 done · **Sessions run:** 4 · **Cost:** $34.9675 (agent $34.8674 + gates $0.1001) · **Tokens:** 585,428 in / 250,442 out
+**Stage:** N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) · attempts used 0
+**Checkpoints:** 5/16 done · **Sessions run:** 5 · **Cost:** $43.3852 (agent $43.2556 + gates $0.1296) · **Tokens:** 718,455 in / 298,770 out
 **Confirmed phases:** N0
+**Pending:** full-battery phase gate for N1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
-| N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | █████░░░░░ 1/2 | **← active** |
+| N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | gating… |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ░░░░░░░░░░ 0/2 | todo |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
@@ -29,12 +30,12 @@ _Updated 2026-08-13 18:54 UTC · branch `feat/pre-release-desktop` · HEAD `a6ab
 
 </details>
 
-<details><summary>N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) (1/2)</summary>
+<details> ✅<summary>N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | ✅ DONE | - |
-| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | ⬜ TODO | - |
+| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | ✅ DONE | [`d57b59d`](https://github.com/shaahink/DevContext2/commit/d57b59d) |
+| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | ✅ DONE | - |
 
 </details>
 
@@ -92,6 +93,7 @@ _Updated 2026-08-13 18:54 UTC · branch `feat/pre-release-desktop` · HEAD `a6ab
 | 2 | N0 | Deliver | 1 | 08-13 16:56 | 0:15 | Advanced | N0.3 | 2 | fast-app:OK · guards:OK | $4.7577 | $0.0190 | 100,599/38,922 |
 | 3 | N0 | Fix | 2 | 08-13 17:21 | 0:31 | Progress |  | 3 | fast-app:OK · guards:OK | $5.9230 | $0.0250 | 112,749/54,823 |
 | 4 | N1 | Deliver | 1 | 08-13 18:15 | 0:34 | Advanced | N1.1 | 11 | fast-app:OK · guards:OK | $12.0268 | $0.0288 | 194,917/79,115 |
+| 5 | N1 | Deliver | 1 | 08-13 18:54 | 0:22 | Advanced | N1.2 | 3 | fast-app:OK · guards:OK | $8.3882 | $0.0294 | 133,027/48,328 |
 
 ## Money
 
@@ -99,11 +101,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
+| **run total** | 4 | 46.4M | 98.2% | $34.97 | 4 | 11.6M | $8.74 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
-| 2026-08 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
+| stage N1 | 1 | 16.5M | 98.3% | $12.06 | 1 | 16.5M | $12.06 |
+| 2026-08 | 4 | 46.4M | 98.2% | $34.97 | 4 | 11.6M | $8.74 |
 
-_Where the money goes: agent $22.84 (100%) · gate $0.07 (0%) · blended $0.77/M tokens._
+_Where the money goes: agent $34.87 (100%) · gate $0.10 (0%) · blended $0.75/M tokens._
 
 ## Timeline
 
@@ -138,6 +141,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 19:15:35  • session #4 N1 Deliver started (attempt 1/4)
 08-13 19:54:34  ▪ gate fast-app pass [session]  (3m36s)
 08-13 19:54:34  ▪ gate guards pass [session]  (1m11s)
+08-13 19:54:40  • session #4 N1 → Advanced · done N1.1 · 11 commit(s)  (39m05s)
+08-13 19:54:40  • session #5 N1 Deliver started (attempt 1/4)
+08-13 20:22:33  ▪ gate fast-app pass [session]  (3m17s)
+08-13 20:22:33  ▪ gate guards pass [session]  (1m37s)
 ```
 
 ## Health
@@ -145,7 +152,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 4 · retries 1 (25 %) · overall Ok
+sessions 5 · retries 1 (20 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -184,6 +191,10 @@ vs upstream: up to date
   - [`5fd9911`](https://github.com/shaahink/DevContext2/commit/5fd9911) fix(gates): Step 3 no longer dies on Get-FileHash under a pwsh-7 parent
   - [`ff9789e`](https://github.com/shaahink/DevContext2/commit/ff9789e) chore(conductor): s2 N0 Advanced — Idle
   - [`d57b59d`](https://github.com/shaahink/DevContext2/commit/d57b59d) chore(conductor): s2 N0 Advanced — Idle
+- **s5 (N1 Deliver)** — 3 commit(s):
+  - [`4d24d85`](https://github.com/shaahink/DevContext2/commit/4d24d85) docs(tracker): N1.2 handoff - pins are real, N1 closed, next is N2.1
+  - [`366cc3a`](https://github.com/shaahink/DevContext2/commit/366cc3a) test(explore): p reports what it pinned + N1.2 evidence and backlog close
+  - [`e448d64`](https://github.com/shaahink/DevContext2/commit/e448d64) feat(studio): pins seed the pack for real - TrailStore.pins() gains its reader (N1.2)
 
 ## Last gate run
 
@@ -191,25 +202,25 @@ fast-app:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** N1.1 is delivered, claimed (`conductor task --done N1.1 --evidence eval-results/2026-08-13/N1.1-studio-truth.md`) and pushed as three commits — `56ebc25` (engine), `e3a9bc2` (app), `b89df90` (handoff), merged with origin as `a6ab4e2`; working tree clean, branch level with `origin/feat/pre-release-desktop`. All four of the checkpoint's items landed with proof: **(a)** verified/approx now render per card (`composition-view.provenanceMix()`, DOM-asserted) — counts that have ridden the wire since T4.4 with no surface showing them; **(b)** wire item 4 was decided and implemented as *verification moves into `GetContextPack`'s response* rather than `VerifyContextRequest` gaining c…
+> SESSION-RESULT: N1.2 landed and is claimed DONE with evidence `eval-results/2026-08-13/N1.2-pins-real.md` across three pushed commits (`e448d64`, `366cc3a`, `4d24d85`) — the audit's flag finding (backlog #26, owner decision 1 = IMPLEMENT) is closed. `TrailStore.pins()` now has four real readers where it had none outside its own store: `ContextStudio.onTrailSeed()` reads pins first and falls back to the raw trail; the picker's seed button states its source, its count and — at zero — why it does nothing; and `p` in Explore reports what it pinned, how many are held and where they go instead of toggling in silence. The load-bearing rule, measured not assumed: a seed resolves `step.focus` against…
 
 ## Tracker handoff
 
 ```
-N1.1 IS CLOSED (56ebc25 engine + e3a9bc2 app; evidence eval-results/2026-08-13/N1.1-studio-truth.md).
-START AT N1.2 (pins, backlog #26 - the ONLY §3.F item left in N1). Wire item 4 is DECIDED AND SHIPPED:
-verification MOVED INTO GetContextPack's response (verification/any_stale/analyzed_git_head/
-current_git_head); VerifyContext stays single-focus for MCP. Do not re-open that. Also landed:
-per-card verified/approx, handle-effect card invalidation + PrefsStore studioBudget/Intent/Format,
-exclude_bodies on the wire. #27/#28/#29 are now under BUG-BACKLOG "FIXED in N1.1"; 28 open.
-FOR N1.2, MEASURED HERE, DO NOT RE-DERIVE: the pack path is `ContextPackBuilder.BuildMulti` and a
-card is `ContextCardSpec(type,title,entryIds,excludeBodies)` - seeding a pack from pins means
-producing seeds, NOT a new RPC. `ContextStudio.onTrailSeed()` already walks `trailStore.steps()`
-and only handles `step.kind === 'entry'` via `findEntryByFocus`; that is the hook pins plug into.
-Studio cards now DIE with the handle (constructor effect) - a pin store that outlives the handle
-must be invalidated the same way or it will reseed dead node ids.
-TEST LOOP (unchanged, still true): `pnpm exec ng test --watch=false --include=<spec>`; plain
-`pnpm vitest run` fails on TestBed.initTestEnvironment. Check pnpm build's EXIT CODE, not output.
-`pnpm test` 179/179, lint clean, contract-sweep GATE PASS, dotnet build 0w/0e - all this session.
+N1 IS CLOSED - N1.2 landed (e448d64 + 366cc3a; evidence eval-results/2026-08-13/N1.2-pins-real.md).
+START AT N2.1 (BuildMulti adopts ResolveEntry; `usage` joins CardTypeSections; picker Types tab).
+Pins are REAL: ContextStudio.onTrailSeed() (context-studio.ts:481) reads trailStore.pins() first
+and falls back to steps(). THE RULE N2/N3 MUST REUSE, MEASURED HERE: a seed resolves step.focus
+against the LIVE session.entryGroups() and takes the RESOLVED entry's nodeId+title, never the
+pinned step's - so a pin cannot carry a dead id across a re-analyze and needs NO invalidation
+effect. Every step kind resolves now (a `node` step carries its trace's focus), reroot never can.
+N3.1's "never opens empty" should call onTrailSeed, not re-derive seeding. Backlog #26 is under
+"FIXED in N1.2"; 27 open, 7 high. New run bug #3: icon.ts renders an EMPTY span for a name its
+REGISTRY lacks (box/edit/grip-vertical/lock still dead; bookmark+history added).
+TEST LOOP (unchanged): `pnpm exec ng test --watch=false --include=<spec>`; plain `pnpm vitest run`
+fails on TestBed.initTestEnvironment. Check the EXIT CODE, not filtered output - an escaped
+apostrophe in an Angular expression is a lexer error and cost a build here. `pnpm check` green
+this session: lint clean, 188/188, production build. Engine untouched by N1.2.
+`conductor bg start -- pnpm <script>` dies on corepack; wrap in `pwsh -NoProfile -Command`.
 Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
 ```
