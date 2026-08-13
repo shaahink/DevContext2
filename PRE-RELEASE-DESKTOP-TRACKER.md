@@ -4,23 +4,20 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-Stage M1 gate is GREEN again — s15's M1.2 work was sound, but the file it ADDED
-(workbench-page.spec.ts) had never been linted, and that one error failed fast-app + battery twice
-each. Fix = line 136, `dockWidthOverride: { (): number | null }` → `() => number | null`; a
-type-identical rewrite. Nothing weakened: no test skipped, no eslint-disable, no rule downgraded.
-Evidence eval-results/2026-08-13/M1-gate-red-lint-fix.md: lint exit code 0, 25 files / 224 tests
-passed, ng build clean (112s), zero ELIFECYCLE in the log. NEXT: N3.1 (Send-to-Studio), first TODO.
-TRAP THAT COST THIS SESSION — and it will fire again on the next new spec file: `tsc -p
-tsconfig.spec.json` CANNOT catch this class of error, because the two spellings are the SAME TYPE;
-and `ng build` never compiles specs at all. Only `ng lint` separates them. So run pnpm lint on any
-NEWLY ADDED spec before claiming a stage green — the previous handoff's advice to typecheck specs
-with tsc is necessary but NOT sufficient. Related: prefer-function-type fires only when a call
-signature is the type literal's SOLE member — line 134's `{ (): number; set(v: number): void }` is
-legal, which is exactly why the bad line looked fine. Also: pnpm check is lint && test && build and
-SHORT-CIRCUITS, so a lint-red gate never ran test or build — re-run all three, not just the red one.
-Earlier traps still standing: Assert.Equal(collection-expression, ImmutableArray) never passes
-(IEquatable by REFERENCE — call .ToArray() on the actual); contract-sweep only catches fields with
-NO READERS, so a field with readers and no writer is invisible to it. ng build is ~112-193s.
+Stage M1 gate is GREEN again (ad0eaff). s15's five M1.2 deliverables were sound; the spec file it
+ADDED had never been linted, and that one error failed fast-app + battery twice each. Fix =
+workbench-page.spec.ts:136, `dockWidthOverride: { (): number | null }` → `() => number | null`, a
+type-identical rewrite — no test skipped, no eslint-disable, no rule downgraded. Evidence
+eval-results/2026-08-13/M1-gate-red-lint-fix.md: lint exit 0, 25 files / 224 tests, ng build clean
+(112s), zero ELIFECYCLE. Also filed bug #8: GitHub-URL dead code re-measured today (3 files, zero
+real importers) and left UNDECIDED, as the stage requires. NEXT: N3.1, first TODO on the board.
+TRAP, and it will fire on the next new spec: `tsc -p tsconfig.spec.json` CANNOT catch this class —
+both spellings are the SAME TYPE — and `ng build` never compiles specs. Only `ng lint` separates
+them, so lint any NEWLY ADDED spec before claiming green. prefer-function-type fires only when a
+call signature is the literal's SOLE member (line 134's two-member version is legal — why the bad
+line looked fine). pnpm check SHORT-CIRCUITS: a lint-red gate never ran test or build, re-run all 3.
+Still standing: Assert.Equal(collection-expr, ImmutableArray) never passes (IEquatable by REFERENCE
+— .ToArray() the actual); contract-sweep only catches fields with NO readers. ng build ~112-193s.
 
 
 ## Baseline numbers (from run.db)
