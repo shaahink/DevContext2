@@ -17,6 +17,17 @@
       app    build + app check only (engine suites skipped); for app-only checkpoints.
     Non-full verdicts self-label "not a merge gate", same contract as -SkipEval.
 
+    STEP ORDER IS FAIL-FAST, NOT NUMERICAL (owner gate chore, 2026-08-13). The battery runs
+    0, 1, 1a, 5, 2, 2b, 4, 4b, 3 — cheapest and most-likely-to-break first, the ~11-minute
+    eval suite last. The numbers are STABLE NAMES (a step keeps its number and its exit code
+    forever, so "GATE: FAIL (step 4)" means the same thing across the program's history); the
+    ORDER is a scheduling decision. Before this, an app-only typo waited out the whole engine
+    cohort to be told, and a red eval hid whatever else was red behind it.
+
+    An ABORT is not a step verdict: any terminating error unwinds through the trap at the top
+    and exits 9 with the error named, so a battery that DIED is never read as a suite that
+    FAILED. Steps use 1-5; 9 is reserved for "did not finish".
+
     Step 3 is ENGINE-STAMP CACHED (T7.0): before running, a SHA256 over engine sources,
     Core tests, expectations, and fixtures is compared to eval/.eval-stamp.json (written on
     the last green eval). Identical stamp = the previous verdict transfers - the step is
@@ -61,6 +72,24 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $exitCode = 0
+
+# ABORT = FAIL, WITH A NAME (owner gate chore, ported from the engine branch). Under
+# $ErrorActionPreference = 'Stop' any terminating error outside Invoke-NativeCapture — a missing
+# tool, a path that vanished, a typo in a step — unwinds the script silently: PowerShell prints the
+# record to stderr and exits, so the battery ends with no "GATE:" line at all. Conductor then reads
+# a truncated log and has to GUESS whether the battery failed or the host died.
+#
+# Exit 9 is reserved for exactly that: the battery ABORTED rather than any step failing. It is a
+# distinct code from every step's (1,2,3,4,5), so it can never be mistaken for a suite verdict, and
+# the error and the step banner it died under are printed rather than swallowed.
+trap {
+    Write-Host ""
+    Write-Host "  ABORT  $($_.Exception.Message)" -ForegroundColor Red
+    if ($_.InvocationInfo) { Write-Host "         at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Red }
+    Write-Host ""
+    Write-Host "GATE: ABORTED (exit 9 - the battery did not finish; this is NOT a step verdict)" -ForegroundColor Red
+    exit 9
+}
 
 function Write-Step {
     param([string]$Text)
@@ -145,6 +174,40 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Pass "Contract sweep clean (every response field read or allow-listed with a reason)"
 
+# Step 5: App check (T7.0) — pnpm check (lint + vitest + build) folds the desktop app into
+# the battery; before this the full gate never covered the app at all.
+if ($Scope -eq 'engine') {
+    Write-Step "Step 5: App check - SKIPPED (-Scope engine)"
+} else {
+    Write-Step "Step 5: App check (pnpm check)"
+    # PREFLIGHT (owner gate chore). A worktree that has never had `pnpm install` run in it fails
+    # `pnpm check` with a module-resolution error that reads like a broken app, not a missing
+    # install — and every fresh worktree this program creates starts that way. Say which it is
+    # BEFORE spending the run, and name the one command that fixes it.
+    $appDir = Join-Path $repoRoot "src\DevContext.App"
+    if (-not (Test-Path (Join-Path $appDir "node_modules"))) {
+        Write-Fail "node_modules is missing in $appDir - run 'pnpm install' there first" -Step 5
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 5 - app dependencies not installed; this is a SETUP failure, not an app failure)" -ForegroundColor Red
+        exit 5
+    }
+    Push-Location $appDir
+    try {
+        # This step's inline workaround is where the hazard was first found; it is now the shared
+        # Invoke-NativeCapture every step uses (see its comment for what it costs to leave one out).
+        $appResult = Invoke-NativeCapture { & pnpm check }
+        $appExit = $LASTEXITCODE
+    } finally { Pop-Location }
+    if ($appExit -ne 0) {
+        Write-Host ($appResult | Select-Object -Last 40)
+        Write-Fail "pnpm check failed" -Step 5
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 5 - app check)" -ForegroundColor Red
+        exit 5
+    }
+    Write-Pass "pnpm check passed"
+}
+
 # Step 2: Fast unit tests (exclude Eval, CliSmoke, and McpQa).
 # McpQa is a 3-minute external `node` MCP drive against the dogfood repo (its own Category, meant to
 # be independently selectable). Run inside the parallel unit suite it loses a shared-state race and
@@ -183,6 +246,103 @@ if ($SkipMcpQa) {
     Write-Pass "MCP QA gate passed"
 }
 
+# Step 4: CLI strict-mode matrix
+Write-Step "Step 4: CLI --strict matrix"
+$cliProject = Join-Path $repoRoot "src\DevContext.Cli"
+$testDir = Join-Path $repoRoot "tests\fixtures\MinimalApiProject"
+
+if (-not (Test-Path $testDir)) {
+    $testDir = $repoRoot
+}
+
+$cliMatrix = @(
+    @{ Name = "analyze . --strict";              Args = @("analyze", $testDir, "--strict") }
+    @{ Name = "analyze --format json --strict";  Args = @("analyze", $testDir, "--format", "json", "--strict") }
+    @{ Name = "analyze --format html --strict";  Args = @("analyze", $testDir, "--format", "html", "--strict") }
+    @{ Name = "analyze --dry-run";               Args = @("analyze", $testDir, "--dry-run") }
+    @{ Name = "analyze --max-tokens 2000 --strict"; Args = @("analyze", $testDir, "--max-tokens", "2000", "--strict") }
+)
+
+$cliFailed = 0
+foreach ($entry in $cliMatrix) {
+    Write-Host "  Running: $($entry.Name)..."
+    $cliOutput = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- $entry.Args }
+    $cliExit = $LASTEXITCODE
+
+    if ($cliExit -eq 0) {
+        Write-Host "    exit 0 (clean)" -ForegroundColor Green
+    } elseif ($cliExit -eq 2 -and $entry.Name.Contains("--strict")) {
+        Write-Host "    exit 2 (self-check failures)" -ForegroundColor Yellow
+    } elseif ($entry.Name -eq "analyze --dry-run") {
+        if ($cliExit -eq 0) {
+            Write-Host "    exit 0 (dry-run)" -ForegroundColor Green
+        } else {
+            Write-Host "    exit $cliExit (unexpected)" -ForegroundColor Red
+            $cliFailed++
+        }
+    } else {
+        Write-Host "    exit $cliExit" -ForegroundColor Red
+        $cliFailed++
+    }
+}
+
+if ($cliFailed -gt 0) {
+    Write-Fail "$cliFailed CLI command(s) failed" -Step 4
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 4 - CLI matrix)" -ForegroundColor Red
+    exit 4
+}
+Write-Pass "CLI matrix: all commands ran successfully"
+
+# Step 4b: CLI query ops (Tapestry T3.7).
+# entrypoints/stats/trace now run against the snapshot's GraphQuery (one JSON shape shared with MCP),
+# not the overview render. Assert each op returns real graph JSON on the fixture.
+Write-Step "Step 4b: CLI query ops (T3.7)"
+$queryFailed = 0
+
+$epJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query entrypoints --path $testDir --format json } | Out-String
+try { $ep = $epJson | ConvertFrom-Json } catch { $ep = $null }
+if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Properties.Count -gt 0)) {
+    Write-Host "    entrypoints: $($ep.count) entries across $($ep.byKind.PSObject.Properties.Count) kind(s)" -ForegroundColor Green
+} else {
+    Write-Host "    entrypoints: expected >0 entries with per-kind counts" -ForegroundColor Red; $queryFailed++
+}
+
+$stJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json } | Out-String
+try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
+# K2 (Prism D3.3): stats must carry the analyze-time stage timeline (fresh fixture => never empty).
+if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -gt 0) {
+    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, $($st.stages.Count) waterfall stages" -ForegroundColor Green
+} else {
+    Write-Host "    stats: expected node counts + entriesByKind + non-empty stages timeline" -ForegroundColor Red; $queryFailed++
+}
+
+# trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
+Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir } | Out-Null
+if ($LASTEXITCODE -eq 1) {
+    Write-Host "    trace (no focus): required-focus guard fired (exit 1)" -ForegroundColor Green
+} else {
+    Write-Host "    trace (no focus): expected exit 1, got $LASTEXITCODE" -ForegroundColor Red; $queryFailed++
+}
+$focus = $null
+if ($ep -and $ep.entries -and $ep.entries.Count -gt 0) { $focus = $ep.entries[0].title }
+if ($focus) {
+    $trJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir --focus $focus --format json } | Out-String
+    try { $tr = $trJson | ConvertFrom-Json } catch { $tr = $null }
+    if ($tr -and $tr.found -eq $true -and $tr.root) {
+        Write-Host "    trace('$focus'): found, root=$($tr.root.title)" -ForegroundColor Green
+    } else {
+        Write-Host "    trace('$focus'): expected found=true with a root (focus not honored)" -ForegroundColor Red; $queryFailed++
+    }
+}
+
+if ($queryFailed -gt 0) {
+    Write-Fail "$queryFailed CLI query op(s) failed" -Step 4
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 4b - CLI query ops)" -ForegroundColor Red
+    exit 4
+}
+Write-Pass "CLI query ops: entrypoints/stats/trace return graph JSON"
 # Step 3: Eval tests.
 # T7.0 engine stamp: a content hash over everything that can change an eval verdict. If it
 # matches the stamp written by the last GREEN eval run, that verdict transfers and the step
@@ -345,127 +505,7 @@ if ($SkipEval) {
     }
 }
 
-# Step 4: CLI strict-mode matrix
-Write-Step "Step 4: CLI --strict matrix"
-$cliProject = Join-Path $repoRoot "src\DevContext.Cli"
-$testDir = Join-Path $repoRoot "tests\fixtures\MinimalApiProject"
-
-if (-not (Test-Path $testDir)) {
-    $testDir = $repoRoot
-}
-
-$cliMatrix = @(
-    @{ Name = "analyze . --strict";              Args = @("analyze", $testDir, "--strict") }
-    @{ Name = "analyze --format json --strict";  Args = @("analyze", $testDir, "--format", "json", "--strict") }
-    @{ Name = "analyze --format html --strict";  Args = @("analyze", $testDir, "--format", "html", "--strict") }
-    @{ Name = "analyze --dry-run";               Args = @("analyze", $testDir, "--dry-run") }
-    @{ Name = "analyze --max-tokens 2000 --strict"; Args = @("analyze", $testDir, "--max-tokens", "2000", "--strict") }
-)
-
-$cliFailed = 0
-foreach ($entry in $cliMatrix) {
-    Write-Host "  Running: $($entry.Name)..."
-    $cliOutput = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- $entry.Args }
-    $cliExit = $LASTEXITCODE
-
-    if ($cliExit -eq 0) {
-        Write-Host "    exit 0 (clean)" -ForegroundColor Green
-    } elseif ($cliExit -eq 2 -and $entry.Name.Contains("--strict")) {
-        Write-Host "    exit 2 (self-check failures)" -ForegroundColor Yellow
-    } elseif ($entry.Name -eq "analyze --dry-run") {
-        if ($cliExit -eq 0) {
-            Write-Host "    exit 0 (dry-run)" -ForegroundColor Green
-        } else {
-            Write-Host "    exit $cliExit (unexpected)" -ForegroundColor Red
-            $cliFailed++
-        }
-    } else {
-        Write-Host "    exit $cliExit" -ForegroundColor Red
-        $cliFailed++
-    }
-}
-
-if ($cliFailed -gt 0) {
-    Write-Fail "$cliFailed CLI command(s) failed" -Step 4
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 4 - CLI matrix)" -ForegroundColor Red
-    exit 4
-}
-Write-Pass "CLI matrix: all commands ran successfully"
-
-# Step 4b: CLI query ops (Tapestry T3.7).
-# entrypoints/stats/trace now run against the snapshot's GraphQuery (one JSON shape shared with MCP),
-# not the overview render. Assert each op returns real graph JSON on the fixture.
-Write-Step "Step 4b: CLI query ops (T3.7)"
-$queryFailed = 0
-
-$epJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query entrypoints --path $testDir --format json } | Out-String
-try { $ep = $epJson | ConvertFrom-Json } catch { $ep = $null }
-if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Properties.Count -gt 0)) {
-    Write-Host "    entrypoints: $($ep.count) entries across $($ep.byKind.PSObject.Properties.Count) kind(s)" -ForegroundColor Green
-} else {
-    Write-Host "    entrypoints: expected >0 entries with per-kind counts" -ForegroundColor Red; $queryFailed++
-}
-
-$stJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json } | Out-String
-try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
-# K2 (Prism D3.3): stats must carry the analyze-time stage timeline (fresh fixture => never empty).
-if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -gt 0) {
-    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, $($st.stages.Count) waterfall stages" -ForegroundColor Green
-} else {
-    Write-Host "    stats: expected node counts + entriesByKind + non-empty stages timeline" -ForegroundColor Red; $queryFailed++
-}
-
-# trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
-Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir } | Out-Null
-if ($LASTEXITCODE -eq 1) {
-    Write-Host "    trace (no focus): required-focus guard fired (exit 1)" -ForegroundColor Green
-} else {
-    Write-Host "    trace (no focus): expected exit 1, got $LASTEXITCODE" -ForegroundColor Red; $queryFailed++
-}
-$focus = $null
-if ($ep -and $ep.entries -and $ep.entries.Count -gt 0) { $focus = $ep.entries[0].title }
-if ($focus) {
-    $trJson = Invoke-NativeCapture { & dotnet run --no-build --project $cliProject -- query trace --path $testDir --focus $focus --format json } | Out-String
-    try { $tr = $trJson | ConvertFrom-Json } catch { $tr = $null }
-    if ($tr -and $tr.found -eq $true -and $tr.root) {
-        Write-Host "    trace('$focus'): found, root=$($tr.root.title)" -ForegroundColor Green
-    } else {
-        Write-Host "    trace('$focus'): expected found=true with a root (focus not honored)" -ForegroundColor Red; $queryFailed++
-    }
-}
-
-if ($queryFailed -gt 0) {
-    Write-Fail "$queryFailed CLI query op(s) failed" -Step 4
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 4b - CLI query ops)" -ForegroundColor Red
-    exit 4
-}
-Write-Pass "CLI query ops: entrypoints/stats/trace return graph JSON"
 } # end engine suites ($Scope -ne 'app')
-
-# Step 5: App check (T7.0) — pnpm check (lint + vitest + build) folds the desktop app into
-# the battery; before this the full gate never covered the app at all.
-if ($Scope -eq 'engine') {
-    Write-Step "Step 5: App check - SKIPPED (-Scope engine)"
-} else {
-    Write-Step "Step 5: App check (pnpm check)"
-    Push-Location (Join-Path $repoRoot "src\DevContext.App")
-    try {
-        # This step's inline workaround is where the hazard was first found; it is now the shared
-        # Invoke-NativeCapture every step uses (see its comment for what it costs to leave one out).
-        $appResult = Invoke-NativeCapture { & pnpm check }
-        $appExit = $LASTEXITCODE
-    } finally { Pop-Location }
-    if ($appExit -ne 0) {
-        Write-Host ($appResult | Select-Object -Last 40)
-        Write-Fail "pnpm check failed" -Step 5
-        Write-Host ""
-        Write-Host "GATE: FAIL (step 5 - app check)" -ForegroundColor Red
-        exit 5
-    }
-    Write-Pass "pnpm check passed"
-}
 
 # Final — non-full runs label themselves so they can never be cited as the boundary gate.
 Write-Host ""
