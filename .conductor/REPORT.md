@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 20:35 UTC · branch `feat/pre-release-desktop` · HEAD `60720ad`_
+_Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `f8b578c`_
 
-**Status:** NeedsHuman — advisor: human intervention required [1s ago, 20:35:51Z]
-**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 4 · working ▸ N2.2
-**Checkpoints:** 6/16 done · **Sessions run:** 10 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
+**Status:** NeedsHuman — advisor: human intervention required [1s ago, 20:36:11Z]
+**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 5 · working ▸ N2.2
+**Checkpoints:** 6/16 done · **Sessions run:** 11 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
 **Confirmed phases:** N0, N1
 
 ## Stage progress
@@ -98,6 +98,7 @@ _Updated 2026-08-13 20:35 UTC · branch `feat/pre-release-desktop` · HEAD `6072
 | 8 | N2 | Fix | 2 | 08-13 20:34 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 9 | N2 | Deliver | 3 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 10 | N2 | Deliver | 4 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 11 | N2 | Deliver | 5 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 
 ## Money
 
@@ -105,12 +106,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 10 | 82.5M | 98.3% | $61.00 | 6 | 13.8M | $10.17 |
+| **run total** | 11 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| stage N2 | 4 | 24.3M | 98.3% | $17.61 | 1 | 24.3M | $17.61 |
+| stage N2 | 5 | 24.3M | 98.3% | $17.62 | 1 | 24.3M | $17.62 |
 | stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
-| 2026-08 | 9 | 82.5M | 98.3% | $61.00 | 6 | 13.8M | $10.17 |
+| 2026-08 | 10 | 82.5M | 98.3% | $61.00 | 6 | 13.8M | $10.17 |
 | unknown | 1 | 0M | - | $0.00 | - | - | - |
 
 _Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.01 (0%) · blended $0.74/M tokens._
@@ -120,8 +121,6 @@ _Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.01 (
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 18:57:04  • session #3 N0 → Progress · 3 commit(s)  (35m43s)
-08-13 19:15:27  ▪ gate fast-app pass [phase]  (6m32s)
 08-13 19:15:27  ▪ gate guards pass [phase]  (1m41s)
 08-13 19:15:27  ▪ gate battery pass [phase]  (10m07s)
 08-13 19:15:27  ✓ checkpoint N0.1 confirmed
@@ -160,6 +159,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:35:37  • session #9 N2 → AgentError  (19.6s)
 08-13 21:35:38  • session #10 N2 Deliver started (attempt 4/6)
 08-13 21:35:51  ■ needs human — advisor: human intervention required
+08-13 21:35:57  • session #10 N2 → AgentError  (19.5s)
+08-13 21:35:57  • session #11 N2 Deliver started (attempt 5/6)
 ```
 
 ## Health
@@ -167,8 +168,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 10 · retries 4 (40 %) · overall Alert
-⛔ [same-failure-loop] stage N2: 3 consecutive sessions made no progress
+sessions 11 · retries 5 (45 %) · overall Alert
+⛔ [same-failure-loop] stage N2: 4 consecutive sessions made no progress
 ```
 
 ## Repo
