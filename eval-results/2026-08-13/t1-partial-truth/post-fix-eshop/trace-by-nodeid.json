@@ -1,0 +1,122 @@
+[
+  {
+    "nodeId": "EntryPoint:PUT /api/catalog/items",
+    "title": "PUT /api/catalog/items",
+    "found": true,
+    "steps": 63,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: PUT /api/catalog/items\r",
+    "bareFound": true,
+    "bareSteps": 63
+  },
+  {
+    "nodeId": "EntryPoint:PUT /api/catalog/items/{id:int}",
+    "title": "PUT /api/catalog/items/{id:int}",
+    "found": true,
+    "steps": 63,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: PUT /api/catalog/items/{id:int}\r",
+    "bareFound": true,
+    "bareSteps": 63
+  },
+  {
+    "nodeId": "EntryPoint:POST /api/orders/",
+    "title": "POST /api/orders/",
+    "found": true,
+    "steps": 59,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: POST /api/orders/\r",
+    "bareFound": true,
+    "bareSteps": 59
+  },
+  {
+    "nodeId": "EntryPoint:GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+    "title": "GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+    "found": true,
+    "steps": 47,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}\r",
+    "bareFound": true,
+    "bareSteps": 47
+  },
+  {
+    "nodeId": "EntryPoint:GET /api/catalog/items/withsemanticrelevance",
+    "title": "GET /api/catalog/items/withsemanticrelevance",
+    "found": true,
+    "steps": 47,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: GET /api/catalog/items/withsemanticrelevance\r",
+    "bareFound": true,
+    "bareSteps": 47
+  },
+  {
+    "nodeId": "EntryPoint:PUT /api/orders/cancel",
+    "title": "PUT /api/orders/cancel",
+    "found": true,
+    "steps": 48,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: PUT /api/orders/cancel\r",
+    "bareFound": true,
+    "bareSteps": 48
+  },
+  {
+    "nodeId": "EntryPoint:PUT /api/orders/ship",
+    "title": "PUT /api/orders/ship",
+    "found": true,
+    "steps": 48,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: PUT /api/orders/ship\r",
+    "bareFound": true,
+    "bareSteps": 48
+  },
+  {
+    "nodeId": "EntryPoint:POST /api/orders/draft",
+    "title": "POST /api/orders/draft",
+    "found": true,
+    "steps": 45,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: POST /api/orders/draft\r",
+    "bareFound": true,
+    "bareSteps": 45
+  },
+  {
+    "nodeId": "Type:Microsoft.Extensions.Hosting.RabbitMqDependencyInjectionExtensions.EventBusBuilder",
+    "title": "EventBusBuilder",
+    "found": true,
+    "steps": 0,
+    "note": "0 steps: nothing outbound was resolved from 'EventBusBuilder' — it calls, sends or handles nothing the graph could bind. Its callers are the other direction: neighbors(nodeId:\"Type:Microsoft.Extensions.Hosting.RabbitMqDependencyInjectionExtensions.EventBusBuilder\", direction:\"in\"), or usages(nodeId:\"Type:Microsoft.Extensions.Hosting.RabbitMqDependencyInjectionExtensions.EventBusBuilder\").",
+    "entryLine": "Entry: Type: EventBusBuilder\r",
+    "bareFound": true,
+    "bareSteps": 0
+  },
+  {
+    "nodeId": "Type:eShop.EventBus.Abstractions.EventBusSubscriptionInfo",
+    "title": "EventBusSubscriptionInfo",
+    "found": true,
+    "steps": 0,
+    "note": "0 steps: nothing outbound was resolved from 'EventBusSubscriptionInfo' — it calls, sends or handles nothing the graph could bind. Its callers are the other direction: neighbors(nodeId:\"Type:eShop.EventBus.Abstractions.EventBusSubscriptionInfo\", direction:\"in\"), or usages(nodeId:\"Type:eShop.EventBus.Abstractions.EventBusSubscriptionInfo\").",
+    "entryLine": "Entry: Type: EventBusSubscriptionInfo\r",
+    "bareFound": true,
+    "bareSteps": 0
+  },
+  {
+    "nodeId": "Type:eShop.Identity.API.Services.EFLoginService",
+    "title": "EFLoginService",
+    "found": true,
+    "steps": 0,
+    "note": "0 steps: nothing outbound was resolved from 'EFLoginService' — it calls, sends or handles nothing the graph could bind. Its callers are the other direction: neighbors(nodeId:\"Type:eShop.Identity.API.Services.EFLoginService\", direction:\"in\"), or usages(nodeId:\"Type:eShop.Identity.API.Services.EFLoginService\").",
+    "entryLine": "Entry: Type: EFLoginService\r",
+    "bareFound": true,
+    "bareSteps": 0
+  },
+  {
+    "nodeId": "Type:eShop.Ordering.Domain.Seedwork.Entity",
+    "title": "Entity",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: Type: Entity\r",
+    "bareFound": true,
+    "bareSteps": 2
+  }
+]

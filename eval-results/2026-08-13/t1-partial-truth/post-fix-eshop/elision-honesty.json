@@ -1,0 +1,681 @@
+{
+  "discriminator": {
+    "focus": "PUT /api/catalog/items",
+    "budgetTokens": 1500,
+    "totalTokens": 1456,
+    "elisions": [
+      {
+        "count": 13,
+        "what": "more members"
+      },
+      {
+        "count": 22,
+        "what": "lines"
+      },
+      {
+        "count": 9,
+        "what": "lines"
+      }
+    ],
+    "fillNote": "fill 97%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+    "omitted": [
+      "entities: empty — omitted",
+      "config: empty — omitted",
+      "tests: empty — omitted",
+      "elided bodies: 15 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+      "elided bodies: 2 bodies truncated to the salient lines (+31 lines hidden) — raise budgetTokens for the full text",
+      "elided signatures: 13 callee signatures cut from the list — raise budgetTokens for the full list",
+      "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+    ],
+    "namesElision": true,
+    "claimsComplete": false,
+    "atWideBudget": {
+      "budgetTokens": 20000,
+      "totalTokens": 8761,
+      "elisions": [],
+      "fillNote": "fill 43%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses."
+    }
+  },
+  "rows": [
+    {
+      "focus": "PUT /api/catalog/items",
+      "budgetTokens": 1500,
+      "totalTokens": 1456,
+      "elisions": [
+        {
+          "count": 13,
+          "what": "more members"
+        },
+        {
+          "count": 22,
+          "what": "lines"
+        },
+        {
+          "count": 9,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 97%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 15 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+        "elided bodies: 2 bodies truncated to the salient lines (+31 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 13 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false,
+      "atWideBudget": {
+        "budgetTokens": 20000,
+        "totalTokens": 8761,
+        "elisions": [],
+        "fillNote": "fill 43%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses."
+      }
+    },
+    {
+      "focus": "PUT /api/catalog/items/{id:int}",
+      "budgetTokens": 1500,
+      "totalTokens": 1445,
+      "elisions": [
+        {
+          "count": 23,
+          "what": "more members"
+        },
+        {
+          "count": 22,
+          "what": "lines"
+        },
+        {
+          "count": 9,
+          "what": "lines"
+        },
+        {
+          "count": 14,
+          "what": "lines"
+        },
+        {
+          "count": 6,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 96%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 18 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+        "elided bodies: 4 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 23 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "POST /api/orders/",
+      "budgetTokens": 1500,
+      "totalTokens": 1472,
+      "elisions": [
+        {
+          "count": 9,
+          "what": "more members"
+        },
+        {
+          "count": 29,
+          "what": "lines"
+        },
+        {
+          "count": 73,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 98%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+        "elided bodies: 2 bodies truncated to the salient lines (+102 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 9 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+      "budgetTokens": 1500,
+      "totalTokens": 1454,
+      "elisions": [
+        {
+          "count": 8,
+          "what": "more members"
+        },
+        {
+          "count": 33,
+          "what": "lines"
+        },
+        {
+          "count": 58,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 96%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 5 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+        "elided bodies: 2 bodies truncated to the salient lines (+91 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 8 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "GET /api/catalog/items/withsemanticrelevance",
+      "budgetTokens": 1500,
+      "totalTokens": 1480,
+      "elisions": [
+        {
+          "count": 12,
+          "what": "more members"
+        },
+        {
+          "count": 33,
+          "what": "lines"
+        },
+        {
+          "count": 58,
+          "what": "lines"
+        },
+        {
+          "count": 1,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 98%: INCOMPLETE — 4 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 3 member bodies omitted entirely (budget) — raise budgetTokens or read_source the member",
+        "elided bodies: 3 bodies truncated to the salient lines (+92 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 12 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "PUT /api/orders/cancel",
+      "budgetTokens": 1500,
+      "totalTokens": 1423,
+      "elisions": [
+        {
+          "count": 4,
+          "what": "more members"
+        },
+        {
+          "count": 14,
+          "what": "lines"
+        },
+        {
+          "count": 73,
+          "what": "lines"
+        },
+        {
+          "count": 8,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 94%: INCOMPLETE — 3 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 3 bodies truncated to the salient lines (+95 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 4 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "PUT /api/orders/ship",
+      "budgetTokens": 1500,
+      "totalTokens": 1417,
+      "elisions": [
+        {
+          "count": 4,
+          "what": "more members"
+        },
+        {
+          "count": 14,
+          "what": "lines"
+        },
+        {
+          "count": 73,
+          "what": "lines"
+        },
+        {
+          "count": 8,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 94%: INCOMPLETE — 3 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 3 bodies truncated to the salient lines (+95 lines hidden) — raise budgetTokens for the full text",
+        "elided signatures: 4 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "POST /api/orders/draft",
+      "budgetTokens": 1500,
+      "totalTokens": 1465,
+      "elisions": [
+        {
+          "count": 2,
+          "what": "more members"
+        }
+      ],
+      "fillNote": "fill 97%: INCOMPLETE — 2 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided signatures: 2 callee signatures cut from the list — raise budgetTokens for the full list",
+        "elided trace: the skeleton was shaped to fit the budget — raise budgetTokens for the full tree"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "EventBusBuilder",
+      "budgetTokens": 1500,
+      "totalTokens": 513,
+      "elisions": [],
+      "fillNote": "fill 34%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EventBusSubscriptionInfo",
+      "budgetTokens": 1500,
+      "totalTokens": 642,
+      "elisions": [],
+      "fillNote": "fill 42%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EFLoginService",
+      "budgetTokens": 1500,
+      "totalTokens": 703,
+      "elisions": [],
+      "fillNote": "fill 46%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "Entity",
+      "budgetTokens": 1500,
+      "totalTokens": 564,
+      "elisions": [
+        {
+          "count": 42,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 37%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 1 body truncated to the salient lines (+42 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "ErrorViewModel",
+      "budgetTokens": 1500,
+      "totalTokens": 434,
+      "elisions": [],
+      "fillNote": "fill 28%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1123,
+      "elisions": [
+        {
+          "count": 26,
+          "what": "lines"
+        },
+        {
+          "count": 25,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 74%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "ExternalController",
+      "budgetTokens": 1500,
+      "totalTokens": 1194,
+      "elisions": [
+        {
+          "count": 151,
+          "what": "lines"
+        },
+        {
+          "count": 44,
+          "what": "lines"
+        },
+        {
+          "count": 14,
+          "what": "lines"
+        },
+        {
+          "count": 32,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 79%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 4 bodies truncated to the salient lines (+241 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "ExternalProvider",
+      "budgetTokens": 1500,
+      "totalTokens": 389,
+      "elisions": [],
+      "fillNote": "fill 25%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EventBusBuilderExtensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1311,
+      "elisions": [
+        {
+          "count": 17,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 87%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 1 body truncated to the salient lines (+17 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1123,
+      "elisions": [
+        {
+          "count": 26,
+          "what": "lines"
+        },
+        {
+          "count": 25,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 74%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1123,
+      "elisions": [
+        {
+          "count": 26,
+          "what": "lines"
+        },
+        {
+          "count": 25,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 74%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "EntryLineColorEffect",
+      "budgetTokens": 1500,
+      "totalTokens": 389,
+      "elisions": [],
+      "fillNote": "fill 25%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EasingHelper",
+      "budgetTokens": 1500,
+      "totalTokens": 519,
+      "elisions": [],
+      "fillNote": "fill 34%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EShopJsonSerializerContext",
+      "budgetTokens": 1500,
+      "totalTokens": 510,
+      "elisions": [],
+      "fillNote": "fill 34%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "EventBusOptions",
+      "budgetTokens": 1500,
+      "totalTokens": 370,
+      "elisions": [],
+      "fillNote": "fill 24%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "ErrorViewModel",
+      "budgetTokens": 1500,
+      "totalTokens": 434,
+      "elisions": [],
+      "fillNote": "fill 28%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "usage: empty — omitted",
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1123,
+      "elisions": [
+        {
+          "count": 26,
+          "what": "lines"
+        },
+        {
+          "count": 25,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 74%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "Extensions",
+      "budgetTokens": 1500,
+      "totalTokens": 1123,
+      "elisions": [
+        {
+          "count": 26,
+          "what": "lines"
+        },
+        {
+          "count": 25,
+          "what": "lines"
+        }
+      ],
+      "fillNote": "fill 74%: INCOMPLETE — 1 cut(s) were made to fit budgetTokens=1500; each is named in omitted[]. Raise budgetTokens for the rest.",
+      "omitted": [
+        "usage: empty — omitted",
+        "entities: empty — omitted",
+        "tests: empty — omitted",
+        "elided bodies: 2 bodies truncated to the salient lines (+51 lines hidden) — raise budgetTokens for the full text"
+      ],
+      "namesElision": true,
+      "claimsComplete": false
+    },
+    {
+      "focus": "Error",
+      "budgetTokens": 1500,
+      "totalTokens": 335,
+      "elisions": [],
+      "fillNote": "fill 22%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it). Better-connected focuses in suggestedFocuses.",
+      "omitted": [
+        "contracts: empty — omitted",
+        "di_wiring: empty — omitted",
+        "entities: empty — omitted",
+        "config: empty — omitted",
+        "tests: empty — omitted",
+        "bodies: empty — omitted"
+      ],
+      "namesElision": false,
+      "claimsComplete": true
+    }
+  ]
+}

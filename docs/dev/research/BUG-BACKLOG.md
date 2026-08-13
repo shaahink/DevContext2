@@ -73,6 +73,14 @@ WHY IT MATTERS FOR R4 §3 ("what does it lack, how does it become a proper tool"
 
 ### #6 · G4 · trace() handed a nodeId returns found:true with an EMPTY tree titled "Type: Type" — and its own error envelope tells the agent to pass a nodeId
 
+> **FIXED 2026-08-13 (T1.3, commit cdb152c).** `EntryPointResolver` gained a nodeId tier. Re-measured
+> on a real MCP session: `eval-results/2026-08-13/t1-partial-truth/{pre-fix,post-fix}/trace-by-nodeid.json`
+> — 10 of 12 nodeIds RED before (found:false while the bare title traced), 12/12 agreeing after. The
+> "Type: Type" phantom needs a graph carrying a node titled `Type`, which TodoApi has not, so that half
+> is pinned by `EntryPointResolverTests.Resolve_of_a_nodeId_never_lands_on_a_node_titled_like_its_kind`
+> (proven red with only the resolver stashed to HEAD). The vacuous `found:true, steps:0` shape now
+> carries a `note` naming the `neighbors(direction:"in")` call, which is what the bar below asked for.
+
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive, real MCP calls on eval-repos/Hangfire. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{007,008,009,010,011,012}-*.json. This is a SILENT WRONG ANSWER, the worst class — nothing in the reply says anything went wrong.
 
@@ -161,6 +169,15 @@ MINIMUM HONEST FALLBACK IF THE WALK IS OUT OF SCOPE: a member whose body contain
 <a id="9"></a>
 
 ### #9 · G4 · get_context's fillNote says the pack "already contains everything reachable from this focus" while it is eliding the body the agent asked for — measured false at two budgets on the same focus
+
+> **FIXED 2026-08-13 (T1.3, commit cdb152c).** The "what to measure first" question below is answered:
+> the composer had NO knowledge of an elision — `BuildBodiesToFill` counted only bodies dropped whole,
+> so a body truncated to `… (+N lines)` was recorded nowhere. Reproduced on TodoApi, not Hangfire:
+> `get_context("Extensions", 1500)` rendered `… (+64 lines)` and claimed completeness; at 20000 the
+> elision was gone and the content doubled. The pack now declares every cut on an `elided ` line naming
+> `budgetTokens` (`ContextPackBuilder.ElidedPrefix` / `DeclaresElision` — one definition), and `fillNote`
+> reads that declaration instead of inferring completeness from the fill ratio. Evidence:
+> `eval-results/2026-08-13/t1-partial-truth/{pre-fix,post-fix}/elision-honesty.json`.
 
 ```text
 MEASURED 2026-07-29 in the G4.2 dogfood drive (Task 2, real development work on eval-repos/Hangfire). Raw dumps: eval-results/2026-07-29/mcp-dogfood/task2/raw/{012,015}-get_context.json. Same focus, same session, same handle, two budgets.
@@ -348,6 +365,14 @@ FIX (not applied — outside G1.1's scope, and this is a gate, so it wants its o
 <a id="2"></a>
 
 ### #2 · G1 · `entrypoints` names an entry one way and `get_context`/`trace` cannot resolve that name (TodoApi: "GET /todos" vs "&lt;lambda&gt; GET /todos/")
+
+> **RE-MEASURED 2026-08-13 (T1.3) — DOES NOT REPRODUCE.** At HEAD the entry Title IS the nodeId key
+> (`"POST /todos/"` / `EntryPoint:POST /todos/`); the minimal-API lambda titles are gone. 12/12 titles
+> on TodoApi and 40/40 on eShop round-trip into BOTH `get_context` and `trace` —
+> `eval-results/2026-08-13/t1-partial-truth/*/entry-roundtrip.json`. Closed by re-measurement, not by a
+> new fix; the round-trip is now a standing check in `eval/mcp-qa/partial-truth.js` so it cannot
+> silently regress. The detection half (#2 in D1.3, addressable entry names single-sourced) is separate
+> and still open.
 
 ```text
 MEASURED 2026-07-29 during G1.2, real MCP calls on eval-repos/TodoApi.
