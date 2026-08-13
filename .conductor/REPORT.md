@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `77596b1`_
+_Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9004`_
 
-**Status:** NeedsHuman — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1s ago, 20:36:43Z]
-**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 6 · working ▸ N2.2
-**Checkpoints:** 6/16 done · **Sessions run:** 12 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
-**Confirmed phases:** N0, N1
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1h 11m ago, 20:36:43Z]
+**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 0
+**Checkpoints:** 7/16 done · **Sessions run:** 13 · **Cost:** $70.0318 (agent $69.8602 + gates $0.1716) · **Tokens:** 1,165,315 in / 461,350 out
+**Confirmed phases:** N0, N1, N2
 
 ## Stage progress
 
@@ -13,7 +13,7 @@ _Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `7759
 |---|---|---|---|
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
-| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | █████░░░░░ 1/2 | **← active** |
+| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
@@ -38,12 +38,12 @@ _Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `7759
 
 </details>
 
-<details><summary>N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) (1/2)</summary>
+<details> ✅<summary>N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ✅ DONE | [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | 🔄 IN PROGRESS | - |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | ✅ DONE | [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) |
 
 </details>
 
@@ -100,6 +100,7 @@ _Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `7759
 | 10 | N2 | Deliver | 4 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 11 | N2 | Deliver | 5 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 12 | N2 | Deliver | 6 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 13 | N2 | Deliver | 1 | 08-13 20:44 | 0:23 | Advanced | N2.2 | 3 | gates green (none configured) | $9.0389 |  | 144,356/58,449 |
 
 ## Money
 
@@ -107,28 +108,19 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
+| **run total** | 13 | 95M | 98.3% | $70.05 | 7 | 13.6M | $10.01 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| stage N2 | 7 | 24.3M | 98.3% | $17.63 | 1 | 24.3M | $17.63 |
-| 2026-08 | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
+| stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
+| 2026-08 | 13 | 95M | 98.3% | $70.05 | 7 | 13.6M | $10.01 |
 
-_Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $69.86 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 19:15:27  ▸ stage N0 confirmed  (1h59m22s)
-08-13 19:15:34  ▸ stage N1 entered — Studio truth pass + pins made real (owner decision 1: IMPLEMENT)
-08-13 19:15:35  • session #4 N1 Deliver started (attempt 1/4)
-08-13 19:54:34  ▪ gate fast-app pass [session]  (3m36s)
-08-13 19:54:34  ▪ gate guards pass [session]  (1m11s)
-08-13 19:54:40  • session #4 N1 → Advanced · done N1.1 · 11 commit(s)  (39m05s)
-08-13 19:54:40  • session #5 N1 Deliver started (attempt 1/4)
-08-13 20:22:33  ▪ gate fast-app pass [session]  (3m17s)
-08-13 20:22:33  ▪ gate guards pass [session]  (1m37s)
 08-13 20:22:43  • session #5 N1 → Advanced · done N1.2 · 3 commit(s)  (28m02s)
 08-13 20:49:07  ▪ gate fast-app pass [phase]  (6m05s)
 08-13 20:49:07  ▪ gate guards pass [phase]  (1m51s)
@@ -160,6 +152,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:36:17  • session #12 N2 Deliver started (attempt 6/6)
 08-13 21:36:31  ■ needs human — advisor: human intervention required
 08-13 21:36:37  • session #12 N2 → AgentError  (19.6s)
+08-13 21:36:43  ■ needs human — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
+08-13 21:44:15  • session #13 N2 Deliver started (attempt 1/6)
+08-13 22:07:39  • session #13 N2 → Advanced · done N2.2 · 3 commit(s)  (23m24s)
+08-13 22:48:23  ▪ gate fast-app pass [phase]  (14m03s)
+08-13 22:48:23  ▪ gate fast-engine pass [phase]  (4m34s)
+08-13 22:48:23  ▪ gate guards pass [phase]  (3m29s)
+08-13 22:48:23  ▪ gate battery pass [phase]  (18m29s)
+08-13 22:48:23  ✓ checkpoint N2.1 confirmed
+08-13 22:48:23  ✓ checkpoint N2.2 confirmed
 ```
 
 ## Health
@@ -167,7 +168,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 12 · retries 6 (50 %) · overall Alert
+sessions 13 · retries 6 (46 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ```
 
@@ -177,7 +178,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs, M src/DevContext.Server/Endpoints/DevContextGrpcService.cs (+4 more)
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -214,25 +215,34 @@ vs upstream: up to date
   - [`108301a`](https://github.com/shaahink/DevContext2/commit/108301a) docs(tracker): N2.1 closed - pack convergence evidence + handoff to N2.2
   - [`8c38e0b`](https://github.com/shaahink/DevContext2/commit/8c38e0b) feat(studio): the picker gets a Types tab, and rows that are different rows (N2.1)
   - [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) feat(pack): BuildMulti resolves symbols, not just entries - and usage becomes a card (N2.1)
+- **s13 (N2 Deliver)** — 3 commit(s):
+  - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
+  - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
+  - [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) feat(studio): N2.2 honesty-note parity + one pack-budget number
+
+## Last gate run
+
+fast-app:OK · fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> You've hit your session limit · resets 9:40pm (Europe/London)
+> SESSION-RESULT:** N2.2 landed and is claimed DONE (`aab7cf3`, evidence `eval-results/2026-08-13/N2.2-honesty-parity.md`), closing stage N2. Session #7's tree turned out to be *incomplete*, not merely uncommitted — `budget-panel.ts` emitted `focusSuggestionPicked` with no `output()` declared and used an undeclared `defaultBudget` (Angular build failure), `context-studio.ts` never bound `[fillNote]`/`[suggestedFocuses]` so the two new proto fields reached no client (which also fails gates Step 1a's contract sweep), and the spec's pack fake omitted them, so `pack.fillNote.length` threw inside `repack` and reported "server unavailable" across 21 studio specs. All three fixed, plus the acceptance…
 
 ## Tracker handoff
 
 ```
-N2.1 IS CLOSED (104c9d0 engine + 8c38e0b app; evidence eval-results/2026-08-13/N2.1-pack-convergence.md).
-START AT N2.2: honesty-note parity (fill-rate note + suggested focuses in the rail) and ONE stated
-budget default - UI is 4000 (prefs.studioBudget), everywhere else 8000 (ContextPackBuilder.Build/
-BuildMulti defaults). Its ACCEPTANCE is the real-repo FluentValidation pack: I CLONED IT for you at
-eval-repos/FluentValidation (sha 94397908, gitignored) but did NOT run it - only the server calls
-BuildMulti, so the cheapest real-repo proof is a [Trait("Category","Eval")] Core test that takes
-types off snapshot.Map.Surface (the SAME source the new Types tab reads) and asserts usage + verified
-counts, skipping silently when the clone is absent (BudgetIndependenceTests.cs is the pattern).
-Now true: BuildMulti resolves symbols via ResolveCardFocuses; card entryIds may be a bare type,
-Type:Member, or a NodeId string; `usage` is a card type; picker has a Types tab keyed on the
-namespace-qualified name. Fixed en route: a card naming one focus twice merged its section INTO
-ITSELF. Loop unchanged: `pnpm exec ng test --watch=false --include=<spec>`; check the EXIT CODE.
-`pnpm check` green (199/199). Open bugs unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
+STAGE N2 IS CLOSED. N2.2 landed aab7cf3 (evidence eval-results/2026-08-13/N2.2-honesty-parity.md);
+the owner gate chore landed 7ff60eb. START AT N3.1. Session #7's tree was INCOMPLETE, not just
+uncommitted - the panel emitted an output() that was never declared, the studio never bound the two
+new inputs, and the spec fake omitted them, which threw inside repack and reddened 21 studio specs.
+Now true: ContextPackBuilder.BuildFillNote computes the fill note + suggested focuses SERVER-SIDE
+(wire: fill_note, repeated SuggestedFocus); the Studio renders and derives nothing; onSuggestedFocus
+adds a flow card whose entryId IS the focus string. ONE budget number: ContextPackBuilder.
+DefaultBudgetTokens == DEFAULT_STUDIO_BUDGET == 8000, deliberately NOT TracePolicy's 4000.
+gates.ps1 order is now 0,1,1a,5,2,2b,4,4b,3 and an ABORT exits 9 - step NUMBERS are unchanged.
+TRAP PAID FOR: a `cd` in the PowerShell tool LEAKS into the Bash tool's cwd (cd absolutely, always),
+and conductor bg cannot take args with leading dashes - use `-- pwsh <script.ps1>`; plain `pnpm` under
+it resolves to a stale corepack shim. Loop: pnpm check green 202/202. New bug #5 (Types tab ranks
+nothing: 58 of FluentValidation's 90 public types have zero in-repo usages, so their usage card is
+silently empty). Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
 ```
