@@ -586,17 +586,21 @@ internal static class ProtoMapper
             CurrentGitHead = currentHead ?? "",
             AnyStale = sections.Any(s => s.Stale),
         };
-        foreach (var s in sections)
-        {
-            var sv = new Proto.SectionVerification
-            {
-                Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
-            };
-            foreach (var d in s.Changed)
-                sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
-            resp.Sections.Add(sv);
-        }
+        resp.Sections.AddRange(sections.Select(ToProtoSectionVerification));
         return resp;
+    }
+
+    /// <summary>N1.1 — one mapping for the section verdict, now that two responses carry it
+    /// (VerifyContext's single focus and the pack's own ledger).</summary>
+    private static Proto.SectionVerification ToProtoSectionVerification(SectionVerification s)
+    {
+        var sv = new Proto.SectionVerification
+        {
+            Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
+        };
+        foreach (var d in s.Changed)
+            sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
+        return sv;
     }
 
     public static Proto.ContextPackResponse ToContextPackResponse(MultiContextPack pack)
@@ -606,7 +610,13 @@ internal static class ProtoMapper
             AssembledMarkdown = pack.AssembledMarkdown,
             TotalTokens = pack.TotalTokens,
             AllocatedTokens = pack.AllocatedTokens,
+            // N1.1 (wire item 4) — the ledger for THIS pack rides with it, so the Studio no
+            // longer fans out one VerifyContext per focus to describe a pack nobody built.
+            AnyStale = pack.AnyStale,
+            AnalyzedGitHead = pack.AnalyzedGitHead,
+            CurrentGitHead = pack.CurrentGitHead,
         };
+        resp.Verification.AddRange(pack.Verification.Select(ToProtoSectionVerification));
         foreach (var card in pack.Cards)
         {
             var item = new Proto.ContextCardItem

@@ -772,6 +772,11 @@ message ContextCardSpec {
   string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
   string title = 2;
   repeated string entry_ids = 3;    // nodeIds of selected entries
+  // N1.1 — the Studio's per-card eye toggle, on the wire at last. Stated NEGATIVELY so
+  // proto3's false default means "include bodies": a caller that never heard of this field
+  // keeps the pre-N1.1 pack byte-for-byte. When true the builder drops the card's `bodies`
+  // section, so "All bodies hidden" describes the pack the user copies.
+  bool exclude_bodies = 4;
 }
 
 message ContextPackResponse {
@@ -780,6 +785,17 @@ message ContextPackResponse {
   int32 total_tokens = 3;
   int32 allocated_tokens = 4;
   repeated string omitted = 5;
+  // N1.1 (audit wire item 4) — the staleness ledger OF THIS PACK, computed from the
+  // sections the builder actually kept (after the proportional per-focus budget, the
+  // card's section filter and the multi-entry merge). The Studio used to assemble this
+  // itself from N VerifyContext calls, each handed the WHOLE budget and each verifying
+  // every section of a focus — a ledger for a pack nobody built. Returning it here makes
+  // that divergence impossible rather than merely fixed. VerifyContext stays as the
+  // single-focus RPC for MCP's verify_context tool.
+  repeated SectionVerification verification = 6;
+  bool any_stale = 7;
+  string analyzed_git_head = 8;     // HEAD at analyze time ("" outside git)
+  string current_git_head = 9;      // HEAD now
 }
 
 message ContextCardItem {

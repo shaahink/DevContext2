@@ -319,8 +319,10 @@ public sealed class DevContextGrpcService(
             var budget = request.BudgetTokens > 0 ? request.BudgetTokens : 8000;
             var intent = request.Intent is { Length: > 0 } s ? s : null;
 
+            // N1.1 — exclude_bodies rides the spec: the Studio's eye toggle is a pack filter now,
+            // not an icon. Negative sense, so an older client's unset field means "keep bodies".
             var specs = request.Cards.Select(c =>
-                new ContextCardSpec(c.Type, c.Title, [.. c.EntryIds])).ToList();
+                new ContextCardSpec(c.Type, c.Title, [.. c.EntryIds], c.ExcludeBodies)).ToList();
 
             var pack = builder.BuildMulti(specs, budget, intent);
             return ProtoMapper.ToContextPackResponse(pack);
