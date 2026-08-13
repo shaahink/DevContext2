@@ -1,19 +1,18 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 19:22 UTC · branch `feat/pre-release-desktop` · HEAD `4d24d85`_
+_Updated 2026-08-13 19:49 UTC · branch `feat/pre-release-desktop` · HEAD `8166821`_
 
 **Status:** Idle
 **Stage:** N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT) · attempts used 0
 **Checkpoints:** 5/16 done · **Sessions run:** 5 · **Cost:** $43.3852 (agent $43.2556 + gates $0.1296) · **Tokens:** 718,455 in / 298,770 out
-**Confirmed phases:** N0
-**Pending:** full-battery phase gate for N1
+**Confirmed phases:** N0, N1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
-| N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | gating… |
+| N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ░░░░░░░░░░ 0/2 | todo |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
@@ -35,7 +34,7 @@ _Updated 2026-08-13 19:22 UTC · branch `feat/pre-release-desktop` · HEAD `4d24
 | # | Title | Status | Commit |
 |---|---|---|---|
 | N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | ✅ DONE | [`d57b59d`](https://github.com/shaahink/DevContext2/commit/d57b59d) |
-| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | ✅ DONE | - |
+| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | ✅ DONE | [`e448d64`](https://github.com/shaahink/DevContext2/commit/e448d64) |
 
 </details>
 
@@ -101,12 +100,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 4 | 46.4M | 98.2% | $34.97 | 4 | 11.6M | $8.74 |
+| **run total** | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
-| stage N1 | 1 | 16.5M | 98.3% | $12.06 | 1 | 16.5M | $12.06 |
-| 2026-08 | 4 | 46.4M | 98.2% | $34.97 | 4 | 11.6M | $8.74 |
+| stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
+| 2026-08 | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
 
-_Where the money goes: agent $34.87 (100%) · gate $0.10 (0%) · blended $0.75/M tokens._
+_Where the money goes: agent $43.26 (100%) · gate $0.13 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
@@ -145,6 +144,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 19:54:40  • session #5 N1 Deliver started (attempt 1/4)
 08-13 20:22:33  ▪ gate fast-app pass [session]  (3m17s)
 08-13 20:22:33  ▪ gate guards pass [session]  (1m37s)
+08-13 20:22:43  • session #5 N1 → Advanced · done N1.2 · 3 commit(s)  (28m02s)
+08-13 20:49:07  ▪ gate fast-app pass [phase]  (6m05s)
+08-13 20:49:07  ▪ gate guards pass [phase]  (1m51s)
+08-13 20:49:07  ▪ gate battery pass [phase]  (3m33s)
+08-13 20:49:07  ✓ checkpoint N1.1 confirmed
+08-13 20:49:07  ✓ checkpoint N1.2 confirmed
 ```
 
 ## Health
@@ -162,7 +167,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -198,7 +203,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:OK-retry
 
 ## Last session result
 
