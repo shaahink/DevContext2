@@ -8,6 +8,9 @@ export interface Prefs {
   readonly autoCleanup: boolean;
   /** Inspector dock level on the Workbench (0 = hidden, 3 = focus mode). Proposal §8.2. */
   readonly dockLevel: number;
+  /** M1.2 — width the user dragged the inspector to, in % of the workbench. Null = use the
+   * level's own width, so the three Ctrl+Shift+L stops stay meaningful. */
+  readonly dockWidth: number | null;
   /** N1.1 — Context Studio shaping. Cards are session state and die with the handle; how you
    * like your packs shaped is a preference and must survive the tab switch that used to keep
    * stale cards alive and the reload that used to reset the budget to 4000. */
@@ -45,6 +48,7 @@ const DEFAULTS: Prefs = {
   useRoslyn: true,
   autoCleanup: true,
   dockLevel: 2,
+  dockWidth: null,
   studioBudget: DEFAULT_STUDIO_BUDGET,
   studioIntent: 'trace',
   studioFormat: 'markdown',
@@ -66,6 +70,7 @@ export class PrefsStore {
   readonly useRoslyn = () => this._prefs().useRoslyn;
   readonly autoCleanup = () => this._prefs().autoCleanup;
   readonly dockLevel = () => this._prefs().dockLevel;
+  readonly dockWidth = () => this._prefs().dockWidth;
   readonly studioBudget = () => this._prefs().studioBudget;
   readonly studioIntent = () => this._prefs().studioIntent;
   readonly studioFormat = () => this._prefs().studioFormat;
@@ -88,6 +93,12 @@ export class PrefsStore {
 
   setDockLevel(level: number): void {
     this.update({ dockLevel: clamp(level, 0, 3) });
+  }
+
+  /** Clamped to the same 20-70% the drag handle allows, so a hand-edited localStorage cannot
+   * restore the workbench into a layout its own resizer could never produce. */
+  setDockWidth(percent: number | null): void {
+    this.update({ dockWidth: percent === null ? null : clamp(percent, 20, 70) });
   }
 
   /** N1.1 — Studio shaping, persisted. Clamped to the budget panel's own slider range so a

@@ -4,6 +4,7 @@ import { PrefsStore } from '../state/prefs.store';
 import { SessionStore } from '../state/session.store';
 import { WorkspaceStore } from '../state/workspace.store';
 import type { AnalyzeSpec } from '../data-access/devcontext-api';
+import { ToastService } from '../ui/toast/toast';
 import { isTauri } from './tauri-env';
 
 /**
@@ -19,6 +20,7 @@ export class SingleInstanceService {
   private readonly workspace = inject(WorkspaceStore);
   private readonly session = inject(SessionStore);
   private readonly prefs = inject(PrefsStore);
+  private readonly toast = inject(ToastService);
 
   private started = false;
 
@@ -34,7 +36,12 @@ export class SingleInstanceService {
       const path = event.payload;
       if (!path) return;
       const label = path.split(/[\\/]/).pop() || path;
-      this.workspace.createTab(path, label);
+      // M1.2: at the tab cap createTab refuses. Analyzing anyway would run the dropped repo into
+      // whatever tab is active and destroy that session — say so and do nothing instead.
+      if (this.workspace.createTab(path, label) === null) {
+        this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open ${label}`, 'info');
+        return;
+      }
       const defs = this.prefs.analyzeDefaults();
       const spec: AnalyzeSpec = { path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
       void this.session.analyze(spec);

@@ -34,7 +34,9 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  * `replaceUrl: true` so it never grows browser history, matching TracePage's existing
  * `?focus` convention.
  *
- * TODO(W4 remainder): dock drag handles (Ctrl+Shift+L is the only control today).
+ * Dock: Ctrl+Shift+L cycles the three levels; the drag handle between Stage and Inspector
+ * (M1.2, closing the W4 remainder) overrides the level's width continuously, clamped 20–70%
+ * and persisted. Level 3 (focus) has no handle — there is nothing to its left to resize.
  * Global shortcuts (Ctrl+Shift+L, Ctrl+Z/Y, Esc-ladder, p, Alt+←/→) are deliberately
  * kept window-level HERE rather than promoted to workspace-shell: they all act on the
  * Inspector/Trail/Trace, which only exist while this page is mounted, so promoting
@@ -83,6 +85,30 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             (tableRequested)="browserOpen.set(true)"
             (commandSelected)="onEntry($event)"
           />
+        }
+        @if (dockLevel() > 0 && dockLevel() < 3) {
+          <!--
+            W4 remainder (M1.2): the dock drag handle. Ctrl+Shift+L was the only control, so the
+            inspector was 30/40/100% or nothing. Keyboard-reachable (Left/Right nudge 2%, Home
+            restores the level's width), and it reports its width to a screen reader as a real
+            separator rather than a decorative bar.
+          -->
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize inspector"
+            [attr.aria-valuenow]="dockWidth()"
+            aria-valuemin="20"
+            aria-valuemax="70"
+            tabindex="0"
+            data-testid="dock-resizer"
+            class="w-1 shrink-0 cursor-col-resize bg-line transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
+            [class.bg-accent]="dockResizing()"
+            [title]="'Drag to resize (' + dockWidth() + '%) — double-click to reset'"
+            (pointerdown)="onDockResizeStart($event)"
+            (dblclick)="resetDockWidth()"
+            (keydown)="onDockResizeKey($event)"
+          ></div>
         }
         @if (dockLevel() > 0) {
           <app-inspector
@@ -140,7 +166,14 @@ export class WorkbenchPage implements OnDestroy {
   private readonly toast = inject(ToastService);
 
   protected readonly dockLevel = signal(this.prefs.dockLevel());
-  protected readonly dockWidth = computed(() => DOCK_WIDTHS[this.dockLevel()]);
+  /** W4 remainder (M1.2) — a width the user dragged to, in % of the workbench. Null means "use the
+   * level's own width", so Ctrl+Shift+L keeps its three crisp stops and the drag is an override on
+   * top rather than a fourth state to reconcile. */
+  protected readonly dockWidthOverride = signal<number | null>(this.prefs.dockWidth());
+  protected readonly dockWidth = computed(() =>
+    this.dockLevel() === 3 ? DOCK_WIDTHS[3] : (this.dockWidthOverride() ?? DOCK_WIDTHS[this.dockLevel()]));
+  /** True while a resize drag is in flight — suppresses the panels' transitions and text selection. */
+  protected readonly dockResizing = signal(false);
   /** Set by Stage's System altitude (project click); cleared from the deck's own chip. */
   protected readonly projectFilter = signal<string | null>(null);
   /** Lifted from Stage/EntryDeck's `model()`s so they can mirror into `?view&kind&q`. */
@@ -451,7 +484,62 @@ export class WorkbenchPage implements OnDestroy {
     } else {
       this.dockLevel.set(this.lastVisibleDock || 2);
     }
+    // Asking for a level is asking for THAT width — otherwise a stale drag would make
+    // Ctrl+Shift+L look broken (the level number changes, the panel doesn't move).
+    this.resetDockWidth();
     this.prefs.setDockLevel(this.dockLevel());
+  }
+
+  /** Drops back to the current level's own width (double-click, or a level change). */
+  protected resetDockWidth(): void {
+    this.dockWidthOverride.set(null);
+    this.prefs.setDockWidth(null);
+  }
+
+  protected onDockResizeStart(event: PointerEvent): void {
+    const handle = event.currentTarget as HTMLElement;
+    const row = handle.parentElement;
+    if (!row) return;
+    event.preventDefault();
+    handle.setPointerCapture(event.pointerId);
+    this.dockResizing.set(true);
+
+    const move = (e: PointerEvent): void => {
+      const rect = row.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      // The inspector is to the RIGHT of the handle, so its width is the distance from the
+      // pointer to the row's right edge.
+      this.setDockWidth(((rect.right - e.clientX) / rect.width) * 100);
+    };
+    const up = (): void => {
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', up);
+      handle.removeEventListener('pointercancel', up);
+      this.dockResizing.set(false);
+      this.prefs.setDockWidth(this.dockWidthOverride());
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', up);
+    handle.addEventListener('pointercancel', up);
+  }
+
+  protected onDockResizeKey(event: KeyboardEvent): void {
+    if (event.key === 'Home') {
+      event.preventDefault();
+      this.resetDockWidth();
+      return;
+    }
+    const step = event.key === 'ArrowLeft' ? 2 : event.key === 'ArrowRight' ? -2 : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    this.setDockWidth(this.dockWidth() + step);
+    this.prefs.setDockWidth(this.dockWidthOverride());
+  }
+
+  /** Clamped so a drag can never collapse the inspector to an unclickable sliver or squeeze the
+   * deck+stage out — both ends of the range stay usable, which is why 0 and 100 are the LEVELS' job. */
+  private setDockWidth(percent: number): void {
+    this.dockWidthOverride.set(Math.round(Math.min(70, Math.max(20, percent))));
   }
 }
 

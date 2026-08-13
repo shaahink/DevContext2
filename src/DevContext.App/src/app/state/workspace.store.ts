@@ -167,11 +167,16 @@ export class WorkspaceStore {
     effect(() => this.persist(this._tabs(), this._activeId()));
   }
 
-  /** Creates a new idle tab, activates it, and returns its id. No-op (returns the active id
-   * unchanged) if already at the tab cap. */
-  createTab(path = '', label = 'New tab'): string {
+  /** Creates a new idle tab, activates it, and returns its id — or **null** when the workspace is
+   * already at {@link MAX_TABS} and no tab was made.
+   *
+   * M1.2: this used to return the ACTIVE tab's id on refusal, which is indistinguishable from
+   * success. `single-instance.service.ts` believed it: dropping a repo on the app at 6 tabs called
+   * `createTab`, got an id back, and analyzed into the tab the user was already looking at —
+   * silently replacing that session. Refusal is now a value a caller must handle. */
+  createTab(path = '', label = 'New tab'): string | null {
     const existing = this._tabs();
-    if (existing.length >= WorkspaceStore.MAX_TABS) return this._activeId() ?? existing[0]?.id ?? '';
+    if (existing.length >= WorkspaceStore.MAX_TABS) return null;
 
     const id = crypto.randomUUID();
     const tab: TabState = {
@@ -191,10 +196,10 @@ export class WorkspaceStore {
 
   /** Closes a tab, cancelling its in-flight operation and freeing its server-side snapshot (if any).
    * Activates the neighbor that slid into its place (or the previous one) if the closed tab was active. */
-  closeTab(id: string): void {
+  closeTab(id: string | null): void {
     const list = this._tabs();
     const idx = list.findIndex((t) => t.id === id);
-    if (idx === -1) return;
+    if (id === null || idx === -1) return;
 
     const closing = list[idx];
     closing.controller.cancel();
@@ -211,8 +216,10 @@ export class WorkspaceStore {
     }
   }
 
-  setActive(id: string): void {
-    if (!this._tabs().some((t) => t.id === id)) return;
+  /** M1.2 — accepts null so a `createTab` result can be passed straight through: a refused
+   * create is not a tab, and asking to activate "no tab" is a no-op, not a type error. */
+  setActive(id: string | null): void {
+    if (id === null || !this._tabs().some((t) => t.id === id)) return;
     this._activeId.set(id);
     this.pushMru(id);
   }
@@ -222,7 +229,8 @@ export class WorkspaceStore {
     this._mru.update((mru) => [id, ...mru.filter((mid) => mid !== id)]);
   }
 
-  tabById(id: string): TabState | null {
+  tabById(id: string | null): TabState | null {
+    if (id === null) return null;
     return this._tabs().find((t) => t.id === id) ?? null;
   }
 

@@ -51,19 +51,21 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
             <div class="space-y-2">
               <p class="text-2xs text-ink-muted uppercase">Appearance mode</p>
               <div class="flex flex-wrap gap-2">
-                <button class="rounded border px-3 py-2 text-xs transition-colors"
-                        [class.border-accent]="theme.theme() === 'dark'"
-                        [class.text-accent]="theme.theme() === 'dark'"
-                        [class.border-line]="theme.theme() !== 'dark'"
-                        [class.text-ink-muted]="theme.theme() !== 'dark'"
-                        (click)="theme.setTheme('dark')">Dark</button>
-                @if (theme.vibeDef().themes.includes('light')) {
+<!--
+                  M1.2: driven by the vibe's OWN theme list instead of a hardcoded Dark + an
+                  if-Light. high-contrast has had a complete palette in styles.css and a slot in
+                  the modern vibe since it was written, and no button ever offered it - the theme
+                  was implemented and unreachable. Anything a vibe declares is now selectable, so
+                  a new theme cannot ship invisible again.
+                -->
+                @for (t of theme.vibeDef().themes; track t) {
                   <button class="rounded border px-3 py-2 text-xs transition-colors"
-                          [class.border-accent]="theme.theme() === 'light'"
-                          [class.text-accent]="theme.theme() === 'light'"
-                          [class.border-line]="theme.theme() !== 'light'"
-                          [class.text-ink-muted]="theme.theme() !== 'light'"
-                          (click)="theme.setTheme('light')">Light</button>
+                          [class.border-accent]="theme.theme() === t"
+                          [class.text-accent]="theme.theme() === t"
+                          [class.border-line]="theme.theme() !== t"
+                          [class.text-ink-muted]="theme.theme() !== t"
+                          [attr.data-testid]="'theme-' + t"
+                          (click)="theme.setTheme(t)">{{ themeLabel(t) }}</button>
                 }
                 <button class="rounded border px-3 py-2 text-xs transition-colors"
                         [class.border-accent]="theme.theme() === 'system'"
@@ -212,6 +214,12 @@ export class SettingsView {
   private readonly storage = inject(StorageService);
   /** The URL the gRPC client is actually built with — one source (core/config). */
   protected readonly liveServerUrl = serverBaseUrl();
+
+  /** M1.2 — a vibe declares theme IDs; the button says them in words. Unknown IDs title-case
+   * themselves rather than being dropped, so declaring one is enough to ship it. */
+  protected themeLabel(id: string): string {
+    return id.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
 
   protected readonly tabs: { key: SettingsTab; label: string }[] = [
     { key: 'appearance', label: 'Appearance' },

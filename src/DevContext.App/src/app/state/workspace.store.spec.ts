@@ -6,7 +6,7 @@ import { SessionStore } from './session.store';
 import { WorkspaceStore } from './workspace.store';
 
 // See trail.store.spec.ts: WorkspaceStore restores persisted tabs in its constructor, so tabs can
-// leak between tests and createTab() silently no-ops at the six-tab cap. Keep each test hermetic.
+// leak between tests and createTab() refuses (returns null) at the six-tab cap. Keep each test hermetic.
 beforeEach(() => localStorage.clear());
 
 describe('WorkspaceStore tab isolation (I10)', () => {
@@ -78,8 +78,14 @@ describe('WorkspaceStore tab isolation (I10)', () => {
     const activeBeforeOverflow = workspace.activeId();
     const overflow = workspace.createTab('p-overflow', 'overflow');
     expect(workspace.tabs().length).toBe(WorkspaceStore.MAX_TABS);
-    expect(overflow).toBe(activeBeforeOverflow);
-    expect(ids).not.toContain(overflow === activeBeforeOverflow ? 'never' : overflow);
+    // M1.2: refusal is REPORTABLE. This used to return the active tab's id, which no caller could
+    // tell from success — single-instance believed it and analyzed a dropped repo into the tab the
+    // user was looking at. (The old assertion here compared the return to the active id and then
+    // checked `ids` for the literal 'never', so it passed no matter what came back.)
+    expect(overflow).toBeNull();
+    expect(workspace.activeId()).toBe(activeBeforeOverflow);
+    expect(ids.every((id) => id !== null)).toBe(true);
+    expect(workspace.tabs().some((t) => t.path === 'p-overflow')).toBe(false);
   });
 
   it('activates the neighboring tab when the active tab is closed', () => {

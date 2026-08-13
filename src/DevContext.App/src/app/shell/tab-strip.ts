@@ -4,6 +4,7 @@ import { filter } from 'rxjs/operators';
 
 import { SessionStore } from '../state/session.store';
 import { type TabState, WorkspaceStore } from '../state/workspace.store';
+import { ToastService } from '../ui/toast/toast';
 
 /** Boot-restore targets: pages that represent WORK in progress. Settings/MCP are
  * destinations you visit deliberately, not places to wake up in (finding 49). */
@@ -78,6 +79,7 @@ export class TabStrip {
   protected readonly maxTabs = WorkspaceStore.MAX_TABS;
   private readonly router = inject(Router);
   private readonly session = inject(SessionStore);
+  private readonly toast = inject(ToastService);
   /** Tabs with a boot adopt/analyze decision in flight (guards the lazy-boot effect). */
   private readonly bootPending = new Set<string>();
 
@@ -202,8 +204,12 @@ export class TabStrip {
   }
 
   protected newTab(): void {
-    if (this.workspace.atCap()) return;
-    this.workspace.createTab('', 'New tab');
+    // M1.2: the + button was disabled-then-silent at the cap. createTab now reports refusal, so
+    // a click that reaches here despite the guard says why instead of doing nothing.
+    if (this.workspace.createTab('', 'New tab') === null) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
     void this.router.navigateByUrl('/');
   }
 

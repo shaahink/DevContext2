@@ -42,7 +42,7 @@ function hubRow(overrides: Record<string, unknown> = {}) {
 }
 
 // See trail.store.spec.ts: WorkspaceStore restores persisted tabs in its constructor, so tabs can
-// leak between tests and createTab() silently no-ops at the six-tab cap. Keep each test hermetic.
+// leak between tests and createTab() refuses (returns null) at the six-tab cap. Keep each test hermetic.
 beforeEach(() => localStorage.clear());
 
 describe('AtlasStore server-side flow index (T7.4)', () => {
@@ -52,7 +52,10 @@ describe('AtlasStore server-side flow index (T7.4)', () => {
     });
     const workspace = TestBed.inject(WorkspaceStore);
     const atlas = TestBed.inject(AtlasStore);
+    // M1.2: createTab returns null at the six-tab cap. localStorage is cleared per test, so a null
+    // here means the hermetic setup broke — fail loudly rather than typing the possibility away.
     const tabId = workspace.createTab('C:\\repo', 'repo');
+    if (tabId === null) throw new Error('createTab refused: the workspace was not hermetic');
     return { workspace, atlas, tabId };
   }
 

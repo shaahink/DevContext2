@@ -21,8 +21,9 @@ function setup() {
 
 // WorkspaceStore persists tabs to localStorage in an effect and restore()s them in its
 // constructor, so a store built by one test can inherit the tabs of the last one. At six tabs
-// createTab() stops creating and returns the ACTIVE id instead, which silently makes two "tabs"
-// the same tab. Whether the effect has flushed before the next test constructs its store is a
+// createTab() refuses and returns null (M1.2 — it used to return the ACTIVE id, which silently
+// made two "tabs" the same tab), so an inherited-tab test now fails on a null deref instead of
+// on a mystery. Whether the effect has flushed before the next test constructs its store is a
 // scheduling detail that differs between machines — this failed on CI while passing locally.
 // Clearing storage per test removes the ordering dependency rather than betting on the timing.
 beforeEach(() => localStorage.clear());

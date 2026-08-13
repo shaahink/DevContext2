@@ -4,22 +4,19 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-M1.1 IS DONE, all four shopping-list items (evidence eval-results/2026-08-13/M1.1-reader-prereqs.md).
-NEXT: M1.2 (hygiene) - it is untouched, and its first move is to MEASURE whether MapResponse.stack is
-ever populated before deciding populate-vs-delete; file the bug either way. Leave the GitHub-URL dead
-code alone (owner call - file it, do not decide it). Now true on the wire: TraceNode carries file_path/
-line_number/omitted_names/multi_impl_count/di_host_count/test_only; ReadSourceMode.FILE reads a whole
-file by PATH or node, capped 2000/10000 and the cap is visible (total_lines+truncated, set for
-MEMBER/WINDOW too); GetFileOverlay returns GraphQuery.EdgesInFile - edges whose provenance falls in one
-file, line 0 = known-but-unplaced, counted not dropped. One ResolveInRoot guard covers both path-taking
-RPCs. PathDisplay.SplitProvenance is now the ONE file:line parse - do not add another.
-TRAPS PAID FOR: app component specs CANNOT run via `pnpm exec vitest run <file>` (TestBed env comes
-from the @angular/build:unit-test builder) - use `pnpm test`, whole suite, ~40s. McpQaGateTests going
-red inside one `dotnet test DevContext.slnx` run is a two-host CONCURRENCY artifact: it passes 2/2 alone
-- run it alone before chasing it. Bug filed: MCP read_source does its own file IO and never calls the
-ReadSource RPC. Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts,
-#5 Types tab ranks nothing.
-
+M1.2 IS DONE — all five hygiene items (evidence eval-results/2026-08-13/M1.2-hygiene.md). Stage M1 is
+now closed (M1.1 + M1.2). NEXT: N3.1 (Send-to-Studio) — the first TODO card left on the board.
+Landed: MapResponse.stack is populated from MapModel.Stack (built once in MapBuilder.BuildStack; the
+markdown renderer now JOINS that list, goldens did not move) — bug #7 filed AND fixed; Layer/Feature
+lens chips render only when the analysis carries the facet (stage.ts lensFacets, + an effect that
+falls a stranded lens back to Service); createTab returns string|null and single-instance no longer
+analyzes a dropped repo into the user's active tab at the cap; a dock resizer (20-70%, persisted as
+prefs.dockWidth, Home/dblclick reset, level change clears it); Settings renders themes from the vibe's
+own list, so high-contrast is finally selectable. GitHub-URL dead code untouched (owner call).
+TRAPS PAID: Assert.Equal(collection-expression, someImmutableArray) NEVER passes — ImmutableArray<T>
+is IEquatable by REFERENCE, so the two print identical while failing; call .ToArray() on the actual.
+contract-sweep only catches fields with no READERS — a field with readers and no writer is invisible
+to it. pnpm ng build is ~193s; typecheck specs with `tsc -p tsconfig.spec.json` first, it is ~20s.
 
 ## Baseline numbers (from run.db)
 
