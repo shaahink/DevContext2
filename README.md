@@ -95,7 +95,7 @@ Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD
 
 ### 🔌 MCP Integration
 
-DevContext ships a built-in **MCP server** exposing **22 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
+DevContext ships a built-in **MCP server** exposing **22 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides an MCP observability page — telemetry status, configuration snippets, sessions table, live tool-**call** feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
 
 <p align="center">
   <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP" width="85%"></a>

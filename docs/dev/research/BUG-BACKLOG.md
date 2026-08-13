@@ -9,10 +9,19 @@
 > fell outside the stage that found it. Each carries the evidence path that proves it.
 > None is a regression.
 
-**24 open — 7 high, 16 medium, 1 low.**
+> **Second source, 2026-08-13 (`run 8faf849d`, stage N0).** `docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md`
+> §3.F listed 16 truth defects across Context Studio and the MCP page. Ten were fixed in N0 and are
+> recorded at the bottom of this file under **[FIXED in N0](#fixed-n0)** — they are *not* open and are
+> kept only so the inventory reads whole. The remaining six are filed below as **#26–#31**, each with
+> its locus **re-measured on 2026-08-13** rather than copied from the audit prose. **#32** is the
+> engine bug N0.1 found while fixing §3.F.3/4 and did not fix.
+
+**31 open — 9 high, 21 medium, 1 low.**
 
 | # | Sev | Stage | Title |
 |---|-----|-------|-------|
+| [#26](#26) | high | N0 | Pins are advertised by three surfaces and read by none — `TrailStore.pins()` reaches only a counter and a colour, and no pack path ever consults it |
+| [#28](#28) | high | N0 | The verification ledger verifies a pack that was never built — full budget per focus, all sections, N RPCs — so a green "fresh" can describe content the pack on screen does not contain |
 | [#5](#5) | high | G4 | Every one of the 22 MCP tools ships with an EMPTY description — 31 carefully written XML doc summaries exist in the source and none of them reach the wire |
 | [#6](#6) | high | G4 | trace() handed a nodeId returns found:true with an EMPTY tree titled "Type: Type" — and its own error envelope tells the agent to pass a nodeId |
 | [#7](#7) | high | G4 | A METHOD is registered as a Type node and 26 BCL System.Type references bind to it — the mis-bound node is stats' #5 "wiring hub" on Hangfire |
@@ -36,11 +45,16 @@
 | [#23](#23) | medium | G10 | L3.4 hub-scope broadening never fires: sparseGraph=false + hubScopeNodes=0 on 11/11 poles including its own trigger population (Dapper/Serilog/MahApps/MediatR); identity-strip's sparse line has never rendered (G10.1) |
 | [#24](#24) | medium | G10 | Deep-spine ratio is saturated (1.000 on 5/11 poles, 0.96-0.98 on the rest): the report prints it as coverage but it separates no repo (G10.1) |
 | [#25](#25) | medium | G10 | Engine ships two definitions of a verified edge: GraphStats/SeamStat approx=Syntactic only (so Join counts as verified) while GraphOrphansSource counts Semantic only; Resolution.Join is also the enum default (G10.1) |
+| [#27](#27) | medium | N0 | The Studio body toggles are cosmetic — the eye icon and its opacity are the entire feature; `bodyEnabled` never reaches the wire |
+| [#29](#29) | medium | N0 | Studio cards are never invalidated — no writer of `cards` is keyed to the session handle, so a re-analyze leaves cards holding node ids from the previous graph |
+| [#30](#30) | medium | N0 | The zero-entry empty state tells the user to pick types from an omnibox that searches entries only — on a repo with no entries it can return nothing, ever |
+| [#31](#31) | medium | N0 | The `usage` section is built and then discarded: no card type maps to it, and the same table makes the "client-only type" omission branch unreachable |
+| [#32](#32) | medium | N0 | `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget |
 | [#4](#4) | low | G2 | The desktop MCP page keeps its own tool list; it advertised `search`, a tool the MCP has never exposed |
 
 ---
 
-## HIGH — 7
+## HIGH — 9
 
 <a id="5"></a>
 
@@ -320,7 +334,73 @@ BLAST RADIUS WARNING FOR WHOEVER FIXES IT: this will move call-edge counts on ev
 
 ---
 
-## MEDIUM — 16
+<a id="26"></a>
+
+### #26 · N0 · Pins are advertised by three surfaces and read by none — `TrailStore.pins()` reaches only a counter and a colour, and no pack path ever consults it
+
+```text
+Re-measured 2026-08-13 (N0.3). The store's own pins() has exactly two readers, both inside the
+store, and both purely presentational:
+
+  src/DevContext.App/src/app/state/trail.store.ts:68   pinCount = computed(() => this.pins().length)
+  src/DevContext.App/src/app/state/trail.store.ts:159  isPinned(step) => this.pins().some(...)
+
+and those two are consumed only to draw:
+
+  features/inspector/inspector.ts:227-228   the "◈ N" chip
+  features/inspector/inspector.ts:269-270, 296-297   accent vs subtle text colour on a step
+  shell/trail-bar.ts:61-63                  the same chip again
+
+The only writers are togglePin at inspector.ts:481 and workbench-page.ts:344 (the `p` shortcut).
+NOTHING in the pack path reads pins: the "From current trail" button (scope-picker.ts:155) seeds
+from context-studio.ts:431 `this.trailStore.steps()` — the RAW step list — and then keeps
+entry-kind steps only, so pinning a step and pressing the button produces exactly the pack you
+would have got without pinning, and a trail of non-entry steps silently seeds nothing.
+
+Meanwhile three surfaces state the mechanism as fact: the inspector's "Pin to export pack (p)",
+the trail bar's "Pinned steps seed the export pack", and the ticker's "Press p to pin a trail
+step into your export pack".
+
+WHY NOT FIXED IN N0: the fix is a product decision, not a threshold — either wire pins into the
+trail-seed path or delete the idiom from all three surfaces. That is Q1 of the audit and the
+subject of checkpoint N1.2; N0 was the no-decision batch. Evidence: audit §3.A + §3.F.1.
+```
+
+<a id="28"></a>
+
+### #28 · N0 · The verification ledger verifies a pack that was never built — full budget per focus, all sections, N RPCs — so a green "fresh" can describe content the pack on screen does not contain
+
+```text
+Re-measured 2026-08-13 (N0.3). Three distinct divergences between the pack that is BUILT and the
+pack that is VERIFIED:
+
+1. BUDGET. verifyPack (context-studio.ts:205-217) calls
+     this.api.verifyContext(handle, f, this.budgetTokens())
+   once per focus, handing EVERY focus the whole ceiling. The real build gives each focus a
+   proportional slice: ContextPackBuilder.cs:533 AllocateProportionalBudgets(...), consumed at
+   :546-547 as BuildSections(focus, budget, intent). With two focuses and a 4000-token ceiling the
+   ledger verifies two 4000-token packs against a pack whose halves were built at ~2000 each.
+
+2. SECTIONS. The ledger verifies whatever verifyContext returns for the focus. The built pack
+   keeps only the sections the CARD asked for — ContextPackBuilder.cs:567 `wanted` and :581
+   `if (!wanted.Contains(sa.Section)) continue`. So a section the pack dropped can be reported
+   fresh, and staleness in a section the pack never carried counts against it.
+
+3. COST. Promise.all over the focus list at :215-217 = one RPC per unique focus per repack, on a
+   path that reruns on every card edit (:387).
+
+Plus a dead field: `checkedAt` is set at context-studio.ts:243 and declared at
+verification-panel.ts:10, and the panel template never renders it — the user is shown a
+freshness verdict with no indication of WHEN it was taken.
+
+WHY NOT FIXED IN N0: the fix needs a mechanism decision (verify the built pack via a returned
+section digest, vs. a verify-with-the-same-spec RPC) — that is wire item 4 and checkpoint N1.1.
+Evidence: audit §3.B + §3.F.5.
+```
+
+---
+
+## MEDIUM — 21
 
 <a id="1"></a>
 
@@ -633,6 +713,135 @@ _Found in session #28._
 
 ---
 
+<a id="27"></a>
+
+### #27 · N0 · The Studio body toggles are cosmetic — the eye icon and its opacity are the entire feature; `bodyEnabled` never reaches the wire
+
+```text
+Re-measured 2026-08-13 (N0.3). Every use of the flag, exhaustively:
+
+  composition-view.ts:26        bodyEnabled: boolean  (the card VM field)
+  composition-view.ts:107       [class.opacity-30]="!card.bodyEnabled"
+  composition-view.ts:108       [title]="card.bodyEnabled ? 'Hide code bodies' : 'Show code bodies'"
+  composition-view.ts:111       [name]="card.bodyEnabled ? 'eye' : 'eye-off'"
+  context-studio.ts:287         set from showAllBodies() when a card is seeded
+  context-studio.ts:414         per-card toggle
+  context-studio.ts:421         bulk toggle
+  budget-panel.ts:118-124,186,246   the "All bodies shown / All bodies hidden" pill
+
+There is no other reader. It is not in the buildContext request, so it does not filter the
+preview, the copy, or the save — a user who hides all bodies and copies the pack gets the bodies.
+The pill states the opposite in words ("All bodies hidden").
+
+WHY NOT FIXED IN N0: wiring it needs a wire decision (a per-card section filter on the request,
+vs. dropping "bodies" cards) and the honest alternative is deletion — a product call. Checkpoint
+N1.1 owns it. Evidence: audit §3.F.2.
+```
+
+<a id="29"></a>
+
+### #29 · N0 · Studio cards are never invalidated — no writer of `cards` is keyed to the session handle, so a re-analyze leaves cards holding node ids from the previous graph
+
+```text
+Re-measured 2026-08-13 (N0.3). `cards` is declared at context-studio.ts:132 and written at
+:156, :297, :356, :397, :406, :413, :420, :426, :464 — every one of those is a user action
+(seed, add, resolve, error, toggle, remove, reorder). The file contains NO effect() at all, so
+nothing observes session.handle(); the handle is only ever READ at call time (:206, :269, :309).
+
+Consequence: cards carry entryIds that are node ids from the graph that was live when they were
+seeded. After a re-analyze (onReanalyze at :264) or a repo switch, those ids are resolved against
+a new graph — ResolveFocus returns null for the ones that moved, and the card degrades to empty
+rather than saying it is stale. Studio state also survives a tab-switch, so the stale set is
+still on screen when the user comes back.
+
+WHY NOT FIXED IN N0: the choice is per-tab keying vs. handle-effect invalidation, and it is
+coupled to persisting budget/intent/format — checkpoint N1.1. Evidence: audit §3.F.6.
+```
+
+<a id="30"></a>
+
+### #30 · N0 · The zero-entry empty state tells the user to pick types from an omnibox that searches entries only — on a repo with no entries it can return nothing, ever
+
+```text
+Re-measured 2026-08-13 (N0.3). The two empty-state strings (scope-picker.ts:80-81):
+
+  library:  "No entry points — a library is scoped by its public surface, not by services.
+             Pick types from the omnibox above."
+  other:    "No entry points were found in this repo ... Pick a type from the omnibox above."
+
+and the omnibox they point at (scope-picker.ts:395-412, omniboxResults):
+
+  for (const group of this.entryGroups())
+    for (const entry of group.entries)
+      ... match on entry.title / entry.route / entry.target
+
+It iterates entryGroups() and nothing else. The empty state renders precisely when there are no
+entries, i.e. when entryGroups() is empty, i.e. when omniboxResults() is guaranteed empty for
+every query. The instruction is unsatisfiable in the exact state that prints it — a library user
+is told to do the one thing the control cannot do. (C-3 wrote the honest sentence but did not
+give the omnibox a type-search path.)
+
+WHY NOT FIXED IN N0: the fix IS the type/member scope model — SearchNodes-backed omnibox and a
+symbol-rooted card — which is the D-G decision, checkpoint N2.1. Evidence: audit §3.C + §3.F.8.
+```
+
+<a id="31"></a>
+
+### #31 · N0 · The `usage` section is built and then discarded: no card type maps to it, and the same table makes the "client-only type" omission branch unreachable
+
+```text
+Re-measured 2026-08-13 (N0.3). CardTypeSections (ContextPackBuilder.cs:494-505) has exactly nine
+keys — flow, signatures, bodies, di_wiring, config, entities, contracts, tests, identity — which
+is exactly the nine-member ContextCardType union the app can produce (scope-picker.ts:15). Two
+consequences fall out of that one table:
+
+1. `usage` (who calls this — the section that only the symbol-rooted path produces, built by
+   BuildUsageSection at :380 and added by BuildSections at :753/:766/:782) is not a key, so no
+   card can ask for it. BuildMulti drops it at :581 (`if (!wanted.Contains(sa.Section)) continue`)
+   for every card. The engine builds the section, spends the tokens deciding it, and throws it
+   away — the human in Studio can never see the answer the agent gets from get_context.
+
+2. The omission branch at :568-572 —
+       if (wanted.Count == 0) { omitted.Add($"{card.Type}: client-only type, no server section"); }
+   — is unreachable from the app, because the union and the table are the same nine strings. The
+   omitted[] line it writes has therefore never been rendered.
+
+Also fixed in this commit, same item: three docs promised the MCP page a "live log feed"
+(README.md:98, docs/product/mcp-reference.md:22, docs/product/AGENT-REFERENCE.md:163). The page
+has a live tool-CALL feed; the rolling logs at %LOCALAPPDATA%/DevContext/logs/mcp-*.log have no
+reader in any surface. The wording now says so.
+
+WHY NOT FIXED IN N0: (1) is the pack-convergence work — N2.1's BuildMulti-adopts-ResolveEntry plus
+a `usage` card — and (2) should be deleted or made reachable in the SAME change, since which of
+the two is right depends on whether card types stay closed. Evidence: audit §3.F.15.
+```
+
+<a id="32"></a>
+
+### #32 · N0 · `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget
+
+```text
+Found by N0.1 while fixing §3.F.3/4 (conductor bug #1, 2026-08-13); filed, not fixed.
+
+src/DevContext.Core/Graph/ContextPackBuilder.cs:982 AllocateProportionalBudgets — every non-last
+focus is given max(minPerEntry=200, its proportional share) and `remaining` is decremented by the
+share that was actually handed out; the LAST focus is then given whatever `remaining` holds. When
+the min-floor has been applied often enough (many focuses, small total budget), the floor payouts
+overrun the ceiling and `remaining` goes negative — the last focus is allocated a negative token
+budget.
+
+BuildMulti's caller does not clamp on the way in (:546 `focusBudgets.GetValueOrDefault(focus,
+minEntryBudget)`), so the negative value reaches BuildSections. N0.1 clamped the ACCOUNTING it
+added (:551 `allocatedTokens += Math.Max(0, budget)`) so the reported allocation cannot go
+negative, but deliberately did not change the allocation itself — that moves pack content and is
+a golden-affecting engine change, not a truth fix.
+
+REPRO SHAPE: enough unique focuses that 200 × (n−1) exceeds the total budget — e.g. a 12-card
+pack over 12 distinct entries at the UI's 4000-token default is already at the boundary.
+```
+
+---
+
 ## LOW — 1
 
 <a id="4"></a>
@@ -658,3 +867,31 @@ Note: eval/contract-sweep.ps1 cannot catch this class either. The sweep asks whe
 has a reader; this is a hand-written string that names a tool, with no proto field involved. Same
 family as S10's Insight.Severity find (the field IS read, with the wrong key).
 ```
+
+---
+
+<a id="fixed-n0"></a>
+
+## FIXED in N0 — the other ten §3.F items (not open; kept so the inventory reads whole)
+
+Stage N0 of the 2026-08-13 pre-release run ("the truth batch — no decisions") closed ten of the
+sixteen. They are listed here with their fix locus so that a later reader who finds the audit
+first does not re-file them.
+
+| §3.F | Defect | Fixed in | Fix locus |
+|------|--------|----------|-----------|
+| 3 | Multi-entry section merge dropped `SourceLocations`/`Verified`/`Approx`, so primary-path cards lost provenance | N0.1 · `36bf916` | `ContextPackBuilder.cs:583-601` — the merge branch now concatenates locations (deduped, capped at 20) and SUMS the trust counters |
+| 4 | `allocated_tokens` ≡ budget: the Studio header printed one number under two labels | N0.1 · `36bf916` | `ContextPackBuilder.cs:539-552` — allocated is now measured (the share that reached a focus which produced sections), clamped at 0 |
+| 7 | Studio copy/save bypassed `clipboard.ts`; toasts fired before/regardless of outcome | N0.1 · `36bf916` | Studio copy paths go through the app clipboard helper and the toast awaits the result — pinned by `context-studio.spec.ts` (`copy-context`, `card-copy`) |
+| 9 | `getMcpStatus()` called `StartMcp` — a status READ that mutated what it measured | N0.2 · `98c5067` | A real `GetMcpStatus` message (`telemetry_streaming`/`observer_count`); pinned by `mcp-page.spec.ts` "reads status WITHOUT starting anything" |
+| 10 | "ships with the desktop installer" was false; all three host snippets named a command that does not resolve | N0.2 · `98c5067` | Snippets name `devcontext-mcp.exe`; the setup note no longer claims the installer ships it. Spec: "host snippets do not promise a command that will not resolve" |
+| 11 | Copy-label sniffing always marked the VS Code card "Copied!" | N0.2 · `98c5067` | Per-host `copy-snippet-<host>` state. Spec: "Copy marks the card that was clicked" |
+| 12 | Feed: "Total" counted rows the filter hid; timestamps were client-side | N0.2 · `98c5067` | The counter reads "Shown: N tok" and follows the filter; rows carry the WIRE `timestamp_utc_ms`. Spec: "the feed total counts the rows on screen…" |
+| 13 | Sessions: `edges`/`entries` mapped but never rendered; `from_cache`/`analyzed_at` unused, so the shown age lied after a rehydrate | N0.2 · `98c5067` | Both columns render; a separate analysis-age cell with a "(cached)" marker and a title explaining the rehydrate. Spec: "sessions render the analysis age…" |
+| 14 | Dead state (`mcpStateSynced`, `DevContextApi._mcpRunning`, feed `session`/`bytes`) and three silent catch-alls with no user-visible signal | N0.2 · `98c5067` | Dead fields deleted; poll/stream/status failures now surface (`mcp-status-error`, `sessions-error`, `feed-error`). Two specs pin the error paths |
+| 16 | Neither page had a spec file; the page `data-testid`s were referenced by nothing | N0.2 + N0.3 | `mcp-page.spec.ts` (10 tests) and `context-studio.spec.ts` cover both pages; every `data-testid` on the two pages that the audit named is now asserted by a real spec |
+
+**Still open from the same inventory:** [#26](#26) (§3.F.1 pins), [#27](#27) (§3.F.2 body toggles),
+[#28](#28) (§3.F.5 verification), [#29](#29) (§3.F.6 card lifecycle), [#30](#30) (§3.F.8 empty
+state), [#31](#31) (§3.F.15 usage/dead branch). Each was left because it needs a product or wire
+decision — they are the substance of checkpoints N1.1, N1.2 and N2.1, not forgotten work.

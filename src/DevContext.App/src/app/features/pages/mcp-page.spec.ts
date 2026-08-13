@@ -163,4 +163,81 @@ describe('McpPage', () => {
 
     expect(text(el, 'sessions-error')).toContain('server gone');
   });
+
+  /**
+   * N0.3 (§3.F.16) — the two remaining unreferenced data-testids on this page. Both are the
+   * §3.F.7 class on the MCP side: a control whose confirmation must follow the OUTCOME, and a
+   * button whose whole promise is that it hands the FULL handle on, not the truncated one shown.
+   */
+  it('copying a handle copies the full one and confirms only after the write resolves', async () => {
+    let resolveWrite!: () => void;
+    const writeText = vi.fn().mockReturnValue(new Promise<void>((r) => { resolveWrite = r; }));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    const { fixture, el } = await createPage();
+
+    expect(text(el, 'session-handle-copy')).toBe('handle-a…'); // truncated for width
+
+    (el.querySelector('[data-testid="session-handle-copy"]') as HTMLButtonElement).click();
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(text(el, 'session-handle-copy')).toBe('handle-a…'); // still pending — no premature "Copied!"
+
+    resolveWrite();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(writeText).toHaveBeenCalledWith('handle-abcdef123456'); // the FULL handle, not the shown one
+    expect(text(el, 'session-handle-copy')).toBe('Copied!');
+  });
+
+  it('a rejected clipboard write never claims the handle was copied', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    const { fixture, el } = await createPage();
+
+    (el.querySelector('[data-testid="session-handle-copy"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'session-handle-copy')).not.toBe('Copied!');
+  });
+
+  it('the toggle is the ONLY thing that mutates, and a refused start stays off (§3.F.9)', async () => {
+    const { fixture, el } = await createPage();
+    expect(startMcp).not.toHaveBeenCalled();
+
+    startMcp.mockRejectedValueOnce(new Error('refused'));
+    (el.querySelector('[data-testid="mcp-toggle"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(startMcp).toHaveBeenCalledTimes(1);
+    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry off'); // a refusal is not "streaming"
+    expect(text(el, 'mcp-toggle')).toBe('Start');
+
+    (el.querySelector('[data-testid="mcp-toggle"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry streaming');
+    expect(text(el, 'mcp-toggle')).toBe('Stop');
+  });
+
+  it('"use" prefills Try-a-Tool with the live handle and enables Run', async () => {
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    const { fixture, el } = await createPage();
+
+    const run = [...el.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Run') as HTMLButtonElement;
+    expect(run.disabled).toBe(true); // nothing to run against yet
+
+    (el.querySelector('[data-testid="session-use"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect((el.querySelector('#try-handle-input') as HTMLInputElement).value).toBe('handle-abcdef123456');
+    expect(run.disabled).toBe(false);
+  });
 });

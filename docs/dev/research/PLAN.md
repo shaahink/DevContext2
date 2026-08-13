@@ -98,7 +98,7 @@
       surfaced one non-blocking issue, logged as `OWNER-TODO.md` §6: every action in all three
       workflows targets the deprecated Node 20 and is being force-run on Node 24.
       The four things worth carrying forward:
-      **(1) `docs/dev/research/BUG-BACKLOG.md` — 24 open findings (7 high).** Measured, evidenced,
+      **(1) `docs/dev/research/BUG-BACKLOG.md` — 31 open findings (9 high).** Measured, evidenced,
       and deliberately NOT fixed because each is a product decision rather than a correction. This
       is the highest-value list in the strand. Start there, not from a fresh audit. The 7 high ones
       are mostly G4's: every MCP tool ships an EMPTY description while 31 XML doc summaries sit in

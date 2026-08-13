@@ -18,8 +18,9 @@ process **spawns it automatically**, looking in order (`ServerShim.FindServerExe
 3. `%LOCALAPPDATA%/DevContext/server/DevContext.Server.exe`
 4. Walking up from the MCP exe to a repo root (`DevContext.slnx`) and using the built server there
 
-Logs: `%LOCALAPPDATA%/DevContext/logs/mcp-*.log` (rolling, 7 days). The desktop app's **MCP page**
-shows live status, sessions, a log feed, and a try-a-tool sandbox.
+Logs: `%LOCALAPPDATA%/DevContext/logs/mcp-*.log` (rolling, 7 days) — read them with a text editor;
+no surface tails them. The desktop app's **MCP page** shows telemetry status, sessions, a live
+tool-**call** feed, and a try-a-tool sandbox.
 
 ## Setup
 

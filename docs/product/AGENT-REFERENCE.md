@@ -160,8 +160,9 @@ Map · TopFlows · Trace · Node · Neighbors · Usages · Find · Impact · Sea
 TestsFor · GetContext · VerifyContext · ReadSource
 ```
 
-The desktop MCP page manages the server (status, config snippets, sessions, live log feed, try-a-tool
-sandbox). See `AGENTS.md` for background-process rules when running any server as an agent.
+The desktop MCP page shows telemetry (status, config snippets, sessions, live tool-CALL feed,
+try-a-tool sandbox) — it does not read the rolling log files, and its Start/Stop toggles the
+telemetry stream, not the `devcontext-mcp` process (which the agent host spawns over stdio). See `AGENTS.md` for background-process rules when running any server as an agent.
 
 ## Testing
 
