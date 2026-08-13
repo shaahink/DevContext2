@@ -16,11 +16,10 @@
 > its locus **re-measured on 2026-08-13** rather than copied from the audit prose. **#32** is the
 > engine bug N0.1 found while fixing §3.F.3/4 and did not fix.
 
-**28 open — 8 high, 19 medium, 1 low.** ([#27](#fixed-n1), [#28](#fixed-n1) and [#29](#fixed-n1) were fixed by N1.1 on 2026-08-13 and moved to [FIXED in N1](#fixed-n1).)
+**27 open — 7 high, 19 medium, 1 low.** ([#27](#fixed-n1), [#28](#fixed-n1) and [#29](#fixed-n1) were fixed by N1.1, and [#26](#fixed-n12) by N1.2, all on 2026-08-13; see [FIXED in N1.1](#fixed-n1) and [FIXED in N1.2](#fixed-n12).)
 
 | # | Sev | Stage | Title |
 |---|-----|-------|-------|
-| [#26](#26) | high | N0 | Pins are advertised by three surfaces and read by none — `TrailStore.pins()` reaches only a counter and a colour, and no pack path ever consults it |
 | [#5](#5) | high | G4 | Every one of the 22 MCP tools ships with an EMPTY description — 31 carefully written XML doc summaries exist in the source and none of them reach the wire |
 | [#6](#6) | high | G4 | trace() handed a nodeId returns found:true with an EMPTY tree titled "Type: Type" — and its own error envelope tells the agent to pass a nodeId |
 | [#7](#7) | high | G4 | A METHOD is registered as a Type node and 26 BCL System.Type references bind to it — the mis-bound node is stats' #5 "wiring hub" on Hangfire |
@@ -51,7 +50,7 @@
 
 ---
 
-## HIGH — 8
+## HIGH — 7
 
 <a id="5"></a>
 
@@ -327,40 +326,6 @@ FIX SHAPE (do not apply from this text - measure first): the op knows its line a
 WATCH IT GO RED FIRST: a test whose call site spans two lines PASSES on the broken state (case D). The discriminating fixture is a ONE-LINE call statement asserting a Semantic-tier receiver type.
 
 BLAST RADIUS WARNING FOR WHOEVER FIXES IT: this will move call-edge counts on every pole in the matrix. It is a batch-with-a-matrix-run change, not a surgical one. G5.2 deliberately does NOT depend on it (see the separate bug on `this.field` binding, which is surgical: 0 sites in CleanArchitecture / Hangfire / Polly / Serilog).
-```
-
----
-
-<a id="26"></a>
-
-### #26 · N0 · Pins are advertised by three surfaces and read by none — `TrailStore.pins()` reaches only a counter and a colour, and no pack path ever consults it
-
-```text
-Re-measured 2026-08-13 (N0.3). The store's own pins() has exactly two readers, both inside the
-store, and both purely presentational:
-
-  src/DevContext.App/src/app/state/trail.store.ts:68   pinCount = computed(() => this.pins().length)
-  src/DevContext.App/src/app/state/trail.store.ts:159  isPinned(step) => this.pins().some(...)
-
-and those two are consumed only to draw:
-
-  features/inspector/inspector.ts:227-228   the "◈ N" chip
-  features/inspector/inspector.ts:269-270, 296-297   accent vs subtle text colour on a step
-  shell/trail-bar.ts:61-63                  the same chip again
-
-The only writers are togglePin at inspector.ts:481 and workbench-page.ts:344 (the `p` shortcut).
-NOTHING in the pack path reads pins: the "From current trail" button (scope-picker.ts:155) seeds
-from context-studio.ts:431 `this.trailStore.steps()` — the RAW step list — and then keeps
-entry-kind steps only, so pinning a step and pressing the button produces exactly the pack you
-would have got without pinning, and a trail of non-entry steps silently seeds nothing.
-
-Meanwhile three surfaces state the mechanism as fact: the inspector's "Pin to export pack (p)",
-the trail bar's "Pinned steps seed the export pack", and the ticker's "Press p to pin a trail
-step into your export pack".
-
-WHY NOT FIXED IN N0: the fix is a product decision, not a threshold — either wire pins into the
-trail-seed path or delete the idiom from all three surfaces. That is Q1 of the audit and the
-subject of checkpoint N1.2; N0 was the no-decision batch. Evidence: audit §3.A + §3.F.1.
 ```
 
 ## MEDIUM — 19
@@ -809,8 +774,8 @@ first does not re-file them.
 | 14 | Dead state (`mcpStateSynced`, `DevContextApi._mcpRunning`, feed `session`/`bytes`) and three silent catch-alls with no user-visible signal | N0.2 · `98c5067` | Dead fields deleted; poll/stream/status failures now surface (`mcp-status-error`, `sessions-error`, `feed-error`). Two specs pin the error paths |
 | 16 | Neither page had a spec file; the page `data-testid`s were referenced by nothing | N0.2 + N0.3 | `mcp-page.spec.ts` (10 tests) and `context-studio.spec.ts` cover both pages; every `data-testid` on the two pages that the audit named is now asserted by a real spec |
 
-**Still open from the same inventory:** [#26](#26) (3.F.1 pins - N1.2), [#30](#30) (3.F.8 empty
-state), [#31](#31) (3.F.15 usage/dead branch - N2.1). 3.F.2, 3.F.5 and 3.F.6 were closed by N1.1;
+**Still open from the same inventory:** [#30](#30) (3.F.8 empty state), [#31](#31) (3.F.15
+usage/dead branch - N2.1). 3.F.2, 3.F.5 and 3.F.6 were closed by N1.1 and 3.F.1 (pins) by N1.2;
 see below.
 
 <a id="fixed-n1"></a>
@@ -831,3 +796,19 @@ Per-card `verified`/`approx` (audit section 3.B, not a numbered 3.F item) also l
 `composition-view.ts` `provenanceMix()` renders the trust mix the wire has carried since T4.4 and
 no surface showed. Spec: "renders verified/approx PER CARD, and offers the body toggle only where
 it acts".
+<a id="fixed-n12"></a>
+
+## FIXED in N1.2 — §3.F.1, the audit's flag finding
+
+Stage N1.2 closed **#26** ("pins are advertised by three surfaces and read by none"), the item
+owner decision 1 of `STUDIO-MCP-AUDIT-2026-08-13.md` §8 settled as **IMPLEMENT** rather than
+delete-the-idiom.
+
+| # | 3.F | Defect | Decision taken | Fix locus |
+|---|-----|--------|----------------|-----------|
+| 26 | 1 | `TrailStore.pins()` reached a counter and a colour and nothing else; the "From current trail" button read the RAW `steps()`, kept `kind === 'entry'` only, and no-opped in silence. Three surfaces stated the mechanism as fact. | **IMPLEMENT (owner decision 1).** Pins win over the raw trail; the trail stays the fallback so the button still works before anyone pins anything. Every step kind resolves through its `focus`, so a pinned graph NODE stops being worthless. Resolution is against the LIVE `entryGroups()`, never the pinned nodeId — the same invalidation principle N1.1 chose for cards, applied where the id crosses a re-analyze. | `context-studio.ts` `onTrailSeed()` (+ `pinCount`/`trailCount` computeds); `scope-picker.ts` seed button (`data-testid="trail-seed"`, source + count + disabled reason); `workbench-page.ts` `onPin()` (the `p` shortcut reports what it did); `inspector.ts` `pinTitle()` + trail empty-state; `trail-bar.ts` chip title; `workspace-shell.ts` `tip:pin`. Gates: 5 specs in `context-studio.spec.ts` (pins beat the trail · node steps seed · dead pins reported · silent no-op replaced · button states source/count) + 4 in the new `workbench-page.spec.ts` |
+
+Side-finding filed while wiring the button, not fixed here: `ui/icon/icon.ts`'s registry renders an
+**empty span for a name it does not carry** (`if (!node) return`), and the app binds four such names
+(`box`, `edit`, `grip-vertical`, `lock`) — `bookmark` and `history` were added because the seed
+button binds them. Tracked as run bug #3.

@@ -63,7 +63,7 @@ import { TrailStore, type TrailStep } from '../state/trail.store';
         @if (trail.pinCount() > 0) {
           <span
             class="chip active shrink-0 tabular-nums"
-            [title]="trail.pinCount() + ' pinned — Context Studio\'s From-pinned-steps button seeds a card from each'"
+            [title]="trail.pinCount() + ' pinned — the From-pinned-steps button in Context Studio seeds a card from each'"
           >
             ◈ {{ trail.pinCount() }}
           </span>
