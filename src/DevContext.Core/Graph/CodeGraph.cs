@@ -323,7 +323,9 @@ public sealed class CodeGraphBuilder
     /// to one Type node touched by many passes (AddTypeNodes seeds the declaration; each join adds a role
     /// tag), merge = union of <see cref="GraphNode.Tags"/> + first-non-null declaration info
     /// (FilePath/SourceBody/Project). Order-independent: a name-only node added by a join is later enriched
-    /// when its declaration appears, and vice-versa. Returns the resulting node.</summary>
+    /// when its declaration appears, and vice-versa. Returns the resulting node — which for a node
+    /// REFUSED by the V1.3 invariants below is the unstored input, so callers must not read the
+    /// return as proof of membership (<see cref="HasNode"/> answers that; no caller in Core does).</summary>
     public GraphNode AddNode(GraphNode node)
     {
         // V1.2 (backlog #17): a Member node's title is DERIVED from its key, never supplied. Titles
@@ -335,6 +337,28 @@ public sealed class CodeGraphBuilder
             var title = Graph2.SymbolCanon.MemberTitle(node.Id.Key);
             if (!string.Equals(node.Title, title, StringComparison.Ordinal))
                 node = node with { Title = title };
+        }
+
+        // V1.3 — the two standing invariants, enforced where a node is MADE, so no producer and no
+        // pass order can reach a surface with either shape. Both are refusals, not repairs: the
+        // engine does not know which type these nodes mean, and inventing one is how #7 happened.
+        //
+        //  (a) backlog #7's rider — a Type node may not carry a MEMBER id. Hangfire's explicit
+        //      interface implementation `string IStackTraceFormatter<string>.Type(string)` shipped
+        //      as Type:Hangfire.StackTraceHtmlFragments::Type(1) and 26 BCL System.Type references
+        //      bound onto it, ranking a dashboard formatter fragment #5 in the repo by connectivity.
+        //  (b) backlog #18 — a Type node may not be minted from lambda/expression TEXT. A 20-line
+        //      DI lambda, comments and all, reached the UI as a node title.
+        //
+        // A refused node is not stored, so AddEdge (which requires both endpoints) drops the edge
+        // that wanted it — the phantom leaves no half behind.
+        if (node.Id.Kind == NodeKind.Type)
+        {
+            if (Graph2.SymbolCanon.IsMemberKey(node.Id.Key)) return node;
+            if (Graph2.SymbolCanon.IsExpressionText(node.Id.Key)) return node;
+            // Key is a name but the title is not: the title is derived, as V1.2 does for members.
+            if (Graph2.SymbolCanon.IsExpressionText(node.Title))
+                node = node with { Title = Graph2.SymbolCanon.ShortNameOf(node.Id.Key) };
         }
 
         if (_nodes.TryGetValue(node.Id, out var existing))

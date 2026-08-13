@@ -426,7 +426,13 @@ public sealed partial class GraphBuilder
                         NodeId targetId;
                         string targetDisplayName = match.Target.Text;
 
-                        if (resolved.Resolved is { } symId)
+                        // V1.3 (backlog #7 rider): SymbolTable.Resolve answers with a SymbolKind, and
+                        // its member tier fires when no TYPE candidate exists — so a reference to BCL
+                        // `Type`/`Convert` lands on a same-named local METHOD. Taking that canonical
+                        // here is what minted Type:...StackTraceHtmlFragments::Type(1). A non-type
+                        // answer is no answer: fall back to the written text, the same leaf every
+                        // other unresolved (external) target gets.
+                        if (resolved.Resolved is { Kind: Graph2.SymbolKind.Type } symId)
                             targetId = NodeId.ForType(symId.Canonical);
                         else
                             targetId = NodeId.ForType(match.Target.Text);
@@ -593,8 +599,10 @@ public sealed partial class GraphBuilder
                                 var resolved = ctx.Symbols!.Resolve(match.Target);
                                 if (resolved.Tier == ResolutionTier.Ambiguous) continue;
 
+                                // V1.3 (backlog #7 rider) — the lambda-body twin of the Kind gate in
+                                // AddSeamsFromDetectors: a member answer is not a type answer.
                                 NodeId targetId;
-                                if (resolved.Resolved is { } symId)
+                                if (resolved.Resolved is { Kind: Graph2.SymbolKind.Type } symId)
                                     targetId = NodeId.ForType(symId.Canonical);
                                 else
                                     targetId = NodeId.ForType(match.Target.Text);
