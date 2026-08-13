@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 22:59 UTC · branch `feat/pre-release-desktop` · HEAD `e928f7a`_
+_Updated 2026-08-13 23:05 UTC · branch `feat/pre-release-desktop` · HEAD `fa5a1a1`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 22m ago, 20:36:43Z]
-**Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 0
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 29m ago, 20:36:43Z]
+**Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 1
 **Checkpoints:** 9/16 done · **Sessions run:** 15 · **Cost:** $97.1654 (agent $96.9938 + gates $0.1716) · **Tokens:** 1,530,996 in / 609,209 out
 **Confirmed phases:** N0, N1, N2
-**Pending:** full-battery phase gate for M1
 
 ## Stage progress
 
@@ -53,7 +52,7 @@ _Updated 2026-08-13 22:59 UTC · branch `feat/pre-release-desktop` · HEAD `e928
 | # | Title | Status | Commit |
 |---|---|---|---|
 | M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | ✅ DONE | [`a95d620`](https://github.com/shaahink/DevContext2/commit/a95d620) |
-| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | ✅ DONE | - |
+| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | ✅ DONE | [`7ccbf56`](https://github.com/shaahink/DevContext2/commit/7ccbf56) |
 
 </details>
 
@@ -111,24 +110,20 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 14 | 115.6M | 98.4% | $83.97 | 8 | 14.5M | $10.50 |
+| **run total** | 15 | 135M | 98.4% | $97.18 | 9 | 15M | $10.80 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
-| stage M1 | 1 | 20.6M | 98.7% | $13.92 | 1 | 20.6M | $13.92 |
-| 2026-08 | 14 | 115.6M | 98.4% | $83.97 | 8 | 14.5M | $10.50 |
+| stage M1 | 2 | 40.1M | 98.7% | $27.13 | 2 | 20M | $13.57 |
+| 2026-08 | 15 | 135M | 98.4% | $97.18 | 9 | 15M | $10.80 |
 
-_Where the money goes: agent $83.78 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.73/M tokens._
+_Where the money goes: agent $96.99 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 20:49:07  ✓ checkpoint N1.2 confirmed
-08-13 20:49:07  ▸ stage N1 confirmed  (1h33m32s)
-08-13 20:49:13  ▸ stage N2 entered — Pack convergence - one pipeline, two faces (owner decision 2: FULL)
-08-13 20:49:14  • session #6 N2 Deliver started (attempt 1/6)
 08-13 21:18:12  ▪ gate fast-app pass [session]  (3m26s)
 08-13 21:18:12  ▪ gate fast-engine pass [session]  (2m09s)
 08-13 21:18:12  ▪ gate guards pass [session]  (1m24s)
@@ -165,6 +160,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 22:48:33  • session #14 M1 Deliver started (attempt 1/4)
 08-13 23:23:58  • session #14 M1 → Advanced · done M1.1 · 15 commit(s)  (35m24s)
 08-13 23:23:59  • session #15 M1 Deliver started (attempt 1/4)
+08-13 23:59:46  • session #15 M1 → Advanced · done M1.2 · 2 commit(s)  (35m46s)
+08-14 00:05:41  ▪ gate fast-app FAIL [phase]  (47.6s)
+08-14 00:05:41  ▪ gate fast-engine pass [phase]  (1m51s)
+08-14 00:05:42  ▪ gate guards pass [phase]  (1m06s)
 ```
 
 ## Health
@@ -183,7 +182,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -236,6 +235,52 @@ vs upstream: up to date
 - **s15 (M1 Deliver)** — 2 commit(s):
   - [`e928f7a`](https://github.com/shaahink/DevContext2/commit/e928f7a) feat(app): the M1.2 hygiene batch - four surfaces stop over-claiming
   - [`7ccbf56`](https://github.com/shaahink/DevContext2/commit/7ccbf56) fix(map): MapResponse.stack stops shipping empty to three readers
+
+## Last gate run
+
+fast-app:FAIL-retry · fast-engine:OK · guards:OK · battery:FAIL-retry
+
+<details><summary>fast-app — exit 5</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 5 after 45s. Below is the SECOND run.
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 5: App check (pnpm check) ---
+ > devcontext-app@0.0.0 check C:\Code\DevContext2-desktop\src\DevContext.App > pnpm lint && pnpm test && pnpm build   > devcontext-app@0.0.0 lint C:\Code\DevContext2-desktop\src\DevContext.App > ng lint   Linting "devcontext-app"...  C:\Code\DevContext2-desktop\src\DevContext.App\src\app\features\pages\workbench-page.spec.ts   136:24  error  Type literal only has a call signature, you should use a function type instead  @typescript-eslint/prefer-function-type  ✖ 1 problem (1 error, 0 warnings)   1 error and 0 warnings potentially fixable with the `--fix` option.  Lint errors found in the listed files. System.Management.Automation.RemoteException  ELIFECYCLE  Command failed with exit code 1.  ELIFECYCLE  Command failed with exit code 1.
+  FAIL  pnpm check failed
+
+GATE: FAIL (step 5 - app check)
+```
+</details>
+
+<details><summary>battery — exit 5</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 5 after 27s. Below is the SECOND run.
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 5: App check (pnpm check) ---
+ > devcontext-app@0.0.0 check C:\Code\DevContext2-desktop\src\DevContext.App > pnpm lint && pnpm test && pnpm build   > devcontext-app@0.0.0 lint C:\Code\DevContext2-desktop\src\DevContext.App > ng lint   Linting "devcontext-app"...  C:\Code\DevContext2-desktop\src\DevContext.App\src\app\features\pages\workbench-page.spec.ts   136:24  error  Type literal only has a call signature, you should use a function type instead  @typescript-eslint/prefer-function-type  ✖ 1 problem (1 error, 0 warnings)   1 error and 0 warnings potentially fixable with the `--fix` option.  Lint errors found in the listed files. System.Management.Automation.RemoteException  ELIFECYCLE  Command failed with exit code 1.  ELIFECYCLE  Command failed with exit code 1.
+  FAIL  pnpm check failed
+
+GATE: FAIL (step 5 - app check)
+```
+</details>
 
 ## Last session result
 
