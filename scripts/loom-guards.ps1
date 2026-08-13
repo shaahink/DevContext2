@@ -273,6 +273,40 @@ if (-not $Quiet -and $titleCensus -eq 0) {
     Write-Host "  PASSED: every Member title is derived from its key (rule 10)" -ForegroundColor Green
 }
 
+# Rule 11 (pre-release V1.3, backlog #7 rider): a resolution answer may not become a TYPE node id
+# without a KIND gate.
+#
+# SymbolTable.Resolve returns a SymbolId carrying a SymbolKind, and its MEMBER tier fires when no
+# type candidate exists -- so a reference to BCL `Type` or `Convert` resolves onto a same-named
+# local METHOD. Three consumers took the canonical straight to NodeId.ForType; one of them
+# (CallGraphBinder) checked the Kind and two did not, which is how
+# Type:Hangfire.StackTraceHtmlFragments::Type(1) became a node with 26 phantom in-edges and the
+# repo's #5 "wiring hub". CodeGraphBuilder.AddNode now refuses that shape, so a regression here is
+# no longer visible in the graph -- which is exactly why the SOURCE has to keep saying it.
+$kindGateCensus = 0
+foreach ($dir in $coreSrcDirs) {
+    $full = Join-Path $repoRoot $dir
+    if (-not (Test-Path $full)) { continue }
+    $files = Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.cs -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\obj\\' -and $_.FullName -notmatch '\\bin\\' }
+    foreach ($f in $files) {
+        $hits = Select-String -LiteralPath $f.FullName -CaseSensitive -Context 3, 0 2>$null `
+            -Pattern 'NodeId\.ForType\(\s*\w+\.Canonical'
+        foreach ($m in $hits) {
+            if ($m.Line -match '^\s*(//|\*|/\*)') { continue }
+            $window = @($m.Context.PreContext) + $m.Line -join "`n"
+            if ($window -match 'SymbolKind\.Type') { continue }
+            $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
+            if (-not $Quiet) { Write-Host "  BANNED: resolved symbol -> Type node id with no SymbolKind.Type gate in ${rel}:$($m.LineNumber)" }
+            $script:failures++
+            $kindGateCensus++
+        }
+    }
+}
+if (-not $Quiet -and $kindGateCensus -eq 0) {
+    Write-Host "  PASSED: a resolved symbol becomes a Type node id only behind a Kind gate (rule 11)" -ForegroundColor Green
+}
+
 # Advisory: count remaining banned patterns in Graph/ (fixed by later stages)
 $nodeIdCount = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'NodeId.ForType(' -SimpleMatch -CaseSensitive 2>$null).Count
 $fqns0Count = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'fqns[0]' -SimpleMatch 2>$null).Count

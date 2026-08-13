@@ -47,11 +47,19 @@ public sealed class PlainCallDetector : ISeamDetector
             var key = $"{receiverText}@{inv.Line}";
             if (!emitted.Add(key)) continue;
 
-            // Only emit when the receiver type resolves to an in-solution type (SymbolTable has it).
+            // Only emit when the receiver type resolves to an in-solution TYPE (SymbolTable has it).
             // Framework types (ILogger, IMapper, HttpClient, DbContext wrappers, etc.) return
             // Resolved==null and are silently excluded — no phantom type nodes, no noise.
+            //
+            // V1.3 (backlog #7 rider): the sentence above says TYPE and the test said "not null",
+            // and the gap is a measured defect. SymbolTable's member tier fires when NO type
+            // candidate exists, so `Convert.ToInt32(...)` inside a converter class resolved onto
+            // that class's own `Convert` METHOD and the seam target became a member id wearing
+            // kind Type (eShop WebNavigatingEventArgsConverter::Convert(4); Hangfire's ::Type(1) is
+            // the same shape, and it collected 26 phantom in-edges). A member answer is not a type
+            // answer — drop the invocation, exactly as an unresolved framework receiver is dropped.
             var resolved = ctx.Symbols.Resolve(inv.ReceiverType);
-            if (resolved.Resolved is null) continue;
+            if (resolved.Resolved is not { Kind: SymbolKind.Type }) continue;
 
             // Batch C (DC4) — receiver CHAIN hop. `_appEnvironmentService.OrderService.CreateOrderAsync()`
             // used to emit Calls → IAppEnvironmentService: the aggregator that HOLDS the collaborator,
