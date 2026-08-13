@@ -4,21 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N1.1 IS CLOSED (56ebc25 engine + e3a9bc2 app; evidence eval-results/2026-08-13/N1.1-studio-truth.md).
-START AT N1.2 (pins, backlog #26 - the ONLY §3.F item left in N1). Wire item 4 is DECIDED AND SHIPPED:
-verification MOVED INTO GetContextPack's response (verification/any_stale/analyzed_git_head/
-current_git_head); VerifyContext stays single-focus for MCP. Do not re-open that. Also landed:
-per-card verified/approx, handle-effect card invalidation + PrefsStore studioBudget/Intent/Format,
-exclude_bodies on the wire. #27/#28/#29 are now under BUG-BACKLOG "FIXED in N1.1"; 28 open.
-FOR N1.2, MEASURED HERE, DO NOT RE-DERIVE: the pack path is `ContextPackBuilder.BuildMulti` and a
-card is `ContextCardSpec(type,title,entryIds,excludeBodies)` - seeding a pack from pins means
-producing seeds, NOT a new RPC. `ContextStudio.onTrailSeed()` already walks `trailStore.steps()`
-and only handles `step.kind === 'entry'` via `findEntryByFocus`; that is the hook pins plug into.
-Studio cards now DIE with the handle (constructor effect) - a pin store that outlives the handle
-must be invalidated the same way or it will reseed dead node ids.
-TEST LOOP (unchanged, still true): `pnpm exec ng test --watch=false --include=<spec>`; plain
-`pnpm vitest run` fails on TestBed.initTestEnvironment. Check pnpm build's EXIT CODE, not output.
-`pnpm test` 179/179, lint clean, contract-sweep GATE PASS, dotnet build 0w/0e - all this session.
+N1 IS CLOSED - N1.2 landed (e448d64 + 366cc3a; evidence eval-results/2026-08-13/N1.2-pins-real.md).
+START AT N2.1 (BuildMulti adopts ResolveEntry; `usage` joins CardTypeSections; picker Types tab).
+Pins are REAL: ContextStudio.onTrailSeed() (context-studio.ts:481) reads trailStore.pins() first
+and falls back to steps(). THE RULE N2/N3 MUST REUSE, MEASURED HERE: a seed resolves step.focus
+against the LIVE session.entryGroups() and takes the RESOLVED entry's nodeId+title, never the
+pinned step's - so a pin cannot carry a dead id across a re-analyze and needs NO invalidation
+effect. Every step kind resolves now (a `node` step carries its trace's focus), reroot never can.
+N3.1's "never opens empty" should call onTrailSeed, not re-derive seeding. Backlog #26 is under
+"FIXED in N1.2"; 27 open, 7 high. New run bug #3: icon.ts renders an EMPTY span for a name its
+REGISTRY lacks (box/edit/grip-vertical/lock still dead; bookmark+history added).
+TEST LOOP (unchanged): `pnpm exec ng test --watch=false --include=<spec>`; plain `pnpm vitest run`
+fails on TestBed.initTestEnvironment. Check the EXIT CODE, not filtered output - an escaped
+apostrophe in an Angular expression is a lexer error and cost a build here. `pnpm check` green
+this session: lint clean, 188/188, production build. Engine untouched by N1.2.
+`conductor bg start -- pnpm <script>` dies on corepack; wrap in `pwsh -NoProfile -Command`.
 Open bugs unchanged: #1 (negative budget for the last focus), #2 (eval stamp cache never hits).
 
 
