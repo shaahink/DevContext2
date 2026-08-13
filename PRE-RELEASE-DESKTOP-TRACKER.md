@@ -4,22 +4,30 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-STAGE N0 IS CLOSED — N0.1 (36bf916), N0.2 (98c5067), N0.3 (823de02), evidence in
-eval-results/2026-08-13/. START AT N1.1 (Studio truth pass).
-DO NOT re-measure the four things N1.1 needs — N0.3 already did, with today's loci:
-BUG-BACKLOG.md #28 (verification: full budget per focus at context-studio.ts:216 vs the
-build's proportional slice at ContextPackBuilder.cs:533/546, plus the card `wanted`
-filter at :581, plus dead `checkedAt`), #27 (bodyEnabled's complete reader list — it is
-an icon and an opacity), #29 (no effect() in context-studio.ts at all; cards never keyed
-to the handle), #31 (CardTypeSections' 9 keys == the card-type union). Read those four
-entries, then edit. Verified/Approx now SUM across a multi-entry merge
-(ContextPackBuilder.cs:583-601), so per-card verified/approx has real data to render.
+STAGE N0 IS CLOSED AND THE BATTERY IS GREEN — `GATE: PASS`, full form, uncached eval
+(77 passed / 10 skipped over two hosts), log `.conductor/bg-logs/battery-final-*`,
+evidence `eval-results/2026-08-13/N0-battery-red-gate-script.md`. START AT N1.1.
+The phase-gate red was NEVER N0's work — two unrelated pre-existing defects, both fixed:
+(1) 5fd9911 — gates.ps1 Step 3 died on `Get-FileHash`, which in Windows PowerShell 5.1 is
+a MODULE FUNCTION resolved via PSModulePath; from a pwsh-7 parent (Conductor) the 5.1 child
+autoloads PS7's Utility module and the name vanishes. NEVER call module-autoloaded cmdlets
+in a gate script — AGENTS.md §Gate battery now says so. (2) 32639c6 — graph-layout.spec.ts
+paid elkjs's ~1.4MB lazy `import()` inside one test's 5000ms clock; warm-up hoisted to
+`beforeAll`. Nothing was weakened: no test deleted/skipped, no expectation relaxed.
+N1.1 STILL NEEDS NO RE-MEASURING — read BUG-BACKLOG.md #28 (verification: full budget per
+focus at context-studio.ts:216 vs the build's proportional slice at
+ContextPackBuilder.cs:533/546, plus the card `wanted` filter at :581, plus dead
+`checkedAt`), #27 (bodyEnabled = an icon and an opacity), #29 (no effect() in
+context-studio.ts; cards never keyed to the handle), #31 (CardTypeSections' 9 keys ==
+the card-type union). Verified/Approx now SUM across a multi-entry merge
+(ContextPackBuilder.cs:583-601), so per-card provenance has real data to render.
 TEST LOOP TRAP: `pnpm vitest run <spec>` fails with "Need to call
-TestBed.initTestEnvironment()" — the setup file only loads through the Angular builder.
-Use `pnpm exec ng test --watch=false --include=src/app/.../x.spec.ts` (~18s); full
-`pnpm test` is ~50s / 173 tests. Prior traps still stand: `conductor bg start -- pnpm`
-dies on the corepack shim (run pnpm foreground); N4.1 should EXTEND GetMcpStatus, not
-add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
+TestBed.initTestEnvironment()" — use `pnpm exec ng test --watch=false --include=<spec>`
+(~18s); full `pnpm test` is ~11s idle but 90s under battery load. `conductor bg start --
+pnpm` dies on the corepack shim (run pnpm foreground). Open: bug #1 (negative budget for
+the last focus), bug #2 (the eval stamp cache never hits — Get-EngineStamp hashes bin/obj,
+which Step 1 rewrites, so Step 3 re-runs its ~6 min every battery). N4.1 should EXTEND
+GetMcpStatus, not add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
 
 
 ## Baseline numbers (from run.db)
@@ -28,7 +36,7 @@ add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
 |---|---|
 | Total checkpoints | 16 |
 | Done | 0 |
-| Claimed (unconfirmed) | 2 |
+| Claimed (unconfirmed) | 3 |
 
 ## Checkpoints
 
@@ -41,7 +49,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 |---|-----------|--------|--------|----------|
 | N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | DONE | 36bf916 | eval-results/2026-08-13/N0.1-studio-truth.md |
 | N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | DONE | 36bf916 | eval-results/2026-08-13/N0.2-mcp-truth.md |
-| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | TODO | - | - |
+| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | DONE | 823de02 | eval-results/2026-08-13/N0.3-testid-coverage.txt |
 
 ### N1 — Studio truth pass + pins made real (owner decision 1: IMPLEMENT)
 
