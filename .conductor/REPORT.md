@@ -1,16 +1,16 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 16:56 UTC · branch `feat/pre-release-desktop` · HEAD `8f666f0`_
+_Updated 2026-08-13 17:21 UTC · branch `feat/pre-release-desktop` · HEAD `d57b59d`_
 
 **Status:** Idle
-**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 0 · working ▸ N0.3
-**Checkpoints:** 2/16 done · **Sessions run:** 1 · **Cost:** $12.1873 (agent $12.1600 + gates $0.0273) · **Tokens:** 177,163 in / 77,582 out
+**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 1
+**Checkpoints:** 3/16 done · **Sessions run:** 2 · **Cost:** $16.9640 (agent $16.9176 + gates $0.0463) · **Tokens:** 277,762 in / 116,504 out
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ███████░░░ 2/3 | **← active** |
+| N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | gating… |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ░░░░░░░░░░ 0/2 | todo |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ░░░░░░░░░░ 0/2 | todo |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
@@ -18,13 +18,13 @@ _Updated 2026-08-13 16:56 UTC · branch `feat/pre-release-desktop` · HEAD `8f66
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
-<details><summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (2/3)</summary>
+<details> ✅<summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (3/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | ✅ DONE | - |
-| N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | ✅ DONE | - |
-| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | ⬜ TODO | - |
+| N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | ✅ DONE | [`36bf916`](https://github.com/shaahink/DevContext2/commit/36bf916) |
+| N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | ✅ DONE | [`36bf916`](https://github.com/shaahink/DevContext2/commit/36bf916) |
+| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | ✅ DONE | [`823de02`](https://github.com/shaahink/DevContext2/commit/823de02) |
 
 </details>
 
@@ -88,6 +88,19 @@ _Updated 2026-08-13 16:56 UTC · branch `feat/pre-release-desktop` · HEAD `8f66
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Overhead | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | N0 | Deliver | 1 | 08-13 16:16 | 0:35 | Advanced | N0.1 N0.2 | 3 | fast-app:OK · guards:OK | $12.1600 | $0.0273 | 177,163/77,582 |
+| 2 | N0 | Deliver | 1 | 08-13 16:56 | 0:15 | Advanced | N0.3 | 2 | fast-app:OK · guards:OK | $4.7577 | $0.0190 | 100,599/38,922 |
+
+## Money
+
+_What this run has cost, from its own `costs` rows. Same numbers as `conductor money`._
+
+| scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
+|---|---|---|---|---|---|---|---|
+| **run total** | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+| stage N0 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+| 2026-08 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+
+_Where the money goes: agent $16.92 (100%) · gate $0.05 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
@@ -99,6 +112,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 17:16:05  • session #1 N0 Deliver started (attempt 1/4)
 08-13 17:56:12  ▪ gate fast-app pass [session]  (3m17s)
 08-13 17:56:12  ▪ gate guards pass [session]  (1m15s)
+08-13 17:56:18  • session #1 N0 → Advanced · done N0.1,N0.2 · 3 commit(s)  (40m13s)
+08-13 17:56:18  • session #2 N0 Deliver started (attempt 1/4)
+08-13 18:14:33  ▪ gate fast-app pass [session]  (2m14s)
+08-13 18:14:33  ▪ gate guards pass [session]  (55.0s)
+08-13 18:14:40  • session #2 N0 → Advanced · done N0.3 · 2 commit(s)  (18m22s)
+08-13 18:21:16  ▪ gate fast-app pass [phase]  (3m08s)
+08-13 18:21:16  ▪ gate guards pass [phase]  (1m35s)
+08-13 18:21:16  ▪ gate battery FAIL [phase]  (41.3s)
 ```
 
 ## Health
@@ -106,7 +127,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 1 · retries 0 (0 %) · overall Ok
+sessions 2 · retries 0 (0 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -116,7 +137,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, ?? eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -126,28 +147,58 @@ vs upstream: up to date
   - [`8f666f0`](https://github.com/shaahink/DevContext2/commit/8f666f0) docs(tracker): N0 handoff - N0.1/N0.2 landed, N0.3 is the next (small) item
   - [`98c5067`](https://github.com/shaahink/DevContext2/commit/98c5067) fix(mcp-page): N0.2 truth items - status is a READ, snippets resolve, feed and sessions stop lying
   - [`36bf916`](https://github.com/shaahink/DevContext2/commit/36bf916) fix(studio): N0.1 truth items - merge keeps provenance, allocated is measured, copy reports outcome
+- **s2 (N0 Deliver)** — 2 commit(s):
+  - [`1097e7a`](https://github.com/shaahink/DevContext2/commit/1097e7a) docs(tracker): N0 closed - handoff points at N1.1 and names the four backlog entries it should read instead of re-measuring
+  - [`823de02`](https://github.com/shaahink/DevContext2/commit/823de02) docs(backlog): N0.3 - the 3.F inventory filed with re-measured loci, and the pages get their smoke coverage
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:FAIL-retry
+
+<details><summary>battery — exit 1</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 1 after 69s. Below is the SECOND run.
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+```
+</details>
 
 ## Last session result
 
-> SESSION-RESULT: Landed N0.1 (36bf916) and N0.2 (98c5067), both claimed via `conductor task --done` with evidence under `eval-results/2026-08-13/`. N0.1 fixed three Studio truth defects: the multi-entry section merge was dropping `SourceLocations`/`Verified`/`Approx` (measured on the CompositionApp fixture — the flow card printed "18 verified" in its own provenance footer and reported **0** on the wire), `AllocatedTokens` was the budget ceiling echoed back under a second label (a pack where nothing resolved claimed 8000), and all Studio copy paths bypassed the Tauri-aware clipboard helper while their toasts fired on click rather than on outcome. Both engine fixes are pinned by assertions I me…
+> SESSION-RESULT: **N0.3 landed and claimed** (`conductor task --done N0.3`, commit `823de02`; handoff `1097e7a`; branch `feat/pre-release-desktop` pushed, tree clean) — which closes stage N0 entirely (N0.1/N0.2/N0.3). Two deliverables: (1) the audit's §3.F 16-item truth inventory is now a durable triaged record in `docs/dev/research/BUG-BACKLOG.md` — six new open entries plus the engine bug N0.1 found (24 open → 31; #26 pins-never-read and #28 verification-verifies-an-unbuilt-pack are the two new HIGHs), with **every locus re-measured today rather than copied from the audit prose** — that measurement caught real detail the prose didn't have: `verifyPack` hands the *full* budget to every focus…
 
 ## Tracker handoff
 
 ```
-N0.1 (36bf916) + N0.2 (98c5067) DONE with evidence in eval-results/2026-08-13/.
-START AT N0.3 — it is small and half-built. Remaining: (a) file the §3.F 16-item
-inventory into docs/dev/research/BUG-BACKLOG.md (append after #25, keep the id/anchor
-format, mark 3/4/7/9-14 FIXED-in-N0 and cross-ref the commits); (b) two specs in
-mcp-page.spec.ts for the still-unreferenced data-testids session-handle-copy and
-session-use (feed-origin-filter, card-copy, provenance-chip are already referenced).
-Then N1.1. Audit file:line claims re-verified accurate — trust the doc, still measure.
-Traps paid for this session: `conductor bg start -- pnpm ...` dies on the corepack shim
-(run pnpm foreground, ~130s for pnpm test); `dotnet build DevContext.slnx` can flake
-with MSB4166 after a heavy ng build — re-run, it is not your code. N4.1 should EXTEND
-the new GetMcpStatus message (telemetry_streaming/observer_count), not add another RPC.
-All four owner decisions stand (STUDIO-MCP-AUDIT §8) — do not re-open them.
+STAGE N0 IS CLOSED — N0.1 (36bf916), N0.2 (98c5067), N0.3 (823de02), evidence in
+eval-results/2026-08-13/. START AT N1.1 (Studio truth pass).
+DO NOT re-measure the four things N1.1 needs — N0.3 already did, with today's loci:
+BUG-BACKLOG.md #28 (verification: full budget per focus at context-studio.ts:216 vs the
+build's proportional slice at ContextPackBuilder.cs:533/546, plus the card `wanted`
+filter at :581, plus dead `checkedAt`), #27 (bodyEnabled's complete reader list — it is
+an icon and an opacity), #29 (no effect() in context-studio.ts at all; cards never keyed
+to the handle), #31 (CardTypeSections' 9 keys == the card-type union). Read those four
+entries, then edit. Verified/Approx now SUM across a multi-entry merge
+(ContextPackBuilder.cs:583-601), so per-card verified/approx has real data to render.
+TEST LOOP TRAP: `pnpm vitest run <spec>` fails with "Need to call
+TestBed.initTestEnvironment()" — the setup file only loads through the Angular builder.
+Use `pnpm exec ng test --watch=false --include=src/app/.../x.spec.ts` (~18s); full
+`pnpm test` is ~50s / 173 tests. Prior traps still stand: `conductor bg start -- pnpm`
+dies on the corepack shim (run pnpm foreground); N4.1 should EXTEND GetMcpStatus, not
+add an RPC; the four owner decisions (STUDIO-MCP-AUDIT §8) are closed.
 ```
