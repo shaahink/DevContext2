@@ -4,19 +4,24 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-M1.2 IS DONE — all five hygiene items (evidence eval-results/2026-08-13/M1.2-hygiene.md). Stage M1 is
-now closed (M1.1 + M1.2). NEXT: N3.1 (Send-to-Studio) — the first TODO card left on the board.
-Landed: MapResponse.stack is populated from MapModel.Stack (built once in MapBuilder.BuildStack; the
-markdown renderer now JOINS that list, goldens did not move) — bug #7 filed AND fixed; Layer/Feature
-lens chips render only when the analysis carries the facet (stage.ts lensFacets, + an effect that
-falls a stranded lens back to Service); createTab returns string|null and single-instance no longer
-analyzes a dropped repo into the user's active tab at the cap; a dock resizer (20-70%, persisted as
-prefs.dockWidth, Home/dblclick reset, level change clears it); Settings renders themes from the vibe's
-own list, so high-contrast is finally selectable. GitHub-URL dead code untouched (owner call).
-TRAPS PAID: Assert.Equal(collection-expression, someImmutableArray) NEVER passes — ImmutableArray<T>
-is IEquatable by REFERENCE, so the two print identical while failing; call .ToArray() on the actual.
-contract-sweep only catches fields with no READERS — a field with readers and no writer is invisible
-to it. pnpm ng build is ~193s; typecheck specs with `tsc -p tsconfig.spec.json` first, it is ~20s.
+Stage M1 gate is GREEN again — s15's M1.2 work was sound, but the file it ADDED
+(workbench-page.spec.ts) had never been linted, and that one error failed fast-app + battery twice
+each. Fix = line 136, `dockWidthOverride: { (): number | null }` → `() => number | null`; a
+type-identical rewrite. Nothing weakened: no test skipped, no eslint-disable, no rule downgraded.
+Evidence eval-results/2026-08-13/M1-gate-red-lint-fix.md: lint exit code 0, 25 files / 224 tests
+passed, ng build clean (112s), zero ELIFECYCLE in the log. NEXT: N3.1 (Send-to-Studio), first TODO.
+TRAP THAT COST THIS SESSION — and it will fire again on the next new spec file: `tsc -p
+tsconfig.spec.json` CANNOT catch this class of error, because the two spellings are the SAME TYPE;
+and `ng build` never compiles specs at all. Only `ng lint` separates them. So run pnpm lint on any
+NEWLY ADDED spec before claiming a stage green — the previous handoff's advice to typecheck specs
+with tsc is necessary but NOT sufficient. Related: prefer-function-type fires only when a call
+signature is the type literal's SOLE member — line 134's `{ (): number; set(v: number): void }` is
+legal, which is exactly why the bad line looked fine. Also: pnpm check is lint && test && build and
+SHORT-CIRCUITS, so a lint-red gate never ran test or build — re-run all three, not just the red one.
+Earlier traps still standing: Assert.Equal(collection-expression, ImmutableArray) never passes
+(IEquatable by REFERENCE — call .ToArray() on the actual); contract-sweep only catches fields with
+NO READERS, so a field with readers and no writer is invisible to it. ng build is ~112-193s.
+
 
 ## Baseline numbers (from run.db)
 
@@ -24,7 +29,7 @@ to it. pnpm ng build is ~193s; typecheck specs with `tsc -p tsconfig.spec.json` 
 |---|---|
 | Total checkpoints | 16 |
 | Done | 7 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -58,7 +63,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | DONE | a95d620 | eval-results/2026-08-13/M1.1-reader-prereqs.md |
-| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | TODO | - | - |
+| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | DONE | 7ccbf56 | eval-results/2026-08-13/M1.2-hygiene.md |
 
 ### N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)
 

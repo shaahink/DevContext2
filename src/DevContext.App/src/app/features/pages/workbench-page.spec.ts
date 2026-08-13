@@ -133,7 +133,7 @@ interface DockTestSurface {
   onGlobalKey(event: KeyboardEvent): void;
   dockLevel: { (): number; set(v: number): void };
   dockWidth: () => number;
-  dockWidthOverride: { (): number | null };
+  dockWidthOverride: () => number | null;
   onDockResizeKey(event: KeyboardEvent): void;
   resetDockWidth(): void;
 }
