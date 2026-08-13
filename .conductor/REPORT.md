@@ -1,10 +1,11 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 17:59 UTC · branch `feat/pre-release-engine` · HEAD `86c15b6`_
+_Updated 2026-08-13 18:36 UTC · branch `feat/pre-release-engine` · HEAD `8e17904`_
 
 **Status:** Idle
 **Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 1
-**Checkpoints:** 4/20 done · **Sessions run:** 3 · **Cost:** $34.4391 (agent $34.3573 + gates $0.0817) · **Tokens:** 525,734 in / 235,487 out
+**Checkpoints:** 4/20 done · **Sessions run:** 4 · **Cost:** $48.3830 (agent $48.2742 + gates $0.1088) · **Tokens:** 690,104 in / 313,753 out
+**Pending:** full-battery phase gate for T1
 
 ## Stage progress
 
@@ -94,6 +95,7 @@ _Updated 2026-08-13 17:59 UTC · branch `feat/pre-release-engine` · HEAD `86c15
 | 1 | T1 | Deliver | 1 | 08-13 16:16 | 0:29 | Advanced | T1.1 T1.2 | 4 | fast-engine:OK · guards:OK | $12.9213 | $0.0278 | 193,772/93,007 |
 | 2 | T1 | Deliver | 1 | 08-13 16:50 | 0:24 | Advanced | T1.3 | 2 | fast-engine:OK · guards:OK | $12.3856 | $0.0276 | 182,713/70,802 |
 | 3 | T1 | Deliver | 1 | 08-13 17:19 | 0:28 | Advanced | T1.4 | 4 | fast-engine:OK · guards:OK | $9.0504 | $0.0264 | 149,249/71,678 |
+| 4 | T1 | Fix | 2 | 08-13 17:59 | 0:31 | Progress |  | 5 | fast-engine:OK · guards:OK | $13.9168 | $0.0271 | 164,370/78,266 |
 
 ## Money
 
@@ -129,6 +131,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 18:59:42  ▪ gate fast-engine pass [phase]  (2m38s)
 08-13 18:59:43  ▪ gate guards pass [phase]  (2m01s)
 08-13 18:59:43  ▪ gate battery FAIL [phase]  (1m23s)
+08-13 18:59:50  • session #4 T1 Fix started (attempt 2/6)
+08-13 19:36:05  ▪ gate fast-engine pass [session]  (3m22s)
+08-13 19:36:05  ▪ gate guards pass [session]  (1m08s)
 ```
 
 ## Health
@@ -136,7 +141,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 3 · retries 0 (0 %) · overall Ok
+sessions 4 · retries 1 (25 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -146,7 +151,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+working tree: M eval-results/2026-08-13/mcp-qa.md, M eval-results/2026-08-13/t1-battery-fix/post-fix-battery-2.log
 vs upstream: up to date
 ```
 
@@ -165,79 +170,44 @@ vs upstream: up to date
   - [`4aef713`](https://github.com/shaahink/DevContext2/commit/4aef713) docs(t1.4): handoff for stage V1 + tracker/report refresh
   - [`1ee81eb`](https://github.com/shaahink/DevContext2/commit/1ee81eb) test(t1.4): the gate STEP proven red then green, and the pre-fix run attributed
   - [`c246d77`](https://github.com/shaahink/DevContext2/commit/c246d77) feat(gates): the wire-truth gate - the battery finally speaks MCP (T1.4)
+- **s4 (T1 Fix)** — 5 commit(s):
+  - [`8e17904`](https://github.com/shaahink/DevContext2/commit/8e17904) evidence(t1): second full battery - steps 0-4b green again after the node_modules install
+  - [`44184cd`](https://github.com/shaahink/DevContext2/commit/44184cd) docs(t1): handoff - two faults behind the phase-gate RED, the second hidden by the first
+  - [`5360be2`](https://github.com/shaahink/DevContext2/commit/5360be2) fix(gates): step 5 names a missing node_modules instead of forty lines of resolver noise
+  - [`62622d5`](https://github.com/shaahink/DevContext2/commit/62622d5) docs(t1): handoff + evidence for the phase-gate RED (battery, not T1's bars)
+  - [`fa7d4b6`](https://github.com/shaahink/DevContext2/commit/fa7d4b6) fix(gates): the battery's Step 3 stamp no longer depends on which shell launched it
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:FAIL-retry
-
-<details><summary>battery — exit 1</summary>
-
-```
-wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\server-identity.json
-  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 49300, started 2026-08-13T17:59:22.4042278Z)
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\tools-list.json
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
-
-  tools: 14 | described: 14 | params: 52/52 described
-  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
-
-  PASS  every tool on the wire has a non-empty description - all described
-  PASS  every tool parameter on the wire has a description - all described
-  PASS  tools/list is non-empty - 14 tools
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\specialist-list_sessions.json
-  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\unknown-tool-envelope.json
-  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
-  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
-  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
-  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\enum-dials.json
-  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
-  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
-  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
-
-wire-truth: GREEN
-  PASS  wire truth: every tool + parameter described, menu curated, enum dials reject
-  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 49456, started 2026-08-13T17:59:29.3653519Z)
-  handle: 085403002549499380f789019733b48e
-  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
-  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
-  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
-  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
-  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
-  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
-  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
-  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
-partial-truth: GREEN
-  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
-
---- Step 3: Eval expectation tests ---
-```
-</details>
+fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT:** T1.4 landed and is claimed (`conductor task --done T1.4 --evidence eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md`), closing stage T1. `eval/gates.ps1` gained **Step 2c — Wire-truth gate**, the first step in this battery that speaks MCP: it drives a real stdio handshake against the binary step 1 just built and runs both probes — `wire-truth.js` (every tool + every parameter described, the curated 14-tool menu, the did-you-mean envelope naming the 8 unlisted specialists, all five enum dials rejecting an out-of-range value while a valid one still reaches the real code path — the enum checks folded in from the T1.3 spot probe that lived under `eval-results/` where…
+> SESSION-RESULT: The T1 phase-gate RED was the battery, not T1's work — all 13 wire-truth and 8 partial-truth bars were green in both red runs, and `eval/gates.ps1` was dying at exit 1 with the transcript cut at the Step 3 banner because `Get-FileHash` is a PowerShell 5.1 *script-module* function that does not exist when PowerShell 7's module directory precedes System32 on `PSModulePath`, which is exactly the environment conductor spawns gates in (an agent-launched battery inherits a clean one and passes, which is why three sessions never saw it); I replaced it with .NET SHA256 and proved the digest byte-identical rather than merely present, added a trap so this whole class can never again be…
 
 ## Tracker handoff
 
 ```
-STAGE T1 IS CLOSED — T1.1–T1.4 all DONE (claimed). Next stage is V1.
+STAGE T1 IS CLOSED. The phase-gate RED after it was **the battery, not T1's work** —
+all 13 wire-truth and 8 partial-truth bars were green in BOTH red runs. Two separate
+faults, the second hidden behind the first. Read
+eval-results/2026-08-13/t1-battery-fix/EVIDENCE.md. Next stage is V1.
 
-T1.4 = eval/gates.ps1 **Step 2c**: a real MCP handshake, both probes, exit 2 on
-either. +~90s to full/engine scope, 0 to app. Read
-eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md for the numbers.
+1. `fa7d4b6` — Step 3 aborted before running anything: exit 1, transcript cut at the
+   banner. `Get-FileHash` is a SCRIPT function in Windows PowerShell 5.1's
+   Microsoft.PowerShell.Utility; PS7 ships a module of the same name and precedes
+   System32 on this PSModulePath, so a conductor-spawned 5.1 binds PS7's manifest and
+   the command does not exist. Get-EngineStamp now uses .NET SHA256, proven
+   byte-identical. A script-level trap now names any abort and exits 9, never 1.
+2. `5360be2` — with that gone the battery reached its end for the first time and
+   failed Step 5: `src/DevContext.App/node_modules` was absent. **Installed** (pnpm
+   install --frozen-lockfile, exit 0); Step 5 now names that cause instead of forty
+   lines of ng-lint noise. Steps 0–4b are green with a REAL step 3 (A 50/0, B 27/0).
 
-THE ONE THING THAT WILL BITE YOU: an MCP measurement on this machine can be
-served by the OTHER conductor run's engine. ServerShim reuses whatever answers
-/health on the hardcoded 127.0.0.1:5179 — my post-fix probe was served by
-C:\Code\DevContext2-desktop's server and called T1.3's landed fixes broken.
-Fixed: DEVCONTEXT_ENDPOINT on both hosts (probes use 5279) + /health now carries
-baseDirectory/pid/startedAt + eval/mcp-qa/server-identity.js FAILS any probe not
-served by THIS repo's fresh build. Any new probe you write must require() it.
-To re-prove a red cheaply: eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs
-the gate step's own TEXT against any checkout. Recipe (~50s): worktree add
---detach <pre-fix sha>, `git checkout HEAD -- eval/mcp-qa src/DevContext.Server`
-into it, build the slnx, point the harness at it. Mine is removed.
+**RUN YOUR BATTERY THROUGH `conductor bg`, NEVER YOUR OWN SHELL** — your environment
+is not the phase gate's, and this whole RED was invisible from an agent-launched one.
+`pnpm` only works via its PowerShell shim: `& pnpm ...` from a .ps1, never bare.
+Open: bug #2 — the eval stamp never transfers (Get-EngineStamp sweeps obj/, and
+sourcelink.json/AssemblyInfo.cs are rewritten on every build), so step 3 costs full
+price every run. Measured, filed, not fixed — do not change it inside a fix session.
 ```
