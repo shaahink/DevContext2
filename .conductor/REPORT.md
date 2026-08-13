@@ -1,11 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 17:14 UTC · branch `feat/pre-release-desktop` · HEAD `1097e7a`_
+_Updated 2026-08-13 17:21 UTC · branch `feat/pre-release-desktop` · HEAD `d57b59d`_
 
 **Status:** Idle
-**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 0
+**Stage:** N0 — Truth batch - no-decision honesty fixes on Studio + MCP page · attempts used 1
 **Checkpoints:** 3/16 done · **Sessions run:** 2 · **Cost:** $16.9640 (agent $16.9176 + gates $0.0463) · **Tokens:** 277,762 in / 116,504 out
-**Pending:** full-battery phase gate for N0
 
 ## Stage progress
 
@@ -25,7 +24,7 @@ _Updated 2026-08-13 17:14 UTC · branch `feat/pre-release-desktop` · HEAD `1097
 |---|---|---|---|
 | N0.1 | Studio truth items: multi-entry merge preserves SourceLocations/Verified/Approx (§3.F.3); allocated_tokens no longer echoes budget (§3.F.4); Studio copy/save use the app's clipboard helper and toasts await outcome (§3.F.7) | ✅ DONE | [`36bf916`](https://github.com/shaahink/DevContext2/commit/36bf916) |
 | N0.2 | MCP page truth items: status read no longer calls StartMcp (§3.F.9); snippet paths + copy-label fix (§3.F.10/11); feed totals respect the filter + wire timestamps (§3.F.12); sessions table renders the honesty fields so the shown age stops lying (§3.F.13); dead state deleted (§3.F.14) | ✅ DONE | [`36bf916`](https://github.com/shaahink/DevContext2/commit/36bf916) |
-| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | ✅ DONE | - |
+| N0.3 | The §3.F inventory filed into BUG-BACKLOG.md as triaged bugs; spec smoke coverage exists for both pages (the three data-testids referenced by real specs) | ✅ DONE | [`823de02`](https://github.com/shaahink/DevContext2/commit/823de02) |
 
 </details>
 
@@ -97,11 +96,11 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 1 | 17.1M | 98.5% | $12.19 | 2 | 8.57M | $6.09 |
-| stage N0 | 1 | 17.1M | 98.5% | $12.19 | 2 | 8.57M | $6.09 |
-| 2026-08 | 1 | 17.1M | 98.5% | $12.19 | 2 | 8.57M | $6.09 |
+| **run total** | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+| stage N0 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
+| 2026-08 | 2 | 22.9M | 98.3% | $16.96 | 3 | 7.62M | $5.65 |
 
-_Where the money goes: agent $12.16 (100%) · gate $0.03 (0%) · blended $0.71/M tokens._
+_Where the money goes: agent $16.92 (100%) · gate $0.05 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
@@ -117,6 +116,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 17:56:18  • session #2 N0 Deliver started (attempt 1/4)
 08-13 18:14:33  ▪ gate fast-app pass [session]  (2m14s)
 08-13 18:14:33  ▪ gate guards pass [session]  (55.0s)
+08-13 18:14:40  • session #2 N0 → Advanced · done N0.3 · 2 commit(s)  (18m22s)
+08-13 18:21:16  ▪ gate fast-app pass [phase]  (3m08s)
+08-13 18:21:16  ▪ gate guards pass [phase]  (1m35s)
+08-13 18:21:16  ▪ gate battery FAIL [phase]  (41.3s)
 ```
 
 ## Health
@@ -134,7 +137,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, ?? eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -150,7 +153,30 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-app:OK · guards:OK
+fast-app:OK · guards:OK · battery:FAIL-retry
+
+<details><summary>battery — exit 1</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 1 after 69s. Below is the SECOND run.
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+```
+</details>
 
 ## Last session result
 
