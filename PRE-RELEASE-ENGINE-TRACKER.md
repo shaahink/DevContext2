@@ -4,26 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-V1.2 IS DONE (`fd47300`, evidence eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md).
-A Member title is now a FUNCTION OF ITS KEY: `SymbolCanon.MemberTitle` (owner short name + "." +
-member), applied in ONE place -- `CodeGraphBuilder.AddNode` -- so no producer and no pass ORDER can
-pick a vocabulary. All 12 producer sites pass it; **loom-guards rule 10** fails a Member title
-spelled anywhere else. Measured with the probe that filed #17, 7 poles: Member 1092 mismatches -> 0,
-member COUNT identical pole by pole, and Type 1893/58 + EntryPoint 84/87 + Service + Store UNMOVED.
-Eval matrix 74 passed / 0 failed -- no cell moved. Truth gate 0 failures.
-
-NEXT: V1.3 -- the two standing invariants, RED FIRST (#7 rider: no node has kind Type with a member
-id; #18: lambda/expression TEXT never becomes a node title). The probe measures #18 for free: those
-58 Type mismatches ARE its population -- re-run `eval-results/2026-08-13/v1-vocabulary/
-member-title-probe.ps1` (poles are `name=ABSOLUTE_PATH`; the 4 not in eval-repos are cloned at
-C:/Code/eval-poles). #18's producers: GraphBuilder.Seams.cs titles from detection ServiceType/
-ImplementationType; its "sp =>"/"(" filter is on the DirectBinding path only.
-STILL OPEN, #17's other half (NOT in V1.2's acceptance): EntryPoint titles 84/87 -- some producers
-keep the key's scheme prefix (`grpc:`/`domain:`/`worker:`), some drop it.
-TRAPS PAID FOR: two `dotnet test` hosts at once prints "Test host process crashed" NEXT TO two
-"Passed!" lines -- a false red (R-T5), re-run serially; `$LASTEXITCODE` inside `bg start -- powershell
--Command` is eaten by the outer shell (use a .ps1 with -File); inside `namespace DevContext.Core.Tests`
-`Graph2.SymbolCanon` resolves to the TEST namespace -- fully qualify it.
+V1.3 IS DONE (`3eb2f34`, evidence eval-results/2026-08-13/v1-invariants/INVARIANT-EVIDENCE.md) and
+V1 IS CLOSED. Both invariants are enforced at `CodeGraphBuilder.AddNode` (V1.2's choke point): a Type
+node whose key is a MEMBER key or is `SymbolCanon.IsExpressionText` is REFUSED, so AddEdge drops the
+edge too. Measured 9 poles (Hangfire cloned to C:/Code/eval-poles): INV-A 4->0, INV-B 76->0, the 7
+deliberately-exempt nodes (channel key, `<OnModelCreating>`, `2.0`/`1.0`) UNMOVED; Member titles
+still 1714/0, Type mismatch 58->14. Red-first: 7 fail / 20 pass pre-fix, 27/27 after.
+NEXT: E1 (edge completeness). Read conductor BUG #3 FIRST -- V1.3 legitimately dropped 25 `typeof(X)`
+DI registrations whose argument IS a real type name (MediatR's whole behaviour pipeline). Unwrapping
+whole-text `typeof(X)` before `SymbolTable.ResolveName` recovers them; it ADDS edges, so it belongs
+with E1's matrix. Re-run `eval-results/2026-08-13/v1-invariants/invariant-probe.ps1` after: INV-B
+before-count should fall 76->~51, violations stay 0.
+UNVERIFIED BY ME: the 4/4 gate script (Core, Server, eval matrix, loom-guards rule 11) was still
+running at session end -- log .conductor/bg-logs/v13-checks-20260813-201900820.log; Conductor's
+battery is the authority. TRAPS PAID FOR: stashing ALL changed files for a red-first gives a COMPILE
+error, not a red -- stash only the BEHAVIOURAL files; `git stash pop` inside a bg script can fail
+SILENTLY while racing the build (check `git status` after, its exit leg is a false red).
 
 ## Baseline numbers (from run.db)
 
@@ -31,7 +27,7 @@ TRAPS PAID FOR: two `dotnet test` hosts at once prints "Test host process crashe
 |---|---|
 | Total checkpoints | 20 |
 | Done | 4 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -52,7 +48,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | DONE | abfa564 | eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md |
-| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | TODO | - | - |
+| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | DONE | fd47300 | eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md |
 | V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | TODO | - | - |
 
 ### E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant
