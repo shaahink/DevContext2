@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 20:18 UTC · branch `feat/pre-release-desktop` · HEAD `108301a`_
+_Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-desktop` · HEAD `a95d620`_
 
 **Status:** Idle
-**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 0 · working ▸ N2.2
-**Checkpoints:** 6/16 done · **Sessions run:** 6 · **Cost:** $55.6620 (agent $55.4904 + gates $0.1716) · **Tokens:** 904,716 in / 367,671 out
+**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 1 · working ▸ N2.2
+**Checkpoints:** 6/16 done · **Sessions run:** 7 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
 **Confirmed phases:** N0, N1
 
 ## Stage progress
@@ -42,8 +42,8 @@ _Updated 2026-08-13 20:18 UTC · branch `feat/pre-release-desktop` · HEAD `1083
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ✅ DONE | - |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | ⬜ TODO | - |
+| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ✅ DONE | [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | 🔄 IN PROGRESS | - |
 
 </details>
 
@@ -94,6 +94,7 @@ _Updated 2026-08-13 20:18 UTC · branch `feat/pre-release-desktop` · HEAD `1083
 | 4 | N1 | Deliver | 1 | 08-13 18:15 | 0:34 | Advanced | N1.1 | 11 | fast-app:OK · guards:OK | $12.0268 | $0.0288 | 194,917/79,115 |
 | 5 | N1 | Deliver | 1 | 08-13 18:54 | 0:22 | Advanced | N1.2 | 3 | fast-app:OK · guards:OK | $8.3882 | $0.0294 | 133,027/48,328 |
 | 6 | N2 | Deliver | 1 | 08-13 19:49 | 0:21 | Advanced | N2.1 | 3 | fast-app:OK · fast-engine:OK · guards:OK | $12.2349 | $0.0420 | 186,261/68,901 |
+| 7 | N2 | Deliver | 1 | 08-13 20:18 | 0:16 | AgentError |  | 0 | gates green (none configured) | $5.3309 |  | 116,243/35,230 |
 
 ## Money
 
@@ -101,21 +102,19 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
+| **run total** | 6 | 75.8M | 98.3% | $55.66 | 6 | 12.6M | $9.28 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| 2026-08 | 5 | 58.2M | 98.3% | $43.39 | 5 | 11.6M | $8.68 |
+| stage N2 | 1 | 17.5M | 98.5% | $12.28 | 1 | 17.5M | $12.28 |
+| 2026-08 | 6 | 75.8M | 98.3% | $55.66 | 6 | 12.6M | $9.28 |
 
-_Where the money goes: agent $43.26 (100%) · gate $0.13 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $55.49 (100%) · gate $0.17 (0%) · blended $0.73/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 17:56:12  ▪ gate guards pass [session]  (1m15s)
-08-13 17:56:18  • session #1 N0 → Advanced · done N0.1,N0.2 · 3 commit(s)  (40m13s)
-08-13 17:56:18  • session #2 N0 Deliver started (attempt 1/4)
 08-13 18:14:33  ▪ gate fast-app pass [session]  (2m14s)
 08-13 18:14:33  ▪ gate guards pass [session]  (55.0s)
 08-13 18:14:40  • session #2 N0 → Advanced · done N0.3 · 2 commit(s)  (18m22s)
@@ -153,6 +152,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:18:12  ▪ gate fast-app pass [session]  (3m26s)
 08-13 21:18:12  ▪ gate fast-engine pass [session]  (2m09s)
 08-13 21:18:12  ▪ gate guards pass [session]  (1m24s)
+08-13 21:18:23  • session #6 N2 → Advanced · done N2.1 · 3 commit(s)  (29m09s)
+08-13 21:18:24  ◆ plan reloaded — v1 · 7 stages · 4 gates
+08-13 21:18:34  • session #7 N2 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -160,7 +162,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 6 · retries 1 (17 %) · overall Ok
+sessions 7 · retries 1 (14 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -170,7 +172,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M eval-results/2026-08-13/mcp-qa.md
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs (+5 more)
 vs upstream: up to date
 ```
 
@@ -208,13 +210,9 @@ vs upstream: up to date
   - [`8c38e0b`](https://github.com/shaahink/DevContext2/commit/8c38e0b) feat(studio): the picker gets a Types tab, and rows that are different rows (N2.1)
   - [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) feat(pack): BuildMulti resolves symbols, not just entries - and usage becomes a card (N2.1)
 
-## Last gate run
-
-fast-app:OK · fast-engine:OK · guards:OK
-
 ## Last session result
 
-> SESSION-RESULT: **N2.1 delivered, claimed, and pushed** (three commits on `feat/pre-release-desktop`: `104c9d0` engine, `8c38e0b` app, `108301a` evidence+handoff; evidence at `eval-results/2026-08-13/N2.1-pack-convergence.md`). The measured root cause of the Studio's entries-only scope was **one lookup**: `BuildSections` has resolved through `GraphQuery.ResolveEntry` and built a symbol-rooted `usage` section since G1.2, while `BuildMulti` resolved card ids through `FindEntry` (entry inventory only), so every type-scoped card came back "no content for its entries". `ResolveCardFocuses` now resolves each id once through both tiers, `NormalizeSymbolFocus` lets a NodeId spelling (`Type:X`, `Memb…
+> You've hit your session limit · resets 9:40pm (Europe/London)
 
 ## Tracker handoff
 
