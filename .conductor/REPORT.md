@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9004`_
+_Updated 2026-08-13 22:23 UTC · branch `feat/pre-release-desktop` · HEAD `cc29c12`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1h 11m ago, 20:36:43Z]
-**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 0
-**Checkpoints:** 7/16 done · **Sessions run:** 13 · **Cost:** $70.0318 (agent $69.8602 + gates $0.1716) · **Tokens:** 1,165,315 in / 461,350 out
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1h 47m ago, 20:36:43Z]
+**Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 0 · working ▸ M1.2
+**Checkpoints:** 8/16 done · **Sessions run:** 14 · **Cost:** $83.9551 (agent $83.7835 + gates $0.1716) · **Tokens:** 1,349,604 in / 536,735 out
 **Confirmed phases:** N0, N1, N2
 
 ## Stage progress
@@ -14,7 +14,7 @@ _Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
-| M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
+| M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | █████░░░░░ 1/2 | **← active** |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
@@ -47,11 +47,11 @@ _Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9
 
 </details>
 
-<details><summary>M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) (0/2)</summary>
+<details><summary>M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) (1/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | ⬜ TODO | - |
+| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | ✅ DONE | - |
 | M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | ⬜ TODO | - |
 
 </details>
@@ -101,6 +101,7 @@ _Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9
 | 11 | N2 | Deliver | 5 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 12 | N2 | Deliver | 6 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 | 13 | N2 | Deliver | 1 | 08-13 20:44 | 0:23 | Advanced | N2.2 | 3 | gates green (none configured) | $9.0389 |  | 144,356/58,449 |
+| 14 | M1 | Deliver | 1 | 08-13 21:48 | 0:35 | Advanced | M1.1 | 15 | gates green (none configured) | $13.9233 |  | 184,289/75,385 |
 
 ## Money
 
@@ -121,9 +122,6 @@ _Where the money goes: agent $69.86 (100%) · gate $0.17 (0%) · advisor $0.02 (
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 20:22:43  • session #5 N1 → Advanced · done N1.2 · 3 commit(s)  (28m02s)
-08-13 20:49:07  ▪ gate fast-app pass [phase]  (6m05s)
-08-13 20:49:07  ▪ gate guards pass [phase]  (1m51s)
 08-13 20:49:07  ▪ gate battery pass [phase]  (3m33s)
 08-13 20:49:07  ✓ checkpoint N1.1 confirmed
 08-13 20:49:07  ✓ checkpoint N1.2 confirmed
@@ -161,6 +159,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 22:48:23  ▪ gate battery pass [phase]  (18m29s)
 08-13 22:48:23  ✓ checkpoint N2.1 confirmed
 08-13 22:48:23  ✓ checkpoint N2.2 confirmed
+08-13 22:48:23  ▸ stage N2 confirmed  (1h59m09s)
+08-13 22:48:33  ▸ stage M1 entered — Hygiene + Reader prerequisites (proto/mapper shopping list)
+08-13 22:48:33  • session #14 M1 Deliver started (attempt 1/4)
 ```
 
 ## Health
@@ -168,7 +169,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 13 · retries 6 (46 %) · overall Alert
+sessions 14 · retries 6 (43 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ```
 
@@ -178,7 +179,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+working tree: clean
 vs upstream: up to date
 ```
 
@@ -219,30 +220,40 @@ vs upstream: up to date
   - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
   - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
   - [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) feat(studio): N2.2 honesty-note parity + one pack-budget number
-
-## Last gate run
-
-fast-app:OK · fast-engine:OK · guards:OK · battery:OK
+- **s14 (M1 Deliver)** — 15 commit(s):
+  - [`cc29c12`](https://github.com/shaahink/DevContext2/commit/cc29c12) Merge remote-tracking branch 'origin/feat/pre-release-desktop' into feat/pre-release-desktop
+  - [`3a10029`](https://github.com/shaahink/DevContext2/commit/3a10029) feat(wire): M1.1 items 2+3 - two file-addressed reads, both capped and both contained
+  - [`3f1db01`](https://github.com/shaahink/DevContext2/commit/3f1db01) feat(wire): M1.1 items 1+4 - the trace node stops lying by omission
+  - [`b8d918a`](https://github.com/shaahink/DevContext2/commit/b8d918a) chore(conductor): s13 N2 Advanced — Idle
+  - [`69f9004`](https://github.com/shaahink/DevContext2/commit/69f9004) chore(conductor): s13 N2 Advanced — Idle
+  - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
+  - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
+  - [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) feat(studio): N2.2 honesty-note parity + one pack-budget number
+  - [`77596b1`](https://github.com/shaahink/DevContext2/commit/77596b1) chore(conductor): s12 N2 AgentError — Idle
+  - [`937adf1`](https://github.com/shaahink/DevContext2/commit/937adf1) chore(conductor): s11 N2 AgentError — NeedsHuman
+  - [`f8b578c`](https://github.com/shaahink/DevContext2/commit/f8b578c) chore(conductor): s10 N2 AgentError — NeedsHuman
+  - [`60720ad`](https://github.com/shaahink/DevContext2/commit/60720ad) chore(conductor): s9 N2 AgentError — NeedsHuman
 
 ## Last session result
 
-> SESSION-RESULT:** N2.2 landed and is claimed DONE (`aab7cf3`, evidence `eval-results/2026-08-13/N2.2-honesty-parity.md`), closing stage N2. Session #7's tree turned out to be *incomplete*, not merely uncommitted — `budget-panel.ts` emitted `focusSuggestionPicked` with no `output()` declared and used an undeclared `defaultBudget` (Angular build failure), `context-studio.ts` never bound `[fillNote]`/`[suggestedFocuses]` so the two new proto fields reached no client (which also fails gates Step 1a's contract sweep), and the spec's pack fake omitted them, so `pack.fillNote.length` threw inside `repack` and reported "server unavailable" across 21 studio specs. All three fixed, plus the acceptance…
+> SESSION-RESULT: **M1.1 is DONE and claimed** (`conductor task --done M1.1 --evidence eval-results/2026-08-13/M1.1-reader-prereqs.md`), all four shopping-list items landed across two commits (`3f1db01`, `3a10029`) plus a merge (`cc29c12`), pushed to `feat/pre-release-desktop`, tree clean. **Items 1+4:** `TraceNode` now carries `file_path`/`line_number` (split once, in `PathDisplay.SplitProvenance`, beside the rule that already owned the drive-letter colon — and left *unset* rather than line-0 when provenance is a bare path) plus the four honesty fields `ProtoMapper` had been dropping since Batch E/I1.6/C5/T2.1, with the app's trace node rendering the omitted *names* and the three DI annotatio…
 
 ## Tracker handoff
 
 ```
-STAGE N2 IS CLOSED. N2.2 landed aab7cf3 (evidence eval-results/2026-08-13/N2.2-honesty-parity.md);
-the owner gate chore landed 7ff60eb. START AT N3.1. Session #7's tree was INCOMPLETE, not just
-uncommitted - the panel emitted an output() that was never declared, the studio never bound the two
-new inputs, and the spec fake omitted them, which threw inside repack and reddened 21 studio specs.
-Now true: ContextPackBuilder.BuildFillNote computes the fill note + suggested focuses SERVER-SIDE
-(wire: fill_note, repeated SuggestedFocus); the Studio renders and derives nothing; onSuggestedFocus
-adds a flow card whose entryId IS the focus string. ONE budget number: ContextPackBuilder.
-DefaultBudgetTokens == DEFAULT_STUDIO_BUDGET == 8000, deliberately NOT TracePolicy's 4000.
-gates.ps1 order is now 0,1,1a,5,2,2b,4,4b,3 and an ABORT exits 9 - step NUMBERS are unchanged.
-TRAP PAID FOR: a `cd` in the PowerShell tool LEAKS into the Bash tool's cwd (cd absolutely, always),
-and conductor bg cannot take args with leading dashes - use `-- pwsh <script.ps1>`; plain `pnpm` under
-it resolves to a stale corepack shim. Loop: pnpm check green 202/202. New bug #5 (Types tab ranks
-nothing: 58 of FluentValidation's 90 public types have zero in-repo usages, so their usage card is
-silently empty). Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
+M1.1 IS DONE, all four shopping-list items (evidence eval-results/2026-08-13/M1.1-reader-prereqs.md).
+NEXT: M1.2 (hygiene) - it is untouched, and its first move is to MEASURE whether MapResponse.stack is
+ever populated before deciding populate-vs-delete; file the bug either way. Leave the GitHub-URL dead
+code alone (owner call - file it, do not decide it). Now true on the wire: TraceNode carries file_path/
+line_number/omitted_names/multi_impl_count/di_host_count/test_only; ReadSourceMode.FILE reads a whole
+file by PATH or node, capped 2000/10000 and the cap is visible (total_lines+truncated, set for
+MEMBER/WINDOW too); GetFileOverlay returns GraphQuery.EdgesInFile - edges whose provenance falls in one
+file, line 0 = known-but-unplaced, counted not dropped. One ResolveInRoot guard covers both path-taking
+RPCs. PathDisplay.SplitProvenance is now the ONE file:line parse - do not add another.
+TRAPS PAID FOR: app component specs CANNOT run via `pnpm exec vitest run <file>` (TestBed env comes
+from the @angular/build:unit-test builder) - use `pnpm test`, whole suite, ~40s. McpQaGateTests going
+red inside one `dotnet test DevContext.slnx` run is a two-host CONCURRENCY artifact: it passes 2/2 alone
+- run it alone before chasing it. Bug filed: MCP read_source does its own file IO and never calls the
+ReadSource RPC. Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts,
+#5 Types tab ranks nothing.
 ```
