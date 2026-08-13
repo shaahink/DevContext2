@@ -106,10 +106,19 @@ pop was completed by hand and the post-fix run above was re-run after it.
 ## Gates
 
     dotnet build DevContext.slnx              0 warnings / 0 errors
-    Core.Tests   Category!=Eval               PLACEHOLDER_CORE
-    Server.Tests Category!=Eval               PLACEHOLDER_SERVER
-    Eval matrix  Category=Eval                PLACEHOLDER_EVAL
-    loom-guards.ps1                           PLACEHOLDER_GUARDS
+    Core.Tests   Category!=Eval               766 passed / 2 skipped / 768 total   EXIT 0
+    Server.Tests Category!=Eval               108 passed / 0 skipped / 108 total   EXIT 0
+    Eval matrix  Category=Eval                STILL RUNNING at session end -- see below
+    loom-guards.ps1                           STILL RUNNING at session end -- see below
+
+The eval matrix and loom-guards legs of `run-checks.ps1` had not finished when this session's
+token budget ran out. **They are not claimed here.** The run's log is
+`.conductor/bg-logs/v13-checks-20260813-201900820.log`, and Conductor's own battery -- which runs
+after the session exits and is the authority for this program -- covers both. What V1.3 asserts about
+the matrix is only this: the acceptance said a moved cell means STOP and explain, and the expectation
+files pin ranges and shapes (`json-range`, `detection-count`, `output-not-contains`), not graph node
+counts, so the 104-node drop has no cell to move through. If the battery disagrees, that assumption
+is where to look first.
 
 `scripts/loom-guards.ps1` **rule 11** is new: a resolved symbol may not become a Type node id without
 a `SymbolKind.Type` gate within three lines. The graph can no longer show that regression — which is
