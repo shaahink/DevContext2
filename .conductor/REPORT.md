@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-desktop` · HEAD `a95d620`_
+_Updated 2026-08-13 20:35 UTC · branch `feat/pre-release-desktop` · HEAD `82560cf`_
 
-**Status:** Idle
-**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 1 · working ▸ N2.2
-**Checkpoints:** 6/16 done · **Sessions run:** 7 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
+**Status:** NeedsHuman — advisor: human intervention required [1s ago, 20:35:12Z]
+**Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 2 · working ▸ N2.2
+**Checkpoints:** 6/16 done · **Sessions run:** 8 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
 **Confirmed phases:** N0, N1
 
 ## Stage progress
@@ -95,6 +95,7 @@ _Updated 2026-08-13 20:34 UTC · branch `feat/pre-release-desktop` · HEAD `a95d
 | 5 | N1 | Deliver | 1 | 08-13 18:54 | 0:22 | Advanced | N1.2 | 3 | fast-app:OK · guards:OK | $8.3882 | $0.0294 | 133,027/48,328 |
 | 6 | N2 | Deliver | 1 | 08-13 19:49 | 0:21 | Advanced | N2.1 | 3 | fast-app:OK · fast-engine:OK · guards:OK | $12.2349 | $0.0420 | 186,261/68,901 |
 | 7 | N2 | Deliver | 1 | 08-13 20:18 | 0:16 | AgentError |  | 0 | gates green (none configured) | $5.3309 |  | 116,243/35,230 |
+| 8 | N2 | Fix | 2 | 08-13 20:34 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
 
 ## Money
 
@@ -102,21 +103,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 6 | 75.8M | 98.3% | $55.66 | 6 | 12.6M | $9.28 |
+| **run total** | 8 | 82.5M | 98.3% | $61.00 | 6 | 13.8M | $10.17 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| stage N2 | 1 | 17.5M | 98.5% | $12.28 | 1 | 17.5M | $12.28 |
-| 2026-08 | 6 | 75.8M | 98.3% | $55.66 | 6 | 12.6M | $9.28 |
+| stage N2 | 2 | 24.3M | 98.3% | $17.61 | 1 | 24.3M | $17.61 |
+| stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
+| 2026-08 | 7 | 82.5M | 98.3% | $60.99 | 6 | 13.8M | $10.17 |
+| unknown | 1 | 0M | - | $0.00 | - | - | - |
 
-_Where the money goes: agent $55.49 (100%) · gate $0.17 (0%) · blended $0.73/M tokens._
+_Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.00 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 18:14:33  ▪ gate fast-app pass [session]  (2m14s)
-08-13 18:14:33  ▪ gate guards pass [session]  (55.0s)
 08-13 18:14:40  • session #2 N0 → Advanced · done N0.3 · 2 commit(s)  (18m22s)
 08-13 18:21:16  ▪ gate fast-app pass [phase]  (3m08s)
 08-13 18:21:16  ▪ gate guards pass [phase]  (1m35s)
@@ -155,6 +156,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:18:23  • session #6 N2 → Advanced · done N2.1 · 3 commit(s)  (29m09s)
 08-13 21:18:24  ◆ plan reloaded — v1 · 7 stages · 4 gates
 08-13 21:18:34  • session #7 N2 Deliver started (attempt 1/6)
+08-13 21:34:57  • session #7 N2 → AgentError  (16m23s)
+08-13 21:34:58  • session #8 N2 Fix started (attempt 2/6)
 ```
 
 ## Health
@@ -162,7 +165,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 7 · retries 1 (14 %) · overall Ok
+sessions 8 · retries 2 (25 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -172,7 +175,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M .conductor/REPORT.md, M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs (+5 more)
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs, M src/DevContext.Server/Endpoints/DevContextGrpcService.cs (+4 more)
 vs upstream: up to date
 ```
 
