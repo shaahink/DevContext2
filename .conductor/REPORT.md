@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 18:46 UTC · branch `feat/pre-release-engine` · HEAD `abfa564`_
+_Updated 2026-08-13 19:25 UTC · branch `feat/pre-release-engine` · HEAD `e5d825b`_
 
 **Status:** Idle
-**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 0
-**Checkpoints:** 4/20 done · **Sessions run:** 4 · **Cost:** $48.3830 (agent $48.2742 + gates $0.1088) · **Tokens:** 690,104 in / 313,753 out
+**Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0 · working ▸ V1.2
+**Checkpoints:** 5/20 done · **Sessions run:** 5 · **Cost:** $61.2844 (agent $61.1149 + gates $0.1695) · **Tokens:** 876,306 in / 396,319 out
 **Confirmed phases:** T1
 
 ## Stage progress
@@ -12,7 +12,7 @@ _Updated 2026-08-13 18:46 UTC · branch `feat/pre-release-engine` · HEAD `abfa5
 | Stage | Title | Progress | State |
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
-| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ░░░░░░░░░░ 0/3 | todo |
+| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ███░░░░░░░ 1/3 | **← active** |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
@@ -30,11 +30,11 @@ _Updated 2026-08-13 18:46 UTC · branch `feat/pre-release-engine` · HEAD `abfa5
 
 </details>
 
-<details><summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (0/3)</summary>
+<details><summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (1/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ⬜ TODO | - |
+| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | - |
 | V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ⬜ TODO | - |
 | V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ⬜ TODO | - |
 
@@ -96,6 +96,7 @@ _Updated 2026-08-13 18:46 UTC · branch `feat/pre-release-engine` · HEAD `abfa5
 | 2 | T1 | Deliver | 1 | 08-13 16:50 | 0:24 | Advanced | T1.3 | 2 | fast-engine:OK · guards:OK | $12.3856 | $0.0276 | 182,713/70,802 |
 | 3 | T1 | Deliver | 1 | 08-13 17:19 | 0:28 | Advanced | T1.4 | 4 | fast-engine:OK · guards:OK | $9.0504 | $0.0264 | 149,249/71,678 |
 | 4 | T1 | Fix | 2 | 08-13 17:59 | 0:31 | Progress |  | 5 | fast-engine:OK · guards:OK | $13.9168 | $0.0271 | 164,370/78,266 |
+| 5 | V1 | Deliver | 1 | 08-13 18:46 | 0:28 | Advanced | V1.1 | 4 | fast-engine:OK-retry · guards:OK | $12.8408 | $0.0606 | 186,202/82,566 |
 
 ## Money
 
@@ -142,6 +143,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 19:46:33  ✓ checkpoint T1.2 confirmed
 08-13 19:46:33  ✓ checkpoint T1.3 confirmed
 08-13 19:46:33  ✓ checkpoint T1.4 confirmed
+08-13 19:46:33  ▸ stage T1 confirmed  (2h30m32s)
+08-13 19:46:38  ▸ stage V1 entered — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18)
+08-13 19:46:38  • session #5 V1 Deliver started (attempt 1/4)
+08-13 20:25:37  ▪ gate fast-engine pass [session]  (3m06s)
+08-13 20:25:37  ▪ gate guards pass [session]  (1m49s)
 ```
 
 ## Health
@@ -149,7 +155,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 4 · retries 1 (25 %) · overall Warn
+sessions 5 · retries 1 (20 %) · overall Warn
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
 ```
 
@@ -159,7 +165,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M eval-results/2026-08-13/t1-battery-fix/post-fix-battery-2.log
+working tree: M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -184,38 +190,37 @@ vs upstream: up to date
   - [`5360be2`](https://github.com/shaahink/DevContext2/commit/5360be2) fix(gates): step 5 names a missing node_modules instead of forty lines of resolver noise
   - [`62622d5`](https://github.com/shaahink/DevContext2/commit/62622d5) docs(t1): handoff + evidence for the phase-gate RED (battery, not T1's bars)
   - [`fa7d4b6`](https://github.com/shaahink/DevContext2/commit/fa7d4b6) fix(gates): the battery's Step 3 stamp no longer depends on which shell launched it
+- **s5 (V1 Deliver)** — 4 commit(s):
+  - [`e5d825b`](https://github.com/shaahink/DevContext2/commit/e5d825b) docs(v1): handoff for V1.2 + session-4 evidence leftovers
+  - [`131265c`](https://github.com/shaahink/DevContext2/commit/131265c) fix(graph): one definition of a verified edge, and every surface reads it (V1.1, #25)
+  - [`651e524`](https://github.com/shaahink/DevContext2/commit/651e524) chore(conductor): s4 T1 Progress — Idle
+  - [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) chore(conductor): s4 T1 Progress — Idle
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK-retry · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: The T1 phase-gate RED was the battery, not T1's work — all 13 wire-truth and 8 partial-truth bars were green in both red runs, and `eval/gates.ps1` was dying at exit 1 with the transcript cut at the Step 3 banner because `Get-FileHash` is a PowerShell 5.1 *script-module* function that does not exist when PowerShell 7's module directory precedes System32 on `PSModulePath`, which is exactly the environment conductor spawns gates in (an agent-launched battery inherits a clean one and passes, which is why three sessions never saw it); I replaced it with .NET SHA256 and proved the digest byte-identical rather than merely present, added a trap so this whole class can never again be…
+> SESSION-RESULT: **V1.1 landed and claimed** (`c0a22e8`, evidence `eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md`) — backlog #25 is closed by measurement. The engine had two live definitions of "verified edge" and both reached users: the MCP `stats` tool, the CLI `query stats` and the report all computed `verified = count - approx`, which counts `Resolution.Join` — the enum's *default*, i.e. every edge no producer labelled — as Roslyn-verified, while `GraphOrphansSource`/`FlowIndexBuilder`/the desktop explorer counted Semantic only and `ConfidenceLedger` used a fourth spelling that could put one edge in two buckets at once. There is now one definition (`src/DevContext.Core/Graph/EdgeConfi…
 
 ## Tracker handoff
 
 ```
-STAGE T1 IS CLOSED. The phase-gate RED after it was **the battery, not T1's work** —
-all 13 wire-truth and 8 partial-truth bars were green in BOTH red runs. Two separate
-faults, the second hidden behind the first. Read
-eval-results/2026-08-13/t1-battery-fix/EVIDENCE.md. Next stage is V1.
+V1.1 IS DONE (`c0a22e8`, evidence eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md).
+ONE definition of a verified edge now lives in `src/DevContext.Core/Graph/EdgeConfidence.cs`
+(Verified=Semantic, Joined=Join, Approximate=Syntactic; Confidence is a SEPARATE axis and
+stays out of the tier). The app mirrors it in `edgeTier()` in `src/DevContext.App/src/app/
+core/format.ts`. **loom-guards rule 9** now fails any tier verdict decided outside those two.
+Measured on this repo with a pre-change CLI built in a worktree at HEAD: graphdump
+BYTE-IDENTICAL (zero graph movement) while 45/283 "verified" edges were not -- Resolves
+14->0, ServiceLink 1->0, Calls 268->238 of 1379. That is E1's currency, now honest.
 
-1. `fa7d4b6` — Step 3 aborted before running anything: exit 1, transcript cut at the
-   banner. `Get-FileHash` is a SCRIPT function in Windows PowerShell 5.1's
-   Microsoft.PowerShell.Utility; PS7 ships a module of the same name and precedes
-   System32 on this PSModulePath, so a conductor-spawned 5.1 binds PS7's manifest and
-   the command does not exist. Get-EngineStamp now uses .NET SHA256, proven
-   byte-identical. A script-level trap now names any abort and exits 9, never 1.
-2. `5360be2` — with that gone the battery reached its end for the first time and
-   failed Step 5: `src/DevContext.App/node_modules` was absent. **Installed** (pnpm
-   install --frozen-lockfile, exit 0); Step 5 now names that cause instead of forty
-   lines of ng-lint noise. Steps 0–4b are green with a REAL step 3 (A 50/0, B 27/0).
-
-**RUN YOUR BATTERY THROUGH `conductor bg`, NEVER YOUR OWN SHELL** — your environment
-is not the phase gate's, and this whole RED was invisible from an agent-launched one.
-`pnpm` only works via its PowerShell shim: `& pnpm ...` from a .ps1, never bare.
-Open: bug #2 — the eval stamp never transfers (Get-EngineStamp sweeps obj/, and
-sourcelink.json/AssemblyInfo.cs are rewritten on every build), so step 3 costs full
-price every run. Measured, filed, not fixed — do not change it inside a fix session.
+NEXT: V1.2 (#17, two Member-title vocabularies -- 343 owner-qualified vs 627 bare, wants one
+helper next to `SymbolCanon`; producers split between GraphBuilder.EntryPoints/* and
+GraphBuilder.Seams.cs) then V1.3 (the #7-rider and #18 invariants, red-first).
+TRAPS PAID FOR: `query` takes its OP POSITIONALLY (`query stats --path X`); PS 5.1 `>` writes
+UTF-16 -- use `Out-File -Encoding utf8`; an Angular template cannot call an imported function
+(`protected readonly x = x;`); `McpQaGateTests` is a FALSE red on the first run after a Core
+change (backlog #1) -- it passes on re-run.
 ```
