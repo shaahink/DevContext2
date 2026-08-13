@@ -1,6 +1,6 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `e1f40e3`_
+_Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `8502785`_
 
 **Status:** Idle
 **Stage:** V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) · attempts used 0 · working ▸ V1.3
@@ -35,7 +35,7 @@ _Updated 2026-08-13 19:56 UTC · branch `feat/pre-release-engine` · HEAD `e1f40
 | # | Title | Status | Commit |
 |---|---|---|---|
 | V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
-| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | - |
+| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) |
 | V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ⬜ TODO | - |
 
 </details>
@@ -105,12 +105,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 5 | 86.2M | 98.5% | $61.28 | 5 | 17.2M | $12.26 |
+| **run total** | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
-| stage V1 | 1 | 18.1M | 98.5% | $12.90 | 1 | 18.1M | $12.90 |
-| 2026-08 | 5 | 86.2M | 98.5% | $61.28 | 5 | 17.2M | $12.26 |
+| stage V1 | 2 | 30M | 98.4% | $21.72 | 2 | 15M | $10.86 |
+| 2026-08 | 6 | 98M | 98.5% | $70.10 | 6 | 16.3M | $11.68 |
 
-_Where the money goes: agent $61.11 (100%) · gate $0.17 (0%) · blended $0.71/M tokens._
+_Where the money goes: agent $69.91 (100%) · gate $0.19 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
@@ -154,6 +154,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 20:25:46  • session #6 V1 Deliver started (attempt 1/4)
 08-13 20:56:18  ▪ gate fast-engine pass [session]  (1m52s)
 08-13 20:56:18  ▪ gate guards pass [session]  (1m08s)
+08-13 20:56:24  • session #6 V1 → Advanced · done V1.2 · 2 commit(s)  (30m38s)
 ```
 
 ## Health
@@ -171,7 +172,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M eval-results/2026-08-13/mcp-qa.md
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
