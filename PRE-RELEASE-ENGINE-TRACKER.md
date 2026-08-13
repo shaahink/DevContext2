@@ -4,19 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-E1.2 IS DONE (evidence eval-results/2026-08-13/e1-span/E1.2-EVIDENCE.md; commits 8f0ce0a span fix,
-afee44b the gate it forced). BodyOp carries its own TextSpan; all five bind sites share one Relocate
-helper. verified rose on 7/7 poles (Hangfire 152->776, eShop 39->352); engine-own approx share
-90.4% -> 54.3%. THE LESSON: the declared HOLD cell "nodes unchanged" caught a real defect -- the span
-fix alone minted phantom BCL nodes everywhere (MediatR 174->255) because Law R2 KEEPS an
-out-of-solution bound id, so a semantically-bound framework static passed the Kind==Type check. Gated
-in BOTH producers on IsKnownFqn. The -5 calls on MediatR is a WIN, proven edge by edge by a two-sided
-build (lost-edge-diff.ps1/.txt): 18 lost BCL targets, 13 gained real MediatR types.
-NEXT: E1.3 (#8 re-measure, #7 Type-node fix). Three things it inherits: (a) #7's mechanism is now
-partly gated by afee44b -- RE-MEASURE Hangfire's ::Type(1) before fixing, it may already be gone.
-(b) the s16 conductor bug (merged edge keeps the FIRST resolution) still stands but its population
-changed -- re-count before sizing. (c) BodyFactsVersion needs no bump: measured, nothing reads it but
-its own pin test and the facts cache is in-memory per analysis.
+E1.3 IS DONE (evidence eval-results/2026-08-13/e1-typenode/E1.3-EVIDENCE.md; commits f686e25 code,
+ed59465 evidence). #7 and #8 were BOTH already closed by V1.3/E1.2 -- E1.3 proved it at both ends
+instead of assuming it, and the proofs are the useful part. #7: a CLI built at 0fd1cbe dumps Hangfire
+with Type:...StackTraceHtmlFragments::Type(1) inDegree 26 (verbatim) plus a second instance nobody had
+reported, ConsoleSample.Services::Random(1); at HEAD both gone, nothing collapsed (928->994 nodes).
+#8: filed mechanism REFUTED -- lambda bodies were always walked; the real one is an UNTYPED lambda
+parameter (no syntactic scope, Tier B only), and the fixtures are RED at 795b71b / green at HEAD, so
+E1.2's span fix is what closed it. NEW WORK THAT STANDS ALONE: the V1.3 refusal was SILENT (it drops
+the node AND every edge that wanted it) -- now counted + reported as a GraphInvariants diagnostic with
+a positive-control test, swept 0/0 on all 7 poles.
+NEXT: E1.4 (batch acceptance, probe class-C question on eShop). Read tracked bug #6 FIRST: attributing
+the DevContext matrix delta found that LINQ calls bind to the receiver ROOT's type, minting member
+nodes that do not exist -- 126/2453 Calls edges, 66 distinct phantoms on our own pole. Member-side
+sibling of #7, bigger than #7, and INV-A cannot see it. It will distort any impact-set count E1.4
+makes. Also still open: bug #5 (Tier-A-only projects still lose the untyped-lambda edge).
 
 
 ## Baseline numbers (from run.db)
@@ -25,7 +27,7 @@ its own pin test and the facts cache is in-memory per analysis.
 |---|---|
 | Total checkpoints | 20 |
 | Done | 7 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -54,7 +56,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | DONE | abfa564 | eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md |
-| E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | TODO | - | - |
+| E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | DONE | 8f0ce0a | eval-results/2026-08-13/e1-span/E1.2-EVIDENCE.md |
 | E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | TODO | - | - |
 | E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | TODO | - | - |
 
