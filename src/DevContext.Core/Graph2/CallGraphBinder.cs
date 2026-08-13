@@ -87,7 +87,7 @@ public static class CallGraphBinder
                 {
                     if (op is not InvocationOp inv) continue;
 
-                    var callee = ResolveCallee(inv, callerType, symbols, diImpl, soleImpl);
+                    var callee = ResolveCallee(inv, callerType, body.File, symbols, diImpl, soleImpl);
                     if (callee is not { } c) continue;
 
                     allEdges.Add(new CallEdge(callerType, callerMethod, c.Type, inv.MethodName,
@@ -198,7 +198,7 @@ public static class CallGraphBinder
 
     /// <summary>Resolves one invocation to its callee type, honestly or not at all.</summary>
     private static (string Type, Graph.Resolution Resolution)? ResolveCallee(
-        InvocationOp inv, string callerType, SymbolTable symbols,
+        InvocationOp inv, string callerType, string file, SymbolTable symbols,
         Dictionary<string, string?> diImpl, Dictionary<string, string> soleImpl)
     {
         if (inv.ReceiverType is { } recv)
@@ -253,6 +253,13 @@ public static class CallGraphBinder
                 ? (callerType, Graph.Resolution.Syntactic)
                 : null;
         }
+
+        // E1.1 (#11) — STATIC call through a TYPE-NAME receiver: `BodyFactExtractor.Extract(root, …)`
+        // resolves from no local scope, so it used to fall off the end here with no edge at all and the
+        // whole static-utility layer of a repo had no in-edges. One shared rule with the seam producer
+        // (SymbolTable.ResolveStaticReceiverType) — unambiguous, in-solution, declares-the-method.
+        if (symbols.ResolveStaticReceiverType(inv, file) is { } staticType)
+            return (staticType, Graph.Resolution.Syntactic);
 
         return null; // receiver exists but its type never resolved from scope — unknown, skip
     }

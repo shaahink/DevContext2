@@ -1,33 +1,23 @@
-﻿# DevContext pre-release - engine and agent face Phase Tracker
+## Handoff (overwrite this block, <=12 lines, no history)
 
-**Plan:** DevContext pre-release - engine and agent face | **Branch:** `feat/pre-release-engine` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
-
-## Handoff (overwrite this block, ≤12 lines, no history)
-
-V1.3 IS DONE (`3eb2f34`, evidence eval-results/2026-08-13/v1-invariants/INVARIANT-EVIDENCE.md) and
-V1 IS CLOSED. Both invariants are enforced at `CodeGraphBuilder.AddNode` (V1.2's choke point): a Type
-node whose key is a MEMBER key or is `SymbolCanon.IsExpressionText` is REFUSED, so AddEdge drops the
-edge too. Measured 9 poles (Hangfire cloned to C:/Code/eval-poles): INV-A 4->0, INV-B 76->0, the 7
-deliberately-exempt nodes (channel key, `<OnModelCreating>`, `2.0`/`1.0`) UNMOVED; Member titles
-still 1714/0, Type mismatch 58->14. Red-first: 7 fail / 20 pass pre-fix, 27/27 after.
-NEXT: E1 (edge completeness). Read conductor BUG #3 FIRST -- V1.3 legitimately dropped 25 `typeof(X)`
-DI registrations whose argument IS a real type name (MediatR's whole behaviour pipeline). Unwrapping
-whole-text `typeof(X)` before `SymbolTable.ResolveName` recovers them; it ADDS edges, so it belongs
-with E1's matrix. Re-run `eval-results/2026-08-13/v1-invariants/invariant-probe.ps1` after: INV-B
-before-count should fall 76->~51, violations stay 0.
-UNVERIFIED BY ME: the 4/4 gate script (Core, Server, eval matrix, loom-guards rule 11) was still
-running at session end -- log .conductor/bg-logs/v13-checks-20260813-201900820.log; Conductor's
-battery is the authority. TRAPS PAID FOR: stashing ALL changed files for a red-first gives a COMPILE
-error, not a red -- stash only the BEHAVIOURAL files; `git stash pop` inside a bg script can fail
-SILENTLY while racing the build (check `git status` after, its exit leg is a false red).
-
+E1.1 IS DONE (evidence eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md). #11 needed fixing in TWO
+producers, not one: CallGraphBinder makes member->member Calls edges ONLY inside the entry-seeded
+closure; PlainCallDetector makes member->TYPE Calls edges for every in-scope body. One shared rule now
+serves both -- SymbolTable.ResolveStaticReceiverType (unambiguous ResolveName + IsKnownFqn +
+TypeDeclaresMember). Dogfood invariant (Truth category, 28s) went 0/0/0 -> 3/3/7 in-edges. 7-pole
+before/after matrix in the same folder; TodoApi moved by 0 (negative control), DevContext 1380->2404.
+RED, PRE-EXISTING, NOT MINE: McpQaGateTests.McpQaHarness_Passes_Against_Dogfood (backlog #1 / conductor
+bug #1, shared port 5179 with the live desktop run) -- it also failed before my edit landed.
+NEXT: E1.2 (#12 TextSpan-on-BodyOp). Two things it inherits: (a) a NEW conductor bug -- a merged Calls
+edge keeps the FIRST resolution, not the best, so 14 of DevContext's 1380 pairs now read approx though
+one call site is semantically bound; fix it with E1.2's matrix, not surgically. (b) Bumping the BodyOp
+shape means bumping BodyFactsVersion (facts-v1) or stale cached facts are reused.
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
-| Done | 4 |
-| Claimed (unconfirmed) | 2 |
+| Done | 7 |
 
 ## Checkpoints
 
@@ -47,9 +37,9 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | DONE | abfa564 | eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md |
-| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | DONE | fd47300 | eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md |
-| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | TODO | - | - |
+| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | DONE ✓ | abfa564 | eval-results/2026-08-13/v1-vocabulary/EVIDENCE.md |
+| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | DONE ✓ | fd47300 | eval-results/2026-08-13/v1-vocabulary/MEMBER-TITLE-EVIDENCE.md |
+| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | DONE ✓ | 3eb2f34 | eval-results/2026-08-13/v1-invariants/INVARIANT-EVIDENCE.md |
 
 ### E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant
 

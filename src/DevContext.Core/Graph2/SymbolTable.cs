@@ -274,6 +274,39 @@ public sealed class SymbolTable
     public string? ProjectForFile(string filePath) =>
         _fileToProject?.Invoke(filePath);
 
+    /// <summary>E1.1 (#11) — the canonical type a STATIC call's receiver names, or null.
+    /// <para><c>ExtractorHelpers.IsTestFile(path)</c> has a receiver that is a TYPE, not a value: it is
+    /// no field, parameter or local, so <see cref="InvocationOp.ReceiverType"/> is null and every
+    /// consumer keyed on receiver type used to drop the invocation on the floor. Measured on
+    /// DevContext's own graph (G4.2 dogfood drive, 2026-07-29): <c>BodyFactExtractor</c>,
+    /// <c>RazorCodeVirtualizer</c> and <c>ExtractorHelpers</c> each had ZERO in-edges — a repo's whole
+    /// static-utility layer invisible, and "who calls this helper" answered "nobody" in the same shape
+    /// a true zero has.</para>
+    /// <para>ONE rule, so the two call-edge producers (<see cref="CallGraphBinder"/>'s member→member
+    /// spine and <c>PlainCallDetector</c>'s member→type seam) cannot disagree about what a static call
+    /// is. Honesty gate, same as the bare-identifier self-call arm: the receiver must resolve
+    /// UNAMBIGUOUSLY (<see cref="ResolveName"/> returns its input unchanged when unknown or ambiguous,
+    /// so <see cref="IsKnownFqn"/> IS the Law-R1 gate) to an in-solution type that DECLARES the called
+    /// method. Without the declares gate a namespace segment or a same-named type would mint edges.</para>
+    /// <para>Both spellings are tried, most specific first: bare (<c>TextHelpers.Normalize(x)</c> — the
+    /// root identifier IS the type) and namespace-qualified (<c>Utilities.RazorCodeVirtualizer.Walk(x)</c>
+    /// — the root is a NAMESPACE segment and the type is the trailing one).</para></summary>
+    public string? ResolveStaticReceiverType(InvocationOp inv, string? containingFile)
+    {
+        if (inv.ReceiverType is not null) return null;            // a value receiver — not this arm
+        if (inv.ReceiverText is null or "this") return null;      // self-call — the caller-type arm owns it
+
+        foreach (var candidate in (ReadOnlySpan<string?>)[inv.ReceiverMember, inv.ReceiverText])
+        {
+            if (string.IsNullOrEmpty(candidate)) continue;
+            var fqn = ResolveName(candidate!, containingFile);
+            if (!IsKnownFqn(fqn)) continue;
+            if (!TypeDeclaresMember(fqn, inv.MethodName)) continue;
+            return fqn;
+        }
+        return null;
+    }
+
     /// <summary>
     /// Batch C (DC4) — the declared type of <paramref name="memberName"/> on <paramref name="typeFqn"/>,
     /// as written (short or qualified), or null when the type declares no such property. This is what a

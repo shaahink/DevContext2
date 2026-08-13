@@ -31,15 +31,40 @@ public sealed class PlainCallDetector : ISeamDetector
 
         var emitted = new HashSet<string>(StringComparer.Ordinal);
 
+        // MEASURED CONSEQUENCE OF THE STATIC ARM BELOW, carried openly (conductor bug, E1.4/R1 to
+        // decide): CodeGraphBuilder.AddEdge dedupes (From, To, Kind) FIRST-WINS, so when a member
+        // both instance-calls and static-calls the same type (`Insight.For(..)` beside an instance
+        // call on Insight) whichever match is emitted first decides the pair's Resolution. Emitting
+        // in op order downgraded 14 of DevContext's own 1380 Calls pairs from Semantic to Syntactic
+        // (0 pairs were lost). The real fix is that a merged edge should carry the BEST resolution of
+        // its call sites, not the first — that is the audit's call-site-multiplicity item, not a
+        // deferral trick here.
         foreach (var op in body.Ops)
         {
-            if (op is not InvocationOp inv || inv.ReceiverType is null) continue;
-            var receiverText = inv.ReceiverType.Text;
-            if (string.IsNullOrEmpty(receiverText)) continue;
+            if (op is not InvocationOp inv) continue;
 
             // Skip invocations whose verbs are already captured by MediatR/Bus/DomainEvent detectors.
             if (DispatchVerbs.Contains(inv.MethodName)) continue;
             if (DomainVerbs.Contains(inv.MethodName)) continue;
+
+            // E1.1 (#11) — the receiver of a STATIC call names a TYPE, so it resolves from no local
+            // scope and ReceiverType is null. Before this arm the detector skipped it outright, which
+            // is why DevContext's own ExtractorHelpers / BodyFactExtractor had ZERO in-edges in
+            // DevContext's own graph while every instance call around them bound fine. Same rule the
+            // call binder uses (one rule, two producers) — unambiguous, in-solution, declares-the-method.
+            var receiverRef = inv.ReceiverType;
+            if (receiverRef is null)
+            {
+                if (ctx.Symbols.ResolveStaticReceiverType(inv, body.File) is not { } staticFqn) continue;
+                receiverRef = new SymbolRef
+                {
+                    Text = staticFqn,
+                    Site = new RefSite { File = body.File, Line = inv.Line, Project = body.Project },
+                };
+            }
+
+            var receiverText = receiverRef.Text;
+            if (string.IsNullOrEmpty(receiverText)) continue;
             var sn = ShortName(receiverText);
             if (sn is not null && DispatchClassifier.IsBusReceiver(sn, inv.MethodName)) continue;
 
@@ -58,7 +83,7 @@ public sealed class PlainCallDetector : ISeamDetector
             // kind Type (eShop WebNavigatingEventArgsConverter::Convert(4); Hangfire's ::Type(1) is
             // the same shape, and it collected 26 phantom in-edges). A member answer is not a type
             // answer — drop the invocation, exactly as an unresolved framework receiver is dropped.
-            var resolved = ctx.Symbols.Resolve(inv.ReceiverType);
+            var resolved = ctx.Symbols.Resolve(receiverRef);
             if (resolved.Resolved is not { Kind: SymbolKind.Type }) continue;
 
             // Batch C (DC4) — receiver CHAIN hop. `_appEnvironmentService.OrderService.CreateOrderAsync()`
@@ -66,9 +91,12 @@ public sealed class PlainCallDetector : ISeamDetector
             // never the collaborator. Every eShop [RelayCommand] read as a bare DI interface because of
             // it. When the receiver's trailing segment is a property of the resolved receiver type, the
             // call lands on that property's type. Unresolvable → the receiver type stands (still true).
-            var target = SeamDetectorHelpers.Resolve(inv.ReceiverType, ctx);
-            if (ctx.Symbols.HopThroughProperty(resolved.Resolved.Value.Canonical, inv.ReceiverMember, inv.ReceiverType.Site) is { } hopped)
-                target = ctx.Symbols.Resolve(new SymbolRef { Text = hopped, Site = inv.ReceiverType.Site });
+            // The static arm passes NO receiver member to the hop: there the trailing segment IS the
+            // type name (`Utilities.RazorCodeVirtualizer`), not a property of the resolved type.
+            var hopMember = inv.ReceiverType is null ? null : inv.ReceiverMember;
+            var target = SeamDetectorHelpers.Resolve(receiverRef, ctx);
+            if (ctx.Symbols.HopThroughProperty(resolved.Resolved.Value.Canonical, hopMember, receiverRef.Site) is { } hopped)
+                target = ctx.Symbols.Resolve(new SymbolRef { Text = hopped, Site = receiverRef.Site });
 
             yield return new SeamMatch(
                 body.Member, EdgeKind.Calls, target,
