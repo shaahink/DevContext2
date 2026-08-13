@@ -542,7 +542,20 @@ if ($Scope -eq 'engine') {
     Write-Step "Step 5: App check - SKIPPED (-Scope engine)"
 } else {
     Write-Step "Step 5: App check (pnpm check)"
-    Push-Location (Join-Path $repoRoot "src\DevContext.App")
+    $appDir = Join-Path $repoRoot "src\DevContext.App"
+    # node_modules is gitignored, so a fresh clone (or a worktree nobody has run the app in) reaches
+    # this step with nothing installed. `pnpm check` then fails on its first script with "Could not
+    # find the '@angular-eslint/builder:lint' builder's node package" — forty lines of resolver noise
+    # for a one-line cause. Measured 2026-08-13: that is exactly how this step failed once the Step 3
+    # abort stopped hiding it. Say the cause and the command instead of making the next reader infer it.
+    if (-not (Test-Path (Join-Path $appDir "node_modules"))) {
+        Write-Fail "src\DevContext.App\node_modules is missing - the app's dependencies are not installed" -Step 5
+        Write-Host "        run: pnpm install --frozen-lockfile   (from src\DevContext.App)" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 5 - app deps not installed)" -ForegroundColor Red
+        exit 5
+    }
+    Push-Location $appDir
     try {
         # This step's inline workaround is where the hazard was first found; it is now the shared
         # Invoke-NativeCapture every step uses (see its comment for what it costs to leave one out).
