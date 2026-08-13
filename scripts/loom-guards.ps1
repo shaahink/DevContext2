@@ -29,6 +29,9 @@
 #   9. No file in src/ may decide an edge's confidence TIER for itself by comparing against a
 #      Resolution member. One definition: DevContext.Core.Graph.EdgeConfidence. Assigning a
 #      Resolution is fine (that is a producer stating a fact); COMPARING one is a verdict.
+# pre-release V1.2 rule (backlog #17):
+#  10. No producer may spell a Member node's TITLE for itself. One derivation:
+#      SymbolCanon.MemberTitle (applied in CodeGraphBuilder.AddNode, so the key decides).
 
 param(
     [switch]$Quiet
@@ -236,6 +239,38 @@ if (Test-Path $appSrc) {
 }
 if (-not $Quiet -and $tierCensus -eq 0) {
     Write-Host "  PASSED: edge-tier verdicts all read the one definition (rule 9)" -ForegroundColor Green
+}
+
+# Rule 10 (pre-release V1.2, backlog #17): ONE Member-title vocabulary.
+#
+# The engine shipped two: the entry builders interpolated HandlerType + "." + method (owner-qualified)
+# and the call-graph/seam passes wrote BodyFacts.MemberName (bare "Send"), so 343 owner-qualified
+# and 627 bare Member titles appeared across six poles -- same kind, same page, and which one a node
+# got was decided by pass ORDER, because node titles merge first-write-wins. The title is now
+# DERIVED from the member key by SymbolCanon.MemberTitle and applied in CodeGraphBuilder.AddNode.
+# A producer that passes anything else is not wrong for long (AddNode overwrites it) but it is a
+# second vocabulary in the source, and the next producer copies the shape it sees.
+$titleCensus = 0
+foreach ($dir in $coreSrcDirs) {
+    $full = Join-Path $repoRoot $dir
+    if (-not (Test-Path $full)) { continue }
+    $files = Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.cs -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -notmatch '\\obj\\' -and $_.FullName -notmatch '\\bin\\' }
+    foreach ($f in $files) {
+        $hits = Select-String -LiteralPath $f.FullName -CaseSensitive 2>$null `
+            -Pattern 'new GraphNode\(.*NodeKind\.Member'
+        foreach ($m in $hits) {
+            if ($m.Line -match '^\s*(//|\*|/\*)') { continue }
+            if ($m.Line -match 'SymbolCanon\.MemberTitle\(') { continue }
+            $rel = $m.Path.Substring($repoRoot.ToString().Length + 1)
+            if (-not $Quiet) { Write-Host "  BANNED: Member title spelled outside SymbolCanon.MemberTitle in ${rel}:$($m.LineNumber)" }
+            $script:failures++
+            $titleCensus++
+        }
+    }
+}
+if (-not $Quiet -and $titleCensus -eq 0) {
+    Write-Host "  PASSED: every Member title is derived from its key (rule 10)" -ForegroundColor Green
 }
 
 # Advisory: count remaining banned patterns in Graph/ (fixed by later stages)

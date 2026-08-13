@@ -32,7 +32,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
             if (g.HasNode(typeId))
             {
                 handlerNode = NodeId.ForMember(typeFqn, fn.MethodName);
-                g.AddNode(new GraphNode(handlerNode, $"{fn.ClassName}.{fn.MethodName}", NodeKind.Member)
+                g.AddNode(new GraphNode(handlerNode, SymbolCanon.MemberTitle(handlerNode.Key), NodeKind.Member)
                 { FilePath = fn.SourceFile, LineNumber = fn.LineNumber });
             }
             else

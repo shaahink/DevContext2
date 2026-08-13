@@ -326,6 +326,17 @@ public sealed class CodeGraphBuilder
     /// when its declaration appears, and vice-versa. Returns the resulting node.</summary>
     public GraphNode AddNode(GraphNode node)
     {
+        // V1.2 (backlog #17): a Member node's title is DERIVED from its key, never supplied. Titles
+        // merge first-write-wins, so with a dozen producers the displayed vocabulary was decided by
+        // pass ORDER — the entry builders said "CatalogApi.GetAllItemsV1", the call-graph and seam
+        // passes said bare "Send". One derivation here makes that unreachable.
+        if (node.Id.Kind == NodeKind.Member)
+        {
+            var title = Graph2.SymbolCanon.MemberTitle(node.Id.Key);
+            if (!string.Equals(node.Title, title, StringComparison.Ordinal))
+                node = node with { Title = title };
+        }
+
         if (_nodes.TryGetValue(node.Id, out var existing))
         {
             var mergedTags = existing.Tags.IsDefaultOrEmpty

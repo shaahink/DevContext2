@@ -166,11 +166,11 @@ public sealed partial class GraphBuilder
 
             // Member nodes for both endpoints, carrying the owning Type's file (body filled — when at all —
             // by the body-scan seams / HTTP entry; salient otherwise falls back to the parent Type body).
-            g.AddNode(new GraphNode(callerId, $"{callerType.Title}.{ce.CallerMethod}", NodeKind.Member)
+            g.AddNode(new GraphNode(callerId, SymbolCanon.MemberTitle(callerId.Key), NodeKind.Member)
             {
                 FilePath = callerType.FilePath,
             });
-            g.AddNode(new GraphNode(calleeId, $"{calleeType.Title}.{ce.CalleeMethod}", NodeKind.Member)
+            g.AddNode(new GraphNode(calleeId, SymbolCanon.MemberTitle(calleeId.Key), NodeKind.Member)
             {
                 FilePath = calleeType.FilePath,
             });
@@ -256,11 +256,11 @@ public sealed partial class GraphBuilder
             var callerNode = g.GetNode(NodeId.ForType(cfqn));
             var calleeNode = g.GetNode(NodeId.ForType(dfqn));
 
-            g.AddNode(new GraphNode(callerId, $"{callerNode?.Title ?? cfqn}.{ce.CallerMethod}", NodeKind.Member)
+            g.AddNode(new GraphNode(callerId, SymbolCanon.MemberTitle(callerId.Key), NodeKind.Member)
             {
                 FilePath = callerNode?.FilePath,
             });
-            g.AddNode(new GraphNode(calleeId, $"{calleeNode?.Title ?? dfqn}.{ce.CalleeMethod}", NodeKind.Member)
+            g.AddNode(new GraphNode(calleeId, SymbolCanon.MemberTitle(calleeId.Key), NodeKind.Member)
             {
                 FilePath = calleeNode?.FilePath,
             });
@@ -417,7 +417,7 @@ public sealed partial class GraphBuilder
                     foreach (var match in detector.Detect(body, ctx))
                     {
                         var originId = ToMemberNodeId(match.Origin);
-                        EnsureMemberId(g, originId, body.MemberName, body.File, body.Project, body.DeclLine);
+                        EnsureMemberId(g, originId, body.File, body.Project, body.DeclLine);
 
                         var resolved = ctx.Symbols!.Resolve(match.Target);
                         if (resolved.Tier == ResolutionTier.Ambiguous)
@@ -599,7 +599,7 @@ public sealed partial class GraphBuilder
                                 else
                                     targetId = NodeId.ForType(match.Target.Text);
 
-                                EnsureMemberId(g, node.Id, node.Title, node.FilePath, node.Project);
+                                EnsureMemberId(g, node.Id, node.FilePath, node.Project);
 
                                 if (!g.HasNode(targetId))
                                 {
@@ -711,11 +711,14 @@ public sealed partial class GraphBuilder
         return result.ToImmutable();
     }
 
-    /// <summary>Ensures a Member node exists in the graph for the given id (first-write wins).</summary>
-    private static void EnsureMemberId(CodeGraphBuilder g, NodeId id, string? memberName, string? file, string? project, int? line = null)
+    /// <summary>Ensures a Member node exists in the graph for the given id (first-write wins). V1.2:
+    /// the title comes from the key, not from the caller's <c>BodyFacts.MemberName</c> — this site
+    /// minted the bare half of backlog #17's two vocabularies ("Send" where the entry builders three
+    /// rows away said "Mediator.Send").</summary>
+    private static void EnsureMemberId(CodeGraphBuilder g, NodeId id, string? file, string? project, int? line = null)
     {
         if (g.HasNode(id)) return;
-        g.AddNode(new GraphNode(id, memberName ?? id.Key, NodeKind.Member)
+        g.AddNode(new GraphNode(id, SymbolCanon.MemberTitle(id.Key), NodeKind.Member)
         {
             FilePath = file,
             Project = project,

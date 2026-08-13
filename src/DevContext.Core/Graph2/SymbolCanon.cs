@@ -129,6 +129,25 @@ public static class SymbolCanon
         return paren > 0 && memberCanonical.EndsWith(')') ? memberCanonical[..paren] : memberCanonical;
     }
 
+    /// <summary>The ONE display title for a Member node: owner short name + <c>.</c> + member name
+    /// (<c>MediatR.Mediator::Send</c> → <c>Mediator.Send</c>), derived from the member KEY so no
+    /// producer can mint a second vocabulary (pre-release V1.2, backlog #17 — the engine shipped 343
+    /// owner-qualified and 627 bare Member titles across six poles, same kind, same page; a bare
+    /// "Send" in a neighbours list or call stack does not say whose). Applied once, in
+    /// <c>CodeGraphBuilder.AddNode</c>, so every Member node carries it by construction. A key with
+    /// no member separator is not a member key and is returned verbatim.</summary>
+    public static string MemberTitle(string memberKey)
+    {
+        var sep = memberKey.IndexOf(MemberSep, StringComparison.Ordinal);
+        if (sep <= 0) return memberKey;
+        return ShortNameOf(memberKey[..sep]) + "." + memberKey[(sep + MemberSep.Length)..];
+    }
+
+    /// <summary>The same title from the parts a producer usually holds — the owning type's canonical
+    /// id (or any spelling of it) and the bare member name.</summary>
+    public static string MemberTitle(string typeCanonical, string memberName)
+        => ShortNameOf(typeCanonical) + "." + memberName;
+
     /// <summary>Bare display short name of a canonical id's last segment — nested chain and arity
     /// marker stripped (<c>Ns.Outer.Inner`2</c> → <c>Inner</c>). For member keys, pass the owner
     /// type through <see cref="OwnerTypeOf"/> first.</summary>

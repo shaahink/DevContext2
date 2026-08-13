@@ -36,6 +36,47 @@ public sealed class NumberReconciliationTests
     }
 
     [Fact]
+    public void One_member_title_vocabulary_whoever_writes_the_node_first()
+    {
+        // V1.2 (backlog #17). The engine shipped TWO Member-title vocabularies: the entry builders
+        // wrote "CatalogApi.GetAllItemsV1", the call-graph and seam passes wrote a bare "Send" from
+        // BodyFacts.MemberName — 343 owner-qualified against 627 bare across six poles, same kind,
+        // same page. Titles merge FIRST-WRITE-WINS, so which vocabulary a node got was decided by
+        // pass order, not by anything about the node.
+        //
+        // The title is now derived from the member key in one place. This test writes the same two
+        // nodes the two ways the two producer families used to, in both orders.
+        var owner = "Shop.Catalog.Api.CatalogApi";
+        var id = NodeId.ForMember(owner, "GetAllItemsV1");
+
+        // 1. The rule itself: owner SHORT name (nested chain and generic arity stripped) + "." + member.
+        Assert.Equal("CatalogApi.GetAllItemsV1", DevContext.Core.Graph2.SymbolCanon.MemberTitle(id.Key));
+        Assert.Equal("CatalogApi.GetAllItemsV1", DevContext.Core.Graph2.SymbolCanon.MemberTitle(owner, "GetAllItemsV1"));
+        Assert.Equal("Inner.Handle",
+            DevContext.Core.Graph2.SymbolCanon.MemberTitle(NodeId.ForMember("Ns.Outer.Inner`2", "Handle").Key));
+
+        // 2. A producer that spells a bare title (the seam/call-graph shape) does not get one.
+        var bareFirst = new CodeGraphBuilder();
+        bareFirst.AddNode(new GraphNode(id, "GetAllItemsV1", NodeKind.Member) { FilePath = "CatalogApi.cs" });
+        bareFirst.AddNode(new GraphNode(id, "CatalogApi.GetAllItemsV1", NodeKind.Member));
+        Assert.Equal("CatalogApi.GetAllItemsV1", Assert.Single(bareFirst.Build().Nodes).Title);
+
+        // 3. Reverse the pass order — the same title. That is what "one vocabulary" means here:
+        //    the answer is a function of the key, so no ordering can change it.
+        var qualifiedFirst = new CodeGraphBuilder();
+        qualifiedFirst.AddNode(new GraphNode(id, "CatalogApi.GetAllItemsV1", NodeKind.Member));
+        qualifiedFirst.AddNode(new GraphNode(id, "GetAllItemsV1", NodeKind.Member) { FilePath = "CatalogApi.cs" });
+        Assert.Equal("CatalogApi.GetAllItemsV1", Assert.Single(qualifiedFirst.Build().Nodes).Title);
+
+        // 4. Nothing else is touched: a Type node's title is still whatever its producer said, and
+        //    a key that is not a member key comes back verbatim (defensive, not a real shape).
+        var types = new CodeGraphBuilder();
+        types.AddNode(new GraphNode(NodeId.ForType(owner), "CatalogApi", NodeKind.Type));
+        Assert.Equal("CatalogApi", Assert.Single(types.Build().Nodes).Title);
+        Assert.Equal(owner, DevContext.Core.Graph2.SymbolCanon.MemberTitle(owner));
+    }
+
+    [Fact]
     public void One_definition_of_a_verified_edge_across_every_counting_surface()
     {
         // V1.1 (backlog #25). The engine shipped TWO answers to "is this edge verified?".
