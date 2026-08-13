@@ -37,6 +37,21 @@ const SYSTEM_PROMPT_FILE = join(HERE, "system.txt");
 const MCP_CONFIG = join(HERE, "mcp.json");
 const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
 
+// T1.1 - mcp.json is DERIVED from MCP_EXE, not hand-maintained. It used to be a committed file
+// carrying an absolute path to C:/Code/DevContext2 while every other path in this script is
+// resolved from REPO_ROOT: run in a worktree, the preflight validated the worktree's freshly built
+// binary and then arm B measured the OTHER checkout's stale one. Nothing in the output said so.
+// The path (and therefore DESIGN 4.4's argv) is unchanged; only its contents are now generated.
+{
+  const want = JSON.stringify({ mcpServers: { devcontext: { command: MCP_EXE.replace(/\\/g, "/") } } }, null, 2) + "\n";
+  let have = null;
+  try { have = readFileSync(MCP_CONFIG, "utf8"); } catch { /* first run in a fresh clone */ }
+  if (have !== want) {
+    writeFileSync(MCP_CONFIG, want, "utf8");
+    console.log(`mcp-config: regenerated ${MCP_CONFIG} -> ${MCP_EXE}`);
+  }
+}
+
 // ---- the two brakes. Not configurable, on purpose. --------------------------
 // The probe subprocesses spend real money that never reaches conductor's budget, so these are the
 // only limits in the system. If you find yourself editing either one, stop and escalate instead.
