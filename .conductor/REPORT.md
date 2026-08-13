@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `937adf1`_
+_Updated 2026-08-13 20:36 UTC · branch `feat/pre-release-desktop` · HEAD `77596b1`_
 
-**Status:** Idle — advisor: human intervention required [3s ago, 20:36:31Z]
+**Status:** NeedsHuman — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1s ago, 20:36:43Z]
 **Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 6 · working ▸ N2.2
 **Checkpoints:** 6/16 done · **Sessions run:** 12 · **Cost:** $60.9929 (agent $60.8213 + gates $0.1716) · **Tokens:** 1,020,959 in / 402,901 out
 **Confirmed phases:** N0, N1
@@ -110,10 +110,8 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 | **run total** | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| stage N2 | 6 | 24.3M | 98.3% | $17.62 | 1 | 24.3M | $17.62 |
-| stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
-| 2026-08 | 11 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
-| unknown | 1 | 0M | - | $0.00 | - | - | - |
+| stage N2 | 7 | 24.3M | 98.3% | $17.63 | 1 | 24.3M | $17.63 |
+| 2026-08 | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
 
 _Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
 
@@ -122,7 +120,6 @@ _Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.02 (
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 19:15:27  ✓ checkpoint N0.3 confirmed
 08-13 19:15:27  ▸ stage N0 confirmed  (1h59m22s)
 08-13 19:15:34  ▸ stage N1 entered — Studio truth pass + pins made real (owner decision 1: IMPLEMENT)
 08-13 19:15:35  • session #4 N1 Deliver started (attempt 1/4)
@@ -162,6 +159,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:36:17  • session #11 N2 → AgentError  (19.5s)
 08-13 21:36:17  • session #12 N2 Deliver started (attempt 6/6)
 08-13 21:36:31  ■ needs human — advisor: human intervention required
+08-13 21:36:37  • session #12 N2 → AgentError  (19.6s)
 ```
 
 ## Health
@@ -170,7 +168,7 @@ _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)
 
 ```
 sessions 12 · retries 6 (50 %) · overall Alert
-⛔ [same-failure-loop] stage N2: 5 consecutive sessions made no progress
+⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ```
 
 ## Repo
@@ -179,7 +177,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M .conductor/REPORT.md, M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs (+5 more)
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M proto/devcontext/v1/devcontext.proto, M src/DevContext.App/src/app/core/grpc/gen/devcontext/v1/devcontext_pb.ts, M src/DevContext.App/src/app/features/context-studio/budget-panel.ts, M src/DevContext.App/src/app/state/prefs.store.ts, M src/DevContext.Core/Graph/ContextPackBuilder.cs, M src/DevContext.Server/Endpoints/DevContextGrpcService.cs (+4 more)
 vs upstream: up to date
 ```
 

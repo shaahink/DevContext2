@@ -1,31 +1,31 @@
-﻿# DevContext pre-release - desktop agent loop Phase Tracker
+# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N2.1 IS CLOSED (104c9d0 engine + 8c38e0b app; evidence eval-results/2026-08-13/N2.1-pack-convergence.md).
-START AT N2.2: honesty-note parity (fill-rate note + suggested focuses in the rail) and ONE stated
-budget default - UI is 4000 (prefs.studioBudget), everywhere else 8000 (ContextPackBuilder.Build/
-BuildMulti defaults). Its ACCEPTANCE is the real-repo FluentValidation pack: I CLONED IT for you at
-eval-repos/FluentValidation (sha 94397908, gitignored) but did NOT run it - only the server calls
-BuildMulti, so the cheapest real-repo proof is a [Trait("Category","Eval")] Core test that takes
-types off snapshot.Map.Surface (the SAME source the new Types tab reads) and asserts usage + verified
-counts, skipping silently when the clone is absent (BudgetIndependenceTests.cs is the pattern).
-Now true: BuildMulti resolves symbols via ResolveCardFocuses; card entryIds may be a bare type,
-Type:Member, or a NodeId string; `usage` is a card type; picker has a Types tab keyed on the
-namespace-qualified name. Fixed en route: a card naming one focus twice merged its section INTO
-ITSELF. Loop unchanged: `pnpm exec ng test --watch=false --include=<spec>`; check the EXIT CODE.
-`pnpm check` green (199/199). Open bugs unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
-
+STAGE N2 IS CLOSED. N2.2 landed aab7cf3 (evidence eval-results/2026-08-13/N2.2-honesty-parity.md);
+the owner gate chore landed 7ff60eb. START AT N3.1. Session #7's tree was INCOMPLETE, not just
+uncommitted - the panel emitted an output() that was never declared, the studio never bound the two
+new inputs, and the spec fake omitted them, which threw inside repack and reddened 21 studio specs.
+Now true: ContextPackBuilder.BuildFillNote computes the fill note + suggested focuses SERVER-SIDE
+(wire: fill_note, repeated SuggestedFocus); the Studio renders and derives nothing; onSuggestedFocus
+adds a flow card whose entryId IS the focus string. ONE budget number: ContextPackBuilder.
+DefaultBudgetTokens == DEFAULT_STUDIO_BUDGET == 8000, deliberately NOT TracePolicy's 4000.
+gates.ps1 order is now 0,1,1a,5,2,2b,4,4b,3 and an ABORT exits 9 - step NUMBERS are unchanged.
+TRAP PAID FOR: a `cd` in the PowerShell tool LEAKS into the Bash tool's cwd (cd absolutely, always),
+and conductor bg cannot take args with leading dashes - use `-- pwsh <script.ps1>`; plain `pnpm` under
+it resolves to a stale corepack shim. Loop: pnpm check green 202/202. New bug #5 (Types tab ranks
+nothing: 58 of FluentValidation's 90 public types have zero in-repo usages, so their usage card is
+silently empty). Open bugs otherwise unchanged: #1 negative budget, #2 eval stamp cache, #3 icon.ts.
 
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 3 |
-| Claimed (unconfirmed) | 2 |
+| Done | 5 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -44,15 +44,15 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | DONE | d57b59d | eval-results/2026-08-13/N1.1-studio-truth.md |
-| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | DONE | e448d64 | eval-results/2026-08-13/N1.2-pins-real.md |
+| N1.1 | Verified/approx rendered per card; verification ledger verifies the pack actually built (wire item 4, mechanism chosen with a stated reason); state lifecycle fixed (per-tab keying or handle-effect invalidation; budget/intent/format persisted); body toggles wired or deleted | DONE ✓ | d57b59d | eval-results/2026-08-13/N1.1-studio-truth.md |
+| N1.2 | Pins real end-to-end: `p` pins from Explore; TrailStore.pins() has real readers; pinned steps seed the pack; the three advertising surfaces (inspector, trail bar, ticker) tell the truth | DONE ✓ | e448d64 | eval-results/2026-08-13/N1.2-pins-real.md |
 
 ### N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | TODO | - | - |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | TODO | - | - |
+| N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | DONE | 104c9d0 | eval-results/2026-08-13/N2.1-pack-convergence.md |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | IN PROGRESS | - | - |
 
 ### M1 — Hygiene + Reader prerequisites (proto/mapper shopping list)
 
