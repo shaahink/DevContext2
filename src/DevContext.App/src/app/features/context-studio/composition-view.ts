@@ -1,5 +1,6 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 
+import { copyToClipboard } from '../../core/clipboard';
 import { Icon } from '../../ui/icon/icon';
 import { ToastService } from '../../ui/toast/toast';
 import type { ContextCardType } from './scope-picker';
@@ -96,7 +97,7 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
               title="Copy this card only"
               data-testid="card-copy"
               [disabled]="card.sections.length === 0"
-              (click)="onCopyCard(card)"
+              (click)="void onCopyCard(card)"
             >
               <app-icon name="copy" [size]="14" />
             </button>
@@ -145,7 +146,7 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
                     class="shrink-0 rounded bg-hover px-1 py-px text-2xs font-mono text-ink-muted hover:text-ink transition-colors"
                     data-testid="provenance-chip"
                     [title]="loc + ' — click to copy'"
-                    (click)="onCopyLocation(loc)"
+                    (click)="void onCopyLocation(loc)"
                   >{{ shortLocation(loc) }}</button>
                 }
                 @if (cardLocations(card).length > 4) {
@@ -242,18 +243,29 @@ export class CompositionView {
   }
 
   /** T5.3 (R7) — copy ONE card: its heading + the real section content, pack-shaped. */
-  protected onCopyCard(card: ContextCard): void {
+  protected async onCopyCard(card: ContextCard): Promise<void> {
     if (card.sections.length === 0) return;
     const text = `## ${card.title}\n_type: ${card.type}, ${card.serverTokens ?? 0} tok_\n\n`
       + card.sections.map((s) => s.content).join('\n');
-    void navigator.clipboard.writeText(text);
-    this.toast.show('Card copied to clipboard', 'success');
+    await this.copyAndReport(text, 'Card copied to clipboard');
   }
 
   /** T5.3 — chips click-through: copy the repo-relative file:line for the editor/agent. */
-  protected onCopyLocation(location: string): void {
-    void navigator.clipboard.writeText(location);
-    this.toast.show(`${location} copied`, 'success');
+  protected async onCopyLocation(location: string): Promise<void> {
+    await this.copyAndReport(location, `${location} copied`);
+  }
+
+  /** N0.1 (audit §3.F.7) — one copy path: the app's Tauri-aware clipboard helper, and the
+   * toast reports the OUTCOME. Both call sites used to fire a success toast synchronously
+   * after a floating `navigator.clipboard` promise nobody awaited — in the desktop shell,
+   * where that API is the unreliable one, "copied" was a claim, not a report. */
+  private async copyAndReport(text: string, successMessage: string): Promise<void> {
+    try {
+      await copyToClipboard(text);
+      this.toast.show(successMessage, 'success');
+    } catch (err) {
+      this.toast.show(`Copy failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
+    }
   }
 
   protected onToggleBody(id: string): void {

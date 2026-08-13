@@ -1,6 +1,5 @@
-import { Component, inject, input, model, output, signal } from '@angular/core';
+import { Component, input, model, output } from '@angular/core';
 
-import { ToastService } from '../../ui/toast/toast';
 import { Icon } from '../../ui/icon/icon';
 import { allCardsPriced, cardTokens as cardTokensOf, totalCardTokens } from './card-tokens';
 import type { ContextCard } from './composition-view';
@@ -167,8 +166,6 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
   `,
 })
 export class BudgetPanel {
-  private readonly toast = inject(ToastService);
-
   readonly cards = input<readonly ContextCard[]>([]);
   /** T5.1 (audit R1) — the server's omitted[] lines; silent truncation is a trust bug. */
   readonly omitted = input<readonly string[]>([]);
@@ -187,7 +184,9 @@ export class BudgetPanel {
   readonly selectedIntent = model<ContextIntent>('trace');
   readonly selectedFormat = model<OutputFormat>('markdown');
   readonly showAllBodies = model(true);
-  readonly copied = signal(false);
+  /** N0.1 (audit §3.F.7) — owned by the parent, which performs the copy: "Copied!" now appears
+   * only after the clipboard write actually resolved, never optimistically on click. */
+  readonly copied = input(false);
 
   readonly budgetStops = BUDGET_STOPS;
   readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
@@ -250,13 +249,9 @@ export class BudgetPanel {
 
   onCopy(): void {
     this.copyRequest.emit();
-    this.copied.set(true);
-    this.toast.show('Context copied to clipboard', 'success');
-    setTimeout(() => this.copied.set(false), 2000);
   }
 
   onSave(): void {
     this.saveRequest.emit();
-    this.toast.show('Context saved to file', 'success');
   }
 }

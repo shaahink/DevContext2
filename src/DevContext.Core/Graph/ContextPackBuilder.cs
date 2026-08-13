@@ -531,18 +531,25 @@ public sealed class ContextPackBuilder
         // get meaningful sections.
         const int minEntryBudget = 200;
         var focusBudgets = AllocateProportionalBudgets(uniqueFocuses, totalBudget, minEntryBudget);
-        // totalBudget updated to reflect what proportionally-allocated budgets sum to
 
         // Trace each unique entry once, build ALL sections.
         // Sections are stored per-focus so each card can aggregate from its own entries.
         var entrySections = new Dictionary<string, ImmutableArray<SectionAllocation>>();
         var sectionOmissions = new List<string>();
+        // N0.1 (audit §3.F.4) — what "allocated" actually means: the share of the ceiling that
+        // reached an entry which produced sections. Previously AllocatedTokens echoed the budget
+        // ceiling verbatim, so the Studio header printed one number under two labels (and claimed
+        // a full allocation even for a pack where nothing resolved).
+        var allocatedTokens = 0;
         foreach (var (focus, _) in uniqueFocuses)
         {
             var budget = focusBudgets.GetValueOrDefault(focus, minEntryBudget);
             var (allSections, focusOmitted) = BuildSections(focus, budget, intent);
             if (allSections.Length > 0)
+            {
                 entrySections[focus] = allSections;
+                allocatedTokens += Math.Max(0, budget);
+            }
             // T5.1 (audit R1) — these omission reasons were built and discarded here, so
             // GetContextPack always reported an empty omitted[] while silently cutting
             // sections. Attribute per focus when the pack spans more than one entry.
@@ -574,11 +581,23 @@ public sealed class ContextPackBuilder
                     if (!wanted.Contains(sa.Section)) continue;
                     if (pickedBySection.TryGetValue(sa.Section, out var existing))
                     {
-                        // Same section from another entry — concatenate content
+                        // Same section from another entry — concatenate content AND carry the
+                        // provenance across (N0.1 / audit §3.F.3: the merge used to keep only
+                        // the first entry's SourceLocations/Verified/Approx, so every card on a
+                        // multi-entry pack lost the provenance the single-entry path renders).
                         pickedBySection[sa.Section] = new SectionAllocation(
                             sa.Section,
                             existing.Tokens + sa.Tokens,
-                            existing.Content + "\n" + sa.Content);
+                            existing.Content + "\n" + sa.Content)
+                        {
+                            SourceLocations = [.. existing.SourceLocations
+                                .Concat(sa.SourceLocations)
+                                .Distinct(StringComparer.Ordinal)
+                                .OrderBy(l => l, StringComparer.Ordinal)
+                                .Take(20)],
+                            Verified = existing.Verified + sa.Verified,
+                            Approx = existing.Approx + sa.Approx,
+                        };
                     }
                     else
                     {
@@ -644,7 +663,7 @@ public sealed class ContextPackBuilder
             cardItems.ToImmutable(),
             sb.ToString(),
             allTokens,
-            totalBudget,    // AllocatedTokens = the budget ceiling, not actual usage
+            allocatedTokens,    // budget handed to entries that produced sections (≤ totalBudget)
             [.. omitted]);
     }
 

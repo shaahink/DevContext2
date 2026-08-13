@@ -1,12 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
+import { copyToClipboard } from '../../core/clipboard';
 import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { type EntryVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
+import { ToastService } from '../../ui/toast/toast';
 import { BudgetPanel } from './budget-panel';
 import { totalCardTokens } from './card-tokens';
 import { type ContextCard, CompositionView } from './composition-view';
@@ -22,6 +24,11 @@ const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
 
 /** T5.6 — debounce between a pack-relevant change and the re-pack RPC. */
 export const REPACK_DEBOUNCE_MS = 350;
+
+/** N0.1 — a failed export must say why, not just fail to toast. */
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 @Component({
   selector: 'app-context-studio',
@@ -61,7 +68,14 @@ export const REPACK_DEBOUNCE_MS = 350;
             Live preview
             <span class="normal-case font-normal tracking-normal">— exactly what Copy copies</span>
             @if (packTotals(); as t) {
-              <span class="ml-auto font-normal normal-case tracking-normal tabular-nums" [class.text-warn]="t.total > budgetTokens()">
+              <!-- N0.1 (audit §3.F.4) — three DIFFERENT numbers: what the pack costs, the share
+                   of the ceiling that reached an entry which produced sections, and the ceiling.
+                   allocated used to be the ceiling echoed back, so two labels named one number. -->
+              <span
+                class="ml-auto font-normal normal-case tracking-normal tabular-nums"
+                [class.text-warn]="t.total > budgetTokens()"
+                title="total = tokens in this pack · allocated = budget that reached an entry with content · budget = your ceiling"
+              >
                 {{ t.total }} tok · allocated {{ t.allocated }} · budget {{ budgetTokens() }}
               </span>
             }
@@ -93,7 +107,8 @@ export const REPACK_DEBOUNCE_MS = 350;
         (selectedIntentChange)="onIntentChange($event)"
         [(selectedFormat)]="selectedFormat"
         [(showAllBodies)]="showAllBodies"
-        (copyRequest)="onCopy()"
+        [copied]="copied()"
+        (copyRequest)="void onCopy()"
         (saveRequest)="onSave()"
         (globalBodiesChange)="onGlobalBodiesChange()"
       >
@@ -112,8 +127,11 @@ export class ContextStudio {
   protected readonly session = inject(SessionStore);
   private readonly api = inject(DevContextApi);
   private readonly trailStore = inject(TrailStore);
+  private readonly toast = inject(ToastService);
 
   protected readonly cards = signal<readonly ContextCard[]>([]);
+  /** N0.1 (audit §3.F.7) — set only after the clipboard write resolves; drives Copy's label. */
+  protected readonly copied = signal(false);
   protected readonly selectedIntent = signal<ContextIntent>('trace');
   protected readonly selectedFormat = signal<OutputFormat>('markdown');
   protected readonly showAllBodies = signal(true);
@@ -453,13 +471,27 @@ export class ContextStudio {
     this.schedulePack();
   }
 
-  /** D4.5 (L4) — Copy serves the preview's exact string (one computed, one truth). */
-  protected onCopy(): void {
+  /** D4.5 (L4) — Copy serves the preview's exact string (one computed, one truth).
+   * N0.1 (audit §3.F.7) — through the app's Tauri-aware clipboard helper, and the toast +
+   * the button's "Copied!" label now report the outcome: both used to fire on click while
+   * a floating `navigator.clipboard` promise (the API that is flaky in WebView2, i.e. in
+   * the shipped desktop shell) was still in flight, and a rejection was invisible. */
+  protected async onCopy(): Promise<void> {
     const text = this.previewText();
     if (text === null) return;
-    void navigator.clipboard.writeText(text);
+    try {
+      await copyToClipboard(text);
+      this.copied.set(true);
+      this.toast.show('Context copied to clipboard', 'success');
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
   }
 
+  /** N0.1 (audit §3.F.7) — the toast follows the export instead of preceding it, and says
+   * what actually happened: this path hands the file to the browser/webview download, which
+   * is why it reports the file name rather than claiming a save location it never chose. */
   protected onSave(): void {
     const format = this.selectedFormat();
     const text = this.previewText();
@@ -467,13 +499,20 @@ export class ContextStudio {
     const mime = format === 'plain' ? 'text/plain'
       : format === 'json' ? 'application/json'
       : 'text/markdown;charset=utf-8';
-    const blob = new Blob([text], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = this.saveFileName(format);
-    a.click();
-    URL.revokeObjectURL(url);
+    const name = this.saveFileName(format);
+    try {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      this.toast.show(`Save failed: ${errorText(err)}`, 'error');
+      return;
+    }
+    this.toast.show(`Downloading ${name}`, 'success');
   }
 
   /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt|json}`, never a hardcoded name. */

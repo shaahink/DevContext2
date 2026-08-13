@@ -6,6 +6,7 @@ import type { ContextPackResponse, VerifyContextResponse } from '../../core/grpc
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
+import { ToastService } from '../../ui/toast/toast';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
 import type { ContextCardSeed, OutputFormat } from './scope-picker';
@@ -478,6 +479,70 @@ describe('ContextStudio', () => {
     await flush();
     expect(studio.buildContext('markdown')).toBe('# Pack\n\n_meta_\ncontent');
     expect(studio.previewText()).not.toContain('\r');
+  });
+
+  // N0.1 (audit §3.F.7) — Copy used to fire "Context copied to clipboard" and flip the button
+  // to "Copied!" on click, while the clipboard promise was still in flight and its rejection
+  // went nowhere. The toast and the label are now reports, not predictions.
+  it('Copy reports the clipboard OUTCOME — success toast + Copied! label only on resolve', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const copyBtn = (fixture.nativeElement as HTMLElement)
+      .querySelector('[data-testid="copy-context"]') as HTMLButtonElement;
+
+    copyBtn.click();
+    expect(toast.messages()).toHaveLength(0); // nothing claimed before the write resolves
+    await flush();
+    fixture.detectChanges();
+    expect(writeText).toHaveBeenCalledWith(studio.previewText());
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Context copied to clipboard', 'success']]);
+    expect(copyBtn.textContent?.trim()).toBe('Copied!');
+  });
+
+  it('Copy failure toasts the error and never says "copied" (N0.1 §3.F.7)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockRejectedValue(new Error('clipboard blocked'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const copyBtn = (fixture.nativeElement as HTMLElement)
+      .querySelector('[data-testid="copy-context"]') as HTMLButtonElement;
+
+    copyBtn.click();
+    await flush();
+    fixture.detectChanges();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Copy failed: clipboard blocked', 'error']]);
+    expect(copyBtn.textContent?.trim()).toBe('Copy');
+  });
+
+  it('a per-card copy failure is reported, not swallowed (N0.1 §3.F.7)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockRejectedValue(new Error('no clipboard'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const el: HTMLElement = fixture.nativeElement;
+    (el.querySelector('[data-testid="card-copy"]') as HTMLButtonElement).click();
+    await flush();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Copy failed: no clipboard', 'error']]);
   });
 
   it('renders the preview pane with highlighted fences, open by default (D4.5 L4)', async () => {

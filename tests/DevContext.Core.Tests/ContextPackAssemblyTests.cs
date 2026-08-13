@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 using DevContext.Core.Graph;
 
@@ -75,6 +77,52 @@ public sealed class ContextPackAssemblyTests
         Assert.DoesNotContain(pack.Cards, c => c.Type is "config" or "tests");
         Assert.Contains(pack.Omitted, o => o.StartsWith("config", StringComparison.Ordinal));
         Assert.Contains(pack.Omitted, o => o.StartsWith("tests", StringComparison.Ordinal));
+
+        // N0.1 (audit §3.F.4) — allocated_tokens is a measurement, not the ceiling echoed back
+        // under a second label: a pack whose entries resolve to nothing allocated nothing.
+        Assert.InRange(pack.AllocatedTokens, 1, 8000);
+        var unresolved = builder.BuildMulti(
+            [new ContextCardSpec("flow", "Flow", ["NoSuchEntry:Does.Not.Exist"])],
+            totalBudget: 8000);
+        Assert.Empty(unresolved.Cards);
+        Assert.Equal(0, unresolved.AllocatedTokens);
+
+        // N0.1 (audit §3.F.3) — the multi-entry merge must carry provenance, not just content.
+        // Each entry's section text ends in its own `_provenance: N source sites · V verified ·
+        // A approx_` footer, so a merged section's structured counts must be at least the sum of
+        // the footers it printed. Before the fix the merge kept only the FIRST entry's
+        // SourceLocations/Verified/Approx, so a card built from every entry said "12 verified"
+        // in prose and reported 3 on the wire — one fact, two spellings.
+        var mergedSections = pack.Cards
+            .SelectMany(c => c.Sections.Select(s => (Card: c.Type, Section: s)))
+            .Where(x => ProvenanceFooters(x.Section.Content).Count > 1)
+            .ToList();
+        Assert.NotEmpty(mergedSections);
+        foreach (var (cardType, section) in mergedSections)
+        {
+            var footers = ProvenanceFooters(section.Content);
+            var where = $"{cardType}/{section.Section}";
+            Assert.True(
+                section.Verified >= footers.Sum(f => f.Verified),
+                $"{where}: content claims {footers.Sum(f => f.Verified)} verified across {footers.Count} merged entries, field says {section.Verified}");
+            Assert.True(
+                section.Approx >= footers.Sum(f => f.Approx),
+                $"{where}: content claims {footers.Sum(f => f.Approx)} approx across {footers.Count} merged entries, field says {section.Approx}");
+            Assert.NotEmpty(section.SourceLocations);
+        }
+    }
+
+    /// <summary>N0.1 — the `_provenance:` footers `tokensAddSection` writes into a section's own
+    /// text; one per contributing entry after a multi-entry merge.</summary>
+    private static List<(int Sites, int Verified, int Approx)> ProvenanceFooters(string content)
+    {
+        var matches = Regex.Matches(
+            content,
+            @"_provenance: (\d+) source sites · (\d+) verified · (\d+) approx_");
+        return [.. matches.Select(m => (
+            int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture),
+            int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture),
+            int.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture)))];
     }
 
     private static string RepoPath(string relativePath)
