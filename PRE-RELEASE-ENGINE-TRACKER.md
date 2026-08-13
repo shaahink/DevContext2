@@ -4,23 +4,27 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-STAGE T1 IS CLOSED — T1.1–T1.4 all DONE (claimed). Next stage is V1.
+STAGE T1 IS CLOSED — T1.1–T1.4 all DONE, and the phase-gate RED that followed them
+is FIXED in `fa7d4b6`. None of T1's own bars were involved: all thirteen wire-truth
+and eight partial-truth bars were green in BOTH red runs. Next stage is V1.
 
-T1.4 = eval/gates.ps1 **Step 2c**: a real MCP handshake, both probes, exit 2 on
-either. +~90s to full/engine scope, 0 to app. Read
-eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md for the numbers.
+THE RED WAS THE BATTERY, NOT THE WORK. `eval/gates.ps1` died at exit 1 with the
+transcript cut at the Step 3 banner. `Get-FileHash` is a SCRIPT function in Windows
+PowerShell 5.1's Microsoft.PowerShell.Utility; PS7 ships a module of the same name
+and sits ahead of System32 on this machine's PSModulePath, so a conductor-spawned
+5.1 binds PS7's manifest and Get-FileHash is simply absent. Get-EngineStamp now uses
+.NET SHA256 — proven byte-identical (eval-results/2026-08-13/t1-battery-fix/, read
+EVIDENCE.md) — and a script-level trap turns any future abort into a named failure
+with exit 9 instead of a silent 1. **Run your battery through `conductor bg`, not
+your own shell:** an agent-launched battery inherits a clean environment and will
+not show you what the phase gate sees.
 
-THE ONE THING THAT WILL BITE YOU: an MCP measurement on this machine can be
-served by the OTHER conductor run's engine. ServerShim reuses whatever answers
-/health on the hardcoded 127.0.0.1:5179 — my post-fix probe was served by
-C:\Code\DevContext2-desktop's server and called T1.3's landed fixes broken.
-Fixed: DEVCONTEXT_ENDPOINT on both hosts (probes use 5279) + /health now carries
-baseDirectory/pid/startedAt + eval/mcp-qa/server-identity.js FAILS any probe not
-served by THIS repo's fresh build. Any new probe you write must require() it.
-To re-prove a red cheaply: eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs
-the gate step's own TEXT against any checkout. Recipe (~50s): worktree add
---detach <pre-fix sha>, `git checkout HEAD -- eval/mcp-qa src/DevContext.Server`
-into it, build the slnx, point the harness at it. Mine is removed.
+T1.4 = gates.ps1 **Step 2c**: a real MCP handshake, both probes, exit 2 on either.
++~90s to full/engine scope, 0 to app. eval-results/2026-08-13/t1-wire-truth-gate/.
+MCP measurements on this machine can be served by the OTHER run's engine (hardcoded
+127.0.0.1:5179); every probe must require() eval/mcp-qa/server-identity.js, which
+fails anything not served by THIS repo's fresh build. To re-prove a red cheaply:
+eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs the step's own TEXT anywhere.
 
 
 ## Baseline numbers (from run.db)
@@ -29,7 +33,7 @@ into it, build the slnx, point the harness at it. Mine is removed.
 |---|---|
 | Total checkpoints | 20 |
 | Done | 0 |
-| Claimed (unconfirmed) | 3 |
+| Claimed (unconfirmed) | 4 |
 
 ## Checkpoints
 
@@ -43,7 +47,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | DONE | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.1-EVIDENCE.md |
 | T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | DONE | 76c42dd | eval-results/2026-08-13/t1-wire-truth/T1.2-EVIDENCE.md |
 | T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | DONE | cdb152c | eval-results/2026-08-13/t1-partial-truth/T1.3-EVIDENCE.md |
-| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | TODO | - | - |
+| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | DONE | c246d77 | eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md |
 
 ### V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18)
 
