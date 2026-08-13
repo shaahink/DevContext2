@@ -1,16 +1,17 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 17:19 UTC · branch `feat/pre-release-engine` · HEAD `7061953`_
+_Updated 2026-08-13 17:52 UTC · branch `feat/pre-release-engine` · HEAD `788e0d4`_
 
 **Status:** Idle
-**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 0 · working ▸ T1.4
-**Checkpoints:** 3/20 done · **Sessions run:** 2 · **Cost:** $25.3623 (agent $25.3069 + gates $0.0554) · **Tokens:** 376,485 in / 163,809 out
+**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 0
+**Checkpoints:** 4/20 done · **Sessions run:** 3 · **Cost:** $34.4391 (agent $34.3573 + gates $0.0817) · **Tokens:** 525,734 in / 235,487 out
+**Pending:** full-battery phase gate for T1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ████████░░ 3/4 | **← active** |
+| T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | gating… |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ░░░░░░░░░░ 0/3 | todo |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
@@ -18,14 +19,14 @@ _Updated 2026-08-13 17:19 UTC · branch `feat/pre-release-engine` · HEAD `70619
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
 
-<details><summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (3/4)</summary>
+<details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
 | T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
-| T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | ✅ DONE | - |
-| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | ⬜ TODO | - |
+| T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | ✅ DONE | [`cdb152c`](https://github.com/shaahink/DevContext2/commit/cdb152c) |
+| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | ✅ DONE | - |
 
 </details>
 
@@ -93,6 +94,7 @@ _Updated 2026-08-13 17:19 UTC · branch `feat/pre-release-engine` · HEAD `70619
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | T1 | Deliver | 1 | 08-13 16:16 | 0:29 | Advanced | T1.1 T1.2 | 4 | fast-engine:OK · guards:OK | $12.9213 | $0.0278 | 193,772/93,007 |
 | 2 | T1 | Deliver | 1 | 08-13 16:50 | 0:24 | Advanced | T1.3 | 2 | fast-engine:OK · guards:OK | $12.3856 | $0.0276 | 182,713/70,802 |
+| 3 | T1 | Deliver | 1 | 08-13 17:19 | 0:28 | Advanced | T1.4 | 4 | fast-engine:OK · guards:OK | $9.0504 | $0.0264 | 149,249/71,678 |
 
 ## Money
 
@@ -100,11 +102,11 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 1 | 17.6M | 98.4% | $12.95 | 2 | 8.8M | $6.47 |
-| stage T1 | 1 | 17.6M | 98.4% | $12.95 | 2 | 8.8M | $6.47 |
-| 2026-08 | 1 | 17.6M | 98.4% | $12.95 | 2 | 8.8M | $6.47 |
+| **run total** | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
+| stage T1 | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
+| 2026-08 | 2 | 35.4M | 98.5% | $25.36 | 3 | 11.8M | $8.45 |
 
-_Where the money goes: agent $12.92 (100%) · gate $0.03 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $25.31 (100%) · gate $0.06 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
@@ -120,6 +122,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 17:50:29  • session #2 T1 Deliver started (attempt 1/6)
 08-13 18:19:07  ▪ gate fast-engine pass [session]  (3m01s)
 08-13 18:19:07  ▪ gate guards pass [session]  (1m35s)
+08-13 18:19:11  • session #2 T1 → Advanced · done T1.3 · 2 commit(s)  (28m42s)
+08-13 18:19:12  • session #3 T1 Deliver started (attempt 1/6)
+08-13 18:52:04  ▪ gate fast-engine pass [session]  (2m56s)
+08-13 18:52:04  ▪ gate guards pass [session]  (1m26s)
 ```
 
 ## Health
@@ -127,7 +133,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 2 · retries 0 (0 %) · overall Ok
+sessions 3 · retries 0 (0 %) · overall Ok
 ✓ no health concerns detected
 ```
 
@@ -151,6 +157,11 @@ vs upstream: up to date
 - **s2 (T1 Deliver)** — 2 commit(s):
   - [`7061953`](https://github.com/shaahink/DevContext2/commit/7061953) docs(t1.3): evidence pack, backlog re-status for #6/#9/#2, handoff for T1.4
   - [`cdb152c`](https://github.com/shaahink/DevContext2/commit/cdb152c) fix(mcp): bugs #6 + #9 - a nodeId traces, and a cut pack says it was cut (T1.3)
+- **s3 (T1 Deliver)** — 4 commit(s):
+  - [`788e0d4`](https://github.com/shaahink/DevContext2/commit/788e0d4) docs(t1.4): handoff - pre-fix worktree removed, recipe kept instead
+  - [`4aef713`](https://github.com/shaahink/DevContext2/commit/4aef713) docs(t1.4): handoff for stage V1 + tracker/report refresh
+  - [`1ee81eb`](https://github.com/shaahink/DevContext2/commit/1ee81eb) test(t1.4): the gate STEP proven red then green, and the pre-fix run attributed
+  - [`c246d77`](https://github.com/shaahink/DevContext2/commit/c246d77) feat(gates): the wire-truth gate - the battery finally speaks MCP (T1.4)
 
 ## Last gate run
 
@@ -158,27 +169,26 @@ fast-engine:OK · guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: **T1.3 delivered and claimed** (`conductor task --done T1.3`), closing the confident-partial-truth family on the agent path. Bug #6 — `EntryPointResolver` never recognised the `Kind:Key` nodeId form the rest of the tool menu speaks, so it fell through to the `Type:Method` split and read the *kind prefix* as a type name; measured pre-fix on TodoApi, 10 of 12 nodeIds answered `found:false` while the same nodes' bare titles traced 2–5 steps, and on Hangfire the same path matched a node titled literally `Type` and returned the `"Entry: Type: Type"` phantom. A nodeId tier now resolves the id first (returning the *inventory* entry when the node is one, so an endpoint keeps its rout…
+> SESSION-RESULT:** T1.4 landed and is claimed (`conductor task --done T1.4 --evidence eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md`), closing stage T1. `eval/gates.ps1` gained **Step 2c — Wire-truth gate**, the first step in this battery that speaks MCP: it drives a real stdio handshake against the binary step 1 just built and runs both probes — `wire-truth.js` (every tool + every parameter described, the curated 14-tool menu, the did-you-mean envelope naming the 8 unlisted specialists, all five enum dials rejecting an out-of-range value while a valid one still reaches the real code path — the enum checks folded in from the T1.3 spot probe that lived under `eval-results/` where…
 
 ## Tracker handoff
 
 ```
-T1.1 + T1.2 + T1.3 DONE (claimed). T1.4 is the last of stage T1 — take it next.
+STAGE T1 IS CLOSED — T1.1–T1.4 all DONE (claimed). Next stage is V1.
 
-T1.3 landed #6 (nodeId tier in EntryPointResolver + a note on the vacuous
-found:true/steps:0) and #9 (ContextPackBuilder.ElidedPrefix/DeclaresElision;
-fillNote reads the pack's declaration instead of the fill ratio). #2 RE-MEASURED
-and does NOT reproduce: 12/12 TodoApi + 40/40 eShop titles round-trip; backlog
-re-statused. Read eval-results/2026-08-13/t1-partial-truth/T1.3-EVIDENCE.md, not
-this block, for the shapes.
+T1.4 = eval/gates.ps1 **Step 2c**: a real MCP handshake, both probes, exit 2 on
+either. +~90s to full/engine scope, 0 to app. Read
+eval-results/2026-08-13/t1-wire-truth-gate/T1.4-EVIDENCE.md for the numbers.
 
-T1.4 IS MOSTLY WIRING, NOT NEW MEASUREMENT. eval/mcp-qa/partial-truth.js already
-asserts every T1.4 bar except "every tool described" (that is wire-truth.js) and
-exits non-zero on FAIL. Lift BOTH into eval/gates.ps1, then prove RED on a
-pre-fix build: `git stash` src/DevContext.Core/Graph/EntryPointResolver.cs +
-ContextPackBuilder.cs, rebuild, run, expect 3 FAILs. Probe takes a repo arg
-(TodoApi ~40s, eShop ~3min) — gate on TodoApi.
-TRAPS PAID FOR: PowerShell eats a bare `--` (use `conductor bg start --% ... -- cmd`).
-A killed MCP child leaves DevContext.Server holding Core.dll -> next build dies
-MSB3027; partial-truth.js closes stdin first, wire-truth.js still does NOT.
+THE ONE THING THAT WILL BITE YOU: an MCP measurement on this machine can be
+served by the OTHER conductor run's engine. ServerShim reuses whatever answers
+/health on the hardcoded 127.0.0.1:5179 — my post-fix probe was served by
+C:\Code\DevContext2-desktop's server and called T1.3's landed fixes broken.
+Fixed: DEVCONTEXT_ENDPOINT on both hosts (probes use 5279) + /health now carries
+baseDirectory/pid/startedAt + eval/mcp-qa/server-identity.js FAILS any probe not
+served by THIS repo's fresh build. Any new probe you write must require() it.
+To re-prove a red cheaply: eval/mcp-qa/step2c-harness.ps1 -RepoRoot <root> runs
+the gate step's own TEXT against any checkout. Recipe (~50s): worktree add
+--detach <pre-fix sha>, `git checkout HEAD -- eval/mcp-qa src/DevContext.Server`
+into it, build the slnx, point the harness at it. Mine is removed.
 ```
