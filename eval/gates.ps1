@@ -187,6 +187,20 @@ if ($SkipMcpQa) {
 # T7.0 engine stamp: a content hash over everything that can change an eval verdict. If it
 # matches the stamp written by the last GREEN eval run, that verdict transfers and the step
 # is skipped — an app-only battery stays a citable full gate at ~zero eval cost.
+#
+# Hashing goes through the .NET type, NOT Get-FileHash (2026-08-13, N0 battery RED). In Windows
+# PowerShell 5.1 Get-FileHash is a FUNCTION exported by the Microsoft.PowerShell.Utility MODULE,
+# resolved by PSModulePath autoloading — not a built-in cmdlet. Launched from a pwsh-7 parent (how
+# Conductor and any PS7 shell run this script) the 5.1 child inherits a PSModulePath with PowerShell
+# 7's module dirs PREPENDED, autoloads PS7's Utility module, and Get-FileHash resolves to nothing:
+# CommandNotFound, and with ErrorActionPreference=Stop the whole battery dies one line into Step 3.
+# It looked like a mystery red because -Scope app skips Step 3, so only the full form ever reached
+# here. SHA256 over the same bytes, same uppercase-hex format — the measurement is unchanged.
+function Get-Sha256Hex([byte[]]$bytes) {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try { ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('X2') }) -join '' }
+    finally { $sha.Dispose() }
+}
 function Get-EngineStamp {
     $stampPaths = @('src\DevContext.Core', 'src\DevContext.Cli', 'tests\DevContext.Core.Tests',
                     'eval\expectations', 'eval\fixtures', 'tests\fixtures')
@@ -197,12 +211,11 @@ function Get-EngineStamp {
         if (-not (Test-Path $dir)) { continue }
         Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
             Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
-                [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash)
+                $fileHash = Get-Sha256Hex ([System.IO.File]::ReadAllBytes($_.FullName))
+                [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' + $fileHash)
             }
     }
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
-    $stream = New-Object System.IO.MemoryStream(,$bytes)
-    (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+    Get-Sha256Hex ([System.Text.Encoding]::UTF8.GetBytes($sb.ToString()))
 }
 $stampFile = Join-Path $repoRoot "eval\.eval-stamp.json"
 
