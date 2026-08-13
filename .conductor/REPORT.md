@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 23:01 UTC · branch `feat/pre-release-engine` · HEAD `52417c7`_
+_Updated 2026-08-13 23:54 UTC · branch `feat/pre-release-engine` · HEAD `1fbadde`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 24m ago, 20:37:17Z]
-**Stage:** E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant · attempts used 0 · working ▸ E1.4
-**Checkpoints:** 10/20 done · **Sessions run:** 18 · **Cost:** $124.8580 (agent $124.6704 + gates $0.1876) · **Tokens:** 1,858,537 in / 793,235 out
-**Confirmed phases:** T1, V1
+**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 17m ago, 20:37:17Z]
+**Stage:** E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant · attempts used 0
+**Checkpoints:** 11/20 done · **Sessions run:** 19 · **Cost:** $138.2125 (agent $138.0249 + gates $0.1876) · **Tokens:** 2,063,507 in / 882,659 out
+**Confirmed phases:** T1, V1, E1
 
 ## Stage progress
 
@@ -13,7 +13,7 @@ _Updated 2026-08-13 23:01 UTC · branch `feat/pre-release-engine` · HEAD `52417
 |---|---|---|---|
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
-| E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ████████░░ 3/4 | **← active** |
+| E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
@@ -40,14 +40,14 @@ _Updated 2026-08-13 23:01 UTC · branch `feat/pre-release-engine` · HEAD `52417
 
 </details>
 
-<details><summary>E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant (3/4)</summary>
+<details> ✅<summary>E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
 | E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | ✅ DONE | [`8f0ce0a`](https://github.com/shaahink/DevContext2/commit/8f0ce0a) |
-| E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | ✅ DONE | - |
-| E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | ⬜ TODO | - |
+| E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | ✅ DONE | [`f686e25`](https://github.com/shaahink/DevContext2/commit/f686e25) |
+| E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | ✅ DONE | [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) |
 
 </details>
 
@@ -110,6 +110,7 @@ _Updated 2026-08-13 23:01 UTC · branch `feat/pre-release-engine` · HEAD `52417
 | 16 | E1 | Deliver | 1 | 08-13 20:44 | 1:00 | Advanced | E1.1 | 16 | gates green (none configured) | $16.6244 |  | 233,800/97,827 |
 | 17 | E1 | Deliver | 1 | 08-13 21:45 | 0:26 | Advanced | E1.2 | 5 | gates green (none configured) | $11.4408 |  | 180,795/74,866 |
 | 18 | E1 | Deliver | 1 | 08-13 22:11 | 0:49 | Advanced | E1.3 | 3 | gates green (none configured) | $11.5717 |  | 165,321/83,648 |
+| 19 | E1 | Deliver | 1 | 08-13 23:01 | 0:33 | Advanced | E1.4 | 2 | gates green (none configured) | $13.3545 |  | 204,970/89,424 |
 
 ## Money
 
@@ -117,29 +118,19 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 17 | 159.2M | 98.5% | $113.31 | 9 | 17.7M | $12.59 |
+| **run total** | 19 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
-| stage E1 | 10 | 39.9M | 98.5% | $28.42 | 2 | 20M | $14.21 |
-| 2026-08 | 17 | 159.2M | 98.5% | $113.31 | 9 | 17.7M | $12.59 |
+| stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
+| 2026-08 | 19 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
 
-_Where the money goes: agent $113.10 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
+_Where the money goes: agent $138.02 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 20:56:25  ◆ plan reloaded — v1 · 7 stages · 3 gates
-08-13 20:56:29  • session #7 V1 Deliver started (attempt 1/4)
-08-13 21:22:43  • session #7 V1 → Advanced · done V1.3 · 3 commit(s)  (26m13s)
-08-13 21:34:00  ▪ gate fast-engine pass [phase]  (2m18s)
-08-13 21:34:00  ▪ gate guards pass [phase]  (1m21s)
-08-13 21:34:00  ▪ gate battery pass [phase]  (7m35s)
-08-13 21:34:01  ✓ checkpoint V1.1 confirmed
-08-13 21:34:01  ✓ checkpoint V1.2 confirmed
-08-13 21:34:01  ✓ checkpoint V1.3 confirmed
-08-13 21:34:01  ▸ stage V1 confirmed  (1h47m22s)
 08-13 21:34:06  ▸ stage E1 entered — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant
 08-13 21:34:06  • session #8 E1 Deliver started (attempt 1/8)
 08-13 21:35:03  • session #8 E1 → AgentError  (57.0s)
@@ -170,6 +161,16 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 22:45:06  • session #17 E1 Deliver started (attempt 1/8)
 08-13 23:11:18  • session #17 E1 → Advanced · done E1.2 · 5 commit(s)  (26m12s)
 08-13 23:11:18  • session #18 E1 Deliver started (attempt 1/8)
+08-14 00:01:23  • session #18 E1 → Advanced · done E1.3 · 3 commit(s)  (50m05s)
+08-14 00:01:24  • session #19 E1 Deliver started (attempt 1/8)
+08-14 00:35:47  • session #19 E1 → Advanced · done E1.4 · 2 commit(s)  (34m22s)
+08-14 00:54:48  ▪ gate fast-engine pass [phase]  (4m18s)
+08-14 00:54:48  ▪ gate guards pass [phase]  (1m35s)
+08-14 00:54:48  ▪ gate battery pass [phase]  (12m59s)
+08-14 00:54:48  ✓ checkpoint E1.1 confirmed
+08-14 00:54:48  ✓ checkpoint E1.2 confirmed
+08-14 00:54:48  ✓ checkpoint E1.3 confirmed
+08-14 00:54:48  ✓ checkpoint E1.4 confirmed
 ```
 
 ## Health
@@ -177,7 +178,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 18 · retries 8 (44 %) · overall Alert
+sessions 19 · retries 8 (42 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -190,17 +191,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: clean
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s3 (T1 Deliver)** — 4 commit(s):
-  - [`788e0d4`](https://github.com/shaahink/DevContext2/commit/788e0d4) docs(t1.4): handoff - pre-fix worktree removed, recipe kept instead
-  - [`4aef713`](https://github.com/shaahink/DevContext2/commit/4aef713) docs(t1.4): handoff for stage V1 + tracker/report refresh
-  - [`1ee81eb`](https://github.com/shaahink/DevContext2/commit/1ee81eb) test(t1.4): the gate STEP proven red then green, and the pre-fix run attributed
-  - [`c246d77`](https://github.com/shaahink/DevContext2/commit/c246d77) feat(gates): the wire-truth gate - the battery finally speaks MCP (T1.4)
 - **s4 (T1 Fix)** — 5 commit(s):
   - [`8e17904`](https://github.com/shaahink/DevContext2/commit/8e17904) evidence(t1): second full battery - steps 0-4b green again after the node_modules install
   - [`44184cd`](https://github.com/shaahink/DevContext2/commit/44184cd) docs(t1): handoff - two faults behind the phase-gate RED, the second hidden by the first
@@ -242,27 +238,32 @@ vs upstream: up to date
   - [`52417c7`](https://github.com/shaahink/DevContext2/commit/52417c7) chore(e1): E1.3 handoff, plus the mcp-qa artifact a concurrent gate run left dirty
   - [`ed59465`](https://github.com/shaahink/DevContext2/commit/ed59465) docs(e1): E1.3 evidence - #7 closed at both ends on Hangfire, #8 re-filed with its true mechanism
   - [`f686e25`](https://github.com/shaahink/DevContext2/commit/f686e25) fix(graph): the invariant refusal is COUNTED, and #8 gets its regression fixture (E1.3)
+- **s19 (E1 Deliver)** — 2 commit(s):
+  - [`1fbadde`](https://github.com/shaahink/DevContext2/commit/1fbadde) fix(graph): a REQUEST MARKER is not a handler, and its type arg is the RESPONSE (E1.4)
+  - [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) eval(e1): the class-C impact question, asked of the engine over a real MCP session (E1.4)
+
+## Last gate run
+
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> SESSION-RESULT:** E1.3 is landed, claimed (`conductor task --done E1.3 --evidence eval-results/2026-08-13/e1-typenode/E1.3-EVIDENCE.md`) and pushed at `52417c7` on `feat/pre-release-engine` (code `f686e25`, evidence `ed59465`); working tree clean, probe worktree removed. Both bugs turned out to be already closed by V1.3/E1.2 — so the deliverable became proving that at both ends rather than asserting it. **#7:** a CLI built at `0fd1cbe` in a throwaway worktree dumps Hangfire with `Type:Hangfire.StackTraceHtmlFragments::Type(1)` at inDegree 26 — the bug verbatim — plus a second instance of the class nobody had reported (`ConsoleSample.Services::Random(1)`); at HEAD both are gone and nothing co…
+> SESSION-RESULT: E1.4 is claimed DONE with an amend rather than a green, because I ran its acceptance and one half of it fails — honestly and with the reason attributed. **Half B (the batch matrix) passes on every cell declared before E1.1/E1.2 were coded**: `verified` rises on 7 of 7 poles, the engine's own approx share falls 82.7% → 54.4% against the pre-#11 baseline, `phantomT` is 0 on all seven, dogfood in-edges held, and the two `calls` falls were already attributed edge-by-edge in E1.2. **Half A (the probe's class-C impact question on eShop) fails 3 of 6 key items**, measured over a real MCP session with server identity verified: `impact(up)` on `CreateOrderCommandHandler` returns **two…
 
 ## Tracker handoff
 
 ```
-E1.3 IS DONE (evidence eval-results/2026-08-13/e1-typenode/E1.3-EVIDENCE.md; commits f686e25 code,
-ed59465 evidence). #7 and #8 were BOTH already closed by V1.3/E1.2 -- E1.3 proved it at both ends
-instead of assuming it, and the proofs are the useful part. #7: a CLI built at 0fd1cbe dumps Hangfire
-with Type:...StackTraceHtmlFragments::Type(1) inDegree 26 (verbatim) plus a second instance nobody had
-reported, ConsoleSample.Services::Random(1); at HEAD both gone, nothing collapsed (928->994 nodes).
-#8: filed mechanism REFUTED -- lambda bodies were always walked; the real one is an UNTYPED lambda
-parameter (no syntactic scope, Tier B only), and the fixtures are RED at 795b71b / green at HEAD, so
-E1.2's span fix is what closed it. NEW WORK THAT STANDS ALONE: the V1.3 refusal was SILENT (it drops
-the node AND every edge that wanted it) -- now counted + reported as a GraphInvariants diagnostic with
-a positive-control test, swept 0/0 on all 7 poles.
-NEXT: E1.4 (batch acceptance, probe class-C question on eShop). Read tracked bug #6 FIRST: attributing
-the DevContext matrix delta found that LINQ calls bind to the receiver ROOT's type, minting member
-nodes that do not exist -- 126/2453 Calls edges, 66 distinct phantoms on our own pole. Member-side
-sibling of #7, bigger than #7, and INV-A cannot see it. It will distort any impact-set count E1.4
-makes. Also still open: bug #5 (Tier-A-only projects still lose the untyped-lambda edge).
+E1.4 CLAIMED with an AMEND, not a green: half B (batch matrix) passes on every declared cell across
+all 7 poles; half A (class-C impact set on eShop) FAILS 3/6 key items and cannot be met inside E1.
+Evidence eval-results/2026-08-14/e1-batch/E1.4-EVIDENCE.md; commits 6d0dbac measurement, then the fix.
+THE NUMBER TO CARRY: impact(up) on CreateOrderCommandHandler = 2 nodes (the command, and Type:bool).
+impact(both) is an undirected 207/1137-node flood, so every "resolved" key item was a dragnet hit.
+Five mechanisms attributed and FILED as bugs #7-#13. The blocker is #7 = backlog #14: Sends stops at
+IdentifiedCommand`2 and never names CreateOrderCommand -- that is D1.3's own filed item, so E1.4
+should be RE-OPENED AFTER D1.3, not re-attempted here. Bugs #8 (inherited-interface Handles join) and
+#12 (no cross-service event join) are the other two blockers.
+LANDED THIS SESSION: eval/mcp-qa/classc-impact.js (repeatable, scores against the sealed key), and the
+one E1-scoped defect FIXED red-first -- a request marker (`X : IRequest<bool>`) was read as a HANDLER,
+minting Type:bool and Type:R (a generic parameter) and 8 false edges. Renderers updated with it (R-T1).
+NEXT: R1.1 (recalibrate #22/#23/#24 against the post-E1 graph). Bugs #5 and #6 still open.
 ```
