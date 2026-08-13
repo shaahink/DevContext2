@@ -1,17 +1,17 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 18:36 UTC · branch `feat/pre-release-engine` · HEAD `8e17904`_
+_Updated 2026-08-13 18:46 UTC · branch `feat/pre-release-engine` · HEAD `abfa564`_
 
 **Status:** Idle
-**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 1
+**Stage:** T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) · attempts used 0
 **Checkpoints:** 4/20 done · **Sessions run:** 4 · **Cost:** $48.3830 (agent $48.2742 + gates $0.1088) · **Tokens:** 690,104 in / 313,753 out
-**Pending:** full-battery phase gate for T1
+**Confirmed phases:** T1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | gating… |
+| T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ░░░░░░░░░░ 0/3 | todo |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ░░░░░░░░░░ 0/4 | todo |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
@@ -103,11 +103,11 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
-| stage T1 | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
-| 2026-08 | 3 | 47.2M | 98.4% | $34.44 | 4 | 11.8M | $8.61 |
+| **run total** | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
+| stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
+| 2026-08 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 
-_Where the money goes: agent $34.36 (100%) · gate $0.08 (0%) · blended $0.73/M tokens._
+_Where the money goes: agent $48.27 (100%) · gate $0.11 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
@@ -134,6 +134,14 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 18:59:50  • session #4 T1 Fix started (attempt 2/6)
 08-13 19:36:05  ▪ gate fast-engine pass [session]  (3m22s)
 08-13 19:36:05  ▪ gate guards pass [session]  (1m08s)
+08-13 19:36:11  • session #4 T1 → Progress · 5 commit(s)  (36m21s)
+08-13 19:46:33  ▪ gate fast-engine pass [phase]  (2m16s)
+08-13 19:46:33  ▪ gate guards pass [phase]  (51.7s)
+08-13 19:46:33  ▪ gate battery pass [phase]  (7m12s)
+08-13 19:46:33  ✓ checkpoint T1.1 confirmed
+08-13 19:46:33  ✓ checkpoint T1.2 confirmed
+08-13 19:46:33  ✓ checkpoint T1.3 confirmed
+08-13 19:46:33  ✓ checkpoint T1.4 confirmed
 ```
 
 ## Health
@@ -141,8 +149,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 4 · retries 1 (25 %) · overall Ok
-✓ no health concerns detected
+sessions 4 · retries 1 (25 %) · overall Warn
+⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
 ```
 
 ## Repo
@@ -151,7 +159,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M eval-results/2026-08-13/mcp-qa.md, M eval-results/2026-08-13/t1-battery-fix/post-fix-battery-2.log
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md, M eval-results/2026-08-13/t1-battery-fix/post-fix-battery-2.log
 vs upstream: up to date
 ```
 
@@ -179,7 +187,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
