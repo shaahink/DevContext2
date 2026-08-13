@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 23:05 UTC · branch `feat/pre-release-desktop` · HEAD `fa5a1a1`_
+_Updated 2026-08-13 23:16 UTC · branch `feat/pre-release-desktop` · HEAD `951a836`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 29m ago, 20:36:43Z]
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [2h 39m ago, 20:36:43Z]
 **Stage:** M1 — Hygiene + Reader prerequisites (proto/mapper shopping list) · attempts used 1
-**Checkpoints:** 9/16 done · **Sessions run:** 15 · **Cost:** $97.1654 (agent $96.9938 + gates $0.1716) · **Tokens:** 1,530,996 in / 609,209 out
+**Checkpoints:** 9/16 done · **Sessions run:** 16 · **Cost:** $99.7996 (agent $99.6281 + gates $0.1716) · **Tokens:** 1,590,346 in / 633,124 out
 **Confirmed phases:** N0, N1, N2
+**Pending:** full-battery phase gate for M1
 
 ## Stage progress
 
@@ -103,6 +104,7 @@ _Updated 2026-08-13 23:05 UTC · branch `feat/pre-release-desktop` · HEAD `fa5a
 | 13 | N2 | Deliver | 1 | 08-13 20:44 | 0:23 | Advanced | N2.2 | 3 | gates green (none configured) | $9.0389 |  | 144,356/58,449 |
 | 14 | M1 | Deliver | 1 | 08-13 21:48 | 0:35 | Advanced | M1.1 | 15 | gates green (none configured) | $13.9233 |  | 184,289/75,385 |
 | 15 | M1 | Deliver | 1 | 08-13 22:23 | 0:35 | Advanced | M1.2 | 2 | gates green (none configured) | $13.2104 |  | 181,392/72,474 |
+| 16 | M1 | Fix | 2 | 08-13 23:05 | 0:10 | Progress |  | 2 | gates green (none configured) | $2.6342 |  | 59,350/23,915 |
 
 ## Money
 
@@ -124,8 +126,6 @@ _Where the money goes: agent $96.99 (100%) · gate $0.17 (0%) · advisor $0.02 (
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:18:12  ▪ gate fast-app pass [session]  (3m26s)
-08-13 21:18:12  ▪ gate fast-engine pass [session]  (2m09s)
 08-13 21:18:12  ▪ gate guards pass [session]  (1m24s)
 08-13 21:18:23  • session #6 N2 → Advanced · done N2.1 · 3 commit(s)  (29m09s)
 08-13 21:18:24  ◆ plan reloaded — v1 · 7 stages · 4 gates
@@ -164,6 +164,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:05:41  ▪ gate fast-app FAIL [phase]  (47.6s)
 08-14 00:05:41  ▪ gate fast-engine pass [phase]  (1m51s)
 08-14 00:05:42  ▪ gate guards pass [phase]  (1m06s)
+08-14 00:05:42  ▪ gate battery FAIL [phase]  (56.6s)
+08-14 00:05:51  • session #16 M1 Fix started (attempt 2/4)
 ```
 
 ## Health
@@ -171,7 +173,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 15 · retries 6 (40 %) · overall Alert
+sessions 16 · retries 7 (44 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ```
@@ -182,15 +184,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+working tree: clean
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s2 (N0 Deliver)** — 2 commit(s):
-  - [`1097e7a`](https://github.com/shaahink/DevContext2/commit/1097e7a) docs(tracker): N0 closed - handoff points at N1.1 and names the four backlog entries it should read instead of re-measuring
-  - [`823de02`](https://github.com/shaahink/DevContext2/commit/823de02) docs(backlog): N0.3 - the 3.F inventory filed with re-measured loci, and the pages get their smoke coverage
 - **s3 (N0 Fix)** — 3 commit(s):
   - [`c1da823`](https://github.com/shaahink/DevContext2/commit/c1da823) docs(tracker): N0 phase gate is GREEN - both reds were pre-existing, neither was N0's
   - [`32639c6`](https://github.com/shaahink/DevContext2/commit/32639c6) fix(app-tests): pay the elkjs bootstrap in a hook, not in the first assertion
@@ -235,71 +234,29 @@ vs upstream: up to date
 - **s15 (M1 Deliver)** — 2 commit(s):
   - [`e928f7a`](https://github.com/shaahink/DevContext2/commit/e928f7a) feat(app): the M1.2 hygiene batch - four surfaces stop over-claiming
   - [`7ccbf56`](https://github.com/shaahink/DevContext2/commit/7ccbf56) fix(map): MapResponse.stack stops shipping empty to three readers
-
-## Last gate run
-
-fast-app:FAIL-retry · fast-engine:OK · guards:OK · battery:FAIL-retry
-
-<details><summary>fast-app — exit 5</summary>
-
-```
-[conductor] retried once (SC4.1): the first attempt exited 5 after 45s. Below is the SECOND run.
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 1 orphaned process(es)
-
---- Step 1: Build solution ---
-  PASS  Build succeeded
-
---- Step 1a: Contract sweep (dead proto fields) ---
-  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
-
---- Step 5: App check (pnpm check) ---
- > devcontext-app@0.0.0 check C:\Code\DevContext2-desktop\src\DevContext.App > pnpm lint && pnpm test && pnpm build   > devcontext-app@0.0.0 lint C:\Code\DevContext2-desktop\src\DevContext.App > ng lint   Linting "devcontext-app"...  C:\Code\DevContext2-desktop\src\DevContext.App\src\app\features\pages\workbench-page.spec.ts   136:24  error  Type literal only has a call signature, you should use a function type instead  @typescript-eslint/prefer-function-type  ✖ 1 problem (1 error, 0 warnings)   1 error and 0 warnings potentially fixable with the `--fix` option.  Lint errors found in the listed files. System.Management.Automation.RemoteException  ELIFECYCLE  Command failed with exit code 1.  ELIFECYCLE  Command failed with exit code 1.
-  FAIL  pnpm check failed
-
-GATE: FAIL (step 5 - app check)
-```
-</details>
-
-<details><summary>battery — exit 5</summary>
-
-```
-[conductor] retried once (SC4.1): the first attempt exited 5 after 27s. Below is the SECOND run.
---- Step 0: Clear orphaned build-locking processes ---
-  PASS  Cleared 1 orphaned process(es)
-
---- Step 1: Build solution ---
-  PASS  Build succeeded
-
---- Step 1a: Contract sweep (dead proto fields) ---
-  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
-
---- Step 5: App check (pnpm check) ---
- > devcontext-app@0.0.0 check C:\Code\DevContext2-desktop\src\DevContext.App > pnpm lint && pnpm test && pnpm build   > devcontext-app@0.0.0 lint C:\Code\DevContext2-desktop\src\DevContext.App > ng lint   Linting "devcontext-app"...  C:\Code\DevContext2-desktop\src\DevContext.App\src\app\features\pages\workbench-page.spec.ts   136:24  error  Type literal only has a call signature, you should use a function type instead  @typescript-eslint/prefer-function-type  ✖ 1 problem (1 error, 0 warnings)   1 error and 0 warnings potentially fixable with the `--fix` option.  Lint errors found in the listed files. System.Management.Automation.RemoteException  ELIFECYCLE  Command failed with exit code 1.  ELIFECYCLE  Command failed with exit code 1.
-  FAIL  pnpm check failed
-
-GATE: FAIL (step 5 - app check)
-```
-</details>
+- **s16 (M1 Fix)** — 2 commit(s):
+  - [`951a836`](https://github.com/shaahink/DevContext2/commit/951a836) docs(tracker): handoff for the M1 gate-red fix + file bug #8
+  - [`ad0eaff`](https://github.com/shaahink/DevContext2/commit/ad0eaff) fix(app): the lint error that failed M1 twice
 
 ## Last session result
 
-> SESSION-RESULT: **M1.2 (Hygiene) is DONE — all five items landed, claimed via `conductor task --done M1.2 --evidence eval-results/2026-08-13/M1.2-hygiene.md`, in two commits (7ccbf56 engine/wire, e928f7a app), branch pushed, tree clean.** (1) `MapResponse.stack` had three readers (identity strip, Atlas chip header, MCP `overview`) and *no writer* — measured, not read off the audit — because the tags were computed inside `MapRenderer.AppendStack` and never left the markdown; verdict was POPULATE since the fact already shipped on the CLI, so `MapBuilder.BuildStack` now owns the list, the renderer joins it, `ProtoMapper` copies it, and the architecture goldens did **not** move (that's the behav…
+> SESSION-RESULT: I fixed the sole cause of the M1 gate RED — a `@typescript-eslint/prefer-function-type` lint error at `workbench-page.spec.ts:136` in the spec file session #15 added for the M1.2 dock resizer — by rewriting `{ (): number | null }` to `() => number | null`, a type-identical change that weakens nothing (no test deleted or skipped, no `eslint-disable`, no rule downgraded, no gate command softened, no golden touched); I then re-ran the gate's own step 5 in full rather than only the red step, since `pnpm check` short-circuits and had therefore never reached test or build, and it is now green with `pnpm lint` exit code 0, 25 test files / 224 tests passed, and `ng build` clean in 11…
 
 ## Tracker handoff
 
 ```
-M1.2 IS DONE — all five hygiene items (evidence eval-results/2026-08-13/M1.2-hygiene.md). Stage M1 is
-now closed (M1.1 + M1.2). NEXT: N3.1 (Send-to-Studio) — the first TODO card left on the board.
-Landed: MapResponse.stack is populated from MapModel.Stack (built once in MapBuilder.BuildStack; the
-markdown renderer now JOINS that list, goldens did not move) — bug #7 filed AND fixed; Layer/Feature
-lens chips render only when the analysis carries the facet (stage.ts lensFacets, + an effect that
-falls a stranded lens back to Service); createTab returns string|null and single-instance no longer
-analyzes a dropped repo into the user's active tab at the cap; a dock resizer (20-70%, persisted as
-prefs.dockWidth, Home/dblclick reset, level change clears it); Settings renders themes from the vibe's
-own list, so high-contrast is finally selectable. GitHub-URL dead code untouched (owner call).
-TRAPS PAID: Assert.Equal(collection-expression, someImmutableArray) NEVER passes — ImmutableArray<T>
-is IEquatable by REFERENCE, so the two print identical while failing; call .ToArray() on the actual.
-contract-sweep only catches fields with no READERS — a field with readers and no writer is invisible
-to it. pnpm ng build is ~193s; typecheck specs with `tsc -p tsconfig.spec.json` first, it is ~20s.
+Stage M1 gate is GREEN again (ad0eaff). s15's five M1.2 deliverables were sound; the spec file it
+ADDED had never been linted, and that one error failed fast-app + battery twice each. Fix =
+workbench-page.spec.ts:136, `dockWidthOverride: { (): number | null }` → `() => number | null`, a
+type-identical rewrite — no test skipped, no eslint-disable, no rule downgraded. Evidence
+eval-results/2026-08-13/M1-gate-red-lint-fix.md: lint exit 0, 25 files / 224 tests, ng build clean
+(112s), zero ELIFECYCLE. Also filed bug #8: GitHub-URL dead code re-measured today (3 files, zero
+real importers) and left UNDECIDED, as the stage requires. NEXT: N3.1, first TODO on the board.
+TRAP, and it will fire on the next new spec: `tsc -p tsconfig.spec.json` CANNOT catch this class —
+both spellings are the SAME TYPE — and `ng build` never compiles specs. Only `ng lint` separates
+them, so lint any NEWLY ADDED spec before claiming green. prefer-function-type fires only when a
+call signature is the literal's SOLE member (line 134's two-member version is legal — why the bad
+line looked fine). pnpm check SHORT-CIRCUITS: a lint-red gate never ran test or build, re-run all 3.
+Still standing: Assert.Equal(collection-expr, ImmutableArray) never passes (IEquatable by REFERENCE
+— .ToArray() the actual); contract-sweep only catches fields with NO readers. ng build ~112-193s.
 ```
