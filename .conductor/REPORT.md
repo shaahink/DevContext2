@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-13 21:07 UTC · branch `feat/pre-release-desktop` · HEAD `2ceb4b3`_
+_Updated 2026-08-13 21:48 UTC · branch `feat/pre-release-desktop` · HEAD `69f9004`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [31m ago, 20:36:43Z]
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [1h 11m ago, 20:36:43Z]
 **Stage:** N2 — Pack convergence - one pipeline, two faces (owner decision 2: FULL) · attempts used 0
 **Checkpoints:** 7/16 done · **Sessions run:** 13 · **Cost:** $70.0318 (agent $69.8602 + gates $0.1716) · **Tokens:** 1,165,315 in / 461,350 out
-**Confirmed phases:** N0, N1
-**Pending:** full-battery phase gate for N2
+**Confirmed phases:** N0, N1, N2
 
 ## Stage progress
 
@@ -14,7 +13,7 @@ _Updated 2026-08-13 21:07 UTC · branch `feat/pre-release-desktop` · HEAD `2ceb
 |---|---|---|---|
 | N0 | Truth batch - no-decision honesty fixes on Studio + MCP page | ██████████ 3/3 | confirmed ✓ |
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
-| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | gating… |
+| N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ░░░░░░░░░░ 0/2 | todo |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ░░░░░░░░░░ 0/2 | todo |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
@@ -44,7 +43,7 @@ _Updated 2026-08-13 21:07 UTC · branch `feat/pre-release-desktop` · HEAD `2ceb
 | # | Title | Status | Commit |
 |---|---|---|---|
 | N2.1 | BuildMulti adopts the ResolveEntry path (symbol-rooted cards); `usage` joins CardTypeSections; picker gains a Types tab (LibrarySurface list) + D-G row identity (target member + route tail + project) | ✅ DONE | [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) |
-| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | ✅ DONE | - |
+| N2.2 | Honesty-note parity with get_context (fill-rate note + suggested focuses in the rail); budget default reconciled to one stated number; ACCEPTANCE: a FluentValidation pack composed from types, with usage and verified counts, end to end | ✅ DONE | [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) |
 
 </details>
 
@@ -109,26 +108,19 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
+| **run total** | 13 | 95M | 98.3% | $70.05 | 7 | 13.6M | $10.01 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
-| stage N2 | 7 | 24.3M | 98.3% | $17.63 | 1 | 24.3M | $17.63 |
-| 2026-08 | 12 | 82.5M | 98.3% | $61.01 | 6 | 13.8M | $10.17 |
+| stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
+| 2026-08 | 13 | 95M | 98.3% | $70.05 | 7 | 13.6M | $10.01 |
 
-_Where the money goes: agent $60.82 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
+_Where the money goes: agent $69.86 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.74/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 19:15:35  • session #4 N1 Deliver started (attempt 1/4)
-08-13 19:54:34  ▪ gate fast-app pass [session]  (3m36s)
-08-13 19:54:34  ▪ gate guards pass [session]  (1m11s)
-08-13 19:54:40  • session #4 N1 → Advanced · done N1.1 · 11 commit(s)  (39m05s)
-08-13 19:54:40  • session #5 N1 Deliver started (attempt 1/4)
-08-13 20:22:33  ▪ gate fast-app pass [session]  (3m17s)
-08-13 20:22:33  ▪ gate guards pass [session]  (1m37s)
 08-13 20:22:43  • session #5 N1 → Advanced · done N1.2 · 3 commit(s)  (28m02s)
 08-13 20:49:07  ▪ gate fast-app pass [phase]  (6m05s)
 08-13 20:49:07  ▪ gate guards pass [phase]  (1m51s)
@@ -162,6 +154,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-13 21:36:37  • session #12 N2 → AgentError  (19.6s)
 08-13 21:36:43  ■ needs human — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 08-13 21:44:15  • session #13 N2 Deliver started (attempt 1/6)
+08-13 22:07:39  • session #13 N2 → Advanced · done N2.2 · 3 commit(s)  (23m24s)
+08-13 22:48:23  ▪ gate fast-app pass [phase]  (14m03s)
+08-13 22:48:23  ▪ gate fast-engine pass [phase]  (4m34s)
+08-13 22:48:23  ▪ gate guards pass [phase]  (3m29s)
+08-13 22:48:23  ▪ gate battery pass [phase]  (18m29s)
+08-13 22:48:23  ✓ checkpoint N2.1 confirmed
+08-13 22:48:23  ✓ checkpoint N2.2 confirmed
 ```
 
 ## Health
@@ -179,7 +178,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -220,6 +219,10 @@ vs upstream: up to date
   - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
   - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
   - [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) feat(studio): N2.2 honesty-note parity + one pack-budget number
+
+## Last gate run
+
+fast-app:OK · fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
