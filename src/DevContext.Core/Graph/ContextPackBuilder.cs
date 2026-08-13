@@ -18,13 +18,29 @@ public sealed class ContextPackBuilder
     private readonly GraphQuery _query;
     private readonly AnalysisSnapshot _snapshot;
 
+    /// <summary>N2.2 — THE token ceiling default, one number for both faces of the pipeline.
+    /// It was written 8000 in the MCP tool signature, 8000 in three server fallbacks, 8000 in the
+    /// app's API client — and 4000 in the desktop's own preference default, which is the number the
+    /// Studio actually opened with. So the human's pack was priced at half the agent's and nothing
+    /// said so. Every C# site now reads this constant; the app states the same number
+    /// (DEFAULT_STUDIO_BUDGET in prefs.store.ts) and its slider marks it as the default.
+    /// <para>NOT the same number as <see cref="TracePolicy.DefaultBudgetTokens"/> (4000) and not a
+    /// drift from it: that one budgets a single TRACE, this one budgets a whole PACK spread over N
+    /// focuses. The 4000 the Studio had is most likely exactly that confusion, which is why both
+    /// constants now say what they budget.</para></summary>
+    public const int DefaultBudgetTokens = 8000;
+
+    /// <summary>N2.2 — the fill floor the pack promises (T4.2). Below it, the pack owes the reader
+    /// a reason; see <see cref="BuildFillNote"/>. Same 85% the MCP honesty layer has used since D5.1.</summary>
+    public const int FillPromisePercent = 85;
+
     public ContextPackBuilder(GraphQuery query, AnalysisSnapshot snapshot)
     {
         _query = query;
         _snapshot = snapshot;
     }
 
-    public ContextPack Build(string focus, int budgetTokens = 8000, string? intent = null)
+    public ContextPack Build(string focus, int budgetTokens = DefaultBudgetTokens, string? intent = null)
     {
         // T5.2 — unified addressing (T3.1 rule): a nodeId or bare route resolves like it does
         // in BuildMulti before tracing. Without this, VerifyContext(focus=nodeId) traced null
@@ -534,7 +550,7 @@ public sealed class ContextPackBuilder
     /// one traced), so a card with entries [A, B] gets trace content from both.</summary>
     public MultiContextPack BuildMulti(
         IReadOnlyList<ContextCardSpec> cards,
-        int totalBudget = 8000,
+        int totalBudget = DefaultBudgetTokens,
         string? intent = null)
     {
         // N2.1 — resolve every card entry id ONCE, through the two-tier path (declared entry, then
@@ -728,6 +744,17 @@ public sealed class ContextPackBuilder
         var verification = new ContextPackVerifier(_snapshot)
             .Verify([.. byKey.Values.OrderBy(s => s.Section, StringComparer.Ordinal)]);
 
+        // N2.2 (audit §4 wire item / decision 2) — HONESTY-NOTE PARITY. The ≥85%-fill promise has
+        // never failed silently for the agent: `get_context` has said WHY since D5.1 (budget-cut vs
+        // content-exhausted) and offered better-connected focuses. The Studio rendered the same
+        // server bytes with none of it, so the human's pack was the less honest of the two. Computing
+        // it HERE, in the kernel, rather than a second time in the Angular client is what stops the
+        // Studio from becoming a third opinion. (MCP's get_context still computes its own over the
+        // single-focus ContextResponse — that RPC does not carry these fields; the duplication is
+        // filed, not fixed here.) Suggestions are only built for the content-exhausted case — a
+        // budget-cut pack's next move is the slider, not a different focus.
+        var (fillNote, suggested) = BuildFillNote(allTokens, totalBudget, omitted, uniqueFocuses);
+
         return new MultiContextPack(
             cardItems.ToImmutable(),
             sb.ToString(),
@@ -735,6 +762,8 @@ public sealed class ContextPackBuilder
             allocatedTokens,    // budget handed to entries that produced sections (≤ totalBudget)
             [.. omitted])
         {
+            FillNote = fillNote,
+            SuggestedFocuses = suggested,
             Verification = verification,
             // "unknown" (no analyze-time fingerprint) is honesty, not drift — same rule the
             // per-section verdict uses, so the pack-level flag agrees with the list under it.
@@ -742,6 +771,65 @@ public sealed class ContextPackBuilder
             AnalyzedGitHead = _snapshot.GitHead ?? "",
             CurrentGitHead = GitHeadReader.Read(_snapshot.RootPath) ?? "",
         };
+    }
+
+    /// <summary>N2.2 — the fill-rate honesty note (and, when it would help, better-connected
+    /// focuses). Lifted verbatim in behaviour from the MCP get_context layer (DevContextTools
+    /// D5.1/G1) so the Studio and the agent get the SAME verdict from the SAME code, rather than
+    /// two implementations that agree until one is edited.
+    /// <para>An under-filled pack is not automatically a failure: it means either the budget cut
+    /// content out (raise the ceiling — the omitted list names what went) or the focus's connected
+    /// subgraph is simply small and everything reachable is already here. Only the second case can
+    /// be answered by picking a different focus, so only it carries suggestions.</para></summary>
+    internal (string? Note, ImmutableArray<SuggestedFocus> Suggested) BuildFillNote(
+        int totalTokens, int totalBudget, IReadOnlyList<string> omitted,
+        IReadOnlyList<(string Focus, int Reach)> packFocuses)
+    {
+        var fillPct = totalBudget > 0 ? (int)(totalTokens * 100L / totalBudget) : 100;
+        if (fillPct >= FillPromisePercent) return (null, []);
+
+        var budgetCut = omitted.Any(o =>
+            o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+            o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+        if (budgetCut)
+            return ($"fill {fillPct}%: sections were cut to fit the budget — raise the budget for the rest (see omitted).", []);
+
+        var note = $"fill {fillPct}%: the pack already contains everything reachable from these focuses — their connected subgraph is small (not an error; a smaller budget fits it).";
+        var suggested = SuggestConnectedFocuses(packFocuses);
+        if (suggested.Length > 0)
+            note += " Better-connected focuses are suggested below.";
+        return (note, suggested);
+    }
+
+    /// <summary>N2.2 — the repo's best-connected flows, excluding the ones this pack is already
+    /// built on. Same source and same ranking as MCP's SuggestConnectedFocuses: the ranked flow
+    /// list (score, then depth), depth ≥ 2 so a one-hop stub is never advertised as "better
+    /// connected". Empty on repos with no ranked flows (a class library) — the note then stands
+    /// alone, which is the honest answer there.</summary>
+    private ImmutableArray<SuggestedFocus> SuggestConnectedFocuses(
+        IReadOnlyList<(string Focus, int Reach)> exclude, int take = 4)
+    {
+        var flows = _query.Flows;
+        if (flows.IsDefaultOrEmpty) return [];
+
+        var excluded = new HashSet<string>(exclude.Select(e => e.Focus), StringComparer.OrdinalIgnoreCase);
+        return
+        [
+            .. flows
+                .Where(f => f.Steps.Length >= 2)
+                .OrderByDescending(f => f.Entry.Score)
+                .ThenByDescending(f => f.Steps.Length)
+                .Select(f => new SuggestedFocus(
+                    f.Entry.HttpMethod is { Length: > 0 } m && f.Entry.Route is { Length: > 0 } r
+                        ? $"{m} {r}"
+                        : f.Entry.Title,
+                    f.Entry.Kind.ToString(),
+                    f.Entry.Score,
+                    f.Steps.Length))
+                .Where(s => !excluded.Contains(s.Focus))
+                .DistinctBy(s => s.Focus, StringComparer.OrdinalIgnoreCase)
+                .Take(take),
+        ];
     }
 
     /// <summary>Returns all sections for a single focus + omitted reasons (no delimiting headers — raw content per section).</summary>
@@ -1208,4 +1296,17 @@ public sealed record MultiContextPack(
     public bool AnyStale { get; init; }
     public string AnalyzedGitHead { get; init; } = "";
     public string CurrentGitHead { get; init; } = "";
+
+    /// <summary>N2.2 — why this pack under-filled its budget, or null when it met the ≥85% promise.
+    /// The same sentence `get_context` has returned to agents since D5.1.</summary>
+    public string? FillNote { get; init; }
+
+    /// <summary>N2.2 — better-connected focuses, non-empty only for a content-exhausted under-fill
+    /// on a repo that has ranked flows.</summary>
+    public ImmutableArray<SuggestedFocus> SuggestedFocuses { get; init; } = [];
 }
+
+/// <summary>N2.2 — a next-move candidate offered with an under-filled pack: a focus string the
+/// pack builder accepts verbatim (route form when the entry has one, else its title), with the
+/// connectedness numbers that made it a candidate so the reader can judge the suggestion.</summary>
+public sealed record SuggestedFocus(string Focus, string Kind, double Score, int Depth);

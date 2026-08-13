@@ -23,6 +23,10 @@ interface StudioTestSurface {
   exportReady(): boolean;
   packDebounceMs: number;
   packVerification(): PackVerification | null;
+  // N2.2 — the server's fill-rate verdict, held as it arrived.
+  packFillNote(): string | null;
+  packSuggestedFocuses(): readonly { focus: string; kind: string; depth: number }[];
+  onSuggestedFocus(s: { focus: string; kind: string; depth: number }): void;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
   onBudgetChange(value: number): void;
   onIntentChange(intent: ContextIntent): void;
@@ -56,6 +60,10 @@ function packResponse(overrides: Partial<{
   anyStale: boolean;
   analyzedGitHead: string;
   currentGitHead: string;
+  // N2.2 — the fill-rate honesty note and its suggested next focuses. proto3 scalars are never
+  // absent on the wire, so the fake must not be either: "" is how the server says "no note".
+  fillNote: string;
+  suggestedFocuses: { focus: string; kind: string; score: number; depth: number }[];
 }> = {}): ContextPackResponse {
   // The server echoes the REQUEST card titles back on pack items (correlation key).
   const cards = (overrides.cards ?? [
@@ -84,6 +92,8 @@ function packResponse(overrides: Partial<{
     anyStale: overrides.anyStale ?? false,
     analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
     currentGitHead: overrides.currentGitHead ?? 'abc1234',
+    fillNote: overrides.fillNote ?? '',
+    suggestedFocuses: overrides.suggestedFocuses ?? [],
   } as unknown as ContextPackResponse;
 }
 
@@ -177,6 +187,80 @@ describe('ContextStudio', () => {
     const list = el.querySelector('[data-testid="omitted-list"]');
     expect(list).not.toBeNull();
     expect(list!.textContent).toContain('signatures: omitted (1450 tokens, budget exhausted)');
+  });
+
+  // N2.2 (audit §4) — HONESTY-NOTE PARITY. `get_context` has told agents WHY an under-filled pack
+  // under-filled since D5.1; the Studio rendered the same server bytes and said nothing, so the
+  // human's pack was the less honest of the two faces. These pin that the note is RENDERED, that
+  // its suggestions are ACTIONABLE, and that neither is invented here — "" means no note, and a
+  // note computed anywhere but ContextPackBuilder is the drift N2.2 exists to close.
+  it('renders the server fill note and its suggested focuses (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      fillNote: 'fill 41%: the pack already contains everything reachable from these focuses',
+      suggestedFocuses: [{ focus: 'POST /api/orders/', kind: 'HttpEndpoint', score: 9.5, depth: 6 }],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.packFillNote()).toContain('fill 41%');
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="fill-note"]')!.textContent).toContain('everything reachable');
+    expect(el.querySelector('[data-testid="suggested-focuses"]')!.textContent).toContain('POST /api/orders/');
+  });
+
+  it('says nothing when the pack met its fill promise, and drops the note with the pack (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    // "" on the wire is the server saying it owes no explanation — not an empty note to render.
+    expect(studio.packFillNote()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="fill-note"]')).toBeNull();
+
+    // And a note must never outlive the pack it describes: removing the last card drops both.
+    studio.onRemove(studio.cards()[0].id);
+    await flush();
+    fixture.detectChanges();
+    expect(studio.packFillNote()).toBeNull();
+    expect(studio.packSuggestedFocuses()).toEqual([]);
+  });
+
+  it('following a suggested focus adds a flow card for it, once (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      fillNote: 'fill 41%: the pack already contains everything reachable from these focuses',
+      suggestedFocuses: [{ focus: 'POST /api/orders/', kind: 'HttpEndpoint', score: 9.5, depth: 6 }],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+    const before = studio.cards().length;
+
+    // The focus string goes to the server verbatim — ContextPackBuilder accepts route form since
+    // N2.1, so there is nothing to resolve client-side.
+    studio.onSuggestedFocus({ focus: 'POST /api/orders/', kind: 'HttpEndpoint', depth: 6 });
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.cards().length).toBe(before + 1);
+    const added = studio.cards().at(-1)!;
+    expect(added.type).toBe('flow');
+    expect(added.entryIds).toEqual(['POST /api/orders/']);
+    expect(getContextPack.mock.calls.at(-1)![1]).toContainEqual(
+      expect.objectContaining({ type: 'flow', entryIds: ['POST /api/orders/'] }),
+    );
+
+    // A second click on the same suggestion is a no-op, not a duplicate card.
+    studio.onSuggestedFocus({ focus: 'POST /api/orders/', kind: 'HttpEndpoint', depth: 6 });
+    await flush();
+    expect(studio.cards().length).toBe(before + 1);
   });
 
   it('marks failed cards with the error and shows a retry affordance (T5.1 R4)', async () => {

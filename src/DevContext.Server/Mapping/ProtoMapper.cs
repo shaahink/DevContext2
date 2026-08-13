@@ -615,7 +615,14 @@ internal static class ProtoMapper
             AnyStale = pack.AnyStale,
             AnalyzedGitHead = pack.AnalyzedGitHead,
             CurrentGitHead = pack.CurrentGitHead,
+            // N2.2 — the fill-rate honesty note the agent has always had. "" means the pack met
+            // its fill promise; proto3 has no null, and the Studio renders on non-empty.
+            FillNote = pack.FillNote ?? "",
         };
+        resp.SuggestedFocuses.AddRange(pack.SuggestedFocuses.Select(s => new Proto.SuggestedFocus
+        {
+            Focus = s.Focus, Kind = s.Kind, Score = s.Score, Depth = s.Depth,
+        }));
         resp.Verification.AddRange(pack.Verification.Select(ToProtoSectionVerification));
         foreach (var card in pack.Cards)
         {

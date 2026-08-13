@@ -10,7 +10,7 @@ import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
 import { ToastService } from '../../ui/toast/toast';
-import { BudgetPanel } from './budget-panel';
+import { BudgetPanel, type SuggestedFocusVm } from './budget-panel';
 import { totalCardTokens } from './card-tokens';
 import { type ContextCard, CompositionView } from './composition-view';
 import { packPreviewHtml } from './pack-preview';
@@ -107,6 +107,9 @@ function errorText(err: unknown): string {
         class="w-48 shrink-0 border-l border-line bg-surface"
         [cards]="cards()"
         [omitted]="packOmitted()"
+        [fillNote]="packFillNote()"
+        [suggestedFocuses]="packSuggestedFocuses()"
+        (focusSuggestionPicked)="onSuggestedFocus($event)"
         [packPending]="packPending()"
         [exportReady]="exportReady()"
         [budget]="budgetTokens()"
@@ -193,6 +196,7 @@ export class ContextStudio {
     this.cards.set([]);
     this.serverPack.set(null);
     this.packOmitted.set([]);
+    this.clearPackHonesty();
     this.packTotals.set(null);
     this.packVerification.set(null);
     this.packPending.set(false);
@@ -248,6 +252,13 @@ export class ContextStudio {
 
   /** T5.1 (audit R1) — what the server cut, rendered in the budget panel. */
   protected readonly packOmitted = signal<readonly string[]>([]);
+
+  /** N2.2 (audit §4) — the server's fill-rate note and its suggested next focuses, held exactly
+   * as they arrived. Both are ContextPackBuilder's verdict, the same one `get_context` returns to
+   * an agent; deriving either here would recreate the drift N2.2 exists to close. Null/empty is
+   * the normal case: a pack that met its ≥85% fill promise owes no explanation. */
+  protected readonly packFillNote = signal<string | null>(null);
+  protected readonly packSuggestedFocuses = signal<readonly SuggestedFocusVm[]>([]);
 
   /** T5.6 — true from a pack-relevant change until the re-pack lands; gates Copy/Save. */
   protected readonly packPending = signal(false);
@@ -333,6 +344,25 @@ export class ContextStudio {
     this.schedulePack();
   }
 
+  /** N2.2 — the honesty note belongs to the pack that produced it; every path that drops a pack
+   * drops it too. A note left standing over a cleared or failed pack is stale advice, which is
+   * exactly the failure mode N2.2 is fixing on the other side. */
+  private clearPackHonesty(): void {
+    this.packFillNote.set(null);
+    this.packSuggestedFocuses.set([]);
+  }
+
+  /** N2.2 — following a suggestion. The focus string is one ContextPackBuilder accepts verbatim
+   * (route form, else the entry title), so it goes straight in as a flow card's entryId through
+   * the SAME resolver path N2.1 gave BuildMulti — no client-side lookup, nothing to resolve here.
+   * Already-carded focuses are dropped rather than duplicated; the server excludes the pack's own
+   * focuses, but a second click on the same suggestion should not stack a second card. */
+  protected onSuggestedFocus(s: SuggestedFocusVm): void {
+    if (!this.session.handle()) return;
+    if (this.cards().some((c) => c.entryIds.length === 1 && c.entryIds[0] === s.focus)) return;
+    this.onCardsChange([{ type: 'flow', title: s.focus, entryIds: [s.focus], estimatedLines: 0 }]);
+  }
+
   /** T5.6 (audit C1) — ONE re-pack path for every pack-relevant change (add/remove/reorder/
    * retry/budget/intent). Debounced; always sends the WHOLE card set, so the export can never
    * be a stale earlier batch (the pre-T5.6 pack held only the most recent add). config/tests
@@ -345,6 +375,7 @@ export class ContextStudio {
     if (this.cards().length === 0) {
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.clearPackHonesty();
       this.packTotals.set(null);
       this.packVerification.set(null);
       this.packPending.set(false);
@@ -376,6 +407,10 @@ export class ContextStudio {
       // split across a tag boundary; the probe caught headings double-spacing.)
       this.serverPack.set(pack.assembledMarkdown ? pack.assembledMarkdown.replace(/\r\n/g, '\n') : null);
       this.packOmitted.set(pack.omitted);
+      // N2.2 — proto3 has no null: "" is the server saying the pack met its fill promise.
+      this.packFillNote.set(pack.fillNote.length > 0 ? pack.fillNote : null);
+      this.packSuggestedFocuses.set(pack.suggestedFocuses.map(
+        (s) => ({ focus: s.focus, kind: s.kind, depth: s.depth })));
       // D4.5 (L4) — surface the server's token truth in the preview header.
       this.packTotals.set(pack.assembledMarkdown
         ? { total: pack.totalTokens, allocated: pack.allocatedTokens }
@@ -430,6 +465,7 @@ export class ContextStudio {
       const message = e instanceof Error ? e.message : 'Context pack request failed';
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.clearPackHonesty();
       this.packTotals.set(null);
       this.packVerification.set(null);
       this.cards.update((prev) => prev.map((c) => ({ ...c, loading: false, error: message })));
