@@ -126,6 +126,31 @@ public sealed partial class GraphBuilder
         g.SetEntries(enrichedEntries);   // T1.8 — projections read the true kind off this record, not node tags
         var violations = DetectLayerViolations(preGraph, archetype);
         var graph = g.Build(isSparse, hubCount, violations);
+        ReportInvariantRefusals(g, model);
         return (graph, enrichedEntries);
+    }
+
+    /// <summary>E1.3 (backlog #7) — the V1.3 invariants REFUSE a malformed node, and a refusal also
+    /// drops every edge that wanted it. Refusing silently is how the shape lived for months in the
+    /// first place, so the tally is reported: a non-empty one names a producer still minting the shape
+    /// (and the edges lost with it), an empty one is the healthy state and the number that lets a later
+    /// session say the class is closed rather than assume it.</summary>
+    private static void ReportInvariantRefusals(CodeGraphBuilder g, DiscoveryModel model)
+    {
+        if (g.RefusedNodes.Count == 0) return;
+
+        var invA = g.RefusedNodes.Count(r => r.Invariant == "INV-A");
+        var invB = g.RefusedNodes.Count - invA;
+        var examples = string.Join(" · ", g.RefusedNodes.Take(5).Select(r => $"{r.Invariant} {Excerpt(r.Key)}"));
+        model.AddDiagnostic(DiagnosticLevel.Info, "GraphInvariants",
+            $"refused {g.RefusedNodes.Count} distinct node key(s) — INV-A (kind Type with a member id): {invA}, "
+            + $"INV-B (expression text as a key): {invB}. Every edge that wanted one was dropped with it. "
+            + $"First: {examples}");
+
+        static string Excerpt(string key)
+        {
+            var oneLine = key.ReplaceLineEndings(" ");
+            return oneLine.Length <= 60 ? oneLine : oneLine[..60] + "…";
+        }
     }
 }

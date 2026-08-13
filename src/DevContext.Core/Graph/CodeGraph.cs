@@ -315,9 +315,24 @@ public sealed class CodeGraphBuilder
     private readonly List<Flow> _flows = [];
     private ImmutableArray<EntryPoint> _entries = [];
     private ImmutableArray<EventWire> _eventWiring = [];
+    private readonly List<(string Invariant, string Key)> _refused = [];
+    private readonly HashSet<string> _refusedSeen = new(StringComparer.Ordinal);
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
+
+    /// <summary>The DISTINCT node keys refused by the V1.3 invariants, in first-seen order (so it is
+    /// deterministic and bounded by the number of offending keys, not by how many producers retried
+    /// them). E1.3: a refusal deletes a node AND every edge that wanted it, so a silent one hides two
+    /// things at once — a producer regression, and however many edges went with it. #7's own history is
+    /// the argument: the producer minted <c>Type:…::Type(1)</c> for months and nothing counted it.
+    /// <see cref="GraphBuilder"/> reports this as a diagnostic; an empty list is the healthy state.</summary>
+    public IReadOnlyList<(string Invariant, string Key)> RefusedNodes => _refused;
+
+    private void Refuse(string invariant, string key)
+    {
+        if (_refusedSeen.Add(invariant + "|" + key)) _refused.Add((invariant, key));
+    }
 
     /// <summary>Adds a node, or MERGES into the existing one with the same id. Because a class collapses
     /// to one Type node touched by many passes (AddTypeNodes seeds the declaration; each join adds a role
@@ -354,8 +369,8 @@ public sealed class CodeGraphBuilder
         // that wanted it — the phantom leaves no half behind.
         if (node.Id.Kind == NodeKind.Type)
         {
-            if (Graph2.SymbolCanon.IsMemberKey(node.Id.Key)) return node;
-            if (Graph2.SymbolCanon.IsExpressionText(node.Id.Key)) return node;
+            if (Graph2.SymbolCanon.IsMemberKey(node.Id.Key)) { Refuse("INV-A", node.Id.Key); return node; }
+            if (Graph2.SymbolCanon.IsExpressionText(node.Id.Key)) { Refuse("INV-B", node.Id.Key); return node; }
             // Key is a name but the title is not: the title is derived, as V1.2 does for members.
             if (Graph2.SymbolCanon.IsExpressionText(node.Title))
                 node = node with { Title = Graph2.SymbolCanon.ShortNameOf(node.Id.Key) };

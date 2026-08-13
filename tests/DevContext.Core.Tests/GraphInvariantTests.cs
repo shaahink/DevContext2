@@ -89,6 +89,63 @@ public sealed class GraphInvariantTests
     }
 
     [Fact]
+    public void A_refusal_is_COUNTED_and_named_so_it_is_not_silent()
+    {
+        // E1.3 (#7): the refusal drops the node AND every edge that wanted it. Silently, that hides a
+        // producer regression and the lost edges together — which is exactly how Type:…::Type(1) lived
+        // for months. The tally is per DISTINCT key so repeated attempts by many passes count once.
+        var g = new CodeGraphBuilder();
+        var phantom = NodeId.ForType("Hangfire.StackTraceHtmlFragments::Type(1)");
+
+        g.AddNode(new GraphNode(phantom, "Type", NodeKind.Type));
+        g.AddNode(new GraphNode(phantom, "Type", NodeKind.Type));                      // same key, one entry
+        g.AddNode(new GraphNode(NodeId.ForType("o => o.Use()"), "o => o.Use()", NodeKind.Type));
+        g.AddNode(new GraphNode(NodeId.ForType("MyApp.Real"), "Real", NodeKind.Type)); // healthy: not counted
+
+        Assert.Equal(2, g.RefusedNodes.Count);
+        Assert.Equal("INV-A", g.RefusedNodes[0].Invariant);
+        Assert.Contains("::Type(1)", g.RefusedNodes[0].Key);
+        Assert.Equal("INV-B", g.RefusedNodes[1].Invariant);
+    }
+
+    [Fact]
+    public void The_refusal_tally_reaches_the_DIAGNOSTICS_of_a_real_build()
+    {
+        // The positive control for the sweep. Measuring "0 refusals" on seven poles only means
+        // something if a refusal WOULD have printed — so a producer is made to hand the graph a
+        // member-keyed type (the #7 shape, straight from model.Types) and the diagnostic is read back
+        // off the same DiscoveryModel the pipeline prints from.
+        var model = new DiscoveryModel();
+        model.Projects.Add(new ProjectInfo("Engine", @"C:/repo/src/Engine/Engine.csproj", "C#", [], [], []));
+        model.Types.TryAdd("Engine.Fragments::Type(1)", new TypeDiscovery
+        {
+            Id = "Engine.Fragments::Type(1)", Name = "Type", Namespace = "Engine",
+            FilePath = @"C:/repo/src/Engine/Fragments.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.Empty(graph.Nodes);
+        var d = Assert.Single(model.Diagnostics, x => x.Source == "GraphInvariants");
+        Assert.Contains("INV-A", d.Message);
+        Assert.Contains("::Type(1)", d.Message);
+    }
+
+    [Fact]
+    public void A_graph_with_no_malformed_node_reports_NO_refusal()
+    {
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForType("MyApp.Real"), "Real", NodeKind.Type));
+        g.AddNode(new GraphNode(NodeId.ForMember("MyApp.Real", "Do"), "Do", NodeKind.Member));
+        Assert.Empty(g.RefusedNodes);
+    }
+
+    [Fact]
     public void A_member_NODE_still_carries_its_member_id()
     {
         // The refusal is about the KIND, not the id: Member nodes are the ones that own "::".
