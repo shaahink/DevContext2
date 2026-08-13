@@ -1,23 +1,31 @@
-## Handoff (overwrite this block, <=12 lines, no history)
+﻿# DevContext pre-release - engine and agent face Phase Tracker
 
-E1.1 IS DONE (evidence eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md). #11 needed fixing in TWO
-producers, not one: CallGraphBinder makes member->member Calls edges ONLY inside the entry-seeded
-closure; PlainCallDetector makes member->TYPE Calls edges for every in-scope body. One shared rule now
-serves both -- SymbolTable.ResolveStaticReceiverType (unambiguous ResolveName + IsKnownFqn +
-TypeDeclaresMember). Dogfood invariant (Truth category, 28s) went 0/0/0 -> 3/3/7 in-edges. 7-pole
-before/after matrix in the same folder; TodoApi moved by 0 (negative control), DevContext 1380->2404.
-RED, PRE-EXISTING, NOT MINE: McpQaGateTests.McpQaHarness_Passes_Against_Dogfood (backlog #1 / conductor
-bug #1, shared port 5179 with the live desktop run) -- it also failed before my edit landed.
-NEXT: E1.2 (#12 TextSpan-on-BodyOp). Two things it inherits: (a) a NEW conductor bug -- a merged Calls
-edge keeps the FIRST resolution, not the best, so 14 of DevContext's 1380 pairs now read approx though
-one call site is semantically bound; fix it with E1.2's matrix, not surgically. (b) Bumping the BodyOp
-shape means bumping BodyFactsVersion (facts-v1) or stale cached facts are reused.
+**Plan:** DevContext pre-release - engine and agent face | **Branch:** `feat/pre-release-engine` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
+
+## Handoff (overwrite this block, ≤12 lines, no history)
+
+E1.2 IS DONE (evidence eval-results/2026-08-13/e1-span/E1.2-EVIDENCE.md; commits 8f0ce0a span fix,
+afee44b the gate it forced). BodyOp carries its own TextSpan; all five bind sites share one Relocate
+helper. verified rose on 7/7 poles (Hangfire 152->776, eShop 39->352); engine-own approx share
+90.4% -> 54.3%. THE LESSON: the declared HOLD cell "nodes unchanged" caught a real defect -- the span
+fix alone minted phantom BCL nodes everywhere (MediatR 174->255) because Law R2 KEEPS an
+out-of-solution bound id, so a semantically-bound framework static passed the Kind==Type check. Gated
+in BOTH producers on IsKnownFqn. The -5 calls on MediatR is a WIN, proven edge by edge by a two-sided
+build (lost-edge-diff.ps1/.txt): 18 lost BCL targets, 13 gained real MediatR types.
+NEXT: E1.3 (#8 re-measure, #7 Type-node fix). Three things it inherits: (a) #7's mechanism is now
+partly gated by afee44b -- RE-MEASURE Hangfire's ::Type(1) before fixing, it may already be gone.
+(b) the s16 conductor bug (merged edge keeps the FIRST resolution) still stands but its population
+changed -- re-count before sizing. (c) BodyFactsVersion needs no bump: measured, nothing reads it but
+its own pin test and the facts cache is in-memory per analysis.
+
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
 | Done | 7 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -45,7 +53,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | TODO | - | - |
+| E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | DONE | abfa564 | eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md |
 | E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | TODO | - | - |
 | E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | TODO | - | - |
 | E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | TODO | - | - |
