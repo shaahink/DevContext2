@@ -1,0 +1,130 @@
+{
+  "question": "eshop-c1",
+  "prompt": "I need to change the behaviour of CreateOrderCommandHandler in Ordering.API. What depends on it, directly or indirectly, and what could break? List everything, including anything outside Ordering.API.",
+  "mustMention": [
+    {
+      "name": "OrdersApi",
+      "resolved": true,
+      "hops": [
+        {
+          "step": 5,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "both",
+            "maxDepth": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "CreateOrderIdentifiedCommandHandler",
+      "resolved": false,
+      "hops": []
+    },
+    {
+      "name": "OrderStartedIntegrationEvent",
+      "resolved": true,
+      "hops": [
+        {
+          "step": 4,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "down",
+            "maxDepth": 4
+          }
+        },
+        {
+          "step": 5,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "both",
+            "maxDepth": 4
+          }
+        },
+        {
+          "step": 9,
+          "tool": "neighbors",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "out"
+          }
+        },
+        {
+          "step": 10,
+          "tool": "trace",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "focus": "CreateOrderCommandHandler",
+            "format": "compact"
+          }
+        },
+        {
+          "step": 11,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "query": "OrderStartedIntegrationEvent",
+            "direction": "down",
+            "maxDepth": 4
+          }
+        },
+        {
+          "step": 12,
+          "tool": "usages",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "query": "OrderStartedIntegrationEvent"
+          }
+        }
+      ]
+    },
+    {
+      "name": "OrderStartedIntegrationEventHandler",
+      "resolved": true,
+      "hops": [
+        {
+          "step": 5,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "both",
+            "maxDepth": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "NewOrderRequestHandlerTest",
+      "resolved": false,
+      "hops": []
+    }
+  ],
+  "mustNotMention": [
+    {
+      "name": "CreateOrderDraftCommandHandler",
+      "absent": false,
+      "hops": [
+        {
+          "step": 5,
+          "tool": "impact",
+          "arguments": {
+            "handle": "eb7df719eb0c4e3da409fcdc5c347d1c",
+            "nodeId": "Type:eShop.Ordering.API.Application.Commands.CreateOrderCommandHandler",
+            "direction": "both",
+            "maxDepth": 4
+          }
+        }
+      ]
+    }
+  ],
+  "identityOk": true,
+  "verdict": "FAIL"
+}

@@ -115,7 +115,13 @@ public sealed partial class GraphBuilder
 
         var knownHandlerTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
+        {
+            // E1.4 — the subject of a request-marker detection is a REQUEST. Seeding it here told the
+            // transitive walk below that a request is a known handler, and any class deriving from it
+            // would have been read as one too.
+            if (string.Equals(h.RequestType, MediatRExtractor.SelfRequest, StringComparison.Ordinal)) continue;
             knownHandlerTypes.Add(names.ResolveName(h.HandlerType, h.SourceFile));
+        }
 
         foreach (var type in model.OrderedTypes)
         {
@@ -170,6 +176,27 @@ public sealed partial class GraphBuilder
         // the model, per handler, to find a type the model already indexes by id.
         var handlerCanonical = names.ResolveName(handlerShortName, sourceFile);
         var handlerId = NodeId.ForType(handlerCanonical);
+
+        // E1.4 — a REQUEST-MARKER detection (`CreateOrderCommand : IRequest<bool>`) names no handler:
+        // the subject IS the request. Tag it with its kind and stop. Minting a node for the marker's
+        // type argument is how `Type:bool` and `Type:R` (a generic parameter) reached eShop's graph,
+        // and drawing the edge made the RESPONSE type "handle" the request — `Type:bool` was one of
+        // the two members of `impact(up)` for CreateOrderCommandHandler. Tagging the subject through
+        // the handler-side node would also stamp it `handler`, which is what labelled a request a
+        // handler; the tag here is the KIND only.
+        if (string.Equals(requestType, MediatRExtractor.SelfRequest, StringComparison.Ordinal))
+        {
+            g.AddNode(new GraphNode(handlerId, handlerShortName, NodeKind.Type)
+            {
+                FilePath = sourceFile,
+                Tags = [kind.ToString().ToLowerInvariant()],
+                Layer = "Application",
+                SourceBody = model.Types.TryGetValue(handlerCanonical, out var requestDecl)
+                    ? requestDecl.SourceBody
+                    : null,
+            });
+            return;
+        }
 
         g.AddNode(new GraphNode(requestId, requestType, NodeKind.Type)
         {
