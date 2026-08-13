@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 23:54 UTC · branch `feat/pre-release-engine` · HEAD `1fbadde`_
+_Updated 2026-08-13 23:57 UTC · branch `feat/pre-release-engine` · HEAD `20c2287`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 17m ago, 20:37:17Z]
-**Stage:** E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant · attempts used 0
-**Checkpoints:** 11/20 done · **Sessions run:** 19 · **Cost:** $138.2125 (agent $138.0249 + gates $0.1876) · **Tokens:** 2,063,507 in / 882,659 out
+**Status:** Aborted — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 20m ago, 20:37:17Z]
+**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0 · working ▸ D1.1
+**Checkpoints:** 11/20 done · **Sessions run:** 20 · **Cost:** $138.2125 (agent $138.0249 + gates $0.1876) · **Tokens:** 2,099,808 in / 882,699 out
 **Confirmed phases:** T1, V1, E1
 
 ## Stage progress
@@ -14,7 +14,7 @@ _Updated 2026-08-13 23:54 UTC · branch `feat/pre-release-engine` · HEAD `1fbad
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
-| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | todo |
+| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | **← active** |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
@@ -55,7 +55,7 @@ _Updated 2026-08-13 23:54 UTC · branch `feat/pre-release-engine` · HEAD `1fbad
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | ⬜ TODO | - |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | 🔄 IN PROGRESS | - |
 | D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ⬜ TODO | - |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ⬜ TODO | - |
 | D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ⬜ TODO | - |
@@ -111,6 +111,7 @@ _Updated 2026-08-13 23:54 UTC · branch `feat/pre-release-engine` · HEAD `1fbad
 | 17 | E1 | Deliver | 1 | 08-13 21:45 | 0:26 | Advanced | E1.2 | 5 | gates green (none configured) | $11.4408 |  | 180,795/74,866 |
 | 18 | E1 | Deliver | 1 | 08-13 22:11 | 0:49 | Advanced | E1.3 | 3 | gates green (none configured) | $11.5717 |  | 165,321/83,648 |
 | 19 | E1 | Deliver | 1 | 08-13 23:01 | 0:33 | Advanced | E1.4 | 2 | gates green (none configured) | $13.3545 |  | 204,970/89,424 |
+| 20 | D1 | Deliver | 1 | 08-13 23:55 | 0:02 | KilledByUser |  | 0 |  |  |  | 36,301/40 |
 
 ## Money
 
@@ -118,11 +119,12 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 19 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
+| **run total** | 20 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
-| 2026-08 | 19 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
+| stage D1 | 1 | 0M | - | $0.00 | - | - | - |
+| 2026-08 | 20 | 193.5M | 98.5% | $138.24 | 11 | 17.6M | $12.57 |
 
 _Where the money goes: agent $138.02 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
 
@@ -131,10 +133,6 @@ _Where the money goes: agent $138.02 (100%) · gate $0.19 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:34:06  ▸ stage E1 entered — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant
-08-13 21:34:06  • session #8 E1 Deliver started (attempt 1/8)
-08-13 21:35:03  • session #8 E1 → AgentError  (57.0s)
-08-13 21:35:04  • session #9 E1 Fix started (attempt 2/8)
 08-13 21:35:18  ■ needs human — advisor: human intervention required
 08-13 21:35:22  • session #9 E1 → AgentError  (18.5s)
 08-13 21:35:23  • session #10 E1 Deliver started (attempt 3/8)
@@ -171,6 +169,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:54:48  ✓ checkpoint E1.2 confirmed
 08-14 00:54:48  ✓ checkpoint E1.3 confirmed
 08-14 00:54:48  ✓ checkpoint E1.4 confirmed
+08-14 00:54:48  ▸ stage E1 confirmed  (3h20m41s)
+08-14 00:55:02  ▸ stage D1 entered — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs)
+08-14 00:55:03  • session #20 D1 Deliver started (attempt 1/6)
+08-14 00:57:54  • session #20 D1 → KilledByUser  (2m51s)
 ```
 
 ## Health
@@ -178,7 +180,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 19 · retries 8 (42 %) · overall Alert
+sessions 20 · retries 8 (40 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -191,7 +193,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-13/mcp-qa.md
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md
 vs upstream: up to date
 ```
 
