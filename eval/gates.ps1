@@ -54,7 +54,14 @@ param(
     [switch]$SerialEval,
     # The MCP QA drive (step 2b) targets a machine-local dogfood repo (eval/mcp-qa/run.js) that
     # can't exist on a hosted runner — CI (.github/workflows/eval.yml) passes this. Local runs don't.
-    [switch]$SkipMcpQa
+    [switch]$SkipMcpQa,
+    # How long step 0a waits for the machine-wide gate lock before giving up with exit 8. The wait
+    # must outlast the LONGEST single gates.ps1 invocation that could be holding it, because that is
+    # what a waiter waits for: the full battery, measured at 12-19 min. 30 covers it with margin.
+    # Sized against conductor's own gate timeouts too — a waiter killed by the timeout dies without
+    # a verdict, which is the illegible outcome exit 8 exists to prevent, so the plans' gate
+    # timeoutMinutes were raised to clear wait + runtime.
+    [int]$GateLockWaitMinutes = 30
 )
 
 $ErrorActionPreference = "Stop"
@@ -116,20 +123,100 @@ function Invoke-NativeCapture {
     try { & $Command 2>&1 } finally { $ErrorActionPreference = $oldEap }
 }
 
+# Step 0a: One gate run at a time, machine-wide (2026-08-14).
+#
+# Step 0 below kills processes, and until this lock existed it killed them BY NAME across the whole
+# machine. That is fratricide the moment two gate runs overlap, and two DO: this repo and
+# C:\Code\DevContext2-desktop are separate checkouts of the same script driven by two concurrent
+# conductor runs, and they also share the hardcoded MCP port 5179 (tracked bug #1).
+#
+# MEASURED, not theorised. The 2026-08-14 fast-engine red scored the MCP QA harness 8/12 and read as
+# four capability regressions (entrypoints full:true, the self-describing note, the trace budget, the
+# checkout gate). The MCP's own log (%LOCALAPPDATA%\DevContext\logs\mcp-20260814_004.log) shows every
+# one of those calls completing `IsError = false` in id order: the server answered correctly and then
+# was killed underneath the harness at 05:59:02, mid-question. What is left in the log is the shape of
+# a dead gRPC peer - 2050ms, 1.5ms, 2068ms, 8ms: one connect timeout, then fail-fast, then the backoff
+# again - and three server spawns inside 23 seconds (06:00:25 / 06:00:41 / 06:00:48), each one proof
+# that the previous server had just been killed. Neither the harness alone (12/12) nor the same gate
+# alone (PASS) reproduces it, which is exactly why it burned a fix session.
+#
+# The lock is a real OS handle, so it cannot go stale: if the holder dies the kernel releases it.
+# Waiting is bounded and it FAILS rather than proceeding unlocked, because proceeding unlocked IS the
+# defect. Exit 8 is used by no step, so "another gate held the machine" can never be misread as a
+# measurement.
+Write-Step "Step 0a: Acquire the machine-wide gate lock"
+$gateLockPath = Join-Path $env:TEMP "devcontext-gates.lock"
+
+function Get-GateLockHolder {
+    param([string]$Path)
+    try {
+        $s = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        try {
+            $buf = New-Object byte[] 512
+            $n = $s.Read($buf, 0, $buf.Length)
+            return [System.Text.Encoding]::ASCII.GetString($buf, 0, $n).Trim()
+        } finally { $s.Dispose() }
+    } catch { return "(holder unknown)" }
+}
+
+$lockDeadline = (Get-Date).AddMinutes($GateLockWaitMinutes)
+$script:GateLock = $null
+$lockWaitAnnounced = $false
+while ($null -eq $script:GateLock) {
+    try {
+        # FileShare::Read lets a waiting gate READ who holds this, but not take it: acquiring needs
+        # write sharing the holder never grants.
+        $script:GateLock = [System.IO.File]::Open($gateLockPath, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::Read)
+    } catch [System.IO.IOException] {
+        if ((Get-Date) -gt $lockDeadline) {
+            Write-Fail "gate lock still held after $GateLockWaitMinutes min by $(Get-GateLockHolder $gateLockPath)" -Step 8
+            Write-Host ""
+            Write-Host "GATE: FAIL (step 0a - another gate run holds this machine; NOT a measurement)" -ForegroundColor Red
+            exit 8
+        }
+        if (-not $lockWaitAnnounced) {
+            Write-Host "  waiting for $(Get-GateLockHolder $gateLockPath) (up to $GateLockWaitMinutes min)" -ForegroundColor Yellow
+            $lockWaitAnnounced = $true
+        }
+        Start-Sleep -Seconds 5
+    }
+}
+$lockNote = "pid $PID  $repoRoot  scope=$Scope  $((Get-Date).ToString('s'))"
+$lockBytes = [System.Text.Encoding]::ASCII.GetBytes($lockNote)
+$script:GateLock.SetLength(0)
+$script:GateLock.Write($lockBytes, 0, $lockBytes.Length)
+$script:GateLock.Flush()
+Write-Pass "gate lock held ($lockNote)"
+
 # Step 0: Clear orphaned build-locking processes (Tapestry T0.1b).
 # The wrap-up audit lost four builds to leaked DevContext.Server processes holding bin/. Clearing
 # them here makes the gate trustworthy from cold, replacing the manual pre-session kill ritual.
+#
+# SCOPED TO THIS CHECKOUT (2026-08-14). The only process that can block THIS build is one holding
+# THIS repo's bin/, so the kill is scoped to executables and command lines under $repoRoot. The
+# unscoped version reached into the other checkout's live run - see Step 0a. Scoping loses nothing
+# the T0.1b intent ever wanted, and it is the half of the fix that survives if the other checkout
+# never adopts the lock.
 Write-Step "Step 0: Clear orphaned build-locking processes"
 $orphansKilled = 0
-Get-Process DevContext.Server, testhost -ErrorAction SilentlyContinue | ForEach-Object {
-    try { $_.Kill(); $script:orphansKilled++ } catch {}
+$repoPrefix = $repoRoot.TrimEnd('\') + '\'
+Get-Process DevContext.Server -ErrorAction SilentlyContinue | ForEach-Object {
+    $exe = try { $_.Path } catch { $null }
+    if ($exe -and $exe.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        try { $_.Kill(); $script:orphansKilled++ } catch {}
+    }
 }
-# Windows PowerShell 5.1's Get-Process has no CommandLine, so a dotnet host running our server dll
-# is found via CIM. The regex matches the server dll but not DevContext.Server.Tests.dll.
-Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe'" -ErrorAction SilentlyContinue |
-    Where-Object { $_.CommandLine -match 'DevContext\.Server\.dll' } |
+# Windows PowerShell 5.1's Get-Process has no CommandLine, so a dotnet host running our server dll -
+# and a test host running our test dlls - are found via CIM. The regex matches the server dll but not
+# DevContext.Server.Tests.dll; the repo-prefix test is what keeps the sibling checkout's run alive.
+Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe' OR Name = 'testhost.exe'" -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.CommandLine -and
+        $_.CommandLine.IndexOf($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -and
+        ($_.Name -eq 'testhost.exe' -or $_.CommandLine -match 'DevContext\.Server\.dll')
+    } |
     ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop; $script:orphansKilled++ } catch {} }
-Write-Pass "Cleared $orphansKilled orphaned process(es)"
+Write-Pass "Cleared $orphansKilled orphaned process(es) under $repoRoot"
 
 # Step 1: Build
 Write-Step "Step 1: Build solution"
