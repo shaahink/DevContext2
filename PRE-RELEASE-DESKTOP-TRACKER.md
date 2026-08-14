@@ -4,20 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-Stage M1 gate is GREEN again (ad0eaff). s15's five M1.2 deliverables were sound; the spec file it
-ADDED had never been linted, and that one error failed fast-app + battery twice each. Fix =
-workbench-page.spec.ts:136, `dockWidthOverride: { (): number | null }` → `() => number | null`, a
-type-identical rewrite — no test skipped, no eslint-disable, no rule downgraded. Evidence
-eval-results/2026-08-13/M1-gate-red-lint-fix.md: lint exit 0, 25 files / 224 tests, ng build clean
-(112s), zero ELIFECYCLE. Also filed bug #8: GitHub-URL dead code re-measured today (3 files, zero
-real importers) and left UNDECIDED, as the stage requires. NEXT: N3.1, first TODO on the board.
-TRAP, and it will fire on the next new spec: `tsc -p tsconfig.spec.json` CANNOT catch this class —
-both spellings are the SAME TYPE — and `ng build` never compiles specs. Only `ng lint` separates
-them, so lint any NEWLY ADDED spec before claiming green. prefer-function-type fires only when a
-call signature is the literal's SOLE member (line 134's two-member version is legal — why the bad
-line looked fine). pnpm check SHORT-CIRCUITS: a lint-red gate never ran test or build, re-run all 3.
-Still standing: Assert.Equal(collection-expr, ImmutableArray) never passes (IEquatable by REFERENCE
-— .ToArray() the actual); contract-sweep only catches fields with NO readers. ng build ~112-193s.
+N3.1 LANDED and claimed (f427027, evidence eval-results/2026-08-14/N3.1-loop-joints.md): lint exit 0,
+248/248 tests (27 files, was 224/25), ng build exit 0. Explore (trail-bar button + Ctrl+E), Insights
+cards and NodeCard all route into Studio through StudioHandoffStore; Studio proposes on open —
+handoff, else pins, else trail, else the archetype preset — behind a banner that says it is a
+PROPOSAL and vanishes on the first edit. NEXT: N3.2, back on TODO, untouched.
+READ THE LEDGER BEFORE STARTING N3.2 — the mechanism question is already settled there: the Tauri fs
+route is blocked (capabilities scope fs to $LOCALDATA only, no write/mkdir perms; a repo is anywhere,
+so it needs a blanket `**` scope or Rust), so a NEW SERVER RPC is the recommendation — the only
+channel that works in dev:web AND Tauri, hence the only one you can verify live. Budget trap #4 for
+it (proto → rebuild Contracts AND pnpm gen:proto, server+app in lockstep, contract-sweep needs a
+reader per new field). Gitignore-by-default = write `.devcontext/.gitignore` holding `packs/`.
+TRAP that now applies to every Studio spec: ContextStudio SEEDS ITSELF on open, so a spec asserting
+on cards must clear the proposal first — context-studio.spec.ts `createStudio()` does it by default
+and takes `{keepProposal:true}`. Still standing: lint any NEWLY ADDED spec (tsc can't catch
+prefer-function-type; ng build never compiles specs); pnpm check SHORT-CIRCUITS on a lint red.
 
 
 ## Baseline numbers (from run.db)
@@ -60,7 +61,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | DONE | a95d620 | eval-results/2026-08-13/M1.1-reader-prereqs.md |
-| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | DONE | 7ccbf56 | eval-results/2026-08-13/M1.2-hygiene.md |
+| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | DONE | 7ccbf56 | eval-results/2026-08-13/M1-gate-red-lint-fix.md |
 
 ### N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)
 
