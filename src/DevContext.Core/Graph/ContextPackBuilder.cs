@@ -684,6 +684,7 @@ public sealed class ContextPackBuilder
                                 .OrderBy(l => l, StringComparer.Ordinal)
                                 .Take(20)],
                             Verified = existing.Verified + sa.Verified,
+                            Joined = existing.Joined + sa.Joined,
                             Approx = existing.Approx + sa.Approx,
                         };
                     }

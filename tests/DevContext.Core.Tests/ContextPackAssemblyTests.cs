@@ -108,6 +108,11 @@ public sealed class ContextPackAssemblyTests
             Assert.True(
                 section.Approx >= footers.Sum(f => f.Approx),
                 $"{where}: content claims {footers.Sum(f => f.Approx)} approx across {footers.Count} merged entries, field says {section.Approx}");
+            // V1.1 (#25) — `joined` is a tier of its own on the wire now, so it is subject to the
+            // same rule: the merged field may not undercount what the merged prose printed.
+            Assert.True(
+                section.Joined >= footers.Sum(f => f.Joined),
+                $"{where}: content claims {footers.Sum(f => f.Joined)} joined across {footers.Count} merged entries, field says {section.Joined}");
             Assert.NotEmpty(section.SourceLocations);
         }
     }
@@ -212,16 +217,26 @@ public sealed class ContextPackAssemblyTests
     }
 
     /// <summary>N0.1 — the `_provenance:` footers `tokensAddSection` writes into a section's own
-    /// text; one per contributing entry after a multi-entry merge.</summary>
-    private static List<(int Sites, int Verified, int Approx)> ProvenanceFooters(string content)
+    /// text; one per contributing entry after a multi-entry merge.
+    /// <para>V1.1 (#25) added the `joined` tier to that footer. This parser matched the old
+    /// three-field spelling, and a regex that stops matching returns EMPTY rather than failing —
+    /// so both callers below broke with "collection was empty", which reads like the pack lost its
+    /// provenance when in truth only this reader went stale. The drift check makes the next format
+    /// change say so in one line instead of hiding as a missing-data assertion.</para></summary>
+    private static List<(int Sites, int Verified, int Joined, int Approx)> ProvenanceFooters(string content)
     {
         var matches = Regex.Matches(
             content,
-            @"_provenance: (\d+) source sites · (\d+) verified · (\d+) approx_");
+            @"_provenance: (\d+) source sites · (\d+) verified · (\d+) joined · (\d+) approx_");
+        Assert.True(
+            matches.Count > 0 || !content.Contains("_provenance:", StringComparison.Ordinal),
+            "the pack printed a _provenance: footer this parser could not read — the footer format "
+                + "changed and this test's reader was not updated with it (see ContextPackBuilder.tokensAddSection)");
         return [.. matches.Select(m => (
             int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture),
             int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture),
-            int.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture)))];
+            int.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture),
+            int.Parse(m.Groups[4].Value, CultureInfo.InvariantCulture)))];
     }
 
     private static string RepoPath(string relativePath)
