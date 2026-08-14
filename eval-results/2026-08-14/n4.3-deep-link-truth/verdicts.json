@@ -1,0 +1,57 @@
+{
+  "focus": "GET /",
+  "handle": "16b752abfb394572bb4ce532586f7053",
+  "endpoint": "http://127.0.0.1:5279",
+  "results": [
+    {
+      "label": "the server answering is THIS repo's build",
+      "ok": true,
+      "detail": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Server\\bin\\Debug\\net10.0\\ (pid 12744, started 2026-08-14T03:56:36.2743793Z)"
+    },
+    {
+      "label": "agent calls arrive tagged as agent traffic",
+      "ok": true,
+      "detail": "4 of 4 rows"
+    },
+    {
+      "label": "a trace call records GetTrace under the agent's verb",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "the trace row carries the focus the agent sent",
+      "ok": true,
+      "detail": "primary_arg=\"GET /\""
+    },
+    {
+      "label": "the trace row still carries its args digest",
+      "ok": true,
+      "detail": "focus:GET /"
+    },
+    {
+      "label": "the trace row names the repo it was called against",
+      "ok": true,
+      "detail": "C:\\Code\\DevContext2-desktop\\eval-repos\\TodoApi"
+    },
+    {
+      "label": "a get_context call records GetContext under the agent's verb",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "the get_context row carries the focus the agent sent",
+      "ok": true,
+      "detail": "primary_arg=\"GET /\""
+    },
+    {
+      "label": "ListMcpTools answers off a LIVE tools/list",
+      "ok": true,
+      "detail": "14 advertised, 8 specialists"
+    },
+    {
+      "label": "the served menu is the curated one (trace + get_context advertised)",
+      "ok": true,
+      "detail": "map, entrypoints, usages, trace, overview, stats, resolve, neighbors, find, read_source, seam, impact, get_context, analyze"
+    }
+  ]
+}

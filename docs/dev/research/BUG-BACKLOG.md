@@ -9,11 +9,29 @@
 > fell outside the stage that found it. Each carries the evidence path that proves it.
 > None is a regression.
 
-**Filed 2026-08-02: 24 open — 7 high, 16 medium, 1 low.**
-**Reconciled 2026-08-14 (pre-release run A): 16 FIXED · 2 RETIRED · 1 HELD-with-premise-refuted · 5 still open (4 medium, 1 low), and of those 5 only two belong to this engine.**
+> **Second source, 2026-08-13 (`run 8faf849d`, stage N0).** `docs/dev/research/STUDIO-MCP-AUDIT-2026-08-13.md`
+> §3.F listed 16 truth defects across Context Studio and the MCP page. Ten were fixed in N0 and are
+> recorded at the bottom of this file under **[FIXED in N0](#fixed-n0)** — they are *not* open and are
+> kept only so the inventory reads whole. The remaining six were filed as **#26–#31**, each with
+> its locus **re-measured on 2026-08-13** rather than copied from the audit prose. **#32** is the
+> engine bug N0.1 found while fixing §3.F.3/4 and did not fix.
+
+**Filed 2026-08-02: 24 open — 7 high, 16 medium, 1 low.** Plus #26–#32 from the second source above.
+
+**Reconciled 2026-08-14, BOTH pre-release runs now folded in: 23 FIXED · 2 RETIRED ·
+1 HELD-with-premise-refuted · 5 still open (all medium), and of those 5 only four belong to this
+repo — the fifth is Conductor's.**
+
+> **On the two runs.** The pre-release program ran as two parallel conductor runs against one
+> backlog: **run A** (engine, `conductor.engine.plan.json`, stages T1 · V1 · E1 · D1 · R1 · A1) took
+> the G-stage engine items, and **run B** (desktop, `conductor.desktop.plan.json`, stages N0–N4 · M1)
+> took the Studio/MCP-page items. Each reconciled only its own half and explicitly declined to claim
+> the other's closures. **This file is the merge of the two**, so every item below now carries a
+> settled verdict — including `#4`, which run A recorded as "Run B's" and run B closed in N4.3.
 
 Statuses below are the reconciliation verdict, each with the evidence that closed it. Full per-item
-reasoning: [§ Reconciliation 2026-08-14](#reconciliation-2026-08-14). The prose sections further down
+reasoning: [§ Reconciliation 2026-08-14](#reconciliation-2026-08-14) for run A's items, and the
+**FIXED in …** sections at the foot of the file for run B's. The prose sections further down
 are the ORIGINAL 2026-08-02 filings and are deliberately left unedited — a filing rewritten after the
 fix stops being a record of what was measured.
 
@@ -42,7 +60,14 @@ fix stops being a record of what was measured.
 | [#23](#23) | medium | G10 | **HELD, premise REFUTED; residual re-filed** — R1.1 → new #18 | L3.4 hub-scope broadening never fires: sparseGraph=false + hubScopeNodes=0 on 11/11 poles including its own trigger population (Dapper/Serilog/MahApps/MediatR); identity-strip's sparse line has never rendered (G10.1) |
 | [#24](#24) | medium | G10 | **RETIRED — saturated** — R1.1 | Deep-spine ratio is saturated (1.000 on 5/11 poles, 0.96-0.98 on the rest): the report prints it as coverage but it separates no repo (G10.1) |
 | [#25](#25) | medium | G10 | **FIXED** — V1.1 | Engine ships two definitions of a verified edge: GraphStats/SeamStat approx=Syntactic only (so Join counts as verified) while GraphOrphansSource counts Semantic only; Resolution.Join is also the enum default (G10.1) |
-| [#4](#4) | low | G2 | **OPEN — Run B** | The desktop MCP page keeps its own tool list; it advertised `search`, a tool the MCP has never exposed |
+| [#4](#4) | low | G2 | **FIXED** — N4.3 (run B) | The desktop MCP page keeps its own tool list; it advertised `search`, a tool the MCP has never exposed |
+| [#26](#fixed-n12) | high | N0 | **FIXED** — N1.2 | Pins are advertised by three surfaces and read by none: `TrailStore.pins()` reached a counter and a colour and nothing else |
+| [#27](#fixed-n1) | medium | N0 | **FIXED** — N1.1 | Body toggles were cosmetic — an eye icon and an opacity; `bodyEnabled` never reached the wire while the pill claimed "All bodies hidden" |
+| [#28](#fixed-n1) | medium | N0 | **FIXED** — N1.1 | The verification ledger verified a pack that was never built — full budget per focus, all sections, N RPCs per card edit |
+| [#29](#fixed-n1) | medium | N0 | **FIXED** — N1.1 | Studio cards were never invalidated — the file contained no `effect()`, so a re-analyze left cards holding node ids from the previous graph |
+| [#30](#fixed-n2) | medium | N0 | **FIXED** — N2.1 | The zero-entry empty state told the user to pick types from an omnibox that searches entries only — unsatisfiable in the exact state that printed it |
+| [#31](#fixed-n2) | medium | N0 | **FIXED** — N2.1 | The `usage` section was built by every symbol-rooted focus and then discarded — no card type mapped to it, so Studio could never show the answer `get_context` gives the agent |
+| [#32](#32) | medium | N0 | **OPEN** | `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget |
 
 ---
 
@@ -378,9 +403,7 @@ WATCH IT GO RED FIRST: a test whose call site spans two lines PASSES on the brok
 BLAST RADIUS WARNING FOR WHOEVER FIXES IT: this will move call-edge counts on every pole in the matrix. It is a batch-with-a-matrix-run change, not a surgical one. G5.2 deliberately does NOT depend on it (see the separate bug on `this.field` binding, which is surgical: 0 sites in CleanArchitecture / Hangfire / Polly / Serilog).
 ```
 
----
-
-## MEDIUM — 16
+## MEDIUM — 17
 
 <a id="1"></a>
 
@@ -730,31 +753,44 @@ _Found in session #28._
 
 ---
 
-## LOW — 1
+<a id="32"></a>
 
-<a id="4"></a>
-
-### #4 · G2 · The desktop MCP page keeps its own tool list; it advertised `search`, a tool the MCP has never exposed
+### #32 · N0 · `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget
 
 ```text
-src/DevContext.App/src/app/features/pages/mcp-page.ts — the "Try a tool" sandbox labels gRPC RPC probes with MCP tool NAMES from its own literal array (`availableTools`). That makes it a third hand-maintained copy of the menu, and it was already drifted before G2.1 touched anything:
+Found by N0.1 while fixing §3.F.3/4 (conductor bug #1, 2026-08-13); filed, not fixed.
 
-  - `search` is not an MCP tool and never has been. The MCP calls it `find`. The row mapped to the
-    `searchNodes` RPC, so it worked — under a name no agent could use.
-  - `insights` mapped to `getStats` in the same switch, i.e. the app had independently worked out
-    that insights and stats are one call. G2.1 folded that tool away.
+src/DevContext.Core/Graph/ContextPackBuilder.cs:982 AllocateProportionalBudgets — every non-last
+focus is given max(minPerEntry=200, its proportional share) and `remaining` is decremented by the
+share that was actually handed out; the LAST focus is then given whatever `remaining` holds. When
+the min-floor has been applied often enough (many focuses, small total budget), the floor payouts
+overrun the ceiling and `remaining` goes negative — the last focus is allocated a negative token
+budget.
 
-G2.1 corrected both labels (search -> find, insights dropped) as a same-commit truth fix, but the
-structural problem is untouched: the app speaks gRPC, not MCP, so it has no way to check its labels
-against the real menu the way UnknownToolHandler now does. Options: serve the tool catalog over
-gRPC (a `ListTools` RPC or a field on Ping), or generate the list at build time from the
-[McpServerTool] methods. Until then this list drifts silently — the failure is a label, so nothing
-errors.
+BuildMulti's caller does not clamp on the way in (:546 `focusBudgets.GetValueOrDefault(focus,
+minEntryBudget)`), so the negative value reaches BuildSections. N0.1 clamped the ACCOUNTING it
+added (:551 `allocatedTokens += Math.Max(0, budget)`) so the reported allocation cannot go
+negative, but deliberately did not change the allocation itself — that moves pack content and is
+a golden-affecting engine change, not a truth fix.
 
-Note: eval/contract-sweep.ps1 cannot catch this class either. The sweep asks whether a proto field
-has a reader; this is a hand-written string that names a tool, with no proto field involved. Same
-family as S10's Insight.Severity find (the field IS read, with the wrong key).
+REPRO SHAPE: any distribution where the non-last shares — each max(200, proportional) — sum past
+the total. Two ways there: many small focuses (the 200 floor paid n−1 times), or one dominant
+focus taking most of the budget with a handful of floor-paid tails behind it (e.g. 7000 + 6 × 200
+against 8000).
+
+Re-measured 2026-08-14 (Z1.1): STILL OPEN, allocation logic unchanged (`ContextPackBuilder.cs:1256`
+— the last focus is still handed `remaining` with no clamp). One input did change: N2.2 reconciled
+the UI's 4000 away, so the pack default is now 8000 (`ContextPackBuilder.DefaultBudgetTokens`),
+which raises the many-small-focuses boundary from ~21 to ~41 focuses. The skewed-distribution
+shape is unaffected by the default.
 ```
+
+---
+
+## LOW — none open
+
+The one low item, **#4** (the desktop MCP page's hand-kept tool list), was closed by N4.3 on
+2026-08-14 — see [FIXED in N4.3](#fixed-n4).
 
 ---
 
@@ -806,16 +842,127 @@ later threshold work. Note six of the original G10 eleven poles (Dapper, Serilog
 GitVersion, DntSite, wolverine) are no longer on the measuring machine; the surviving five are
 eShop, dotnet-podcasts, CleanArchitecture, MediatR and self.
 
-### Still open — 5, and only two are this engine's
+### Still open — 5, and only four are this repo's
+
+Reconciled across BOTH runs (see the merge note at the top of this file). `#4` is no longer on this
+list: run A left it open as "Run B's", and run B closed it in [N4.3](#fixed-n4). `#32` joins it from
+run B's filings — its locus is engine code, so it belongs here rather than in the desktop's register.
 
 | # | Sev | Why it is still open |
 |---|---|---|
 | #3 | medium | Never re-measured by this run; the load-dependent server exit was not reproduced or investigated. Genuinely open. |
 | #13 | medium | Parked in the plan's deferred register — "fold into whichever session next touches the cache". Not attempted. |
 | #16 | medium | Same register, same reason: a ~1-in-50 flake whose obvious cause was already tested and refuted. Not attempted. |
+| #32 | medium | **Run B's filing, engine locus.** `AllocateProportionalBudgets` can hand the last focus a NEGATIVE budget — found by N0.1 while fixing §3.F.3/4 and deliberately not fixed there. |
 | #15 | medium | **Not this repo.** It is a defect in Conductor's own gate runner (stdout-tail-only), fixable only there. |
-| #4 | low | **Run B's.** The desktop MCP page's hand-kept tool list belongs to `conductor.desktop.plan.json`. Left here so it is not lost, not because Run A ignored it. |
 
+---
+
+<a id="fixed-n0"></a>
+
+## FIXED in N0 — the other ten §3.F items (not open; kept so the inventory reads whole)
+
+Stage N0 of the 2026-08-13 pre-release run ("the truth batch — no decisions") closed ten of the
+sixteen. They are listed here with their fix locus so that a later reader who finds the audit
+first does not re-file them.
+
+| §3.F | Defect | Fixed in | Fix locus |
+|------|--------|----------|-----------|
+| 3 | Multi-entry section merge dropped `SourceLocations`/`Verified`/`Approx`, so primary-path cards lost provenance | N0.1 · `36bf916` | `ContextPackBuilder.cs:583-601` — the merge branch now concatenates locations (deduped, capped at 20) and SUMS the trust counters |
+| 4 | `allocated_tokens` ≡ budget: the Studio header printed one number under two labels | N0.1 · `36bf916` | `ContextPackBuilder.cs:539-552` — allocated is now measured (the share that reached a focus which produced sections), clamped at 0 |
+| 7 | Studio copy/save bypassed `clipboard.ts`; toasts fired before/regardless of outcome | N0.1 · `36bf916` | Studio copy paths go through the app clipboard helper and the toast awaits the result — pinned by `context-studio.spec.ts` (`copy-context`, `card-copy`) |
+| 9 | `getMcpStatus()` called `StartMcp` — a status READ that mutated what it measured | N0.2 · `98c5067` | A real `GetMcpStatus` message (`telemetry_streaming`/`observer_count`); pinned by `mcp-page.spec.ts` "reads status WITHOUT starting anything" |
+| 10 | "ships with the desktop installer" was false; all three host snippets named a command that does not resolve | N0.2 · `98c5067` | Snippets name `devcontext-mcp.exe`; the setup note no longer claims the installer ships it. Spec: "host snippets do not promise a command that will not resolve" |
+| 11 | Copy-label sniffing always marked the VS Code card "Copied!" | N0.2 · `98c5067` | Per-host `copy-snippet-<host>` state. Spec: "Copy marks the card that was clicked" |
+| 12 | Feed: "Total" counted rows the filter hid; timestamps were client-side | N0.2 · `98c5067` | The counter reads "Shown: N tok" and follows the filter; rows carry the WIRE `timestamp_utc_ms`. Spec: "the feed total counts the rows on screen…" |
+| 13 | Sessions: `edges`/`entries` mapped but never rendered; `from_cache`/`analyzed_at` unused, so the shown age lied after a rehydrate | N0.2 · `98c5067` | Both columns render; a separate analysis-age cell with a "(cached)" marker and a title explaining the rehydrate. Spec: "sessions render the analysis age…" |
+| 14 | Dead state (`mcpStateSynced`, `DevContextApi._mcpRunning`, feed `session`/`bytes`) and three silent catch-alls with no user-visible signal | N0.2 · `98c5067` | Dead fields deleted; poll/stream/status failures now surface (`mcp-status-error`, `sessions-error`, `feed-error`). Two specs pin the error paths |
+| 16 | Neither page had a spec file; the page `data-testid`s were referenced by nothing | N0.2 + N0.3 | `mcp-page.spec.ts` (10 tests) and `context-studio.spec.ts` cover both pages; every `data-testid` on the two pages that the audit named is now asserted by a real spec |
+
+**Nothing is still open from that inventory.** 3.F.2, 3.F.5 and 3.F.6 closed in N1.1 and 3.F.1
+(pins) in N1.2; 3.F.8 and 3.F.15 in N2.1; the tool-list half of 3.F.12 in N4.3. See the sections
+below, and the per-item status markers in `STUDIO-MCP-AUDIT-2026-08-13.md` §3.F.
+
+<a id="fixed-n1"></a>
+
+## FIXED in N1.1 - the three 3.F items that needed a wire or product decision
+
+Stage N1.1 of the same run ("Studio truth pass") closed the three whose fix was blocked on a
+decision rather than on effort. The decisions are recorded in `STUDIO-MCP-AUDIT-2026-08-13.md`
+section 4 wire item 4 and section 8.
+
+| # | 3.F | Defect | Decision taken | Fix locus |
+|---|-----|--------|----------------|-----------|
+| 28 | 5 | The verification ledger verified a pack that was never built - full budget per focus, all sections, N RPCs per card edit | **Verification MOVES INTO `GetContextPack`'s response** rather than `VerifyContextRequest` gaining cards/intent: `ContextPackVerifier.Verify()` is a pure function of the sections, and `BuildMulti` already holds the ones it kept, so a divergence becomes impossible to write instead of merely fixed. `VerifyContext` stays the single-focus RPC for MCP's `verify_context`, which reads every field of its response. | `ContextPackBuilder.cs` BuildMulti tail (merge by section key then `ContextPackVerifier`); `ContextPackResponse.verification/any_stale/analyzed_git_head/current_git_head`; `context-studio.ts` `readVerification()` replaces `verifyPack()`. Dead `checkedAt` now renders (`verification-checked-at`). Gates: `ContextPackLedgerTests`, specs "the ledger IS the pack response - no VerifyContext RPC at all" + "refresh rebuilds the pack" |
+| 27 | 2 | Body toggles were cosmetic - an eye icon and an opacity; `bodyEnabled` never reached the wire while the pill claimed "All bodies hidden" | **WIRED, not deleted.** `ContextCardSpec.exclude_bodies` (negative sense, so proto3's default keeps an older caller's pack byte-for-byte); the builder drops the card's `bodies` section. The toggle renders only on card types that carry one - no inert control survives. | `ContextPackBuilder.cs` (`BodiesSection`, `BodyCapableCardTypes`, the `wanted` filter); `composition-view.ts` `canToggleBodies()`; `budget-panel.ts` pill hidden when no card can carry bodies. Gates: `ContextPackLedgerTests`, spec "bodyEnabled rides the request and a toggle re-packs" |
+| 29 | 6 | Studio cards were never invalidated - the file contained no `effect()`, so a re-analyze left cards holding node ids from the previous graph | **Handle-effect invalidation** over per-tab keying: the handle *is* the identity of the graph those ids are addressed in. Shaping (budget/intent/format) is a preference and is persisted instead - it is not session state. | `context-studio.ts` constructor effect + `resetPackState()`; `prefs.store.ts` `studioBudget/studioIntent/studioFormat`. Gates: specs "a new session handle clears the cards...", "budget / intent / format are persisted...", "restores the persisted shaping on construction" |
+
+Per-card `verified`/`approx` (audit section 3.B, not a numbered 3.F item) also landed here:
+`composition-view.ts` `provenanceMix()` renders the trust mix the wire has carried since T4.4 and
+no surface showed. Spec: "renders verified/approx PER CARD, and offers the body toggle only where
+it acts".
+<a id="fixed-n12"></a>
+
+## FIXED in N1.2 — §3.F.1, the audit's flag finding
+
+Stage N1.2 closed **#26** ("pins are advertised by three surfaces and read by none"), the item
+owner decision 1 of `STUDIO-MCP-AUDIT-2026-08-13.md` §8 settled as **IMPLEMENT** rather than
+delete-the-idiom.
+
+| # | 3.F | Defect | Decision taken | Fix locus |
+|---|-----|--------|----------------|-----------|
+| 26 | 1 | `TrailStore.pins()` reached a counter and a colour and nothing else; the "From current trail" button read the RAW `steps()`, kept `kind === 'entry'` only, and no-opped in silence. Three surfaces stated the mechanism as fact. | **IMPLEMENT (owner decision 1).** Pins win over the raw trail; the trail stays the fallback so the button still works before anyone pins anything. Every step kind resolves through its `focus`, so a pinned graph NODE stops being worthless. Resolution is against the LIVE `entryGroups()`, never the pinned nodeId — the same invalidation principle N1.1 chose for cards, applied where the id crosses a re-analyze. | `context-studio.ts` `onTrailSeed()` (+ `pinCount`/`trailCount` computeds); `scope-picker.ts` seed button (`data-testid="trail-seed"`, source + count + disabled reason); `workbench-page.ts` `onPin()` (the `p` shortcut reports what it did); `inspector.ts` `pinTitle()` + trail empty-state; `trail-bar.ts` chip title; `workspace-shell.ts` `tip:pin`. Gates: 5 specs in `context-studio.spec.ts` (pins beat the trail · node steps seed · dead pins reported · silent no-op replaced · button states source/count) + 4 in the new `workbench-page.spec.ts` |
+
+Side-finding filed while wiring the button, not fixed here: `ui/icon/icon.ts`'s registry renders an
+**empty span for a name it does not carry** (`if (!node) return`), and the app binds four such names
+(`box`, `edit`, `grip-vertical`, `lock`) — `bookmark` and `history` were added because the seed
+button binds them. Tracked as run bug #3.
+
+## M1.2 — the hygiene batch (2026-08-13, desktop pre-release stage M1)
+
+The one item below is the only M1.2 item that was ever a *filed defect* — the other four
+(Layer/Feature lens slots, the `createTab` MAX_TABS lie, the dock resizer, the high-contrast
+theme) were checkpoint items, and their measurements are in
+`eval-results/2026-08-13/M1.2-hygiene.md`. The `#` here is a **conductor run-bug** number, not a
+backlog number — this table read `30` until Z1.1 corrected it, which collided with backlog
+[#30](#fixed-n2), a different bug entirely.
+
+| run bug # | Defect | Decision taken | Fix locus |
+|---|--------|----------------|-----------|
+| run #7 | `MapResponse.stack` (proto field 13) had **three readers and no writer**: `identity-strip.ts` (`stack()` computed), `atlas-page.ts` (chip header), MCP `overview` (`DevContextTools.cs:400`). Nothing in `ProtoMapper` ever set `resp.Stack`, and `MapModel` had no `Stack` member — the tags were computed inside `MapRenderer.AppendStack` and left only as a line of markdown. The S9 contract sweep cannot see this direction: it fails a field with no READERS. Run bug #7. | **POPULATE.** The fact existed and was already rendered on the CLI; the wire was dropping it. `MapModel.Stack` is now built once in `MapBuilder.Build` (which already holds the `DiscoveryModel` and the aggregates), the renderer JOINS that list instead of recomputing it, and `ProtoMapper` copies it. Markdown is byte-identical — the architecture goldens did not move. | `MapBuilder.cs` (`BuildStack`, + `SummarizeTfms`/`TfmRank` moved down from the renderer); `MapRenderer.cs` `AppendStack` is now four lines; `ProtoMapper.cs` `resp.Stack.AddRange(map.Stack)`. Gates: `MapStackTests` (4) + `ProtoMapperStackTests` (2) |
+
+<a id="fixed-n2"></a>
+
+## FIXED in N2.1 — the two §3.F items the D-G decision had to settle first (2026-08-14)
+
+Both were filed in N0 with an explicit *"why not fixed in N0"*: each needed the pack-convergence
+call (owner decision 2, `STUDIO-MCP-AUDIT-2026-08-13.md` §8), not effort. Loci re-measured
+2026-08-14 (Z1.1) against the shipped code, not against the session's claim.
+
+| # | §3.F | Defect | Decision taken | Fix locus (re-measured Z1.1) |
+|---|------|--------|----------------|------------------------------|
+| 30 | 8 | The zero-entry empty state told the user to pick types from an omnibox that searches entries only — unsatisfiable in the exact state that printed it | **Give the instruction somewhere to point.** The picker gained a **Types tab** over the same `MapResponse.surface` the library workbench reads (one source, second view), and both empty-state strings now name it. The fix is the scope model, as N0 predicted — not a reworded sentence. | `scope-picker.ts:66-76` — the archetype notes read "Its types are in the Types tab above" / "Scope this pack from the Types tab above"; the tab itself at `:145-177` (`picker-tab-entries` / `picker-tab-types`, counts on the tabs so an empty one says so) and `:277-309` |
+| 31 | 15 | The `usage` section was built by every symbol-rooted focus and then discarded — no card type mapped to it, so the human in Studio could never see the answer `get_context` gives the agent | **Map it.** `CardTypeSections["usage"] = ["usage"]` — the inbound direction of the same convergence that made `BuildMulti` symbol-rooted. "Who calls this" is the half of a symbol-rooted pack a change-impact reader is after. | `ContextPackBuilder.cs:555-559`; the card is produced by `pack-proposal.ts:162` and `scope-picker.ts:32`, and pinned by `context-studio.spec.ts:1103-1123` + `pack-proposal.spec.ts:127` |
+
+**Not closed, and deliberately:** #31's second clause — the `"client-only type, no server section"`
+omission branch (`ContextPackBuilder.cs:638-642`). It is unreachable from the app (the app's card
+vocabulary and `CardTypeSections` are the same set) but `ContextCardSpec.type` is a free string on
+the wire, so any gRPC or MCP client can still reach it. It stays as a **wire-facing guard** rather
+than dead code, which is why it was not deleted.
+
+<a id="fixed-n4"></a>
+
+## FIXED in N4.3 — the last hand-kept copy of the tool menu (2026-08-14)
+
+| # | Defect | Decision taken | Fix locus (re-measured Z1.1) |
+|---|--------|----------------|------------------------------|
+| 4 | The desktop MCP page kept its **own literal array** of tool names (`availableTools`) — a third hand-maintained copy of the menu that had already drifted (it advertised `search`, which the MCP calls `find`). The app speaks gRPC, not MCP, so it had no way to check its own labels | **Serve the catalog** (the option the bug named first, chosen over build-time generation because the menu the agent gets is a *runtime* fact about the running MCP, not a compile-time one). A `ListMcpTools` RPC returns the curated, described menu the engine run's T1 froze; the page renders that. The literal array is gone — `availableTools` no longer exists anywhere in the app. | `DevContextGrpcService.cs` (`ListMcpTools`), `devcontext-api.ts`, `mcp-page.ts`; commit `6c2501e`, on top of the T1 merge `153c99f`. design + page evidence in `eval-results/2026-08-14/N4.3-catalog-served.md`, and the LIVE proof in `N4.3-deep-links.md` ("ListMcpTools answers off a LIVE tools/list — 14 advertised, 8 specialists") |
+
+Bug #4's own note said the contract sweep cannot catch this class (a hand-written string naming a
+tool, with no proto field involved). That is still true — what closed the class here is
+**structural**: there is no second list left to drift. The N4.3 deep-link work chose the same
+principle a level deeper, routing on the gRPC method the server recorded rather than on an MCP
+tool *name*, so no name table exists there either.
 ---
 
 ## Filed BY the pre-release run — the durable copy

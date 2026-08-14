@@ -1,12 +1,19 @@
-import { Component, inject, input, model, output, signal } from '@angular/core';
+import { Component, computed, input, model, output } from '@angular/core';
 
-import { ToastService } from '../../ui/toast/toast';
+import { DEFAULT_STUDIO_BUDGET } from '../../state/prefs.store';
 import { Icon } from '../../ui/icon/icon';
 import { allCardsPriced, cardTokens as cardTokensOf, totalCardTokens } from './card-tokens';
-import type { ContextCard } from './composition-view';
-import type { ContextIntent, OutputFormat } from './scope-picker';
+import { BODY_CAPABLE_CARD_TYPES, type ContextCard } from './composition-view';
+import type { ContextIntent, OutputFormat } from '../../models/context-card';
 
 const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
+
+/** N2.2 — one suggested next focus, straight off ContextPackResponse.suggested_focuses. */
+export interface SuggestedFocusVm {
+  readonly focus: string;
+  readonly kind: string;
+  readonly depth: number;
+}
 
 @Component({
   selector: 'app-budget-panel',
@@ -32,9 +39,20 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         />
         <div class="flex justify-between text-2xs text-ink-subtle mt-0.5">
           @for (stop of budgetStops; track stop) {
-            <span>{{ stop / 1000 }}k</span>
+            <span [class.text-ink-muted]="stop === defaultBudget" [class.font-semibold]="stop === defaultBudget">{{ stop / 1000 }}k</span>
           }
         </div>
+        <!-- N2.2 - the Studio opened at 4000 while get_context defaults to 8000 for the same
+             pack, and neither screen said so. One number now, and it is stated where it is set. -->
+        @if (budget() !== defaultBudget) {
+          <button
+            type="button"
+            class="mt-1 text-2xs text-ink-subtle underline decoration-dotted underline-offset-2 hover:text-ink"
+            data-testid="budget-default-note"
+            [title]="'Reset to ' + defaultBudget + ' tokens'"
+            (click)="budget.set(defaultBudget)"
+          >Default is {{ defaultBudget }} tok - the same ceiling agents get.</button>
+        }
       </div>
 
       <h3 class="mb-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Per-card meter</h3>
@@ -80,6 +98,37 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
       <!-- T5.2 — the verification ledger is projected here by the studio. -->
       <ng-content />
 
+      <!-- N2.2 (audit §4) - honesty-note parity. The engine has told AGENTS why an under-filled
+           pack under-filled since D5.1; the Studio rendered the same pack and said nothing, so the
+           human's pack was the less honest of the two faces. Server-computed, rendered here. -->
+      @if (fillNote(); as note) {
+        <div class="mt-3 border-t border-line pt-2" data-testid="fill-note">
+          <h3 class="mb-1 flex items-center gap-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">
+            <app-icon name="info" [size]="12" />
+            Fill
+          </h3>
+          <p class="text-2xs leading-snug text-ink-subtle">{{ note }}</p>
+          @if (suggestedFocuses().length > 0) {
+            <ul class="mt-1.5 space-y-0.5" data-testid="suggested-focuses">
+              @for (s of suggestedFocuses(); track s.focus) {
+                <li>
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-2xs text-accent hover:bg-hover"
+                    [title]="s.kind + ' - ' + s.depth + ' steps deep. Adds a flow card for this focus.'"
+                    (click)="focusSuggestionPicked.emit(s)"
+                  >
+                    <app-icon name="arrow-right" [size]="10" />
+                    <span class="truncate">{{ s.focus }}</span>
+                    <span class="ml-auto shrink-0 tabular-nums text-ink-subtle">{{ s.depth }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
       @if (omitted().length > 0) {
         <div class="mt-3 border-t border-line pt-2" data-testid="omitted-list">
           <h3 class="mb-1 flex items-center gap-1 text-2xs font-semibold uppercase tracking-wider text-warn">
@@ -111,20 +160,26 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         </div>
       </div>
 
-      <div class="mt-2 border-t border-line pt-2">
-        <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Bodies</h3>
-        <button
-          type="button"
-          class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
-          [class.text-success]="showAllBodies()"
-          [class.text-ink-subtle]="!showAllBodies()"
-          [class.hover:bg-hover]="true"
-          (click)="toggleAllBodies()"
-        >
-          <app-icon [name]="showAllBodies() ? 'eye' : 'eye-off'" [size]="14" />
-          {{ showAllBodies() ? 'All bodies shown' : 'All bodies hidden' }}
-        </button>
-      </div>
+      <!-- N1.1 (audit §3.F.2) — the pill only appears when the pack HAS a card that carries
+           code bodies. It used to claim "All bodies hidden" over a pack that still contained
+           every body, and it said it even when no card could carry one. -->
+      @if (bodyCardCount() > 0) {
+        <div class="mt-2 border-t border-line pt-2">
+          <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Bodies</h3>
+          <button
+            type="button"
+            class="flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors"
+            data-testid="all-bodies-toggle"
+            [class.text-success]="showAllBodies()"
+            [class.text-ink-subtle]="!showAllBodies()"
+            [class.hover:bg-hover]="true"
+            (click)="toggleAllBodies()"
+          >
+            <app-icon [name]="showAllBodies() ? 'eye' : 'eye-off'" [size]="14" />
+            {{ showAllBodies() ? 'Bodies included' : 'Bodies excluded from the pack' }}
+          </button>
+        </div>
+      }
 
       <div class="mt-2 border-t border-line pt-2">
         <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Format</h3>
@@ -158,38 +213,53 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         type="button"
         class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover disabled:opacity-30 transition-colors"
         data-testid="save-context"
-        [disabled]="cards().length === 0 || !exportReady()"
+        [disabled]="cards().length === 0 || !exportReady() || saving()"
         (click)="onSave()"
+        title="Writes the pack into this repo under .devcontext/packs/ and gives you a line to point an agent at it"
       >
-        Save
+        {{ saving() ? 'Saving…' : 'Save to repo' }}
       </button>
     </div>
   `,
 })
 export class BudgetPanel {
-  private readonly toast = inject(ToastService);
-
   readonly cards = input<readonly ContextCard[]>([]);
   /** T5.1 (audit R1) — the server's omitted[] lines; silent truncation is a trust bug. */
   readonly omitted = input<readonly string[]>([]);
+  /** N2.2 — ContextPackResponse.fill_note: why the pack under-filled, or null when it met the
+   * ≥85% promise. Computed in ContextPackBuilder, never re-derived here — the whole point is that
+   * the Studio and get_context give one answer. */
+  readonly fillNote = input<string | null>(null);
+  /** N2.2 — better-connected focuses, non-empty only for a content-exhausted under-fill. */
+  readonly suggestedFocuses = input<readonly SuggestedFocusVm[]>([]);
   /** T5.6 (audit C1) — re-pack in flight: Copy shows "Packing…" so the wait is visible. */
   readonly packPending = input(false);
   /** T5.6 (audit C1) — false while the pack is stale/absent; Copy/Save disabled, never stale bytes. */
   readonly exportReady = input(true);
+  /** N3.2 — Save is a round-trip to the server now (it writes the file), so the button has a
+   * state between click and outcome. Without it a slow write reads as a dead button. */
+  readonly saving = input(false);
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();
   readonly intentChange = output<ContextIntent>();
   readonly formatChange = output<OutputFormat>();
   readonly globalBodiesChange = output<void>();
+  /** N2.2 — the reader followed a suggestion; the parent turns it into a flow card. A suggestion
+   * you cannot act on is a dead end dressed as a next step, so the note ships with this wired. */
+  readonly focusSuggestionPicked = output<SuggestedFocusVm>();
 
-  readonly budget = model(4000);
+  readonly budget = model(DEFAULT_STUDIO_BUDGET);
   readonly selectedIntent = model<ContextIntent>('trace');
   readonly selectedFormat = model<OutputFormat>('markdown');
   readonly showAllBodies = model(true);
-  readonly copied = signal(false);
+  /** N0.1 (audit §3.F.7) — owned by the parent, which performs the copy: "Copied!" now appears
+   * only after the clipboard write actually resolved, never optimistically on click. */
+  readonly copied = input(false);
 
   readonly budgetStops = BUDGET_STOPS;
+  /** N2.2 — the one pack-budget number, stated on the screen that sets it. */
+  readonly defaultBudget = DEFAULT_STUDIO_BUDGET;
   readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
   readonly formats: readonly OutputFormat[] = ['markdown', 'plain', 'json'];
 
@@ -243,6 +313,10 @@ export class BudgetPanel {
     this.budget.set(value);
   }
 
+  /** N1.1 — how many cards the bodies switch can actually act on. Zero means no switch. */
+  readonly bodyCardCount = computed(() =>
+    this.cards().filter((c) => BODY_CAPABLE_CARD_TYPES.includes(c.type)).length);
+
   toggleAllBodies(): void {
     this.showAllBodies.update((v) => !v);
     this.globalBodiesChange.emit();
@@ -250,13 +324,9 @@ export class BudgetPanel {
 
   onCopy(): void {
     this.copyRequest.emit();
-    this.copied.set(true);
-    this.toast.show('Context copied to clipboard', 'success');
-    setTimeout(() => this.copied.set(false), 2000);
   }
 
   onSave(): void {
     this.saveRequest.emit();
-    this.toast.show('Context saved to file', 'success');
   }
 }

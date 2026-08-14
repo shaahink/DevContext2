@@ -3,8 +3,8 @@ name: Release
 # Tagging v* publishes:
 #   - CLI: MinVer derives the version from the tag; NuGet push (when NUGET_API_KEY is set)
 #   - Desktop — WINDOWS-ONLY by decision (Prism D5.4 / H2): Tauri NSIS+MSI installers with
-#     DevContext.Server bundled as a sidecar (pnpm publish:server via beforeBuildCommand; users
-#     need the .NET 10 runtime). No mac/linux bundles are built: there is no hardware to verify
+#     DevContext.Server AND devcontext-mcp bundled as sidecars (pnpm publish:sidecars via
+#     beforeBuildCommand; users need the .NET 10 runtime). No mac/linux bundles are built: there is no hardware to verify
 #     them on — README §Platform support makes the same claim, and tauri.conf.json pins
 #     bundle.targets to nsis+msi. Installer version derives from the tag (H3), not the conf
 #     default.
@@ -99,8 +99,8 @@ jobs:
           $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'v0.0.0' }
           node scripts/set-tauri-version.mjs $tag
 
-      # beforeBuildCommand (tauri.conf.json) publishes DevContext.Server into
-      # src-tauri/resources/server and builds the Angular frontend before bundling.
+      # beforeBuildCommand (tauri.conf.json) publishes DevContext.Server and devcontext-mcp
+      # into src-tauri/resources/server and builds the Angular frontend before bundling.
       - name: Build installer
         run: pnpm tauri build
         working-directory: src/DevContext.App

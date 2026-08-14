@@ -42,11 +42,19 @@ public static class McpToolMenu
         => [.. ToolMethods().Where(m => m.GetCustomAttribute<SpecialistToolAttribute>() is not null)];
 
     /// <summary>Build both halves against a live tools instance. Program.cs and the tests use this
-    /// same call, so what the test asserts is what the server serves.</summary>
+    /// same call, so what the test asserts is what the server serves.
+    ///
+    /// <para>N4.3 — every tool comes back wrapped in <see cref="ScopedMcpServerTool"/>, so the MCP
+    /// verb the agent asked for travels with the gRPC calls the tool makes and the desktop's feed
+    /// can be spelled in the agent's vocabulary. Wrapping HERE rather than in Program.cs is the
+    /// point: this method is the one door both halves of the menu come through, so an unlisted
+    /// specialist is tagged exactly like an advertised tool.</para></summary>
     public static (IReadOnlyList<McpServerTool> Core, IReadOnlyList<McpServerTool> Specialists) Build(
         DevContextTools tools)
-        => ([.. CoreMethods().Select(m => McpServerTool.Create(m, tools))],
-            [.. SpecialistMethods().Select(m => McpServerTool.Create(m, tools))]);
+        => ([.. CoreMethods().Select(m => Scoped(McpServerTool.Create(m, tools)))],
+            [.. SpecialistMethods().Select(m => Scoped(McpServerTool.Create(m, tools)))]);
+
+    private static McpServerTool Scoped(McpServerTool tool) => new ScopedMcpServerTool(tool);
 
     /// <summary>Specialist tool name → the one line saying what it answers. Read off the same
     /// attribute the split is carried by, so the envelope cannot describe a different set than the

@@ -1,5 +1,6 @@
 using DevContext.Mcp;
 using DevContext.Protos;
+using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,11 @@ try
         ThrowOperationCanceledOnCancellation = true,
     });
 
-    var client = new DevContextService.DevContextServiceClient(channel);
+    // N4.3 — every call this process makes carries the MCP verb the agent asked for (and a short
+    // args digest) in a header, so the server's tool-call feed can be keyed on `trace` rather than
+    // on GetTrace. One interceptor on the channel, so no tool has to remember.
+    var client = new DevContextService.DevContextServiceClient(
+        channel.Intercept(new McpCallHeaderInterceptor()));
     services.AddSingleton(client);
 
     // Verify connectivity

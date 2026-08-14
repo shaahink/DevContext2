@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using DevContext.Core.Analysis;
 using DevContext.Core.Insights;
 using DevContext.Core.Pipeline;
 
@@ -32,19 +33,38 @@ public sealed class ContextPackBuilder
     private readonly GraphQuery _query;
     private readonly AnalysisSnapshot _snapshot;
 
+    /// <summary>N2.2 — THE token ceiling default, one number for both faces of the pipeline.
+    /// It was written 8000 in the MCP tool signature, 8000 in three server fallbacks, 8000 in the
+    /// app's API client — and 4000 in the desktop's own preference default, which is the number the
+    /// Studio actually opened with. So the human's pack was priced at half the agent's and nothing
+    /// said so. Every C# site now reads this constant; the app states the same number
+    /// (DEFAULT_STUDIO_BUDGET in prefs.store.ts) and its slider marks it as the default.
+    /// <para>NOT the same number as <see cref="TracePolicy.DefaultBudgetTokens"/> (4000) and not a
+    /// drift from it: that one budgets a single TRACE, this one budgets a whole PACK spread over N
+    /// focuses. The 4000 the Studio had is most likely exactly that confusion, which is why both
+    /// constants now say what they budget.</para></summary>
+    public const int DefaultBudgetTokens = 8000;
+
+    /// <summary>N2.2 — the fill floor the pack promises (T4.2). Below it, the pack owes the reader
+    /// a reason; see <see cref="BuildFillNote"/>. Same 85% the MCP honesty layer has used since D5.1.</summary>
+    public const int FillPromisePercent = 85;
+
     public ContextPackBuilder(GraphQuery query, AnalysisSnapshot snapshot)
     {
         _query = query;
         _snapshot = snapshot;
     }
 
-    public ContextPack Build(string focus, int budgetTokens = 8000, string? intent = null)
+    public ContextPack Build(string focus, int budgetTokens = DefaultBudgetTokens, string? intent = null)
     {
         // T5.2 — unified addressing (T3.1 rule): a nodeId or bare route resolves like it does
         // in BuildMulti before tracing. Without this, VerifyContext(focus=nodeId) traced null
         // and returned identity-only sections — 0 files checked, always "fresh" while the disk
         // drifted underneath.
-        focus = ResolveFocus(focus) ?? focus;
+        // N2.1 — and a node-id spelling ("Type:Acme.OrderService") resolves here too, so the two
+        // faces of one pipeline accept the same strings: whatever the Studio can put on a card,
+        // get_context can be handed verbatim.
+        focus = ResolveFocus(focus) ?? NormalizeSymbolFocus(focus);
         var (sections, omitted) = BuildSections(focus, budgetTokens, intent);
         if (sections.Length == 0)
         {
@@ -516,6 +536,11 @@ public sealed class ContextPackBuilder
 
     // ── L4.4 multi-card assembly ──────────────────────────────────────────
 
+    /// <summary>N1.1 — the one section that carries code bodies; the per-card eye toggle cuts it.
+    /// Single-sourced so <see cref="CardTypeSections"/> and the toggle can never disagree about
+    /// which cards the toggle can do anything to.</summary>
+    public const string BodiesSection = "bodies";
+
     private static readonly Dictionary<string, IReadOnlyList<string>> CardTypeSections = new()
     {
         ["flow"]       = ["trace"],
@@ -527,7 +552,22 @@ public sealed class ContextPackBuilder
         ["contracts"]  = ["contracts"],   // T4.6 — own section, no longer a signatures alias
         ["tests"]      = ["tests"],       // T4.3 (R9) — real: tests reaching the spine
         ["identity"]   = ["identity"],
+        // N2.1 (audit §3.F.15 / decision 2) — the inbound direction. BuildSections has built a
+        // `usage` section for every symbol-rooted focus since G1.2, and NO card type could pick it:
+        // the section was reachable from `get_context` and unreachable from the Studio. "Who calls
+        // this" is the half of a symbol-rooted pack a change-impact reader is actually after.
+        ["usage"]      = ["usage"],
     };
+
+    /// <summary>N1.1 — card types whose sections include <see cref="BodiesSection"/>: the only
+    /// cards where hiding bodies changes the pack. The Studio renders the eye toggle for exactly
+    /// these, so no inert control survives. (Declared after the table it reads — static field
+    /// initializers run in textual order.)</summary>
+    public static IReadOnlyList<string> BodyCapableCardTypes { get; } =
+        [.. CardTypeSections
+            .Where(kv => kv.Value.Contains(BodiesSection, StringComparer.OrdinalIgnoreCase))
+            .Select(kv => kv.Key)
+            .OrderBy(k => k, StringComparer.Ordinal)];
 
     /// <summary>L4.4 — Build multi-card pack: trace each unique entry once, pick per-card
     /// sections by type, assemble the full markdown pack. Closes Meridian Trap A.
@@ -535,9 +575,14 @@ public sealed class ContextPackBuilder
     /// one traced), so a card with entries [A, B] gets trace content from both.</summary>
     public MultiContextPack BuildMulti(
         IReadOnlyList<ContextCardSpec> cards,
-        int totalBudget = 8000,
+        int totalBudget = DefaultBudgetTokens,
         string? intent = null)
     {
+        // N2.1 — resolve every card entry id ONCE, through the two-tier path (declared entry, then
+        // the symbol resolver `get_context` uses). Both loops below read this map, so a card and the
+        // trace it aggregates from can no longer disagree about what an id means.
+        var cardFocuses = ResolveCardFocuses(cards);
+
         // Collect unique entry focuses with their reach counts for proportional budget
         var uniqueFocuses = new List<(string Focus, int Reach)>();
         var seen = new HashSet<string>();
@@ -545,9 +590,9 @@ public sealed class ContextPackBuilder
         {
             foreach (var eid in card.EntryIds)
             {
-                var (focus, reach) = ResolveFocusWithReach(eid);
-                if (focus is not null && seen.Add(focus))
-                    uniqueFocuses.Add((focus, reach));
+                if (!cardFocuses.TryGetValue(eid, out var resolved)) continue;
+                if (seen.Add(resolved.Focus))
+                    uniqueFocuses.Add(resolved);
             }
         }
 
@@ -556,18 +601,25 @@ public sealed class ContextPackBuilder
         // get meaningful sections.
         const int minEntryBudget = 200;
         var focusBudgets = AllocateProportionalBudgets(uniqueFocuses, totalBudget, minEntryBudget);
-        // totalBudget updated to reflect what proportionally-allocated budgets sum to
 
         // Trace each unique entry once, build ALL sections.
         // Sections are stored per-focus so each card can aggregate from its own entries.
         var entrySections = new Dictionary<string, ImmutableArray<SectionAllocation>>();
         var sectionOmissions = new List<string>();
+        // N0.1 (audit §3.F.4) — what "allocated" actually means: the share of the ceiling that
+        // reached an entry which produced sections. Previously AllocatedTokens echoed the budget
+        // ceiling verbatim, so the Studio header printed one number under two labels (and claimed
+        // a full allocation even for a pack where nothing resolved).
+        var allocatedTokens = 0;
         foreach (var (focus, _) in uniqueFocuses)
         {
             var budget = focusBudgets.GetValueOrDefault(focus, minEntryBudget);
             var (allSections, focusOmitted) = BuildSections(focus, budget, intent);
             if (allSections.Length > 0)
+            {
                 entrySections[focus] = allSections;
+                allocatedTokens += Math.Max(0, budget);
+            }
             // T5.1 (audit R1) — these omission reasons were built and discarded here, so
             // GetContextPack always reported an empty omitted[] while silently cutting
             // sections. Attribute per focus when the pack spans more than one entry.
@@ -589,21 +641,52 @@ public sealed class ContextPackBuilder
                 continue;
             }
 
+            // N1.1 (audit §3.F.2) — the Studio's eye toggle reaches the pack. It was cosmetic:
+            // an icon and an opacity, while the copied bytes still carried every body and the
+            // budget pill said "All bodies hidden". Hiding bodies now really cuts the section.
+            if (card.ExcludeBodies && wanted.Contains(BodiesSection))
+            {
+                wanted = [.. wanted.Where(w => !string.Equals(w, BodiesSection, StringComparison.OrdinalIgnoreCase))];
+                if (wanted.Count == 0)
+                {
+                    omitted.Add($"{card.Type} ({card.Title}): code bodies hidden — omitted");
+                    continue;
+                }
+            }
+
             var pickedBySection = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
+            // N2.1 — a card can name one focus twice (two spellings of a symbol, or a nodeId and its
+            // route). MEASURED: without this the merge below concatenated a section INTO ITSELF —
+            // duplicated bytes, doubled Verified/Approx counts, and the pack paid for both.
+            var focusesUsed = new HashSet<string>(StringComparer.Ordinal);
             foreach (var eid in card.EntryIds)
             {
-                var focus = ResolveFocus(eid);
-                if (focus is null || !entrySections.TryGetValue(focus, out var es)) continue;
+                if (!cardFocuses.TryGetValue(eid, out var resolved)
+                    || !focusesUsed.Add(resolved.Focus)
+                    || !entrySections.TryGetValue(resolved.Focus, out var es)) continue;
                 foreach (var sa in es)
                 {
                     if (!wanted.Contains(sa.Section)) continue;
                     if (pickedBySection.TryGetValue(sa.Section, out var existing))
                     {
-                        // Same section from another entry — concatenate content
+                        // Same section from another entry — concatenate content AND carry the
+                        // provenance across (N0.1 / audit §3.F.3: the merge used to keep only
+                        // the first entry's SourceLocations/Verified/Approx, so every card on a
+                        // multi-entry pack lost the provenance the single-entry path renders).
                         pickedBySection[sa.Section] = new SectionAllocation(
                             sa.Section,
                             existing.Tokens + sa.Tokens,
-                            existing.Content + "\n" + sa.Content);
+                            existing.Content + "\n" + sa.Content)
+                        {
+                            SourceLocations = [.. existing.SourceLocations
+                                .Concat(sa.SourceLocations)
+                                .Distinct(StringComparer.Ordinal)
+                                .OrderBy(l => l, StringComparer.Ordinal)
+                                .Take(20)],
+                            Verified = existing.Verified + sa.Verified,
+                            Joined = existing.Joined + sa.Joined,
+                            Approx = existing.Approx + sa.Approx,
+                        };
                     }
                     else
                     {
@@ -665,12 +748,114 @@ public sealed class ContextPackBuilder
         sb.AppendLine("---");
         sb.AppendLine($"_Generated by DevContext Context Studio — {DateTime.UtcNow:O}_");
 
+        // N1.1 (audit wire item 4) — verify THE PACK THAT WAS JUST BUILT. The client used to
+        // fan out one VerifyContext per focus, each handed the whole budget ceiling and each
+        // verifying every section of that focus; the ledger could therefore report a section
+        // this pack dropped, or miss drift in the halves the proportional split actually built.
+        // Here the input is `cardItems`' own sections — post-budget, post-`wanted`, post-merge —
+        // so a divergence is not possible to write. Sections are merged by key across cards
+        // because that is the granularity the ledger renders at.
+        var byKey = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
+        foreach (var sa in cardItems.SelectMany(c => c.Sections))
+        {
+            byKey[sa.Section] = byKey.TryGetValue(sa.Section, out var prior)
+                ? prior with
+                {
+                    SourceLocations = [.. prior.SourceLocations
+                        .Concat(sa.SourceLocations)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)],
+                }
+                : sa;
+        }
+        var verification = new ContextPackVerifier(_snapshot)
+            .Verify([.. byKey.Values.OrderBy(s => s.Section, StringComparer.Ordinal)]);
+
+        // N2.2 (audit §4 wire item / decision 2) — HONESTY-NOTE PARITY. The ≥85%-fill promise has
+        // never failed silently for the agent: `get_context` has said WHY since D5.1 (budget-cut vs
+        // content-exhausted) and offered better-connected focuses. The Studio rendered the same
+        // server bytes with none of it, so the human's pack was the less honest of the two. Computing
+        // it HERE, in the kernel, rather than a second time in the Angular client is what stops the
+        // Studio from becoming a third opinion. (MCP's get_context still computes its own over the
+        // single-focus ContextResponse — that RPC does not carry these fields; the duplication is
+        // filed, not fixed here.) Suggestions are only built for the content-exhausted case — a
+        // budget-cut pack's next move is the slider, not a different focus.
+        var (fillNote, suggested) = BuildFillNote(allTokens, totalBudget, omitted, uniqueFocuses);
+
         return new MultiContextPack(
             cardItems.ToImmutable(),
             sb.ToString(),
             allTokens,
-            totalBudget,    // AllocatedTokens = the budget ceiling, not actual usage
-            [.. omitted]);
+            allocatedTokens,    // budget handed to entries that produced sections (≤ totalBudget)
+            [.. omitted])
+        {
+            FillNote = fillNote,
+            SuggestedFocuses = suggested,
+            Verification = verification,
+            // "unknown" (no analyze-time fingerprint) is honesty, not drift — same rule the
+            // per-section verdict uses, so the pack-level flag agrees with the list under it.
+            AnyStale = verification.Any(v => v.Stale),
+            AnalyzedGitHead = _snapshot.GitHead ?? "",
+            CurrentGitHead = GitHeadReader.Read(_snapshot.RootPath) ?? "",
+        };
+    }
+
+    /// <summary>N2.2 — the fill-rate honesty note (and, when it would help, better-connected
+    /// focuses). Lifted verbatim in behaviour from the MCP get_context layer (DevContextTools
+    /// D5.1/G1) so the Studio and the agent get the SAME verdict from the SAME code, rather than
+    /// two implementations that agree until one is edited.
+    /// <para>An under-filled pack is not automatically a failure: it means either the budget cut
+    /// content out (raise the ceiling — the omitted list names what went) or the focus's connected
+    /// subgraph is simply small and everything reachable is already here. Only the second case can
+    /// be answered by picking a different focus, so only it carries suggestions.</para></summary>
+    internal (string? Note, ImmutableArray<SuggestedFocus> Suggested) BuildFillNote(
+        int totalTokens, int totalBudget, IReadOnlyList<string> omitted,
+        IReadOnlyList<(string Focus, int Reach)> packFocuses)
+    {
+        var fillPct = totalBudget > 0 ? (int)(totalTokens * 100L / totalBudget) : 100;
+        if (fillPct >= FillPromisePercent) return (null, []);
+
+        var budgetCut = omitted.Any(o =>
+            o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+            o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+        if (budgetCut)
+            return ($"fill {fillPct}%: sections were cut to fit the budget — raise the budget for the rest (see omitted).", []);
+
+        var note = $"fill {fillPct}%: the pack already contains everything reachable from these focuses — their connected subgraph is small (not an error; a smaller budget fits it).";
+        var suggested = SuggestConnectedFocuses(packFocuses);
+        if (suggested.Length > 0)
+            note += " Better-connected focuses are suggested below.";
+        return (note, suggested);
+    }
+
+    /// <summary>N2.2 — the repo's best-connected flows, excluding the ones this pack is already
+    /// built on. Same source and same ranking as MCP's SuggestConnectedFocuses: the ranked flow
+    /// list (score, then depth), depth ≥ 2 so a one-hop stub is never advertised as "better
+    /// connected". Empty on repos with no ranked flows (a class library) — the note then stands
+    /// alone, which is the honest answer there.</summary>
+    private ImmutableArray<SuggestedFocus> SuggestConnectedFocuses(
+        IReadOnlyList<(string Focus, int Reach)> exclude, int take = 4)
+    {
+        var flows = _query.Flows;
+        if (flows.IsDefaultOrEmpty) return [];
+
+        var excluded = new HashSet<string>(exclude.Select(e => e.Focus), StringComparer.OrdinalIgnoreCase);
+        return
+        [
+            .. flows
+                .Where(f => f.Steps.Length >= 2)
+                .OrderByDescending(f => f.Entry.Score)
+                .ThenByDescending(f => f.Steps.Length)
+                .Select(f => new SuggestedFocus(
+                    f.Entry.HttpMethod is { Length: > 0 } m && f.Entry.Route is { Length: > 0 } r
+                        ? $"{m} {r}"
+                        : f.Entry.Title,
+                    f.Entry.Kind.ToString(),
+                    f.Entry.Score,
+                    f.Steps.Length))
+                .Where(s => !excluded.Contains(s.Focus))
+                .DistinctBy(s => s.Focus, StringComparer.OrdinalIgnoreCase)
+                .Take(take),
+        ];
     }
 
     /// <summary>Returns all sections for a single focus + omitted reasons (no delimiting headers — raw content per section).</summary>
@@ -972,11 +1157,72 @@ public sealed class ContextPackBuilder
         ? (e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title)
         : null;
 
-    private (string? Focus, int Reach) ResolveFocusWithReach(string entryId)
+    /// <summary>
+    /// N2.1 (audit §3.C, owner decision 2) — every distinct entry id the cards name, resolved ONCE to
+    /// the focus string its sections get built from. Two tiers, in the order the product means them:
+    /// a DECLARED entry keeps the spelling it always had (<c>GET /orders</c>, or its title), and
+    /// anything else goes through the SAME <see cref="GraphQuery.ResolveEntry"/> path
+    /// <c>get_context</c> uses — so a type- or member-scoped card builds the symbol-rooted pack the
+    /// kernel has been able to build since G1.2.
+    /// <para>MEASURED before the change: BuildMulti resolved through <see cref="FindEntry"/> alone,
+    /// which scans <c>_snapshot.Entries</c> and nothing else. A card naming a type therefore produced
+    /// no focus, no sections, and was dropped as "no content for its entries" — the Studio's
+    /// entries-only scope was this one lookup, not a missing feature (audit §3.C).</para>
+    /// <para>Resolving here also collapses the per-card re-scan (ResolveEntry walks the graph) and
+    /// gives the two loops below ONE answer per id: the trace budget and the card that aggregates it
+    /// cannot disagree about what an id meant.</para>
+    /// </summary>
+    private Dictionary<string, (string Focus, int Reach)> ResolveCardFocuses(IReadOnlyList<ContextCardSpec> cards)
     {
-        if (FindEntry(entryId) is not { } e) return (null, 0);
-        var focus = e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title;
-        return (focus, e.Reach);
+        var map = new Dictionary<string, (string Focus, int Reach)>(StringComparer.Ordinal);
+        // First spelling of a symbol wins, so "OrderService" and "Type:Acme.OrderService" on two
+        // cards share one focus — one trace, one budget share — instead of building it twice.
+        var byNode = new Dictionary<NodeId, (string Focus, int Reach)>();
+
+        foreach (var card in cards)
+        {
+            foreach (var eid in card.EntryIds)
+            {
+                if (map.ContainsKey(eid)) continue;
+
+                if (FindEntry(eid) is { } declared)
+                {
+                    map[eid] = (declared.HttpMethod is { } m && declared.Route is { } r
+                        ? $"{m} {r}"
+                        : declared.Title, declared.Reach);
+                    continue;
+                }
+
+                var focus = NormalizeSymbolFocus(eid);
+                if (_query.ResolveEntry(focus) is not { } symbol) continue;
+                if (byNode.TryGetValue(symbol.Node, out var already)) { map[eid] = already; continue; }
+
+                // A symbol has no precomputed Reach (that is an entry-inventory field). Its rolled
+                // out-degree is the honest proxy for the same thing the budget split wants — how much
+                // this root goes on to touch — and it is what the resolver itself ranks candidates on.
+                var resolved = (focus, _query.Neighbors(symbol.Node, EdgeDirection.Out).Length);
+                byNode[symbol.Node] = resolved;
+                map[eid] = resolved;
+            }
+        }
+
+        return map;
+    }
+
+    /// <summary>N2.1 — a card entry id is a <see cref="NodeId"/> string (<c>Type:Acme.OrderService</c>,
+    /// <c>Member:Acme.OrderService::Handle</c>) because that is the spelling the desktop already sends
+    /// for declared entries. The shared resolver speaks the USER notation (<c>OrderService</c>,
+    /// <c>OrderService:Handle</c>), so the kind prefix is translated here rather than teaching the
+    /// resolver a second dialect. Anything that is not a node-id form passes through untouched — a
+    /// bare <c>RuleFor</c> is already what the resolver wants.</summary>
+    internal static string NormalizeSymbolFocus(string entryId)
+    {
+        var colon = entryId.IndexOf(':');
+        if (colon <= 0) return entryId;
+        var prefix = entryId[..colon];
+        return Enum.GetNames<NodeKind>().Contains(prefix, StringComparer.Ordinal)
+            ? entryId[(colon + 1)..]
+            : entryId;
     }
 
     // GAP 4 (UI Context Studio audit) — same bare-route gap as EntryPointResolver: a card seeded with
@@ -1079,8 +1325,11 @@ internal sealed class SectionProvenance
     }
 }
 
-/// <summary>L4.4 — One card spec the UI sends to the server.</summary>
-public sealed record ContextCardSpec(string Type, string Title, ImmutableArray<string> EntryIds);
+/// <summary>L4.4 — One card spec the UI sends to the server. N1.1: <paramref name="ExcludeBodies"/>
+/// is the Studio's per-card eye toggle — stated negatively so the default (false) is the
+/// pre-N1.1 behaviour for every caller that does not set it.</summary>
+public sealed record ContextCardSpec(
+    string Type, string Title, ImmutableArray<string> EntryIds, bool ExcludeBodies = false);
 
 /// <summary>L4.4 — One assembled card from the server.</summary>
 public sealed record ContextCardPack(
@@ -1089,10 +1338,33 @@ public sealed record ContextCardPack(
     ImmutableArray<SectionAllocation> Sections,
     int TotalTokens);
 
-/// <summary>L4.4 — Multi-card context pack assembled server-side.</summary>
+/// <summary>L4.4 — Multi-card context pack assembled server-side. N1.1 (audit wire item 4):
+/// the pack carries its OWN staleness ledger, computed from the sections it actually kept —
+/// see <see cref="ContextPackBuilder.BuildMulti"/>.</summary>
 public sealed record MultiContextPack(
     ImmutableArray<ContextCardPack> Cards,
     string AssembledMarkdown,
     int TotalTokens,
     int AllocatedTokens,
-    ImmutableArray<string> Omitted);
+    ImmutableArray<string> Omitted)
+{
+    /// <summary>N1.1 — per-section verdict over the pack's own section set (empty when the
+    /// snapshot carries no analyze-time fingerprints).</summary>
+    public ImmutableArray<SectionVerification> Verification { get; init; } = [];
+    public bool AnyStale { get; init; }
+    public string AnalyzedGitHead { get; init; } = "";
+    public string CurrentGitHead { get; init; } = "";
+
+    /// <summary>N2.2 — why this pack under-filled its budget, or null when it met the ≥85% promise.
+    /// The same sentence `get_context` has returned to agents since D5.1.</summary>
+    public string? FillNote { get; init; }
+
+    /// <summary>N2.2 — better-connected focuses, non-empty only for a content-exhausted under-fill
+    /// on a repo that has ranked flows.</summary>
+    public ImmutableArray<SuggestedFocus> SuggestedFocuses { get; init; } = [];
+}
+
+/// <summary>N2.2 — a next-move candidate offered with an under-filled pack: a focus string the
+/// pack builder accepts verbatim (route form when the entry has one, else its title), with the
+/// connectedness numbers that made it a candidate so the reader can judge the suggestion.</summary>
+public sealed record SuggestedFocus(string Focus, string Kind, double Score, int Depth);

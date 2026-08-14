@@ -44,9 +44,22 @@ export interface TraceNodeVm {
   readonly seam: string;
   readonly depth: number;
   readonly provenance?: string;
+  /** M1.1 — the provenance site as DATA. The server splits it (PathDisplay.SplitProvenance), so
+   * no client re-invents "which colon ends the drive letter". Absent when there is no line. */
+  readonly filePath?: string;
+  readonly lineNumber?: number;
   readonly resolution: string;
   readonly truncated: boolean;
   readonly omitted: number;
+  /** M1.1 — WHO was cut, up to 4. A count says something was omitted; the names say whether it
+   * mattered. Parity with the CLI's "(N branches omitted: A, B, …)". */
+  readonly omittedNames: readonly string[];
+  /** M1.1 — >1 when DI has this many implementations for this Resolves step (I1.6). */
+  readonly multiImplCount: number;
+  /** M1.1 — >1 when N hosts register the binding and none is the focus host (C5). */
+  readonly diHostCount: number;
+  /** M1.1 — the binding comes only from a test project, not the production wiring (T2.1). */
+  readonly testOnly: boolean;
   readonly salient?: string;
   readonly tags: readonly string[];
   readonly children: readonly TraceNodeVm[];
@@ -323,9 +336,15 @@ export function toTraceVm(node: TraceNode): TraceNodeVm {
     seam: node.seam,
     depth: node.depth,
     provenance: node.provenance,
+    filePath: node.filePath,
+    lineNumber: node.lineNumber,
     resolution: node.resolution,
     truncated: node.truncated,
     omitted: node.omitted,
+    omittedNames: node.omittedNames,
+    multiImplCount: node.multiImplCount,
+    diHostCount: node.diHostCount,
+    testOnly: node.testOnly,
     salient: node.salient,
     tags: node.tags,
     children: node.children.map(toTraceVm),

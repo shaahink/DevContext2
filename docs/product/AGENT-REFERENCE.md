@@ -37,12 +37,12 @@ The proto is the authority for server ⇄ app ⇄ MCP. RPCs:
 
 ```
 Session:   Analyze · ListSessions · CloseSession · Ping · GetStats
-Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints
-Trace:     GetTrace · GetNeighbors · GetNode · GetImpact
+Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints · GetFlowIndex
+Trace:     GetTrace · GetNeighbors · GetNode · GetImpact · GetSeam
 Search:    SearchNodes · FindTestsFor · ConfigLookup
-Source:    ReadSource · Render
-Context:   GetContext · GetContextPack · VerifyContext
-MCP mgmt:  StartMcp · StopMcp · ObserveToolCalls
+Source:    ReadSource · GetFileOverlay · Render
+Context:   GetContext · GetContextPack · VerifyContext · SavePackFile
+MCP mgmt:  GetMcpStatus · McpHandshake · ObserveToolCalls
 ```
 
 Editing the proto: rebuild `DevContext.Contracts` (C# stubs) **and** run `pnpm gen:proto` (TypeScript)
@@ -160,8 +160,9 @@ Map · TopFlows · Trace · Node · Neighbors · Usages · Find · Impact · Sea
 TestsFor · GetContext · VerifyContext · ReadSource
 ```
 
-The desktop MCP page manages the server (status, config snippets, sessions, live log feed, try-a-tool
-sandbox). See `AGENTS.md` for background-process rules when running any server as an agent.
+The desktop MCP page shows telemetry (status, config snippets, sessions, live tool-CALL feed,
+try-a-tool sandbox) — it does not read the rolling log files, and its Start/Stop toggles the
+telemetry stream, not the `devcontext-mcp` process (which the agent host spawns over stdio). See `AGENTS.md` for background-process rules when running any server as an agent.
 
 ## Testing
 

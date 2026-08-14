@@ -11,6 +11,8 @@
     "gen:proto": "buf generate",
     "build:server": "dotnet build ../DevContext.Server -clp:ErrorsOnly",
     "publish:server": "dotnet publish ../DevContext.Server -c Release -clp:ErrorsOnly -o src-tauri/resources/server",
+    "publish:mcp": "dotnet publish ../DevContext.Mcp -c Release -clp:ErrorsOnly -o src-tauri/resources/server",
+    "publish:sidecars": "pnpm publish:server && pnpm publish:mcp",
     "server": "pnpm build:server && dotnet ../DevContext.Server/bin/Debug/net10.0/DevContext.Server.dll --urls http://127.0.0.1:5179",
     "tauri": "tauri",
     "dev": "pnpm build:server && concurrently -k -n server,app -c blue,green \"dotnet ../DevContext.Server/bin/Debug/net10.0/DevContext.Server.dll --urls http://127.0.0.1:5179\" \"tauri dev\"",

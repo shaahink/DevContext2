@@ -1,0 +1,43 @@
+N0.3 evidence - data-testid coverage on the two audited pages (audit 3.F.16)
+generated 2026-08-13, branch feat/pre-release-desktop, head 91e43bc
+A testid counts as REFERENCED only if a .spec.ts names it - either as a selector literal
+or as the argument to that spec's text(el, id) helper. Both forms are real assertions.
+
+== src/DevContext.App/src/app/features/pages/mcp-page.ts
+   unreferenced  feed-error
+   REFERENCED    feed-origin-filter  <- mcp-page.spec.ts 
+   REFERENCED    feed-total  <- mcp-page.spec.ts 
+   REFERENCED    mcp-setup-note  <- mcp-page.spec.ts 
+   unreferenced  mcp-status-dot
+   REFERENCED    mcp-status-error  <- mcp-page.spec.ts 
+   REFERENCED    mcp-status-label  <- mcp-page.spec.ts 
+   REFERENCED    mcp-status-text  <- mcp-page.spec.ts 
+   REFERENCED    mcp-toggle  <- mcp-page.spec.ts 
+   REFERENCED    session-analyzed  <- mcp-page.spec.ts 
+   REFERENCED    session-handle-copy  <- mcp-page.spec.ts 
+   REFERENCED    sessions-error  <- mcp-page.spec.ts 
+   REFERENCED    session-use  <- mcp-page.spec.ts 
+== src/DevContext.App/src/app/features/context-studio/composition-view.ts
+   REFERENCED    card-copy  <- context-studio.spec.ts 
+   REFERENCED    card-error  <- context-studio.spec.ts 
+   REFERENCED    card-retry  <- context-studio.spec.ts 
+   REFERENCED    provenance-chip  <- context-studio.spec.ts 
+== src/DevContext.App/src/app/features/context-studio/budget-panel.ts
+   REFERENCED    copy-context  <- context-studio.spec.ts 
+   REFERENCED    omitted-list  <- context-studio.spec.ts 
+   unreferenced  save-context
+== src/DevContext.App/src/app/features/context-studio/scope-picker.ts
+   unreferenced  add-to-context
+== src/DevContext.App/src/app/features/context-studio/verification-panel.ts
+   REFERENCED    verification-fresh  <- context-studio.spec.ts 
+   REFERENCED    verification-panel  <- context-studio.spec.ts 
+   REFERENCED    verification-reanalyze  <- context-studio.spec.ts 
+   unreferenced  verification-refresh
+   REFERENCED    verification-stale  <- context-studio.spec.ts 
+
+dynamic: mcp-page copy-snippet-<host> (attr binding) - asserted as copy-snippet-Cursor / -VS Code / -Claude Code
+
+Remaining unreferenced are OUT of N0.3 scope and deliberately not padded with a smoke test:
+  save-context / add-to-context - drive a Tauri save dialog and the seed path; N1.1 territory
+  verification-refresh          - the N-RPC repack path filed as backlog #28
+  mcp-status-dot                - a colour on the element whose LABEL is already asserted

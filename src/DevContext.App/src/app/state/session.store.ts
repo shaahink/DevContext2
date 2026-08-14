@@ -64,7 +64,11 @@ export class SessionStore {
     }
 
     const reusingTab = this.workspace.activeId() !== null;
-    const tabId: string = this.workspace.activeId() ?? this.workspace.createTab(spec.path, spec.path);
+    // M1.2: createTab reports refusal now. This branch only runs with NO tabs open, so it cannot
+    // be at the cap — but the guard is here rather than a `!`, because that assumption is the
+    // exact shape of the bug this change removes.
+    const tabId = this.workspace.activeId() ?? this.workspace.createTab(spec.path, spec.path);
+    if (tabId === null) return;
     if (reusingTab) this.workspace.setPathLabel(tabId, spec.path, spec.path);
 
     const controller = this.workspace.tabById(tabId)?.controller;

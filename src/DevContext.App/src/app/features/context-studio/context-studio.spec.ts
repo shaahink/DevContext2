@@ -2,13 +2,17 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
-import type { ContextPackResponse, VerifyContextResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
-import { TrailStore } from '../../state/trail.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
+import { TrailStore, type TrailStep } from '../../state/trail.store';
+import type { EntryGroupVm } from '../../models/view-models';
+import { ToastService } from '../../ui/toast/toast';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
-import type { ContextCardSeed, OutputFormat } from './scope-picker';
+import type { ContextCardSeed, ContextIntent, OutputFormat } from '../../models/context-card';
 import type { PackVerification } from './verification-panel';
 
 /** The protected surface the specs drive — kept in sync with ContextStudio by the cast site. */
@@ -20,13 +24,27 @@ interface StudioTestSurface {
   exportReady(): boolean;
   packDebounceMs: number;
   packVerification(): PackVerification | null;
+  // N2.2 — the server's fill-rate verdict, held as it arrived.
+  packFillNote(): string | null;
+  packSuggestedFocuses(): readonly { focus: string; kind: string; depth: number }[];
+  onSuggestedFocus(s: { focus: string; kind: string; depth: number }): void;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
+  // N3.1 — the proposed-pack default state.
+  proposalSource(): string | null;
+  onClearProposal(): void;
   onBudgetChange(value: number): void;
+  onIntentChange(intent: ContextIntent): void;
+  onToggleBody(id: string): void;
   onRemove(id: string): void;
   onRetry(): void;
   onVerifyRefresh(): void;
   onReanalyze(): void;
-  saveFileName(format: OutputFormat): string;
+  saveSlug(): string;
+  // N3.2 — the repo-file hand-off.
+  onSave(): Promise<void>;
+  onCopyAgentLine(): Promise<void>;
+  handoffFile(): { path: string; relativePath: string; gitignored: boolean; agentLine: string } | null;
+  handoffStale(): boolean;
   buildContext(format: OutputFormat): string | null;
   // D4.5 (L4) — the live preview surface
   previewText(): string | null;
@@ -46,6 +64,15 @@ function packResponse(overrides: Partial<{
   omitted: string[];
   assembledMarkdown: string;
   cards: PackCardOverride[];
+  // N1.1 (wire item 4) — the ledger rides the pack it describes.
+  verification: { key: string; stale: boolean; filesChecked: number; changed: { file: string; status: string; lineDelta: number }[] }[];
+  anyStale: boolean;
+  analyzedGitHead: string;
+  currentGitHead: string;
+  // N2.2 — the fill-rate honesty note and its suggested next focuses. proto3 scalars are never
+  // absent on the wire, so the fake must not be either: "" is how the server says "no note".
+  fillNote: string;
+  suggestedFocuses: { focus: string; kind: string; score: number; depth: number }[];
 }> = {}): ContextPackResponse {
   // The server echoes the REQUEST card titles back on pack items (correlation key).
   const cards = (overrides.cards ?? [
@@ -68,30 +95,19 @@ function packResponse(overrides: Partial<{
     totalTokens: cards.reduce((n, c) => n + c.tokens, 0),
     allocatedTokens: 4000,
     omitted: overrides.omitted ?? [],
+    verification: overrides.verification ?? [
+      { key: 'trace', stale: false, filesChecked: 3, changed: [] },
+    ],
+    anyStale: overrides.anyStale ?? false,
+    analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
+    currentGitHead: overrides.currentGitHead ?? 'abc1234',
+    fillNote: overrides.fillNote ?? '',
+    suggestedFocuses: overrides.suggestedFocuses ?? [],
   } as unknown as ContextPackResponse;
 }
 
 function flowSeed(title = 'Flow: POST /checkout'): ContextCardSeed {
   return { type: 'flow', title, entryIds: ['node-1'], estimatedLines: 15 };
-}
-
-function verifyResponse(overrides: Partial<{
-  found: boolean;
-  anyStale: boolean;
-  analyzedGitHead: string;
-  currentGitHead: string;
-  sections: { key: string; stale: boolean; filesChecked: number; changed: { file: string; status: string; lineDelta: number }[] }[];
-}> = {}): VerifyContextResponse {
-  return {
-    found: overrides.found ?? true,
-    focus: 'POST /checkout',
-    anyStale: overrides.anyStale ?? false,
-    analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
-    currentGitHead: overrides.currentGitHead ?? 'abc1234',
-    sections: overrides.sections ?? [
-      { key: 'trace', stale: false, filesChecked: 3, changed: [] },
-    ],
-  } as unknown as VerifyContextResponse;
 }
 
 /** One macrotask hop — enough for the 0ms-debounce timer plus the RPC microtasks. */
@@ -102,39 +118,86 @@ async function flush(): Promise<void> {
 
 describe('ContextStudio', () => {
   let getContextPack: Mock;
+  /** N3.2 — the repo-file hand-off RPC. */
+  let savePackFile: Mock;
+  /** N1.1 — kept as a mock precisely so the specs can prove it is NEVER called: the ledger
+   * rides the pack response now, so a VerifyContext RPC from the Studio is a regression. */
   let verifyContext: Mock;
   let reAnalyze: Mock;
+  let handle: ReturnType<typeof signal<string | null>>;
+  // N1.2 — the trail/pins the Studio seeds from, and the graph it resolves them against.
+  let trailSteps: ReturnType<typeof signal<TrailStep[]>>;
+  let pins: ReturnType<typeof signal<TrailStep[]>>;
+  let entryGroups: ReturnType<typeof signal<EntryGroupVm[]>>;
+  /** N2.1 — the Types tab reads MapResponse.surface, so the specs need to be able to put one there. */
+  let mapResponse: ReturnType<typeof signal<{ isLibrary?: boolean; surface?: unknown } | null>>;
+  let prefs: {
+    studioBudget: Mock; studioIntent: Mock; studioFormat: Mock;
+    setStudioBudget: Mock; setStudioIntent: Mock; setStudioFormat: Mock;
+  };
 
   beforeEach(() => {
     getContextPack = vi.fn();
-    verifyContext = vi.fn().mockResolvedValue(verifyResponse());
+    savePackFile = vi.fn().mockResolvedValue({
+      path: 'C:/repos/eshop/.devcontext/packs/eshop-context.md',
+      relativePath: '.devcontext/packs/eshop-context.md',
+      gitignored: true,
+      agentLine: 'Read .devcontext/packs/eshop-context.md before answering questions about this repo.',
+    });
+    verifyContext = vi.fn();
     reAnalyze = vi.fn();
+    handle = signal<string | null>('h1');
+    trailSteps = signal<TrailStep[]>([]);
+    pins = signal<TrailStep[]>([]);
+    entryGroups = signal<EntryGroupVm[]>([]);
+    mapResponse = signal<{ isLibrary?: boolean; surface?: unknown } | null>(null);
+    prefs = {
+      studioBudget: vi.fn().mockReturnValue(4000),
+      studioIntent: vi.fn().mockReturnValue('trace'),
+      studioFormat: vi.fn().mockReturnValue('markdown'),
+      setStudioBudget: vi.fn(),
+      setStudioIntent: vi.fn(),
+      setStudioFormat: vi.fn(),
+    };
     TestBed.configureTestingModule({
       providers: [
-        { provide: DevContextApi, useValue: { getContextPack, verifyContext } },
+        { provide: DevContextApi, useValue: { getContextPack, verifyContext, savePackFile } },
+        { provide: PrefsStore, useValue: prefs },
         {
           provide: SessionStore,
           useValue: {
-            handle: signal('h1'),
-            entryGroups: signal([]),
+            handle,
+            entryGroups,
             summary: signal({ label: 'eshop-microservices' }),
             // R3 C-3: the Studio now tells the scope picker whether a repo was analyzed at all,
             // so the picker can stop reporting "zero entries" as "no analysis".
             ready: signal(true),
-            mapResponse: signal(null),
+            mapResponse,
             reAnalyze,
           },
         },
-        { provide: TrailStore, useValue: { steps: signal([]) } },
+        { provide: TrailStore, useValue: { steps: trailSteps, pins } },
       ],
     });
   });
 
-  function createStudio() {
+  /**
+   * N3.1 — Studio no longer opens empty: it proposes a pack from pins, else the trail, else the
+   * archetype preset. Every spec written before N3.1 is about something else (the seed button, the
+   * Types tab, the preview), so the default here clears the proposal and the RPC it scheduled —
+   * otherwise those specs would be measuring the proposal's cards on top of their own. No assertion
+   * below was changed; only the component's OPENING state was. `keepProposal: true` is how the N3.1
+   * specs opt into it.
+   */
+  function createStudio(opts: { keepProposal?: boolean } = {}) {
     const fixture = TestBed.createComponent(ContextStudio);
     fixture.detectChanges();
     const studio = fixture.componentInstance as unknown as StudioTestSurface;
     studio.packDebounceMs = 0;
+    if (!opts.keepProposal) {
+      studio.onClearProposal();
+      getContextPack.mockClear();
+    }
     return { fixture, studio };
   }
 
@@ -153,6 +216,80 @@ describe('ContextStudio', () => {
     const list = el.querySelector('[data-testid="omitted-list"]');
     expect(list).not.toBeNull();
     expect(list!.textContent).toContain('signatures: omitted (1450 tokens, budget exhausted)');
+  });
+
+  // N2.2 (audit §4) — HONESTY-NOTE PARITY. `get_context` has told agents WHY an under-filled pack
+  // under-filled since D5.1; the Studio rendered the same server bytes and said nothing, so the
+  // human's pack was the less honest of the two faces. These pin that the note is RENDERED, that
+  // its suggestions are ACTIONABLE, and that neither is invented here — "" means no note, and a
+  // note computed anywhere but ContextPackBuilder is the drift N2.2 exists to close.
+  it('renders the server fill note and its suggested focuses (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      fillNote: 'fill 41%: the pack already contains everything reachable from these focuses',
+      suggestedFocuses: [{ focus: 'POST /api/orders/', kind: 'HttpEndpoint', score: 9.5, depth: 6 }],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.packFillNote()).toContain('fill 41%');
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="fill-note"]')!.textContent).toContain('everything reachable');
+    expect(el.querySelector('[data-testid="suggested-focuses"]')!.textContent).toContain('POST /api/orders/');
+  });
+
+  it('says nothing when the pack met its fill promise, and drops the note with the pack (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    // "" on the wire is the server saying it owes no explanation — not an empty note to render.
+    expect(studio.packFillNote()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="fill-note"]')).toBeNull();
+
+    // And a note must never outlive the pack it describes: removing the last card drops both.
+    studio.onRemove(studio.cards()[0].id);
+    await flush();
+    fixture.detectChanges();
+    expect(studio.packFillNote()).toBeNull();
+    expect(studio.packSuggestedFocuses()).toEqual([]);
+  });
+
+  it('following a suggested focus adds a flow card for it, once (N2.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      fillNote: 'fill 41%: the pack already contains everything reachable from these focuses',
+      suggestedFocuses: [{ focus: 'POST /api/orders/', kind: 'HttpEndpoint', score: 9.5, depth: 6 }],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+    const before = studio.cards().length;
+
+    // The focus string goes to the server verbatim — ContextPackBuilder accepts route form since
+    // N2.1, so there is nothing to resolve client-side.
+    studio.onSuggestedFocus({ focus: 'POST /api/orders/', kind: 'HttpEndpoint', depth: 6 });
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.cards().length).toBe(before + 1);
+    const added = studio.cards().at(-1)!;
+    expect(added.type).toBe('flow');
+    expect(added.entryIds).toEqual(['POST /api/orders/']);
+    expect(getContextPack.mock.calls.at(-1)![1]).toContainEqual(
+      expect.objectContaining({ type: 'flow', entryIds: ['POST /api/orders/'] }),
+    );
+
+    // A second click on the same suggestion is a no-op, not a duplicate card.
+    studio.onSuggestedFocus({ focus: 'POST /api/orders/', kind: 'HttpEndpoint', depth: 6 });
+    await flush();
+    expect(studio.cards().length).toBe(before + 1);
   });
 
   it('marks failed cards with the error and shows a retry affordance (T5.1 R4)', async () => {
@@ -342,7 +479,7 @@ describe('ContextStudio', () => {
     expect(json.cards[0].sections[0].sourceLocations).toContain('src/App/Handler.cs:12');
     expect(json.markdown.length).toBeGreaterThan(0);
     const date = new Date().toISOString().slice(0, 10);
-    expect(studio.saveFileName('json')).toBe(`eshop-microservices-context-${date}.json`);
+    expect(studio.saveSlug()).toBe(`eshop-microservices-context-${date}`);
   });
 
   it('previews render the sections\' real content, never a title echo (T5.5)', async () => {
@@ -359,7 +496,7 @@ describe('ContextStudio', () => {
     expect(pre?.textContent?.trim()).not.toBe('Flow: POST /checkout'); // the audit's echo
   });
 
-  it('verifies the pack after every successful re-pack, unprompted (T5.2 R6)', async () => {
+  it('the ledger IS the pack response — no VerifyContext RPC at all (N1.1 wire item 4)', async () => {
     getContextPack.mockResolvedValue(packResponse());
     const { fixture, studio } = createStudio();
 
@@ -367,7 +504,12 @@ describe('ContextStudio', () => {
     await flush();
     fixture.detectChanges();
 
-    expect(verifyContext).toHaveBeenCalledWith('h1', 'node-1', 4000);
+    // The whole point of moving verification onto GetContextPack: the Studio used to fan out
+    // one VerifyContext per focus, each handed the WHOLE budget and each verifying every
+    // section of that focus — a ledger for a pack that was never built (backlog #28).
+    expect(verifyContext).not.toHaveBeenCalled();
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+
     const v = studio.packVerification();
     expect(v).not.toBeNull();
     expect(v!.anyStale).toBe(false);
@@ -376,18 +518,19 @@ describe('ContextStudio', () => {
     expect(el.querySelector('[data-testid="verification-panel"]')).not.toBeNull();
     expect(el.querySelector('[data-testid="verification-fresh"]')).not.toBeNull();
     expect(el.querySelector('[data-testid="verification-stale"]')).toBeNull();
+    // backlog #28's dead field: checkedAt was set and declared and never rendered.
+    expect(el.querySelector('[data-testid="verification-checked-at"]')?.textContent)
+      .toContain('Checked');
   });
 
-  it('merges verification across focuses; stale renders the warning + Re-analyze (T5.2 R6)', async () => {
-    getContextPack.mockResolvedValue(packResponse());
-    verifyContext.mockImplementation((_h: string, focus: string) =>
-      Promise.resolve(focus === 'node-2'
-        ? verifyResponse({
-            anyStale: true,
-            currentGitHead: 'def5678',
-            sections: [{ key: 'trace', stale: true, filesChecked: 2, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] }],
-          })
-        : verifyResponse()));
+  it('a stale pack renders the warning, the drifted file and Re-analyze (T5.2 R6 / N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      anyStale: true,
+      currentGitHead: 'def5678',
+      verification: [
+        { key: 'trace', stale: true, filesChecked: 5, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] },
+      ],
+    }));
     const { fixture, studio } = createStudio();
 
     studio.onCardsChange([
@@ -405,14 +548,14 @@ describe('ContextStudio', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('[data-testid="verification-stale"]')).not.toBeNull();
     expect(el.textContent).toContain('Handler.cs');
+    expect(el.textContent).toContain('abc1234');   // HEAD moved line
 
     (el.querySelector('[data-testid="verification-reanalyze"]') as HTMLButtonElement).click();
     expect(reAnalyze).toHaveBeenCalledTimes(1);
   });
 
-  it('a failed verification is advisory — panel disappears, Studio unaffected (T5.2)', async () => {
-    getContextPack.mockResolvedValue(packResponse());
-    verifyContext.mockRejectedValue(new Error('no fingerprints'));
+  it('a pack the server could not verify shows no ledger, and exports are unaffected (T5.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({ verification: [] }));
     const { studio } = createStudio();
 
     studio.onCardsChange([flowSeed()]);
@@ -423,11 +566,135 @@ describe('ContextStudio', () => {
     expect(studio.cards()[0].error).toBeNull();
   });
 
-  it('saves as ${repo}-context-${date} with the format extension (T5.1 R5 + T5.6)', () => {
+  it('refresh rebuilds the pack — the ledger is a property of a build (N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+
+    studio.onVerifyRefresh();
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    expect(verifyContext).not.toHaveBeenCalled();
+  });
+
+  // ---- N1.1: body toggles reach the wire (audit §3.F.2 / backlog #27) --------------
+
+  it('bodyEnabled rides the request and a toggle re-packs (N1.1 §3.F.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [{ type: 'bodies', title: 'Bodies: POST /checkout', tokens: 300 }],
+    }));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], estimatedLines: 40 }]);
+    await flush();
+
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1',
+      [{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], excludeBodies: false }],
+      { budgetTokens: 4000, intent: 'trace' },
+    );
+
+    // The toggle used to repaint an icon and leave the bytes alone.
+    studio.onToggleBody(studio.cards()[0].id);
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1',
+      [{ type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], excludeBodies: true }],
+      { budgetTokens: 4000, intent: 'trace' },
+    );
+  });
+
+  it('renders verified/approx PER CARD, and offers the body toggle only where it acts (N1.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [
+        { type: 'flow', title: 'Flow: POST /checkout', tokens: 120 },
+        { type: 'bodies', title: 'Bodies: POST /checkout', tokens: 300 },
+      ],
+    }));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([
+      flowSeed(),
+      { type: 'bodies', title: 'Bodies: POST /checkout', entryIds: ['node-1'], estimatedLines: 40 },
+    ]);
+    await flush();
+    fixture.detectChanges();
+
+    // verified/approx have ridden the wire since T4.4 and no surface rendered them.
+    const el: HTMLElement = fixture.nativeElement;
+    const mixes = [...el.querySelectorAll('[data-testid="card-provenance-mix"]')];
+    expect(mixes).toHaveLength(2);
+    expect(mixes[0].textContent).toContain('2 verified');
+    expect(mixes[0].textContent).toContain('1 approx');
+    expect(mixes[0].textContent).toContain('67% verified');
+
+    // …and no inert control survives: only the bodies card can act on the toggle.
+    expect(el.querySelectorAll('[data-testid="card-body-toggle"]')).toHaveLength(1);
+  });
+
+  // ---- N1.1: state lifecycle (audit §3.F.6 / backlog #29) -------------------------
+
+  it('a new session handle clears the cards that addressed the old graph (N1.1 §3.F.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.cards()).toHaveLength(1);
+    expect(studio.serverPack()).not.toBeNull();
+
+    handle.set('h2');            // re-analyze / repo switch
+    fixture.detectChanges();
+    await flush();
+
+    expect(studio.cards()).toHaveLength(0);
+    expect(studio.serverPack()).toBeNull();
+    expect(studio.packVerification()).toBeNull();
+    expect(studio.packPending()).toBe(false);
+    // and no pack was requested for the new handle off the back of the old cards
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+  });
+
+  it('budget / intent / format are persisted as preferences (N1.1 §3.F.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onBudgetChange(12000);
+    studio.onIntentChange('review');
+    studio.selectedFormat.set('json');
+    fixture.detectChanges();
+    await flush();
+
+    expect(prefs.setStudioBudget).toHaveBeenCalledWith(12000);
+    expect(prefs.setStudioIntent).toHaveBeenCalledWith('review');
+    expect(prefs.setStudioFormat).toHaveBeenCalledWith('json');
+  });
+
+  it('restores the persisted shaping on construction (N1.1 §3.F.6)', async () => {
+    prefs.studioBudget.mockReturnValue(16000);
+    prefs.studioIntent.mockReturnValue('explain');
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+
+    expect(getContextPack).toHaveBeenLastCalledWith(
+      'h1', expect.anything(), { budgetTokens: 16000, intent: 'explain' },
+    );
+  });
+
+  // N3.2 — the name is a STEM now; the extension follows the format and is appended by the server
+  // beside the sanitizing (tests/DevContext.Server.Tests/PackFileHandoffTests.cs pins both on disk).
+  it('names the pack ${repo}-context-${date}, never a hardcoded name (T5.1 R5 + T5.6)', () => {
     const { studio } = createStudio();
     const date = new Date().toISOString().slice(0, 10);
-    expect(studio.saveFileName('markdown')).toBe(`eshop-microservices-context-${date}.md`);
-    expect(studio.saveFileName('plain')).toBe(`eshop-microservices-context-${date}.txt`);
+    expect(studio.saveSlug()).toBe(`eshop-microservices-context-${date}`);
   });
 
   // ---- D4.5 (L4): the live pack preview ------------------------------------------
@@ -480,6 +747,306 @@ describe('ContextStudio', () => {
     expect(studio.previewText()).not.toContain('\r');
   });
 
+  // N0.1 (audit §3.F.7) — Copy used to fire "Context copied to clipboard" and flip the button
+  // to "Copied!" on click, while the clipboard promise was still in flight and its rejection
+  // went nowhere. The toast and the label are now reports, not predictions.
+  it('Copy reports the clipboard OUTCOME — success toast + Copied! label only on resolve', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const copyBtn = (fixture.nativeElement as HTMLElement)
+      .querySelector('[data-testid="copy-context"]') as HTMLButtonElement;
+
+    copyBtn.click();
+    expect(toast.messages()).toHaveLength(0); // nothing claimed before the write resolves
+    await flush();
+    fixture.detectChanges();
+    expect(writeText).toHaveBeenCalledWith(studio.previewText());
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Context copied to clipboard', 'success']]);
+    expect(copyBtn.textContent?.trim()).toBe('Copied!');
+  });
+
+  it('Copy failure toasts the error and never says "copied" (N0.1 §3.F.7)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockRejectedValue(new Error('clipboard blocked'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const copyBtn = (fixture.nativeElement as HTMLElement)
+      .querySelector('[data-testid="copy-context"]') as HTMLButtonElement;
+
+    copyBtn.click();
+    await flush();
+    fixture.detectChanges();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Copy failed: clipboard blocked', 'error']]);
+    expect(copyBtn.textContent?.trim()).toBe('Copy');
+  });
+
+  it('a per-card copy failure is reported, not swallowed (N0.1 §3.F.7)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+    const toast = TestBed.inject(ToastService);
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const writeText = vi.fn().mockRejectedValue(new Error('no clipboard'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const el: HTMLElement = fixture.nativeElement;
+    (el.querySelector('[data-testid="card-copy"]') as HTMLButtonElement).click();
+    await flush();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Copy failed: no clipboard', 'error']]);
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N3.2 (STUDIO-MCP §8.3, decision 3) — the REPO-FILE HAND-OFF. Save used to be a browser
+  // download: the pack left the app and the app could not say where it went. These pin that
+  // Save now writes into the repo through the server, that the strip reports the SERVER's path
+  // rather than one predicted here, and that the point-your-agent line is real and copyable.
+  // What lands on disk is pinned on the other side, in PackFileHandoffTests.
+  // ---------------------------------------------------------------------------------------
+
+  async function savedStudio() {
+    getContextPack.mockResolvedValue(packResponse());
+    const made = createStudio();
+    made.studio.onCardsChange([flowSeed()]);
+    await flush();
+    made.fixture.detectChanges();
+    (made.fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-testid="save-context"]')!.click();
+    await flush();
+    made.fixture.detectChanges();
+    return made;
+  }
+
+  it('Save writes the pack into the repo through the server, not the browser download (N3.2)', async () => {
+    const { studio } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+
+    expect(savePackFile).toHaveBeenCalledTimes(1);
+    const [handle, slug, content, format] = savePackFile.mock.calls[0] as [string, string, string, string];
+    expect(handle).toBe('h1');
+    expect(slug).toBe(studio.saveSlug());
+    // Byte-for-byte what the preview shows — Save and Copy serve one string (D4.5 L4).
+    expect(content).toBe(studio.previewText());
+    expect(format).toBe('markdown');
+    // The toast names the path the SERVER returned; the client never predicts a location.
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Saved .devcontext/packs/eshop-context.md', 'success']]);
+  });
+
+  it('the hand-off strip renders the server path, the gitignore state and the agent line (N3.2)', async () => {
+    const { fixture } = await savedStudio();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const strip = el.querySelector('[data-testid="pack-handoff"]');
+    expect(strip).not.toBeNull();
+    expect(strip!.textContent).toContain('.devcontext/packs/eshop-context.md');
+    expect(strip!.textContent).toContain('gitignored');
+    expect(el.querySelector('[data-testid="agent-line"]')!.textContent)
+      .toContain('Read .devcontext/packs/eshop-context.md');
+    // Nothing claims a hand-off before one exists.
+    expect(el.querySelector('[data-testid="handoff-stale"]')).toBeNull();
+  });
+
+  it('says so when the repo already had a gitignore that does not cover packs (N3.2)', async () => {
+    savePackFile.mockResolvedValue({
+      path: 'C:/repos/eshop/.devcontext/packs/p.md',
+      relativePath: '.devcontext/packs/p.md',
+      gitignored: false,
+      agentLine: 'Read .devcontext/packs/p.md before answering questions about this repo.',
+    });
+    const { fixture } = await savedStudio();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="handoff-not-ignored"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="pack-handoff"]')!.textContent).not.toContain('· gitignored');
+  });
+
+  it('admits the composition moved on since the file was written (N3.2)', async () => {
+    const { fixture, studio } = await savedStudio();
+    expect(studio.handoffStale()).toBe(false);
+
+    // A re-pack with different bytes: the file on disk no longer describes what is on screen.
+    getContextPack.mockResolvedValue(packResponse({ assembledMarkdown: '# a different pack\n' }));
+    studio.onCardsChange([flowSeed('Flow: GET /orders')]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.handoffStale()).toBe(true);
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="handoff-stale"]')).not.toBeNull();
+  });
+
+  it('the point-your-agent line copies through the app clipboard helper (N3.2)', async () => {
+    const { fixture } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    const btn = (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-testid="copy-agent-line"]')!;
+    btn.click();
+    await flush();
+    fixture.detectChanges();
+
+    expect(writeText).toHaveBeenCalledWith(
+      'Read .devcontext/packs/eshop-context.md before answering questions about this repo.');
+    expect(btn.textContent?.trim()).toBe('Copied!');
+    expect(toast.messages().some((m) => m.text.includes('paste it into CLAUDE.md'))).toBe(true);
+  });
+
+  it('a failed write is reported and claims no hand-off (N3.2)', async () => {
+    savePackFile.mockRejectedValue(new Error('repo root is read-only'));
+    const { fixture, studio } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+
+    expect(studio.handoffFile()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="pack-handoff"]')).toBeNull();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Save failed: repo root is read-only', 'error']]);
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N1.2 (audit §3.A / backlog #26) — pins seed the pack. Before this, `TrailStore.pins()` had
+  // no reader outside its own store and spec while three surfaces advertised the mechanism.
+  // ---------------------------------------------------------------------------------------
+
+  function step(kind: TrailStep['kind'], id: string, title: string, focus: string): TrailStep {
+    return { kind, id, title, focus, ts: 1 };
+  }
+
+  function entry(nodeId: string, title: string, focus: string) {
+    return { kind: 'http', title, nodeId, focus, project: 'Web' };
+  }
+
+  function seedGraph(...entries: ReturnType<typeof entry>[]): void {
+    entryGroups.set([{ kind: 'http', label: 'HTTP', entries }]);
+  }
+
+  /** Clicks the picker's seed button — the product path, not the handler directly. */
+  function clickSeed(fixture: { nativeElement: HTMLElement }): void {
+    (fixture.nativeElement.querySelector('[data-testid="trail-seed"]') as HTMLButtonElement).click();
+  }
+
+  it('seeds the pack from PINS, not the raw trail, when any step is pinned (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(
+      entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      entry('node-orders', 'GET /orders', 'OrdersController.Get'),
+    );
+    trailSteps.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get'),
+    ]);
+    pins.set([step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get')]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    // ONE card, for the pinned entry — the trail's other step is not in the pack.
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-orders']]);
+    expect(studio.cards()[0].title).toBe('Flow: GET /orders');
+    expect(getContextPack).toHaveBeenCalledTimes(1);
+    expect(TestBed.inject(ToastService).messages().map((m) => m.text))
+      .toEqual(['Seeded 1 card from 1 pinned step']);
+  });
+
+  it('falls back to the trail when nothing is pinned, and seeds node steps too (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    // A pinned graph NODE carries the focus of the trace it was explored under, so it resolves
+    // to that entry. The pre-N1.2 body kept `kind === 'entry'` only and seeded nothing for it.
+    trailSteps.set([
+      step('node', 'node-handler', 'CheckoutHandler.Handle', 'CheckoutController.Post'),
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+    ]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    // Both steps resolve to the same entry — deduped to one card.
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout']]);
+    expect(TestBed.inject(ToastService).messages().map((m) => m.text))
+      .toEqual(['Seeded 1 card from 2 trail steps']);
+  });
+
+  it('resolves pins against the LIVE graph and reports the ones that no longer exist (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    // The graph moved on: only one of the two pinned focuses still exists, and the surviving
+    // entry has a NEW node id. Seeding by focus is what keeps a dead id out of the pack.
+    seedGraph(entry('node-checkout-v2', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-gone', 'DELETE /legacy', 'LegacyController.Delete'),
+    ]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout-v2']]);
+    expect(TestBed.inject(ToastService).messages().map((m) => [m.text, m.kind])).toEqual([
+      ['Seeded 1 card from 2 pinned steps — 1 did not resolve in this graph', 'info'],
+    ]);
+  });
+
+  it('says why nothing happened instead of no-opping in silence (N1.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    // A reroot step carries no focus, so it can never resolve to an entry.
+    pins.set([step('reroot', 'node-x', 'CheckoutHandler', '')]);
+
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+    clickSeed(fixture);
+    await flush();
+
+    expect(studio.cards()).toEqual([]);
+    expect(getContextPack).not.toHaveBeenCalled();
+    expect(TestBed.inject(ToastService).messages().map((m) => [m.text, m.kind])).toEqual([
+      ['Nothing in pins resolves to an entry in this graph (1 of 1 unresolved)', 'error'],
+    ]);
+  });
+
+  it('the seed button names its source and count, and is disabled at zero (N1.2)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+    const button = () =>
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="trail-seed"]') as HTMLButtonElement;
+
+    expect(button().disabled).toBe(true);
+    expect(button().title).toContain('Nothing to seed from yet');
+
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    fixture.detectChanges();
+    expect(button().disabled).toBe(false);
+    expect(button().textContent).toContain('From current trail (1)');
+
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    fixture.detectChanges();
+    expect(button().textContent).toContain('From 1 pinned step');
+    expect(button().title).toContain('pins win over the raw trail');
+  });
+
   it('renders the preview pane with highlighted fences, open by default (D4.5 L4)', async () => {
     getContextPack.mockResolvedValue(packResponse());
     const { fixture, studio } = createStudio();
@@ -493,5 +1060,183 @@ describe('ContextStudio', () => {
     // The mock pack carries a ```csharp fence — Prism token spans prove real rendering.
     expect(pane!.innerHTML).toContain('token');
     expect(pane!.textContent).toContain('# repo — Context Pack');
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N2.1 (audit §3.C, owner decision 2) — pack convergence. Studio scope was ENTRIES ONLY in a
+  // symbol-rooted product: the kernel has resolved types and members since G1.2 and BuildMulti
+  // resolved card ids against the entry inventory alone, so every library rendered a picker with
+  // nothing in it and `usage` was a section no card type could ask for.
+  // ---------------------------------------------------------------------------------------
+
+  function librarySurface() {
+    return {
+      isLibrary: true,
+      surface: {
+        groups: [{
+          namespace: 'FluentValidation',
+          types: [
+            { name: 'AbstractValidator', kind: 'class', members: ['RuleFor', 'Validate'], doc: '' },
+            { name: 'IValidator', kind: 'interface', members: ['Validate'], doc: '' },
+          ],
+        }],
+        internals: [], entryApi: [], abstractions: [], generators: [], consumerPaths: [],
+      },
+    };
+  }
+
+  it('opens on Types and lists the public surface when a library has no entries (N2.1)', () => {
+    mapResponse.set(librarySurface());
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="picker-tab-types"]')?.textContent).toContain('2');
+    const rows = [...el.querySelectorAll('[data-testid="picker-type-row"]')];
+    // name · kind · public-member count — everything the row needs to be a different row.
+    expect(rows.map((r) => r.textContent?.trim())).toEqual(['AbstractValidatorclass2', 'IValidatorinterface1']);
+    expect(rows[0].getAttribute('title')).toContain('FluentValidation.AbstractValidator');
+  });
+
+  it('a type-scoped pack reaches the server as symbol focuses, usage included (N2.1)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [{ type: 'usage', title: 'Who uses AbstractValidator', tokens: 90 }],
+    }));
+    mapResponse.set(librarySurface());
+    const { fixture, studio } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    (el.querySelectorAll('[data-testid="picker-type-row"]')[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (el.querySelector('[data-testid="add-to-context"]') as HTMLButtonElement).click();
+    await flush();
+
+    // The card set a TYPE gets — usage present, and no card a type cannot answer.
+    const types = studio.cards().map((c) => c.type);
+    expect(types).toContain('usage');
+    expect(types).not.toContain('di_wiring');
+    // Namespace-qualified focus, the notation the server's resolver takes.
+    expect(studio.cards().every((c) => c.entryIds[0] === 'FluentValidation.AbstractValidator')).toBe(true);
+
+    const [, specs] = getContextPack.mock.calls.at(-1)!;
+    expect(specs.find((s: { type: string }) => s.type === 'usage').entryIds)
+      .toEqual(['FluentValidation.AbstractValidator']);
+  });
+
+  it('an app with entries still opens on Entries (N2.1 — the tab default is a count, not a guess)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    mapResponse.set({ isLibrary: false, surface: undefined });
+    const { fixture } = createStudio();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="picker-tab-entries"]')?.getAttribute('aria-selected')).toBe('true');
+    expect(el.querySelectorAll('[data-testid="picker-type-row"]')).toHaveLength(0);
+  });
+
+  // ── N3.1 — the default state (audit §4 Room 1: "never opens empty after exploration") ──
+
+  function banner(fixture: { nativeElement: HTMLElement }): HTMLElement | null {
+    return fixture.nativeElement.querySelector('[data-testid="studio-proposal-banner"]');
+  }
+
+  it('opens with the PINS proposed as a pack, and says so (N3.1)', () => {
+    seedGraph(
+      entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      entry('node-orders', 'GET /orders', 'OrdersController.Get'),
+    );
+    trailSteps.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get'),
+    ]);
+    pins.set([step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-orders']]);
+    expect(studio.proposalSource()).toBe('1 pinned step');
+    expect(banner(fixture)?.textContent).toContain('Proposed from');
+  });
+
+  it('falls back to the trail when nothing is pinned (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout']]);
+    expect(studio.proposalSource()).toBe('your trail (1 step)');
+  });
+
+  it('a fresh session with no trail gets the archetype preset — top flows for an app (N3.1)', () => {
+    seedGraph(
+      entry('node-a', 'GET /orders', 'OrdersController.Get'),
+      entry('node-b', 'POST /checkout', 'CheckoutController.Post'),
+    );
+    mapResponse.set({ isLibrary: false, surface: undefined });
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    // Two entries, both HTTP, so both are proposed — the preset caps at three.
+    expect(studio.cards().map((c) => c.type)).toEqual(['flow', 'flow']);
+    expect(studio.proposalSource()).toBe("this repo's top 2 flows");
+  });
+
+  it('a fresh LIBRARY session gets its widest public types instead (N3.1)', () => {
+    mapResponse.set(librarySurface());
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    // AbstractValidator has two members to IValidator's one, so it leads; typeCardSeeds is the
+    // same card set the Types tab emits, usage included.
+    expect(studio.cards().every((c) => c.entryIds[0] === 'FluentValidation.AbstractValidator')).toBe(true);
+    expect(studio.cards().map((c) => c.type)).toContain('usage');
+    expect(studio.proposalSource()).toBe("this library's 2 widest public types");
+  });
+
+  it('adopts a proposal a sender left on the way in, over the trail (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    TestBed.inject(StudioHandoffStore).send({
+      seeds: [{ type: 'usage', title: 'Who uses OrderService', entryIds: ['Type:Acme.OrderService'], estimatedLines: 15 }],
+      source: 'the node “OrderService”',
+    });
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['Type:Acme.OrderService']]);
+    expect(studio.proposalSource()).toBe('the node “OrderService”');
+    // Taken exactly once — a second walk into the room must not re-seed it.
+    expect(TestBed.inject(StudioHandoffStore).pending()).toBeNull();
+  });
+
+  it('an edit makes the pack the reader\'s — the banner goes away (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+    expect(studio.proposalSource()).not.toBeNull();
+
+    studio.onRemove(studio.cards()[0].id);
+    fixture.detectChanges();
+
+    expect(studio.proposalSource()).toBeNull();
+    expect(banner(fixture)).toBeNull();
+  });
+
+  it('clearing a proposal stays cleared — the proposer does not re-seed it (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+    studio.onClearProposal();
+    fixture.detectChanges();
+    // Something unrelated changes and re-runs the effect.
+    entryGroups.set([...entryGroups()]);
+    fixture.detectChanges();
+
+    expect(studio.cards()).toEqual([]);
+    expect(studio.proposalSource()).toBeNull();
   });
 });

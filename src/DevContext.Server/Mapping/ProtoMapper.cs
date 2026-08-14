@@ -1,4 +1,5 @@
 using DevContext.Core.Insights;
+using DevContext.Core.Rendering;
 using DevContext.Server.Sessions;
 
 using Proto = DevContext.Protos;
@@ -113,6 +114,10 @@ internal static class ProtoMapper
             resp.Packages.Add(new Proto.PackageGroup { Label = pg.Label, Packages = { pg.Packages } });
 
         resp.Aggregates.AddRange(map.Aggregates);
+        // M1.2 — field 13 shipped empty since it was added: three consumers (identity strip, Atlas chip
+        // header, MCP overview) read it and nothing ever wrote it, because the tags were computed inside
+        // the markdown renderer. They are on the model now, so the wire carries the same list.
+        resp.Stack.AddRange(map.Stack);
         resp.PipelineBehaviors.AddRange(map.PipelineBehaviors);
 
         if (map.Surface is { } surface)
@@ -591,17 +596,21 @@ internal static class ProtoMapper
             CurrentGitHead = currentHead ?? "",
             AnyStale = sections.Any(s => s.Stale),
         };
-        foreach (var s in sections)
-        {
-            var sv = new Proto.SectionVerification
-            {
-                Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
-            };
-            foreach (var d in s.Changed)
-                sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
-            resp.Sections.Add(sv);
-        }
+        resp.Sections.AddRange(sections.Select(ToProtoSectionVerification));
         return resp;
+    }
+
+    /// <summary>N1.1 — one mapping for the section verdict, now that two responses carry it
+    /// (VerifyContext's single focus and the pack's own ledger).</summary>
+    private static Proto.SectionVerification ToProtoSectionVerification(SectionVerification s)
+    {
+        var sv = new Proto.SectionVerification
+        {
+            Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
+        };
+        foreach (var d in s.Changed)
+            sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
+        return sv;
     }
 
     public static Proto.ContextPackResponse ToContextPackResponse(MultiContextPack pack)
@@ -611,7 +620,20 @@ internal static class ProtoMapper
             AssembledMarkdown = pack.AssembledMarkdown,
             TotalTokens = pack.TotalTokens,
             AllocatedTokens = pack.AllocatedTokens,
+            // N1.1 (wire item 4) — the ledger for THIS pack rides with it, so the Studio no
+            // longer fans out one VerifyContext per focus to describe a pack nobody built.
+            AnyStale = pack.AnyStale,
+            AnalyzedGitHead = pack.AnalyzedGitHead,
+            CurrentGitHead = pack.CurrentGitHead,
+            // N2.2 — the fill-rate honesty note the agent has always had. "" means the pack met
+            // its fill promise; proto3 has no null, and the Studio renders on non-empty.
+            FillNote = pack.FillNote ?? "",
         };
+        resp.SuggestedFocuses.AddRange(pack.SuggestedFocuses.Select(s => new Proto.SuggestedFocus
+        {
+            Focus = s.Focus, Kind = s.Kind, Score = s.Score, Depth = s.Depth,
+        }));
+        resp.Verification.AddRange(pack.Verification.Select(ToProtoSectionVerification));
         foreach (var card in pack.Cards)
         {
             var item = new Proto.ContextCardItem
@@ -816,8 +838,24 @@ internal static class ProtoMapper
             Resolution = step.Resolution.ToString(),
             Truncated = step.Truncated,
             Omitted = step.Omitted,
+            // M1.1 item 4 — the four honesty annotations the CLI has always rendered and the wire
+            // dropped. Zero/false/empty carry the same "nothing to say" meaning they do in Core.
+            MultiImplCount = step.MultiImplCount,
+            DiHostCount = step.DiHostCount,
+            TestOnly = step.TestOnly,
         };
-        if (step.Provenance is { } prov) node.Provenance = prov;
+        if (step.Provenance is { } prov)
+        {
+            node.Provenance = prov;
+            // M1.1 item 1 — the same site as data. One parse, in Core, beside the rule that formats it.
+            var (path, line) = PathDisplay.SplitProvenance(prov);
+            if (line is { } n)
+            {
+                node.FilePath = path;
+                node.LineNumber = n;
+            }
+        }
+        if (!step.OmittedNames.IsDefaultOrEmpty) node.OmittedNames.AddRange(step.OmittedNames);
         if (!step.Salient.IsDefaultOrEmpty) node.Salient = string.Join('\n', step.Salient);
         node.Tags.AddRange(step.Node.Tags);
         if (!step.Pipeline.IsDefaultOrEmpty) node.Pipeline.AddRange(step.Pipeline);

@@ -82,6 +82,11 @@ service DevContextService {
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
 
+  // M1.1 — per-file edge overlay: the wiring the graph knows INSIDE one file, keyed by line.
+  // Every other browse RPC is node-first; this one is file-first, which is the only way to read
+  // code with its edges in the margin.
+  rpc GetFileOverlay(FileOverlayRequest) returns (FileOverlayResponse);
+
   // L4.2 — Graph facets: service map, flow list, entry table, and per-node layer/feature
   // bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
   // surfaces without individual Node RPCs.
@@ -96,9 +101,42 @@ service DevContextService {
   // M3.1 — list all active sessions (MCP page session list).
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
 
-  // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
-  rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
-  rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
+  // N3.2 (STUDIO-MCP §8.3, decision 3) — the repo-file hand-off. Save stops being a browser
+  // download and writes the pack INTO the analyzed repo, where an agent can be pointed at it.
+  // This is a server RPC and not a client-side file write because the client has no file
+  // system it can reach: the Tauri capabilities scope fs to LOCALDATA with no write/mkdir
+  // permission, and a repo lives anywhere, so a browser-only path could never be verified in
+  // dev:web AND in the shipped shell. The server already holds the repo root for the session.
+  rpc SavePackFile(SavePackFileRequest) returns (SavePackFileResponse);
+
+  // M3.3 — MCP observability: stream tool-call events to the UI.
+  //
+  // N4.1 (audit §4 Room 2) — StartMcp/StopMcp are GONE. They never touched the devcontext-mcp
+  // process (the agent host spawns that over stdio); they flipped one volatile bool that muted
+  // the event stream for EVERY observer, and the page rendered that mute as "MCP endpoint
+  // stopped". A global mute behind a per-page button is a trap, so forwarding is now
+  // unconditional and scoped to whoever is subscribed.
+  //
+  // N0.2 (audit §3.F.9) — READ the observability state. The app used to read status by
+  // calling StartMcp, a mutating RPC: merely opening the MCP page turned telemetry on and
+  // then reported "active" because it had just made that true.
+  rpc GetMcpStatus(GetMcpStatusRequest) returns (GetMcpStatusResponse);
+  // N4.1 — the handshake: spawn the resolved devcontext-mcp binary and run one REAL
+  // initialize + tools/list JSON-RPC round trip over stdio. This is the only check that
+  // proves the thing a host will spawn actually answers; everything else is inference.
+  rpc McpHandshake(McpHandshakeRequest) returns (McpHandshakeResponse);
+  // N4.2 (audit §4 Room 2, "setup that works") — write the host's MCP config FOR the user
+  // instead of asking them to paste a snippet and get the path right. Server-side for the same
+  // reason SavePackFile is (N3.2): the client has no file system it can reach, and only this
+  // side knows both the repo root and the resolved devcontext-mcp path.
+  rpc WriteMcpConfig(WriteMcpConfigRequest) returns (WriteMcpConfigResponse);
+  // N4.3 (audit §4 Room 2, "the catalog, served") — the menu an agent reads, read the same way
+  // the agent reads it. The page used to carry its own list of tool names; it was wrong the day
+  // T1.2 curated the menu (BUG-BACKLOG #4), and any list kept beside the real one is wrong
+  // eventually. This spawns devcontext-mcp, runs tools/list, and also calls one name that does
+  // not exist so the unknown-tool envelope yields the unlisted specialists and the retired
+  // aliases. Nothing in the response is composed here — every string came off the wire.
+  rpc ListMcpTools(ListMcpToolsRequest) returns (ListMcpToolsResponse);
   rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
@@ -385,6 +423,17 @@ message TraceNode {
   repeated TraceNode children = 13;
   optional string layer = 14;     // D9: architectural layer
   optional string feature = 15;   // D9: feature area
+  // M1.1 — structured provenance. `provenance` is the "file:line" TEXT; these two are the same
+  // site as data, so a client never has to guess where the drive-letter colon ends and the line
+  // colon begins. Absent when the step has no provenance or it did not parse as file:line.
+  optional string file_path = 16;
+  optional int32 line_number = 17;
+  // M1.1 — the honesty annotations the CLI has rendered since Batch E / I1.6 / C5 / T2.1 and the
+  // wire dropped on the floor (TraceRenderer renders all four; ProtoMapper mapped none).
+  repeated string omitted_names = 18;   // WHO was cut, up to TraceBuilder.MaxOmittedNames
+  int32 multi_impl_count = 19;          // >1: DI has this many impls for this Resolves step
+  int32 di_host_count = 20;             // >1: N hosts register it and none is the focus host
+  bool test_only = 21;                  // the binding comes only from a test project
 }
 
 // ---------------------------------------------------------------------------
@@ -752,7 +801,7 @@ message ContextResponse {
 }
 
 message ContextSection {
-  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests"
+  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests" | "usage"
   int32 tokens = 2;
   string content = 3;
   repeated string source_locations = 4;  // T4.4 — repo-relative file:line set the section derived from (capped)
@@ -772,9 +821,17 @@ message ContextPackRequest {
 }
 
 message ContextCardSpec {
-  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+  // The card vocabulary is single-sourced by ContextPackBuilder.CardTypeSections; N2.1 added
+  // "usage". A type absent from that table is not an error — the pack reports it back in
+  // `omitted` as a client-only type.
+  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity" | "usage"
   string title = 2;
   repeated string entry_ids = 3;    // nodeIds of selected entries
+  // N1.1 — the Studio's per-card eye toggle, on the wire at last. Stated NEGATIVELY so
+  // proto3's false default means "include bodies": a caller that never heard of this field
+  // keeps the pre-N1.1 pack byte-for-byte. When true the builder drops the card's `bodies`
+  // section, so "All bodies hidden" describes the pack the user copies.
+  bool exclude_bodies = 4;
 }
 
 message ContextPackResponse {
@@ -783,6 +840,33 @@ message ContextPackResponse {
   int32 total_tokens = 3;
   int32 allocated_tokens = 4;
   repeated string omitted = 5;
+  // N1.1 (audit wire item 4) — the staleness ledger OF THIS PACK, computed from the
+  // sections the builder actually kept (after the proportional per-focus budget, the
+  // card's section filter and the multi-entry merge). The Studio used to assemble this
+  // itself from N VerifyContext calls, each handed the WHOLE budget and each verifying
+  // every section of a focus — a ledger for a pack nobody built. Returning it here makes
+  // that divergence impossible rather than merely fixed. VerifyContext stays as the
+  // single-focus RPC for MCP's verify_context tool.
+  repeated SectionVerification verification = 6;
+  bool any_stale = 7;
+  string analyzed_git_head = 8;     // HEAD at analyze time ("" outside git)
+  string current_git_head = 9;      // HEAD now
+  // N2.2 (audit §4) — honesty-note parity with the MCP get_context layer. The engine has told
+  // AGENTS why an under-filled pack under-filled since D5.1 (budget-cut vs content-exhausted)
+  // and offered better-connected focuses; the Studio rendered the same pack with none of it.
+  // Both are computed in ContextPackBuilder now, so the two faces cannot drift apart.
+  // Empty string = the pack met the >=85% fill promise and owes no explanation.
+  string fill_note = 10;
+  repeated SuggestedFocus suggested_focuses = 11;
+}
+
+// N2.2 — a next-move candidate for a content-exhausted pack. `focus` is a string GetContextPack
+// and GetContext both accept verbatim (route form when the entry has one, else its title).
+message SuggestedFocus {
+  string focus = 1;
+  string kind = 2;      // EntryPointKind
+  double score = 3;     // entry rank
+  int32 depth = 4;      // spine steps — why it is "better connected"
 }
 
 message ContextCardItem {
@@ -790,6 +874,33 @@ message ContextCardItem {
   string title = 2;
   int32 tokens = 3;
   repeated SectionAllocation sections = 4;
+}
+
+// ---------------------------------------------------------------------------
+// N3.2 (STUDIO-MCP §8.3) — the repo-file hand-off
+// ---------------------------------------------------------------------------
+
+message SavePackFileRequest {
+  string handle = 1;
+  string slug = 2;       // file stem the caller proposes; the SERVER sanitizes it (see below)
+  string content = 3;    // the pack text, byte-for-byte what the composer is looking at
+  string format = 4;     // "markdown" (default) | "plain" | "json" -> the extension
+}
+
+// The written artifact, described by the side that wrote it. Paths are reported, never
+// predicted: the client cannot know the repo root, the sanitized slug, or whether the
+// gitignore already existed, so every one of these is a fact only the server holds.
+message SavePackFileResponse {
+  string path = 1;            // absolute path written, for the "where did it go" tooltip
+  string relative_path = 2;   // .devcontext/packs/<slug>.md — what the toast and the agent line say
+  // True when packs/ is covered by .devcontext/.gitignore. Decision 3 says gitignored BY
+  // DEFAULT, so the server writes that file when it is absent — but it never edits one the
+  // repo already has, and this flag is how the UI can stop promising a default it did not set.
+  bool gitignored = 3;
+  // The copyable "point your agent here" line for CLAUDE.md/AGENTS.md. Composed server-side
+  // like every other pack string (the app is a thin client — one buildContext path); it names
+  // the relative path so it stays true wherever the repo is checked out.
+  string agent_line = 4;
 }
 
 message SectionAllocation {
@@ -876,27 +987,172 @@ message SessionInfo {
 // M3.3 — MCP observability (tool-call event stream + start/stop)
 // ---------------------------------------------------------------------------
 
-message StartMcpRequest {}
+message GetMcpStatusRequest {}
 
-message StartMcpResponse {
-  bool running = 1;
+// N0.2 (audit §3.F.9) — what this server can honestly say about MCP observability. It is NOT
+// a statement about the `devcontext-mcp` process: the agent host spawns that over stdio,
+// outside this server's control.
+//
+// N4.1 (audit §4 Room 2, "status that measures") — three real checks replace the theater:
+// is the binary there, is anyone watching, has an agent actually called. Every field here is
+// something the server MEASURED, not something a read caused.
+message GetMcpStatusResponse {
+  // N4.1 — was `telemetry_streaming`, the global mute Start/Stop flipped. Forwarding is now
+  // unconditional, so there is no such state to report; watcher count is the honest number.
+  reserved 1;
+  reserved "telemetry_streaming";
+  // How many clients are attached to ObserveToolCalls right now.
+  int32 observer_count = 2;
+  // N4.1 — binary probe: does a `devcontext-mcp` executable exist where a host would find it?
+  bool mcp_binary_found = 3;
+  // Absolute path of the executable that was found; empty when none was.
+  string mcp_binary_path = 4;
+  // Where it was found: "bundle" (beside this server), "path" (a PATH entry), "dev-build"
+  // (the repo's build output). Empty when not found — the page says what to do per source.
+  string mcp_binary_source = 5;
+  // N4.1 — the last AGENT-origin tool call this server served: unix ms, 0 when none ever.
+  // Recorded independently of who is watching, so opening the page cannot fake it.
+  int64 last_agent_call_at_utc_ms = 6;
+  // The tool name of that call; empty when none ever.
+  string last_agent_tool = 7;
+  // How many agent-origin tool calls this server has served since it started.
+  int64 agent_call_count = 8;
+  // N4.2 — the host setup cards, composed HERE from the probe above. The snippet a user copies
+  // and the file the write-config button produces are then the same string built once: the page
+  // used to compose its own snippet around a hard-coded placeholder, which is how it came to
+  // advertise a path that existed on nobody's machine.
+  repeated McpHostConfig hosts = 9;
 }
 
-message StopMcpRequest {}
+// N4.2 — one agent host's setup card.
+message McpHostConfig {
+  string id = 1;             // "claude" | "cursor" | "vscode" — what WriteMcpConfig takes
+  string label = 2;          // display name of the host
+  string relative_path = 3;  // repo-relative config file the write button produces
+  // The config JSON for this host, carrying the RESOLVED absolute path when the probe found a
+  // binary — and a visibly bracketed placeholder when it did not, because a snippet that names
+  // a plausible-looking path nobody has is worse than one that admits it.
+  string snippet = 4;
+}
 
-message StopMcpResponse {
-  bool stopped = 1;
+message McpHandshakeRequest {}
+
+// N4.1 — the result of one real stdio round trip with the devcontext-mcp process.
+message McpHandshakeResponse {
+  // True only when tools/list came back with a parsed tool list.
+  bool ok = 1;
+  // The executable that was spawned (the same path the status probe resolved).
+  string command = 2;
+  // serverInfo from the MCP initialize result — the process's own claim about itself.
+  string server_name = 3;
+  string server_version = 4;
+  // The MCP protocol version the process negotiated.
+  string protocol_version = 5;
+  // How many tools tools/list returned, and their names in the order returned.
+  int32 tool_count = 6;
+  repeated string tool_names = 7;
+  // Wall-clock of the whole round trip, spawn included.
+  int64 elapsed_ms = 8;
+  // Empty when ok; otherwise what went wrong, in a form a human can act on.
+  string error = 9;
+}
+
+// ---------------------------------------------------------------------------
+// N4.3 (audit §4 Room 2) — the catalog, served
+// ---------------------------------------------------------------------------
+
+message ListMcpToolsRequest {}
+
+// One parameter of one tool, exactly as the tool's inputSchema advertises it. T1.1 made these
+// descriptions reach the wire; before that every one of them was the empty string, which is why
+// this is worth rendering at all.
+message McpToolParameter {
+  string name = 1;
+  // JSON-schema type as advertised: "string", "integer", "boolean", … Empty if the schema
+  // gives none (an enum-only property, say) — reported as-is rather than guessed at.
+  string type = 2;
+  bool required = 3;
+  string description = 4;
+}
+
+// One entry of the menu. Advertised tools come from tools/list; specialists come from the
+// unknown-tool envelope, which is all a client can see of them — they are deliberately absent
+// from tools/list (T1.2), so their schema is not on the wire and `parameters` is empty for them.
+message McpToolDescriptor {
+  string name = 1;
+  string description = 2;
+  repeated McpToolParameter parameters = 3;
+  // True for the UNLISTED specialists: built, callable by name, kept off the menu an agent reads.
+  bool specialist = 4;
+  // For a specialist, the one line the envelope gives an agent that calls it — what it answers.
+  // Empty for advertised tools (their `description` is that line).
+  string why = 5;
+}
+
+// A tool name that was FOLDED into another one, with the call that replaces it. Harvested from
+// the same envelope an agent gets, so the page cannot advertise a retirement the server does not
+// actually honour.
+message RetiredMcpTool {
+  string retired = 1;
+  string replacement = 2;
+  string call = 3;
+}
+
+message ListMcpToolsResponse {
+  // True only when tools/list came back parsed. False leaves `error` populated and the lists empty.
+  bool ok = 1;
+  string error = 2;
+  // The executable that was spawned to answer this — the same path the status probe resolved.
+  string command = 3;
+  // The advertised menu, in the order tools/list returned it.
+  repeated McpToolDescriptor tools = 4;
+  // The unlisted specialists, by name, each with what it answers.
+  repeated McpToolDescriptor specialists = 5;
+  repeated RetiredMcpTool retired = 6;
+  // Wall clock of the whole round trip, spawn included.
+  int64 elapsed_ms = 7;
+}
+
+// ---------------------------------------------------------------------------
+// N4.2 (audit §4 Room 2) — write-config-for-me
+// ---------------------------------------------------------------------------
+
+message WriteMcpConfigRequest {
+  // The analysed session whose repo receives the config. PROJECT-scoped on purpose: a
+  // user-global host config (~/.claude.json, ~/.cursor/mcp.json) is a file this server cannot
+  // see, cannot verify it wrote correctly, and would be destructive to get wrong. The repo the
+  // user just analysed is the one they want the agent pointed at anyway.
+  string handle = 1;
+  // Host id, not the display label: "claude" | "cursor" | "vscode". Unknown ids are rejected.
+  string host = 2;
+}
+
+// Written by the side that did the writing — the client predicts none of it (it knows neither
+// the repo root nor which devcontext-mcp the probe resolved).
+message WriteMcpConfigResponse {
+  string path = 1;            // absolute path of the config file written
+  string relative_path = 2;   // repo-relative, e.g. .mcp.json or .vscode/mcp.json
+  // "created" (no config existed), "updated" (merged into one that did — other servers in the
+  // file are preserved), or "unchanged" (it already named this exact command).
+  string action = 3;
+  // The devcontext-mcp path that was written into the config: the same one the status probe
+  // resolved, so the snippet on screen and the file on disk cannot disagree.
+  string command = 4;
 }
 
 message ObserveToolCallsRequest {}
 
 message ToolCallEvent {
   string session_handle = 1;
+  // The gRPC method that ran: GetTrace, GetContextPack, Analyze. Always populated — it is what
+  // this server actually did, and for UI-origin traffic it is the only name there is.
   string tool = 2;
-  // S9 contract sweep — `args_digest` (3) was dead on BOTH ends: nothing ever assigned it and
-  // nothing ever read it, so every event on this stream carried an empty string for it.
-  reserved 3;
-  reserved "args_digest";
+  // N4.3 — REVIVED, with a producer this time. S9's contract sweep removed `args_digest` because
+  // it was dead on both ends: nothing assigned it, nothing read it. It now carries the arguments
+  // the AGENT sent (minus the session handle), summarised to a feed row's width, and the MCP
+  // sidecar is what fills it — see McpCallScope. Empty for UI-origin calls, which have no
+  // arguments an observer would want.
+  string args_digest = 3;
   int64 bytes = 4;
   int64 est_tokens = 5;
   int64 elapsed_ms = 6;
@@ -906,6 +1162,19 @@ message ToolCallEvent {
   // (native gRPC, i.e. the MCP sidecar). One page load logged 163 UI calls / ~99k tok —
   // agent traffic drowns without this tag; the live feed default-filters to agents.
   string origin = 9;
+  // N4.3 (audit §4 Room 2, "the feed in the agent's vocabulary") — the MCP verb the agent asked
+  // for: `trace`, `get_context`, `analyze`. One verb can be several RPCs, so this is not derivable
+  // from `tool`, and a server-side name table would be the drifting second list BUG-BACKLOG #4
+  // was about. It arrives in a header set by the MCP sidecar's tool layer (McpCallScope), which
+  // is the only place that knows it. Empty for UI-origin calls: the app is not an agent and must
+  // not be rendered as one.
+  string mcp_tool = 10;
+  // N4.3 — the ONE argument that says what the call was about: a focus string, a node id, a
+  // search query. It lands here now because its reader landed with it (R-T1) — the feed's rows
+  // are navigable, and this is what they navigate TO. The sidecar picks it (McpCallScope's
+  // priority order: nodeId beats focus beats query…), because only the tool layer knows which of
+  // an agent's arguments is the subject. Empty for UI-origin calls and for verbs with no subject.
+  string primary_arg = 11;
 }
 
 // ---------------------------------------------------------------------------
@@ -966,13 +1235,21 @@ enum ReadSourceMode {
   READ_SOURCE_MODE_UNSPECIFIED = 0;
   READ_SOURCE_MODE_MEMBER = 1;    // full declaration body of the node's member
   READ_SOURCE_MODE_WINDOW = 2;    // context window around the node's line
+  // M1.1 — the whole file, capped. MEMBER and WINDOW both answer "what is at this node"; FILE
+  // answers "what is in this file", which is the question you ask once you want to READ rather
+  // than confirm. Addressable by file_path OR by node_id (the node's declaring file).
+  READ_SOURCE_MODE_FILE = 3;
 }
 
 message ReadSourceRequest {
   string session_id = 1;          // session handle
   string node_id = 2;             // graph node id to read source for
-  ReadSourceMode mode = 3;        // MEMBER (full span) or WINDOW (context window)
+  ReadSourceMode mode = 3;        // MEMBER (full span), WINDOW (context window), FILE (whole file)
   int32 window_lines = 4;         // lines above/below for WINDOW mode (default 50)
+  // M1.1 — FILE mode: read this file instead of resolving a node. Repo-relative or absolute;
+  // the server refuses anything outside the analyzed root.
+  optional string file_path = 5;
+  int32 max_lines = 6;            // FILE mode cap (0 = server default); clamped server-side
 }
 
 message ReadSourceResponse {
@@ -982,6 +1259,36 @@ message ReadSourceResponse {
   int32 start_line = 4;           // first line of the returned range
   int32 end_line = 5;             // last line of the returned range
   string node_title = 6;          // node display title for headers
+  // M1.1 — a cap the caller cannot see is a cap that lies. These two say what was cut.
+  int32 total_lines = 7;          // lines in the whole file, whatever range came back
+  bool truncated = 8;             // the cap fired: the returned range is not the whole file
+}
+
+// ---------------------------------------------------------------------------
+// M1.1 — per-file edge overlay
+// ---------------------------------------------------------------------------
+
+message FileOverlayRequest {
+  string handle = 1;
+  string file_path = 2;           // repo-relative or absolute; refused outside the analyzed root
+}
+
+message FileOverlaySite {
+  int32 line = 1;                 // 1-based line in the requested file; 0 = the graph knows the
+                                  //   file but not the line (kept, not hidden — it is coverage truth)
+  string kind = 2;                // edge kind: Calls, Sends, Handles, Raises, Resolves, …
+  string resolution = 3;          // Semantic | Syntactic | Join — the verified/approx mark
+  // 4 is deliberately unused: the edge's FROM node is implicit (it is in this file), and a field
+  // no surface renders is the dead-by-construction defect eval/contract-sweep.ps1 exists to catch.
+  string to_node_id = 5;
+  string to_title = 6;            // what this site reaches, member-qualified when the edge knows it
+}
+
+message FileOverlayResponse {
+  string file_path = 1;           // resolved absolute path
+  repeated FileOverlaySite sites = 2;
+  int32 placed_sites = 3;         // sites with a line — what a gutter can actually mark
+  int32 unplaced_sites = 4;       // known-in-this-file but unplaceable; the honest remainder
 }
 
 // ---------------------------------------------------------------------------

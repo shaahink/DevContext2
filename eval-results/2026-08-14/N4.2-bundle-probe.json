@@ -1,0 +1,28 @@
+{
+  "bundleDirectory": "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server",
+  "serverExe": "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server\\DevContext.Server.exe",
+  "port": 5183,
+  "mcpBinaryFound": true,
+  "mcpBinaryPath": "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server\\devcontext-mcp.exe",
+  "mcpBinarySource": "bundle",
+  "hosts": [
+    {
+      "id": "claude",
+      "relativePath": ".mcp.json"
+    },
+    {
+      "id": "cursor",
+      "relativePath": ".cursor/mcp.json"
+    },
+    {
+      "id": "vscode",
+      "relativePath": ".vscode/mcp.json"
+    }
+  ],
+  "snippetCommands": [
+    "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server\\devcontext-mcp.exe",
+    "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server\\devcontext-mcp.exe",
+    "C:\\Code\\DevContext2-desktop\\src\\DevContext.App\\src-tauri\\resources\\server\\devcontext-mcp.exe"
+  ],
+  "failures": []
+}

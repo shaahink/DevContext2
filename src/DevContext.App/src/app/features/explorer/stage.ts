@@ -60,7 +60,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
         >&#9641;</button>
 
         <!-- M7.2: Lens switcher — replaces old altitude buttons. L6.5: + Table button. -->
-        <app-lens-switcher [(lensModel)]="lensModel" (tableRequested)="tableRequested.emit()" />
+        <app-lens-switcher [facets]="lensFacets()" [(lensModel)]="lensModel" (tableRequested)="tableRequested.emit()" />
 
         @if (lensModel() === 'service' || lensModel() === 'layer' || lensModel() === 'feature') {
           @for (alt of altitudes; track alt.id) {
@@ -341,6 +341,19 @@ export class Stage {
 
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
 
+  /** M1.2 — which colouring facets this analysis actually carries, measured from the two places
+   * the canvas reads them (`topology[].layer/feature` and the ServiceMap cards). Both are optional
+   * on the wire and empty for most repos; without this the Layer/Feature chips rendered anyway and
+   * repainted every node one flat "no value" grey. */
+  protected readonly lensFacets = computed(() => {
+    const projects = this.topology();
+    const services = this.session.graphFacets()?.serviceMap?.services ?? [];
+    return {
+      layer: projects.some((p) => !!p.layer) || services.some((s) => !!s.layer),
+      feature: projects.some((p) => !!p.feature) || services.some((s) => !!s.feature),
+    };
+  });
+
   /** D4.2: System altitude carries the ServiceMap facet so the canvas can render C4
    * level 1 (services + transport-labeled edges) and expand services in place. */
   protected readonly topologyData = computed<GraphCanvasData>(() => ({
@@ -373,6 +386,18 @@ export class Stage {
   }
 
   constructor() {
+    // M1.2 — a lens can be selected from outside this component (a `?lens=layer` deep link, or the
+    // page's archetype default). If the facet it colours by isn't in this analysis, the chip is not
+    // rendered and the user would be stuck in a lens they cannot see or leave. Fall back to Service,
+    // which needs no facet. Re-runs on re-analyze, so a repo swap corrects itself too.
+    effect(() => {
+      const have = this.lensFacets();
+      const lens = this.lensModel();
+      if ((lens === 'layer' && !have.layer) || (lens === 'feature' && !have.feature)) {
+        this.lensModel.set('service');
+      }
+    });
+
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'F' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         const tag = (event.target as HTMLElement | null)?.tagName;

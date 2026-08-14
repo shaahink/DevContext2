@@ -38,14 +38,16 @@ function shuffled<T>(arr: readonly T[]): T[] {
 }
 
 describe('graph-layout (D4.1 determinism + no-clip contract)', () => {
-  // `getElk()` lazily `await import('elkjs/lib/elk.bundled.js')` on the FIRST layout only — a
-  // ~1.5MB bundle plus one ELK construction. Whichever `it` ran first paid that once-per-module
-  // cost inside its own 5000ms budget, so on a loaded machine the first test (and only the first)
-  // timed out at 6211ms while every later test in this file — doing the same two layouts — passed
-  // in ~200ms. That is a warm-up cost billed to the wrong stopwatch, not a layout regression.
-  // Pay it here, in a hook with its own budget, so each test times only what it asserts.
+  // graph-layout loads elkjs lazily: the FIRST layoutGraph call in the process pays a dynamic
+  // import of elk.bundled.js (a ~1.4 MB GWT-compiled bundle) plus instantiation. Whichever `it`
+  // ran first was billed that one-time cost against vitest's 5000ms default, and on a loaded
+  // machine it lost: the 2026-08-13 phase battery failed here at 5249ms while the same file
+  // passes in 1.28s of test time in isolation and the whole 173-test suite runs in 11s on an
+  // idle box. Pay the bootstrap once, in a hook that asserts nothing, so every test's clock
+  // measures layout and not module loading. layoutGraph returns early on an empty node list,
+  // so the warm-up needs a real (one-node) graph to reach ELK.
   beforeAll(async () => {
-    await layoutGraph([{ id: 'warm', label: 'warm' }], []);
+    await layoutGraph([{ id: 'warmup', label: 'warmup' }], []);
   }, 60_000);
 
   it('same input twice → identical geometry', async () => {

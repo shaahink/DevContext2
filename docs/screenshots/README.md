@@ -1,6 +1,6 @@
 # README Screenshot Capture
 
-**Date:** 2026-07-16
+**Date:** 2026-08-14
 **Target repo:** `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src\eshop-microservices.sln`
 
 | # | Screenshot | Status |
@@ -17,5 +17,6 @@
 | 10 | `10-mcp.png` | ✅ |
 | 11 | `11-settings.png` | ✅ |
 | 12 | `12-home-full.png` | ✅ |
+| 13 | `13-mcp-feed.png` | ✅ |
 
-**12/12 successful**
+**13/13 successful**

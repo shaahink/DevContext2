@@ -27,6 +27,7 @@ public sealed class DevContextGrpcService(
         ServerCallContext context)
     {
         var ct = context.CancellationToken;
+        var analyzeElapsed = Stopwatch.StartNew();
         var spec = new AnalyzeSpec(
             request.Path,
             request.HasFocus ? request.Focus : null,
@@ -70,10 +71,17 @@ public sealed class DevContextGrpcService(
             var (session, cached) = await work.ConfigureAwait(false);
             var (_, entriesWithTarget) = session.Query.Stats();
             var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
-            await responseStream.WriteAsync(new Proto.AnalyzeEvent
-            {
-                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary, Cached = cached },
-            }).ConfigureAwait(false);
+            var result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary, Cached = cached };
+
+            // N4.3 (audit §4 Room 2) — analyze finally appears in the feed. It is the FIRST thing
+            // an agent does and it was the one call this server never recorded: WrapT records on
+            // session access and analyze is what creates the session, so a watcher saw an agent's
+            // whole opening move as silence. Recorded here, after the work succeeded, so a failed
+            // analysis does not log as one that happened.
+            RecordToolCall(nameof(Analyze), session.Handle, session.RepoPath,
+                result.CalculateSize(), analyzeElapsed.ElapsedMilliseconds);
+
+            await responseStream.WriteAsync(new Proto.AnalyzeEvent { Result = result }).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -308,7 +316,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var intent = request.HasIntent ? request.Intent : null;
             var pack = builder.Build(request.Focus, budget, intent);
             return ProtoMapper.ToContextResponse(request.Focus, pack);
@@ -321,14 +329,36 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.BudgetTokens > 0 ? request.BudgetTokens : 8000;
+            var budget = request.BudgetTokens > 0 ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var intent = request.Intent is { Length: > 0 } s ? s : null;
 
+            // N1.1 — exclude_bodies rides the spec: the Studio's eye toggle is a pack filter now,
+            // not an icon. Negative sense, so an older client's unset field means "keep bodies".
             var specs = request.Cards.Select(c =>
-                new ContextCardSpec(c.Type, c.Title, [.. c.EntryIds])).ToList();
+                new ContextCardSpec(c.Type, c.Title, [.. c.EntryIds], c.ExcludeBodies)).ToList();
 
             var pack = builder.BuildMulti(specs, budget, intent);
             return ProtoMapper.ToContextPackResponse(pack);
+        });
+
+    // N3.2 (STUDIO-MCP §8.3, decision 3) — the repo-file hand-off. The Studio's Save used to hand
+    // the pack to the browser's download path, which is why its toast could only name a FILE and
+    // never a location: it did not choose one. The pack belongs in the repo it describes, and the
+    // repo root is a fact this side holds — the client knows a handle, not a path.
+    public override Task<Proto.SavePackFileResponse> SavePackFile(Proto.SavePackFileRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            // The ANALYZED root, not the requested path: it is the root every file:line in the
+            // pack is relative to, so a pack that sits beside it addresses the same tree.
+            var root = session.Snapshot.RootPath is { Length: > 0 } r ? r : session.RepoRoot;
+            var written = PackFileWriter.Write(root, request.Slug, request.Content, request.Format);
+            return new Proto.SavePackFileResponse
+            {
+                Path = written.Path,
+                RelativePath = written.RelativePath,
+                Gitignored = written.Gitignored,
+                AgentLine = written.AgentLine,
+            };
         });
 
     // T4.5 (audit R6) — staleness verification: rebuild the focus's sections (cheap — the graph
@@ -338,7 +368,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
-            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : ContextPackBuilder.DefaultBudgetTokens;
             var pack = builder.Build(request.Focus, budget);
 
             var sections = new ContextPackVerifier(session.Snapshot).Verify(pack.Sections);
@@ -374,6 +404,12 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.ReadSourceResponse> ReadSource(Proto.ReadSourceRequest request, ServerCallContext context)
         => WrapT(request.SessionId, session =>
         {
+            // M1.1 — FILE mode: the whole file, capped. It is addressable BY PATH, so it does not
+            // need a node at all; a caller that has a file:line (which every provenance now is)
+            // can read the file it names without first turning it back into a graph node.
+            if (request.Mode == Proto.ReadSourceMode.File && request.HasFilePath)
+                return ReadWholeFile(session, request.FilePath, request.MaxLines, nodeTitle: "");
+
             var nodeId = ResolveNode(session, request.NodeId);
             if (nodeId is null)
                 return new Proto.ReadSourceResponse
@@ -397,6 +433,9 @@ public sealed class DevContextGrpcService(
                     Language = "text",
                     FilePath = node.FilePath
                 };
+
+            if (request.Mode == Proto.ReadSourceMode.File)
+                return ReadWholeFile(session, node.FilePath, request.MaxLines, node.Title);
 
             var lines = File.ReadAllLines(node.FilePath);
             var anchorLine = node.LineNumber.Value;
@@ -423,26 +462,117 @@ public sealed class DevContextGrpcService(
             var selectedLines = lines[(startLine - 1)..endLine];
             var content = string.Join("\n", selectedLines);
 
-            var language = Path.GetExtension(node.FilePath)?.ToLowerInvariant() switch
-            {
-                ".cs" => "csharp",
-                ".razor" => "razor",
-                ".cshtml" => "csharp",
-                ".xaml" => "xml",
-                ".axaml" => "xml",
-                _ => "text"
-            };
-
             return new Proto.ReadSourceResponse
             {
                 Content = content,
-                Language = language,
+                Language = LanguageOf(node.FilePath),
                 FilePath = node.FilePath,
                 StartLine = startLine,
                 EndLine = endLine,
-                NodeTitle = node.Title
+                NodeTitle = node.Title,
+                // M1.1 — MEMBER/WINDOW are windows too; they just never said what they cut.
+                TotalLines = lines.Length,
+                Truncated = startLine > 1 || endLine < lines.Length,
             };
         });
+
+    /// <summary>M1.1 — the default FILE-mode cap. Big enough that most real C# files come back
+    /// whole, small enough that a generated 40k-line file cannot be turned into one gRPC message
+    /// by accident. A caller asking for more gets <see cref="MaxFileLinesCeiling"/> at most.</summary>
+    internal const int DefaultFileLines = 2000;
+    internal const int MaxFileLinesCeiling = 10000;
+
+    /// <summary>M1.1 — FILE mode. Reads a whole file, capped, and SAYS when the cap fired.
+    /// Refuses anything outside the analyzed root: this RPC takes a caller-supplied path, so
+    /// containment is the difference between "read the repo" and "read the disk".</summary>
+    private static Proto.ReadSourceResponse ReadWholeFile(
+        AnalysisSession session, string requestedPath, int maxLines, string nodeTitle)
+    {
+        if (ResolveInRoot(session, requestedPath) is not { } full)
+            return new Proto.ReadSourceResponse
+            {
+                Content = "Refused: path is outside the analyzed root (" + session.Snapshot.RootPath + ").",
+                Language = "text",
+                FilePath = requestedPath,
+            };
+
+        if (!File.Exists(full))
+            return new Proto.ReadSourceResponse
+            {
+                Content = "Source file not found: " + full,
+                Language = "text",
+                FilePath = full,
+            };
+
+        var lines = File.ReadAllLines(full);
+        var cap = maxLines > 0 ? Math.Min(maxLines, MaxFileLinesCeiling) : DefaultFileLines;
+        var end = Math.Min(lines.Length, cap);
+
+        return new Proto.ReadSourceResponse
+        {
+            Content = string.Join("\n", lines[..end]),
+            Language = LanguageOf(full),
+            FilePath = full,
+            StartLine = lines.Length == 0 ? 0 : 1,
+            EndLine = end,
+            NodeTitle = nodeTitle,
+            TotalLines = lines.Length,
+            Truncated = end < lines.Length,
+        };
+    }
+
+    /// <summary>M1.1 — per-file edge overlay. GraphQuery could always answer "which edges happen in
+    /// this file"; nothing could ASK it, because every browse RPC is node-first. This is the query
+    /// the code pane needs to render wiring in the margin — and, standing alone, the answer to
+    /// "what does this file actually reach" without first guessing which node to look up.</summary>
+    public override Task<Proto.FileOverlayResponse> GetFileOverlay(Proto.FileOverlayRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var full = ResolveInRoot(session, request.FilePath);
+            var resp = new Proto.FileOverlayResponse { FilePath = full ?? request.FilePath };
+            if (full is null) return resp;
+
+            foreach (var site in session.Query.EdgesInFile(full))
+            {
+                resp.Sites.Add(new Proto.FileOverlaySite
+                {
+                    Line = site.Line,
+                    Kind = site.Kind.ToString(),
+                    Resolution = site.Resolution.ToString(),
+                    ToNodeId = site.To.ToString(),
+                    ToTitle = site.ToTitle,
+                });
+                if (site.Line > 0) resp.PlacedSites++; else resp.UnplacedSites++;
+            }
+
+            return resp;
+        });
+
+    /// <summary>Resolves a caller-supplied path against the analyzed root, or null when it escapes it.
+    /// Both file-addressed RPCs go through here: a path parameter is the one place a query API can
+    /// turn into "read any file on the box".</summary>
+    private static string? ResolveInRoot(AnalysisSession session, string requestedPath)
+    {
+        if (string.IsNullOrWhiteSpace(requestedPath)) return null;
+        var root = session.Snapshot.RootPath;
+        var full = Path.IsPathRooted(requestedPath)
+            ? Path.GetFullPath(requestedPath)
+            : Path.GetFullPath(Path.Combine(root, requestedPath));
+        var rootFull = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var contained = string.Equals(full, rootFull, StringComparison.OrdinalIgnoreCase)
+            || full.StartsWith(rootFull + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        return contained ? full : null;
+    }
+
+    private static string LanguageOf(string path) => Path.GetExtension(path)?.ToLowerInvariant() switch
+    {
+        ".cs" => "csharp",
+        ".razor" => "razor",
+        ".cshtml" => "csharp",
+        ".xaml" => "xml",
+        ".axaml" => "xml",
+        _ => "text"
+    };
 
     // M4.7 / T3.4 — config key lookup. The file scan + regex is now done ONCE per session
     // (AnalysisSession.ConfigBindings, cached) and filtered in-memory here — previously it re-scanned
@@ -585,17 +715,147 @@ public sealed class DevContextGrpcService(
         catch (Exception ex) { throw MapException(ex); }
     }
 
-    public override Task<Proto.StartMcpResponse> StartMcp(Proto.StartMcpRequest request, ServerCallContext context)
+    /// <summary>N0.2 (audit §3.F.9) — the READ half. StartMcp is a mutation and the app used it
+    /// as its status probe, so opening the MCP page switched telemetry on and then reported the
+    /// state it had just caused. This observes; it never writes.
+    ///
+    /// N4.1 (audit §4 Room 2) — and it now MEASURES: the binary probe looks on disk, the
+    /// last-agent-call figures come from traffic the server actually served. StartMcp/StopMcp
+    /// are gone with the global mute they flipped.</summary>
+    public override Task<Proto.GetMcpStatusResponse> GetMcpStatus(Proto.GetMcpStatusRequest request, ServerCallContext context)
     {
-        mcpObs.Start();
-        return Task.FromResult(new Proto.StartMcpResponse { Running = mcpObs.IsRunning });
+        var binary = McpBinaryLocator.Probe();
+        var response = new Proto.GetMcpStatusResponse
+        {
+            ObserverCount = mcpObs.ObserverCount,
+            McpBinaryFound = binary.Found,
+            McpBinaryPath = binary.Path,
+            McpBinarySource = binary.Source,
+            LastAgentCallAtUtcMs = mcpObs.LastAgentCallAtUtcMs,
+            LastAgentTool = mcpObs.LastAgentTool,
+            AgentCallCount = mcpObs.AgentCallCount,
+        };
+
+        // N4.2 — the setup cards are composed from the SAME probe, so the snippet on screen names
+        // the binary this server just found rather than a placeholder the page invented.
+        foreach (var target in McpConfigWriter.Targets)
+        {
+            response.Hosts.Add(new Proto.McpHostConfig
+            {
+                Id = target.Id,
+                Label = target.Label,
+                RelativePath = target.RelativePath,
+                Snippet = McpConfigWriter.SnippetFor(target, binary),
+            });
+        }
+
+        return Task.FromResult(response);
     }
 
-    public override Task<Proto.StopMcpResponse> StopMcp(Proto.StopMcpRequest request, ServerCallContext context)
+    /// <summary>N4.1 — spawn the resolved devcontext-mcp binary and run one real
+    /// initialize + tools/list round trip over stdio. The only check on this page that proves a
+    /// host config would work.</summary>
+    public override async Task<Proto.McpHandshakeResponse> McpHandshake(
+        Proto.McpHandshakeRequest request, ServerCallContext context)
     {
-        mcpObs.Stop();
-        return Task.FromResult(new Proto.StopMcpResponse { Stopped = true });
+        var result = await McpHandshakeProbe
+            .RunAsync(McpBinaryLocator.Probe(), TimeSpan.FromSeconds(30), context.CancellationToken)
+            .ConfigureAwait(false);
+
+        var response = new Proto.McpHandshakeResponse
+        {
+            Ok = result.Ok,
+            Command = result.Command,
+            ServerName = result.ServerName,
+            ServerVersion = result.ServerVersion,
+            ProtocolVersion = result.ProtocolVersion,
+            ToolCount = result.ToolNames.Count,
+            ElapsedMs = result.ElapsedMs,
+            Error = result.Error,
+        };
+        response.ToolNames.AddRange(result.ToolNames);
+        return response;
     }
+
+    /// <summary>
+    /// N4.3 (audit §4 Room 2, "the catalog, served") — the menu, read off the wire.
+    ///
+    /// This makes exactly one promise, and it is the reason the RPC exists: nothing in the reply
+    /// was composed on this side. The advertised tools and their parameter descriptions come from
+    /// a real <c>tools/list</c>; the unlisted specialists and the retired aliases come from the
+    /// unknown-tool envelope the same process serves an agent. A desktop that renders this cannot
+    /// advertise a tool the server does not have, which is what BUG-BACKLOG #4 was.
+    /// </summary>
+    public override async Task<Proto.ListMcpToolsResponse> ListMcpTools(
+        Proto.ListMcpToolsRequest request, ServerCallContext context)
+    {
+        var result = await McpHandshakeProbe
+            .RunAsync(McpBinaryLocator.Probe(), TimeSpan.FromSeconds(30), context.CancellationToken,
+                includeUnlisted: true)
+            .ConfigureAwait(false);
+
+        var response = new Proto.ListMcpToolsResponse
+        {
+            Ok = result.Ok,
+            Command = result.Command,
+            ElapsedMs = result.ElapsedMs,
+            Error = result.Error,
+        };
+        response.Tools.AddRange(result.Tools.Select(ToProto));
+        response.Specialists.AddRange(result.Specialists.Select(ToProto));
+        response.Retired.AddRange(result.Retired.Select(r => new Proto.RetiredMcpTool
+        {
+            Retired = r.Retired,
+            Replacement = r.Replacement,
+            Call = r.Call,
+        }));
+        return response;
+
+        static Proto.McpToolDescriptor ToProto(McpToolDescriptor tool)
+        {
+            var proto = new Proto.McpToolDescriptor
+            {
+                Name = tool.Name,
+                Description = tool.Description,
+                Specialist = tool.Specialist,
+                Why = tool.Why,
+            };
+            proto.Parameters.AddRange(tool.Parameters.Select(p => new Proto.McpToolParameter
+            {
+                Name = p.Name,
+                Type = p.Type,
+                Required = p.Required,
+                Description = p.Description,
+            }));
+            return proto;
+        }
+    }
+
+    /// <summary>N4.2 (audit §4 Room 2, "setup that works") — write the host's MCP config instead
+    /// of handing over a snippet with a placeholder in it. Project-scoped, merged into whatever
+    /// is already there; see <see cref="McpConfigWriter"/> for why it is not the user-global
+    /// file. The command written is the same probe result the status card renders.</summary>
+    public override Task<Proto.WriteMcpConfigResponse> WriteMcpConfig(
+        Proto.WriteMcpConfigRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var target = McpConfigWriter.TargetFor(request.Host)
+                ?? throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    $"Unknown MCP host '{request.Host}' — known hosts: {string.Join(", ", McpConfigWriter.Targets.Select(t => t.Id))}"));
+
+            // The ANALYZED root, exactly as SavePackFile picks it (N3.2): the config points an
+            // agent at the tree the session's file:line references belong to.
+            var root = session.Snapshot.RootPath is { Length: > 0 } r ? r : session.RepoRoot;
+            var written = McpConfigWriter.Write(root, target, McpBinaryLocator.Probe());
+            return new Proto.WriteMcpConfigResponse
+            {
+                Path = written.Path,
+                RelativePath = written.RelativePath,
+                Action = written.Action,
+                Command = written.Command,
+            };
+        });
 
     public override async Task ObserveToolCalls(
         Proto.ObserveToolCallsRequest request,
@@ -608,9 +868,8 @@ public sealed class DevContextGrpcService(
         var observerId = Guid.NewGuid().ToString("N");
         using var _ = mcpObs.Subscribe(observerId, channel.Writer);
 
-        // Start MCP if not already running
-        mcpObs.Start();
-
+        // N4.1 — subscribing IS the start. This used to also flip the global mute on, which is
+        // why the page could report "active" the moment anyone watched.
         try
         {
             await foreach (var evt in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
@@ -625,15 +884,32 @@ public sealed class DevContextGrpcService(
     // M3.3 — emit tool-call events on every session access
     private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
     {
-        // T6.10/F5 — ui vs agent from the PRE-UseGrpcWeb content-type (stashed in Items by
-        // Program.cs: the middleware rewrites grpc-web requests to plain application/grpc,
-        // so reading Request.ContentType here mislabeled every app RPC as "agent").
+        // T6.10/F5 — ui vs agent, stashed in Items by Program.cs's middleware. N4.1: from the
+        // client's own headers, because both the app and the MCP sidecar arrive as gRPC-web.
+        var request = httpContext.HttpContext?.Request;
         var origin = httpContext.HttpContext?.Items[OriginTag.ItemKey] as string
-            ?? OriginTag.FromContentType(httpContext.HttpContext?.Request.ContentType);
+            ?? OriginTag.FromRequest(request?.Headers.UserAgent, request?.Headers["x-user-agent"], request?.Headers.Origin);
+
+        // N4.3 — what the AGENT asked for, if an agent asked. The MCP sidecar's tool layer stamps
+        // these (DevContext.Mcp/McpCallScope); nothing else on this server can know them, because
+        // one MCP verb is several RPCs and the mapping lives on the other side of the wire.
+        // PrimaryArg is the digest's navigable half: the subject of the call, alone, so the feed
+        // can open it instead of only printing it.
+        var mcpTool = Header(request, Proto.McpCallHeaders.Tool);
+        var argsDigest = DecodeHeader(request, Proto.McpCallHeaders.Args);
+        var primaryArg = DecodeHeader(request, Proto.McpCallHeaders.PrimaryArg);
+
+        // The header is proof, not a hint: only the MCP sidecar sends it. The heuristic above is a
+        // fallback for everything that does not (and N4.1 measured how easily it can be wrong).
+        if (mcpTool.Length > 0) origin = OriginTag.Agent;
+
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,
             Tool = tool,
+            McpTool = mcpTool,
+            ArgsDigest = argsDigest,
+            PrimaryArg = primaryArg,
             SessionRepo = repo,
             Bytes = bytes,
             EstTokens = bytes / 4, // rough estimate: ~4 chars per token
@@ -641,6 +917,22 @@ public sealed class DevContextGrpcService(
             TimestampUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Origin = origin,
         });
+    }
+
+    private static string Header(HttpRequest? request, string name)
+        => request?.Headers[name].ToString() ?? string.Empty;
+
+    /// <summary>
+    /// The two free-text MCP headers travel base64 of UTF-8 — a focus string is arbitrary repo
+    /// text and gRPC metadata is ASCII by spec. A value that will not decode is dropped rather
+    /// than rendered as mojibake in the feed.
+    /// </summary>
+    private static string DecodeHeader(HttpRequest? request, string name)
+    {
+        var raw = Header(request, name);
+        if (raw.Length == 0) return string.Empty;
+        try { return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(raw)); }
+        catch (FormatException) { return string.Empty; }
     }
 
     public override Task<Proto.PingResponse> Ping(Proto.PingRequest request, ServerCallContext context)

@@ -1,3 +1,4 @@
+using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Utilities;
 
 namespace DevContext.Core.Graph;
@@ -30,6 +31,11 @@ public sealed record MapModel
     /// <summary>R3 D-4 (G6.3) — runnable apps that live outside the analysed solution. Never services;
     /// the companion to <see cref="ScopeNote"/>, which says a choice was made but not what it cost.</summary>
     public ImmutableArray<PerServiceStyle> OutsideScopeApps { get; init; } = [];
+    /// <summary>M1.2 — the solution-wide stack tags (runtime, web framework, CQRS, data, validation,
+    /// messaging, aggregates), in render order. Previously computed inside <c>MapRenderer</c> and
+    /// therefore reachable only through the markdown, while <c>MapResponse.stack</c> shipped empty to
+    /// three consumers. One fact, one owner: the renderer and the wire now read the same list.</summary>
+    public ImmutableArray<string> Stack { get; init; } = [];
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn)
@@ -46,6 +52,7 @@ public sealed class MapBuilder
     {
         var archetype = ArchetypeDetector.Detect(model, entries);
         var topology = BuildTopology(model, graph);
+        var aggregates = BuildAggregates(model);
         var archetypeView = archetype is Archetype.Desktop or Archetype.Worker
             or Archetype.Blazor or Archetype.Library or Archetype.CliTool
             ? new ArchetypeProjection().Project(graph,
@@ -59,7 +66,8 @@ public sealed class MapBuilder
             Entries = entries,
             Topology = topology,
             Packages = BuildPackages(model.Projects),
-            Aggregates = BuildAggregates(model),
+            Aggregates = aggregates,
+            Stack = BuildStack(model, aggregates),
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
             Surface = BuildSurface(model, archetype, entries),
@@ -69,6 +77,98 @@ public sealed class MapBuilder
             ServiceStyles = model.PerServiceStyles,
             OutsideScopeApps = model.OutsideScopeApps,
         };
+    }
+
+    /// <summary>M1.2 — the solution-wide stack tags, in render order. This list used to live inside
+    /// <c>MapRenderer.AppendStack</c>, which meant the only way to see it was to read the markdown:
+    /// <c>MapResponse.stack</c> had three consumers (identity strip, Atlas chip header, MCP overview)
+    /// and no writer. Same order, same words as the markdown STACK line — the renderer now joins THIS.</summary>
+    internal static ImmutableArray<string> BuildStack(DiscoveryModel model, ImmutableArray<string> aggregates)
+    {
+        var signals = model.Architecture.All;
+        var parts = ImmutableArray.CreateBuilder<string>();
+
+        // Runtime. E5 (Prism D1.4b): a multi-targeting library's TFM matrix summarizes to the newest
+        // few + a count — Newtonsoft's raw `net20, net35, net40, …` ×9 dump was unreadable.
+        var tfms = model.Projects
+            .SelectMany(p => p.TargetFrameworks)
+            .Where(f => !f.Contains("$(", StringComparison.Ordinal)) // drop unevaluated MSBuild vars (Low 16)
+            .Distinct()
+            .OrderBy(f => f)
+            .ToList();
+        if (tfms.Count > 0) parts.Add(SummarizeTfms(tfms));
+
+        // Web framework
+        if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected)
+            parts.Add("Minimal APIs");
+        if (signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrl) && ctrl.Detected)
+            parts.Add("Controllers");
+        if (signals.TryGetValue(ArchitectureSignals.Keys.FastEndpoints, out var fe) && fe.Detected)
+            parts.Add("FastEndpoints");
+
+        // CQRS / Mediator — light from handler evidence too (not just the package signal), so a scoped
+        // sub-project whose handlers are present reads consistently with the resolved STYLE (G7 residual).
+        // B6: a repo that declares its own IRequestHandler<,> hand-rolled the pattern — branding it
+        // "MediatR" is a name-only match (podcasts has zero MediatR references).
+        switch (ArchitectureStyleDetector.GetMediatREvidence(model))
+        {
+            case MediatREvidenceKind.Package: parts.Add("MediatR (CQRS)"); break;
+            case MediatREvidenceKind.HandRolled: parts.Add("CQRS (hand-rolled mediator)"); break;
+        }
+
+        // Data
+        if (signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
+            parts.Add("EF Core");
+
+        // Validation
+        if (signals.TryGetValue(ArchitectureSignals.Keys.FluentValidation, out var fv) && fv.Detected)
+            parts.Add("FluentValidation");
+
+        // Messaging
+        if (signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out var mt) && mt.Detected)
+            parts.Add("MassTransit");
+        if (signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out var nsb) && nsb.Detected)
+            parts.Add("NServiceBus");
+
+        // Aggregates
+        if (aggregates.Length > 0)
+            parts.Add("DDD aggregates");
+
+        return parts.ToImmutable();
+    }
+
+    /// <summary>E5: ≤3 distinct TFMs render verbatim (poles unchanged); a matrix shows the two most
+    /// modern + a count. Modernity ranks family first (net5+ core &gt; netcoreapp &gt; netstandard &gt;
+    /// classic net4x), then version — so "net6.0, netstandard2.0 +3 more TFMs", never a net20-first dump.</summary>
+    internal static string SummarizeTfms(IReadOnlyList<string> tfms)
+    {
+        if (tfms.Count <= 3) return string.Join(", ", tfms);
+
+        var ranked = tfms.OrderByDescending(TfmRank).ThenBy(t => t, StringComparer.Ordinal).ToList();
+        return $"{ranked[0]}, {ranked[1]} +{tfms.Count - 2} more TFMs";
+    }
+
+    private static double TfmRank(string tfm)
+    {
+        // Strip a platform suffix ("net8.0-android" → "net8.0") for scoring; the display keeps it.
+        var dash = tfm.IndexOf('-');
+        var core = dash > 0 ? tfm[..dash] : tfm;
+
+        static double Version(string s, string prefix)
+            => double.TryParse(s[prefix.Length..], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
+
+        if (core.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase))
+            return 1000 + Version(core, "netstandard");
+        if (core.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase))
+            return 2000 + Version(core, "netcoreapp");
+        if (core.StartsWith("net", StringComparison.OrdinalIgnoreCase))
+        {
+            var v = Version(core, "net");
+            // "net10.0"/"net6.0" (dotted) is modern .NET; "net48"/"net462" (no dot) is classic Framework.
+            return core.Contains('.') ? 3000 + v : v;
+        }
+        return 0;
     }
 
     /// <summary>When fewer projects were analysed than the owning solution declares, describe the partial

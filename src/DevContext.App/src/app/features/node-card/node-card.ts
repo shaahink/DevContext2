@@ -8,6 +8,8 @@ import { Skeleton } from '../../ui/skeleton/skeleton';
 import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { copyToClipboard } from '../../core/clipboard';
 import { nodeIdLabel } from '../../core/format';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
+import { symbolCardSeeds } from '../context-studio/pack-proposal';
 
 @Component({
   selector: 'app-node-card',
@@ -86,6 +88,13 @@ import { nodeIdLabel } from '../../core/format';
               <div class="flex gap-2 pt-2 border-t border-line">
                 <button class="flex-1 rounded bg-accent text-accent-ink text-xs py-1.5"
                         (click)="traceFromNode(nid); store.hide()">Trace</button>
+                <!-- N3.1 (audit §3.A) — the second thing a reader wants from a node they have just
+                     understood: hand it to the agent. The card knew the symbol and had no way to
+                     say so. -->
+                <button class="flex-1 rounded bg-surface-2 text-ink text-xs py-1.5"
+                        data-testid="node-card-send-to-studio"
+                        title="Compose a context pack rooted at this symbol (flow, bodies, callers)"
+                        (click)="sendToStudio(nid)">→ Studio</button>
                 <button class="flex-1 rounded bg-surface-2 text-ink text-xs py-1.5"
                         (click)="copyId(nid)">Copy ID</button>
               </div>
@@ -101,6 +110,7 @@ export class NodeCard {
   readonly store = inject(NodeStore);
   readonly traceStore = inject(TraceStore);
   private readonly toast = inject(ToastService);
+  private readonly studio = inject(StudioHandoffStore);
 
   /** R3 D-4 (G6.2) — the one id-to-text rule, for an edge whose otherTitle came back empty.
    * "Copy ID" still copies the RAW canonical id: that one is identity, not a name. */
@@ -121,6 +131,21 @@ export class NodeCard {
   traceFromNode(nodeId: string): void {
     const h = this.store.sessionHandle();
     if (h) this.traceStore.trace(h, nodeId);
+  }
+
+  /** N3.1 — the node id goes over as the card's entry id verbatim. MEASURED 2026-08-14 in
+   * `ContextPackBuilder.ResolveCardFocuses` / `NormalizeSymbolFocus`: the builder strips the
+   * NodeKind prefix and resolves the rest through the same `ResolveEntry` path `get_context` uses,
+   * so `Type:Acme.OrderService` and `Member:Acme.OrderService::Handle` are both legal here. There is
+   * nothing for this component to look up. */
+  sendToStudio(nodeId: string): void {
+    const label = this.store.node()?.title || nodeIdLabel(nodeId);
+    this.store.hide();
+    void this.studio.open({ seeds: symbolCardSeeds(nodeId, label), source: `the node “${label}”` })
+      .then((ok) => this.toast.show(
+        ok ? `Sent ${label} to Context Studio` : 'Could not open Context Studio',
+        ok ? 'success' : 'error',
+      ));
   }
 
   copyId(id: string): void {

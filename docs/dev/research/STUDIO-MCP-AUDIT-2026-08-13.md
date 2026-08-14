@@ -13,6 +13,14 @@
 > file:line before fixing (house rule). This is not released software; the plan below is deep
 > surgery, not iteration.
 
+> **STATUS PASS 2026-08-14 (pre-release run B, stage Z1.1).** The plan in §5 was executed as
+> conductor run `8faf849d` on `feat/pre-release-desktop`: **N0, N1, N2, N3 and N4 are all closed**
+> (14 checkpoints), N5 stays deferred by the §5 default. Every §3.F item below and every move in
+> §5 now carries its outcome and the commit that settles it — read those markers, not the prose
+> around them, for current state. The three §3.F items that were still open when the backlog was
+> written (8, 15, and the tool-list half of 12) closed in N2.1 and N4.3. Statuses were
+> re-measured from the code on 2026-08-14, not copied from the sessions' own claims.
+
 ---
 
 ## Verdict in three sentences
@@ -184,30 +192,60 @@ agent, this page is the UX — and today they see different worlds.
 
 ### F. The truth-defect inventory (file as bugs)
 
-New confident-surface instances found today, each small, each the S8/G-series class:
+New confident-surface instances found today, each small, each the S8/G-series class. **All
+sixteen are now closed** — the marker after each is the checkpoint and commit that settles it
+(re-measured 2026-08-14, Z1.1); the backlog number is the id under which the item was filed in
+`BUG-BACKLOG.md`:
 
 1. Pins advertised, never read (§A) — or the flag finding of this audit.
+   **FIXED N1.2 · `e448d64` (#26)** — `TrailStore.pins()` gained its reader; pins beat the raw trail.
 2. Body toggles ("Hide code bodies", "All bodies shown") are **cosmetic** — never sent on the
    wire, never filter preview/copy/save; the eye icon and opacity are the entire feature.
+   **FIXED N1.1 · `56ebc25`+`e3a9bc2` (#27)** — WIRED, not deleted: `ContextCardSpec.exclude_bodies`.
 3. Multi-entry section merge drops `SourceLocations`/`Verified`/`Approx`
    (`ContextPackBuilder.cs:575-582`) — primary-path cards lose provenance.
+   **FIXED N0.1 · `36bf916`**, and the same merge's `Joined` counter fixed after the engine merge
+   in `f7e382b` — the trust counters are summed, not dropped.
 4. `allocated_tokens` ≡ budget (`:647`) — the preview header prints one number under two labels.
+   **FIXED N0.1 · `36bf916`** — allocated is measured, not echoed.
 5. Verification ledger verifies a pack that was never built (§B); `checkedAt` stored, never
    rendered; N RPCs per repack.
+   **FIXED N1.1 · `56ebc25` (#28)** — verification moved INTO `GetContextPack`'s response.
 6. Studio cards survive tab-switch and re-analyze with dead handles/nodeIds; no invalidation.
+   **FIXED N1.1 · `e3a9bc2` (#29)** — handle-effect invalidation; shaping persisted as a preference.
 7. Studio copy paths bypass `clipboard.ts`; Copy/Save toasts fire before/regardless of outcome.
+   **FIXED N0.1 · `36bf916`** — one clipboard helper, toasts await the outcome.
 8. Zero-entry empty states instruct an omnibox that cannot comply (C-3 half-fix).
+   **FIXED N2.1 · `8c38e0b` (#30)** — the empty state now names the Types tab, which exists and
+   carries the public surface (`scope-picker.ts` archetype notes).
 9. `getMcpStatus` = `StartMcp` (mutating status); Stop = global telemetry mute mislabeled.
+   **FIXED N0.2 · `98c5067`**, deepened in N4.1 · `7c6b6be` (binary probe + observer count +
+   handshake) and `7f78edc` (the ui/agent origin tag was wrong, so no agent call was ever counted).
 10. "ships with the desktop installer" false; snippets point at non-resolving command.
+    **FIXED N0.2 · `98c5067`** (claim withdrawn) then **made TRUE in N4.2 · `d48a122`** —
+    `devcontext-mcp` ships in the Tauri bundle and the snippets carry the resolved absolute path.
 11. Copy-label sniffing always marks VS Code copied.
+    **FIXED N0.2 · `98c5067`** — per-host `copy-snippet-<host>` state.
 12. Feed: gRPC names, `analyze` invisible, Total counts hidden rows, client-side timestamps.
+    **FIXED N0.2 · `98c5067`** (totals follow the filter, wire timestamps) + **N4.3 · `fbb929b`**
+    (the feed speaks MCP tool names and `analyze` is no longer invisible).
 13. Sessions: `edges`/`entries` mapped-unrendered; `from_cache`/`analyzed_at` unused so the
     shown age lies after rehydrate (the wire comment says exactly this).
+    **FIXED N0.2 · `98c5067`** — both columns render; a "(cached)" analysis-age cell explains the rehydrate.
 14. Dead state: `mcpStateSynced`, `DevContextApi._mcpRunning` (no consumers), feed `session`/
     `bytes` fields; three silent catch-alls (poll, stream, status) with no user-visible signal.
+    **FIXED N0.2 · `98c5067`** — dead fields deleted, the three failures surface.
 15. `usage` section unreachable from any card type; `"client-only type"` omission branch
     unreachable; docs claim a log feed the page doesn't have.
+    **FIXED N2.1 · `104c9d0` (#31)** — `CardTypeSections["usage"]` exists, so the section the
+    builder has produced since G1.2 is reachable from the Studio. The `"client-only type"`
+    omission branch survives as a **wire-facing guard**: no app card type can reach it, but
+    `ContextCardSpec.type` is a free string on the wire, so any gRPC/MCP client can. The
+    log-feed claim is gone from `docs/product/mcp-reference.md` (it now says the rolling MCP
+    logs have no surface tailing them, and describes the tool-call feed that does exist).
 16. Neither page has a spec file or any e2e coverage; the three `data-testid`s are unreferenced.
+    **FIXED N0.2 + N0.3** (`mcp-page.spec.ts`, `context-studio.spec.ts`) and extended by every
+    stage since — `scope-picker.spec.ts`, `workbench-page.spec.ts`, `pack-proposal.spec.ts`.
 
 ---
 
@@ -282,18 +320,26 @@ is currently severed (pins→pack dead, nothing routes in, clipboard-only out, f
 
 ## 5. The moves (ranked; N0 first, then by decision-dependency)
 
+> **Outcome 2026-08-14 (Z1.1).** N0–N4 all closed in run `8faf849d`; N5 deferred by its own
+> default. Per-move status markers are at the end of each paragraph.
+
 **N0 — the truth batch (no decisions, mostly small, do first).** §3.F items 3,4,7,9,10,11,12,
 13,14,15 minus the ones needing a design call: merge-bug fix, allocated line, clipboard helper
 + awaited toasts, honest status semantics (split status from StartMcp even before the full
 Room-2 work), snippet paths + copy-label fix, feed totals/timestamps, sessions honesty fields,
 dead-state deletion, spec smoke coverage for both pages. Each would have been red under the
 wire-truth gate W1.4 proposes; several *are* W1.4 items on the desktop side.
+**DONE — N0.1 `36bf916` · N0.2 `98c5067` · N0.3 (specs).** Ten items closed here; the six that
+needed a decision or a bigger surface went to N1/N2/N4 and are closed there.
 
 **N1 — Studio truth pass (one decision: pins).** Render verified/approx; align verification
 with the built pack (wire item 4); state lifecycle (per-tab key or handle-effect invalidation
 + persist budget/intent/format in prefs); body toggles wired to the wire or deleted; pins made
 real (read by trail-seed, "p" adds to pack when Studio is the context) **or** the pin idiom
 deleted from all three advertising surfaces — Q1.
+**DONE — N1.1 `56ebc25`+`e3a9bc2` · N1.2 `e448d64`+`366cc3a`.** Q1 answered IMPLEMENT (§8.1);
+verification moved into the pack response rather than the verify RPC growing fields; body toggles
+wired rather than deleted.
 
 **N2 — pack convergence (the D-G decision, upgraded).** `BuildMulti` adopts `ResolveEntry`;
 `usage` card; type/member scope in the picker (second tab + row identity); honesty-note parity
@@ -301,21 +347,39 @@ with `get_context`; budget default reconciled (UI 4000 vs everywhere-else 8000 �
 state it). Acceptance: a FluentValidation pack composed from types, with usage and verified
 counts, end to end. This is the item that makes Studio *the* human twin of `get_context`
 before the re-probe measures the agent twin.
+**DONE — N2.1 `104c9d0`+`8c38e0b` · N2.2 `e769246`.** The acceptance was met on a real clone
+(`eval-repos/FluentValidation` @ `94397908`): a type-composed pack with usage and verified counts,
+recorded in `eval-results/2026-08-13/N2.2-honesty-parity.md`. The budget number was reconciled to
+one stated value — `ContextPackBuilder.DefaultBudgetTokens = 8000` for a PACK; `TracePolicy`'s
+4000 stays, and says out loud that it budgets a single trace. **This settles S11's D-G**
+(`DECISIONS.md` §D-G).
 
 **N3 — the loop joints.** Send-to-Studio from Explore (selection/trail/pins), Insights cards,
 NodeCard; Studio proposed-pack default state; Home's "Point your agent here" routes through
 Studio's hand-off (M5's reframe); MCP feed "replay in Studio". Ships after N1/N2 (needs real
 pins + scope).
+**DONE — N3.1 `f427027` · N3.2 `6efcef6`+`032c9b8`.** Hand-off decision 3 (REPO FILE FIRST)
+shipped as the `SavePackFile` RPC writing `.devcontext/packs/<slug>.md` plus the copyable
+point-your-agent-here line; the MCP feed's "replay in Studio" half landed later, in N4.3.
 
 **N4 — MCP page rebuild (Room 2).** Status that measures, setup that works (including the
 ship-the-binary decision — Q4), served catalog (after W1's curation so the menu is the curated
 one), feed vocabulary + deep links. The page's redesign is deliberately *behind* W1: it should
 render W1's curated, described catalog, not memorialize the pre-W1 soup.
+**DONE — N4.1 `7c6b6be`+`7f78edc` · N4.2 `d48a122`+`7486a73` · N4.3 `6c2501e`+`fbb929b`+`a4896f2`+`c41f489`.**
+The W1 dependency was honoured literally: the engine run's T1 catalog was merged onto this branch
+(`153c99f`) before the page rendered it. `ListMcpTools` serves the curated menu (14 advertised, 8
+specialists, measured live), so bug #4 dies structurally; the feed carries `primary_arg` and its
+rows deep-link — trace→Explore, get_context→replay-in-Studio — proven on a real sidecar 10/10 by
+`eval/mcp-qa/deep-link-truth.js`, now battery step 2c.
 
 **N5 — optional cockpit depth (decide scope, default: defer).** Server-side call history +
 per-tool aggregates (p50/p95, calls/tool), args capture, session origin split. Real value for
 the W3 study era; also real scope creep. Deferred unless the owner wants the desktop to be the
 probe's dashboard.
+**DEFERRED as written** — recorded in `PRE-RELEASE-PLAN-2026-08-13.md` §7's deferred register.
+N4.1's observer count and last-agent-call-at give the page the two liveness facts it lacked;
+per-tool aggregates and args capture remain unbuilt.
 
 ---
 
@@ -343,14 +407,15 @@ probe's dashboard.
   and the Studio should exercise one pipeline so the measurement covers both faces.
 - **N4 strictly after W1's curation** (menu + descriptions are its raw material). The
   `ListTools` RPC is shared infrastructure: it also kills bug #4 for good.
-- **S11's D-G is absorbed** by N1+N2; D-F (insights dedup) stays where it is (M6). The
+- **S11's D-G is absorbed** by N1+N2 — and as of N2.2 it is SETTLED, not merely absorbed;
+  `DECISIONS.md` §D-G records the decision and its commits. D-F (insights dedup) stays where it is (M6). The
   desktop audit's M5 is superseded by §4/N3 of this document.
 - **Master plan:** this is the fourth input (agent face · kernel · desktop product · this).
   Consolidation happens after the owner's assessment pass, per the standing instruction.
 
 ---
 
-## 8. Owner decisions — DECIDED 2026-08-13
+## 8. Owner decisions — DECIDED 2026-08-13, ALL FOUR SHIPPED 2026-08-14
 
 1. **Pins: IMPLEMENT.** Pins seed the pack for real; `p` works from Explore; Studio's default
    state becomes the proposed pack. (N1 carries the wiring, N3 the affordances.)
@@ -368,5 +433,8 @@ probe's dashboard.
 ---
 
 *Companion docs: `DEEP-EVAL-2026-08-13.md` (agent face), `GRAPH-DETECTION-AUDIT-2026-08-13.md`
-(kernel), `DESKTOP-PRODUCT-AUDIT-2026-08-13.md` (desktop product, first pass). This one is
-DRAFT until the owner pass; its §3.F items should be filed into BUG-BACKLOG.md when triaged.*
+(kernel), `DESKTOP-PRODUCT-AUDIT-2026-08-13.md` (desktop product, first pass). The owner pass
+happened on 2026-08-13 (§8), so this is no longer a draft; its §3.F items were filed into
+`BUG-BACKLOG.md` by N0.3 and every one of them is now closed — see the status markers above and
+the FIXED-in-N* sections at the foot of the backlog. **This document is now a record, not a
+plan**: the only unexecuted move in it is N5, deferred on purpose.*

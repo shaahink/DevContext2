@@ -23,7 +23,8 @@ import { Toast, ToastService } from '../ui/toast/toast';
 const STATUSBAR_TIPS: readonly TickerItem[] = [
   { id: 'tip:ctrl-k', text: 'Ctrl+K opens the omnibox — search entries, nodes, or run a command', priority: TICKER_PRIORITY.tip },
   { id: 'tip:shift-e', text: 'Shift+E opens the full entry audit table', priority: TICKER_PRIORITY.tip },
-  { id: 'tip:pin', text: 'Press p to pin a trail step into your export pack', priority: TICKER_PRIORITY.tip },
+  // N1.2 (audit §3.A): true as of N1.2 — Context Studio's seed button reads the pins.
+  { id: 'tip:pin', text: 'Press p in Explore to pin a trail step — Context Studio seeds a pack card from each pin', priority: TICKER_PRIORITY.tip },
   { id: 'tip:esc-ladder', text: 'Escape backs out one step at a time: cancel, close, deselect, clear', priority: TICKER_PRIORITY.tip },
 ];
 

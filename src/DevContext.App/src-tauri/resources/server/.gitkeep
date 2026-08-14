@@ -1,3 +1,8 @@
 # Keeps resources/server present so tauri-build's bundle.resources glob always matches.
-# `pnpm publish:server` fills this directory with the DevContext.Server sidecar publish;
-# without it the app runs in dev mode (separate server on :5179).
+# `pnpm publish:sidecars` fills this directory with TWO publishes:
+#   - DevContext.Server — the gRPC sidecar the shell spawns (see src-tauri/src/lib.rs).
+#   - devcontext-mcp    — N4.2: the MCP server an agent host spawns over stdio. It sits BESIDE
+#     the server on purpose: McpBinaryLocator probes AppContext.BaseDirectory first and calls
+#     that hit "bundle", so the MCP page's config snippets can name a path that exists on a
+#     clean install instead of a placeholder.
+# Without this directory the app runs in dev mode (separate server on :5179).

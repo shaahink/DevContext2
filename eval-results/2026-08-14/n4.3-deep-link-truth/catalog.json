@@ -1,0 +1,28 @@
+{
+  "tools": [
+    "map",
+    "entrypoints",
+    "usages",
+    "trace",
+    "overview",
+    "stats",
+    "resolve",
+    "neighbors",
+    "find",
+    "read_source",
+    "seam",
+    "impact",
+    "get_context",
+    "analyze"
+  ],
+  "specialists": [
+    "close_session",
+    "config",
+    "list_sessions",
+    "node",
+    "status",
+    "tests_for",
+    "top_flows",
+    "verify_context"
+  ]
+}

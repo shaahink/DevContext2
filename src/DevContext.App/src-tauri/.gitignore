@@ -3,7 +3,7 @@
 /target/
 /gen/schemas
 
-# dotnet publish output bundled as the server sidecar (pnpm publish:server). The .gitkeep
+# dotnet publish output bundled as the sidecars — server + devcontext-mcp (pnpm publish:sidecars). The .gitkeep
 # stays tracked so tauri-build's bundle.resources glob always matches (empty glob = hard error).
 /resources/server/*
 !/resources/server/.gitkeep

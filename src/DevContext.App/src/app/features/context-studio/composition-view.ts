@@ -1,8 +1,9 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 
+import { copyToClipboard } from '../../core/clipboard';
 import { Icon } from '../../ui/icon/icon';
 import { ToastService } from '../../ui/toast/toast';
-import type { ContextCardType } from './scope-picker';
+import type { ContextCardType } from '../../models/context-card';
 
 /** T5.3 — a card's server section with its real content and provenance (T4.4 fields). */
 export interface CardSection {
@@ -30,6 +31,12 @@ export interface ContextCard {
   error: string | null;
 }
 
+/** N1.1 — card types whose server sections include the `bodies` section: the only cards where
+ * hiding bodies changes the pack. Single-sourced server-side as
+ * ContextPackBuilder.BodyCapableCardTypes (derived from CardTypeSections and asserted in
+ * ContextPackLedgerTests), which is what keeps this list from drifting into a second spelling. */
+export const BODY_CAPABLE_CARD_TYPES: readonly ContextCardType[] = ['bodies'];
+
 const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
   flow: 'Flow',
   signatures: 'Signatures',
@@ -40,6 +47,7 @@ const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
   contracts: 'Contracts',
   tests: 'Tests',
   identity: 'Identity',
+  usage: 'Usage',
 };
 
 // T5.5 — danger is reserved for ERROR states (a red type badge reads as a failure), and
@@ -55,6 +63,7 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
   contracts: 'var(--vibe-info)',
   tests: 'var(--vibe-warn)',
   identity: 'var(--vibe-ink-muted)',
+  usage: 'var(--vibe-accent-dim)',
 };
 
 @Component({
@@ -96,19 +105,25 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
               title="Copy this card only"
               data-testid="card-copy"
               [disabled]="card.sections.length === 0"
-              (click)="onCopyCard(card)"
+              (click)="void onCopyCard(card)"
             >
               <app-icon name="copy" [size]="14" />
             </button>
-            <button
-              type="button"
-              class="shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
-              [class.opacity-30]="!card.bodyEnabled"
-              [title]="card.bodyEnabled ? 'Hide code bodies' : 'Show code bodies'"
-              (click)="onToggleBody(card.id)"
-            >
-              <app-icon [name]="card.bodyEnabled ? 'eye' : 'eye-off'" [size]="14" />
-            </button>
+            <!-- N1.1 (audit §3.F.2) — the toggle renders only where it can change the pack.
+                 It reaches the wire now (ContextCardSpec.exclude_bodies), and on every other
+                 card type it would still be a no-op, so it is not offered there. -->
+            @if (canToggleBodies(card)) {
+              <button
+                type="button"
+                class="shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
+                data-testid="card-body-toggle"
+                [class.opacity-30]="!card.bodyEnabled"
+                [title]="card.bodyEnabled ? 'Hide code bodies — drops this card from the pack' : 'Show code bodies'"
+                (click)="onToggleBody(card.id)"
+              >
+                <app-icon [name]="card.bodyEnabled ? 'eye' : 'eye-off'" [size]="14" />
+              </button>
+            }
             <button
               type="button"
               class="shrink-0 rounded p-0.5 text-ink-subtle hover:text-danger transition-colors"
@@ -145,7 +160,7 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
                     class="shrink-0 rounded bg-hover px-1 py-px text-2xs font-mono text-ink-muted hover:text-ink transition-colors"
                     data-testid="provenance-chip"
                     [title]="loc + ' — click to copy'"
-                    (click)="onCopyLocation(loc)"
+                    (click)="void onCopyLocation(loc)"
                   >{{ shortLocation(loc) }}</button>
                 }
                 @if (cardLocations(card).length > 4) {
@@ -163,6 +178,31 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
                   }
                 </span>
               }
+            </div>
+          }
+          <!-- N1.1 (audit §3.B) — PER-CARD PROVENANCE. verified/approx have ridden the wire
+               since T4.4 (SectionAllocation.verified/approx) and no surface rendered them, so
+               the one number that says how much of this card is trustworthy was invisible.
+               verified = resolved semantically or by a detection join; approx = matched by
+               syntax/string heuristics. Counts SUM across a multi-entry merge since N0.1. -->
+          @if (provenanceMix(card); as mix) {
+            <div class="flex items-center gap-1.5 px-2 py-0.5 border-t border-line/50 text-2xs tabular-nums"
+              data-testid="card-provenance-mix">
+              <span
+                class="shrink-0 rounded px-1 py-px font-medium"
+                [class.bg-success/15]="mix.approx === 0"
+                [class.text-success]="mix.approx === 0"
+                [class.bg-hover]="mix.approx > 0"
+                [class.text-ink-muted]="mix.approx > 0"
+                [title]="mix.verified + ' of ' + mix.total + ' items resolved semantically or by a detection join'"
+              >{{ mix.verified }} verified</span>
+              @if (mix.approx > 0) {
+                <span
+                  class="shrink-0 rounded bg-warn/15 px-1 py-px font-medium text-warn"
+                  [title]="mix.approx + ' of ' + mix.total + ' items matched by syntax/string heuristics — treat as approximate'"
+                >{{ mix.approx }} approx</span>
+              }
+              <span class="shrink-0 text-ink-subtle">{{ mix.verifiedPct }}% verified</span>
             </div>
           }
           @if (card.content !== null && !card.loading) {
@@ -235,6 +275,28 @@ export class CompositionView {
     return [...seen];
   }
 
+  /** N1.1 (audit §3.B) — the card's resolution-tier mix, summed over its sections. Null while
+   * the card carries no server sections (nothing measured yet = nothing to claim). */
+  protected provenanceMix(card: ContextCard): { verified: number; approx: number; total: number; verifiedPct: number } | null {
+    let verified = 0;
+    let approx = 0;
+    for (const s of card.sections) {
+      verified += s.verified;
+      approx += s.approx;
+    }
+    const total = verified + approx;
+    if (total === 0) return null;
+    return { verified, approx, total, verifiedPct: Math.round((verified / total) * 100) };
+  }
+
+  /** N1.1 — only cards whose sections can carry code bodies get the eye toggle. Mirrors
+   * ContextPackBuilder.BodyCapableCardTypes, which is derived from CardTypeSections and pinned
+   * by ContextPackLedgerTests — if the server's table gains a body-carrying type, that test
+   * fails and names this list. */
+  protected canToggleBodies(card: ContextCard): boolean {
+    return BODY_CAPABLE_CARD_TYPES.includes(card.type);
+  }
+
   /** Filename:line tail for the chip; the full repo-relative path lives on [title]. */
   protected shortLocation(location: string): string {
     const lastSep = Math.max(location.lastIndexOf('/'), location.lastIndexOf('\\'));
@@ -242,18 +304,29 @@ export class CompositionView {
   }
 
   /** T5.3 (R7) — copy ONE card: its heading + the real section content, pack-shaped. */
-  protected onCopyCard(card: ContextCard): void {
+  protected async onCopyCard(card: ContextCard): Promise<void> {
     if (card.sections.length === 0) return;
     const text = `## ${card.title}\n_type: ${card.type}, ${card.serverTokens ?? 0} tok_\n\n`
       + card.sections.map((s) => s.content).join('\n');
-    void navigator.clipboard.writeText(text);
-    this.toast.show('Card copied to clipboard', 'success');
+    await this.copyAndReport(text, 'Card copied to clipboard');
   }
 
   /** T5.3 — chips click-through: copy the repo-relative file:line for the editor/agent. */
-  protected onCopyLocation(location: string): void {
-    void navigator.clipboard.writeText(location);
-    this.toast.show(`${location} copied`, 'success');
+  protected async onCopyLocation(location: string): Promise<void> {
+    await this.copyAndReport(location, `${location} copied`);
+  }
+
+  /** N0.1 (audit §3.F.7) — one copy path: the app's Tauri-aware clipboard helper, and the
+   * toast reports the OUTCOME. Both call sites used to fire a success toast synchronously
+   * after a floating `navigator.clipboard` promise nobody awaited — in the desktop shell,
+   * where that API is the unreliable one, "copied" was a claim, not a report. */
+  private async copyAndReport(text: string, successMessage: string): Promise<void> {
+    try {
+      await copyToClipboard(text);
+      this.toast.show(successMessage, 'success');
+    } catch (err) {
+      this.toast.show(`Copy failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
+    }
   }
 
   protected onToggleBody(id: string): void {

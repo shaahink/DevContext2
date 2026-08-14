@@ -116,6 +116,11 @@ public static class UnknownToolHandler
             // T1.2 — the unlisted half, named so it is discoverable rather than secret. Each entry
             // says what its tool is for, because "there are also these six" is not an answer.
             specialistTools = _specialistWhy.Count == 0 ? null : _specialistWhy,
+            // N4.3 — the folded names too. An agent that lands here carrying an older prompt gets
+            // the whole map in one reply instead of only the row matching the name it happened to
+            // guess, and the desktop's catalog page reads its retired-alias table from HERE rather
+            // than keeping a fourth copy of it (BUG-BACKLOG #4's whole species).
+            retiredTools = Folded.Select(f => new { retired = f.Retired, replacement = f.Replacement, call = f.Call }),
         };
     }
 

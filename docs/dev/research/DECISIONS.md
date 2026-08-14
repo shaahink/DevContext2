@@ -423,10 +423,12 @@ remembering wherever else this program left a threshold calibrated on pre-Batch-
 
 ---
 
-## D-F … D-H — NOT YET DECIDED
+## D-F … D-H — D-G SETTLED 2026-08-14; D-F and D-H still open
 
-Open. Evidence for all three was captured in S10 and is summarised at the end of the D-E brief
+Evidence for all three was captured in S10 and is summarised at the end of the D-E brief
 above; the areas themselves were deliberately not briefed (owner: implement Home first).
+**D-G was settled on 2026-08-14 by the pre-release desktop run's N2** — see the subsection below
+it. D-F and D-H remain open (D-H's one live find, D-4, was already decided and landed as G6.1/G6.2).
 
 - **D-F (Insights).** eShop ships **three overlapping auth findings** — "36/43 endpoints anonymous",
   "Auth surface: 7 protected, 36 unannotated of 43", and a missing-validation warning over the same
@@ -437,12 +439,33 @@ above; the areas themselves were deliberately not briefed (owner: implement Home
   still not unique: eShop has five `OrderStatusChangedTo*EventHandler`s agreeing on their last 18
   characters, and three `GET /Account` actions the engine *does* disambiguate (`[Logout]`,
   `[AccessDenied]`) in data the row drops. No truncation setting fixes either — it is a design call.
+  **DECIDED + LANDED — see [D-G below](#d-g--studio-scope-and-row-identity-decided--landed-n1n2).**
 - **D-H (chrome).** Largely stale: the rail has not replaced icons with badges since M7.4. The one
   live find is on Atlas — **three vocabularies for "service" on one page**: the canvas excludes
   ClientApp/HybridApp, the per-service breakdown lists them as services, and Hub radar mixes services
   with types, one rendering as `` Logging.ILogger`1 `` (raw metadata arity reaching the UI). That is
   D-4. **Both halves are now DECIDED and LANDED — the "service" half as G6.1 and the arity half as
   G6.2, both 2026-07-29.**
+
+### D-G — Studio scope and row identity (DECIDED + LANDED, N1/N2)
+
+**Decided 2026-08-13** as owner decision 2 of `STUDIO-MCP-AUDIT-2026-08-13.md` §8 — *pack
+convergence: FULL* — and **landed 2026-08-14** in the pre-release desktop run (branch
+`feat/pre-release-desktop`, run `8faf849d`). D-G was not answered as a truncation setting, because
+neither half of it was a truncation problem:
+
+| D-G's half | The call | Where it landed |
+|---|---|---|
+| Opens on two stacked empty panes | **Studio's default state is the proposed pack** built from the live trail + pins, and a fresh session gets the archetype preset. It never opens empty after exploration. | N3.1 `f427027` (`pack-proposal.ts`, `context-studio.ts`), N1.2 `e448d64` (pins are what seeds it) |
+| Picker rows are not unique | **A row is identified by what it DISPATCHES TO, plus route tail and project** — not by a longer label. The three `GET /Account` actions differ in their target member, and the engine already knew it; the row was dropping the disambiguating data, so the row now carries it (`rowIdentity()`, `data-testid="entry-row-identity"`). | N2.1 `8c38e0b` (`scope-picker.ts:108-135, 350-357`) |
+| Entries-only scope in a symbol-rooted product (§3.C — the reason the picker was empty on a library at all) | **Converge on one pipeline:** `BuildMulti` adopts `ResolveEntry`, so a card can be rooted at a type or member, and the picker gains a **Types tab** reading the same `MapResponse.surface` the library workbench reads — one source, second view. `usage` becomes a real card type. | N2.1 `104c9d0` + `8c38e0b` |
+| Is the human pack still the lesser pipeline? | **No — parity is stated and pinned:** honesty-note parity with `get_context`, and one budget number (`ContextPackBuilder.DefaultBudgetTokens` = 8000 for a pack; `TracePolicy`'s 4000 budgets a single trace and now says so). | N2.2 `e769246` |
+
+**Acceptance, met on a real clone:** a FluentValidation pack composed from *types*, carrying usage
+and verified counts, end to end — `eval-results/2026-08-13/N2.2-honesty-parity.md`
+(`eval-repos/FluentValidation` @ `94397908`; focuses `IRuleBuilder` 28 usages, `IValidator` 9,
+`ValidationContext` 14). S11 can drop D-G from its list; **D-F (insight dedup, engine-side) and
+D-H remain S11's**.
 
 ### D-4 — one vocabulary for "service" on Atlas (DECIDED + LANDED, G6.1)
 

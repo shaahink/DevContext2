@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowRight,
   ArrowUp,
+  Bookmark,
   Boxes,
   Check,
   ChevronDown,
@@ -17,6 +18,7 @@ import {
   FileText,
   FolderOpen,
   Globe,
+  History,
   Info,
   type IconNode,
   Laptop,
@@ -44,6 +46,9 @@ const REGISTRY: Record<string, IconNode> = {
   'alert-triangle': TriangleAlert,
   'arrow-right': ArrowRight,
   'arrow-up': ArrowUp,
+  // N1.2 — the Studio's seed button binds these two by name; a name the registry does not
+  // carry renders as an empty span, silently (see the effect below: `if (!node) return`).
+  bookmark: Bookmark,
   boxes: Boxes,
   check: Check,
   'chevron-down': ChevronDown,
@@ -57,6 +62,7 @@ const REGISTRY: Record<string, IconNode> = {
   'file-text': FileText,
   'folder-open': FolderOpen,
   globe: Globe,
+  history: History,
   info: Info,
   laptop: Laptop,
   layers: Layers,

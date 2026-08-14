@@ -1,6 +1,8 @@
 import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 
 import { middleEllipsis } from '../../core/format';
+import { filterGroups, type LibrarySurfaceVm, type SurfaceGroupVm } from '../library/library-surface.vm';
+import type { ContextCardSeed } from '../../models/context-card';
 import type { EntryGroupVm, EntryVm } from '../../models/view-models';
 import { KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
@@ -12,17 +14,6 @@ export interface ServiceGroup {
   readonly entries: readonly EntryVm[];
 }
 
-export type ContextCardType = 'flow' | 'signatures' | 'bodies' | 'di_wiring' | 'config' | 'entities' | 'contracts' | 'tests' | 'identity';
-export type ContextIntent = 'trace' | 'explain' | 'review';
-/** T5.3 (audit R8) — json is the structured export: cards/sections/provenance/verification. */
-export type OutputFormat = 'markdown' | 'plain' | 'json';
-
-export interface ContextCardSeed {
-  readonly type: ContextCardType;
-  readonly title: string;
-  readonly entryIds: string[];
-  readonly estimatedLines: number;
-}
 
 /** T5.4 — "I'm changing this entry" seeds cards matched to the entry KIND: a hub method
  * wants its orchestrator spine + consumer wiring, a worker wants its loop + the config it
@@ -70,6 +61,10 @@ export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
  * the entry count was zero. On a library that repo HAS been analyzed — the sentence is false and the
  * instruction is one the reader already carried out. Zero entries is not no analysis.
  *
+ * N2.1 — and the replacement was a half-fix (audit §3.F.8): it pointed at an omnibox that searched
+ * ENTRIES ONLY, so on the repo where it appears — the one with no entries — it could not comply.
+ * It now names the Types tab, which is a real place with the public surface in it.
+ *
  * Exported for the spec, same as presetSeedsFor.
  */
 export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { reason: WithheldReason; text: string } {
@@ -77,8 +72,69 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
     return { reason: 'not-computed', text: 'Analyze a repo to see its services and entries.' };
   }
   return isLibrary
-    ? { reason: 'archetype', text: 'No entry points — a library is scoped by its public surface, not by services. Pick types from the omnibox above.' }
-    : { reason: 'archetype', text: 'No entry points were found in this repo, so there is nothing to group by service. Pick a type from the omnibox above.' };
+    ? { reason: 'archetype', text: 'No entry points — a library is scoped by its public surface, not by services. Its types are in the Types tab above.' }
+    : { reason: 'archetype', text: 'No entry points were found in this repo, so there is nothing to group by service. Scope this pack from the Types tab above.' };
+}
+
+/** N2.1 — the ONE label for a surface type, used by the row, the omnibox and the card titles so
+ * three places can't spell the same type three ways. Namespace-qualified, because a library's
+ * short names collide across namespaces far more often than a repo's entries do. */
+export function typeFocus(namespace: string, name: string): string {
+  return namespace ? `${namespace}.${name}` : name;
+}
+
+/**
+ * N2.1 (owner decision 2) — the card set for a TYPE-scoped pack. It is deliberately not the entry
+ * set: a type has no route, no DI registration of its own and no config it reads, but it does have
+ * an inbound direction the entry set never needed. `usage` is the card that makes a library
+ * answerable ("who calls AbstractValidator.RuleFor") — the question D-G was opened for.
+ *
+ * Exported for the spec.
+ */
+export function typeCardSeeds(focuses: readonly string[], label: string): ContextCardSeed[] {
+  const entryIds = [...focuses];
+  const n = focuses.length;
+  return [
+    { type: 'signatures', title: `Members of ${label}`, entryIds, estimatedLines: n * 25 },
+    { type: 'usage', title: `Who uses ${label}`, entryIds, estimatedLines: n * 15 },
+    { type: 'bodies', title: `Member bodies: ${label}`, entryIds, estimatedLines: n * 60 },
+    { type: 'flow', title: `Flow from ${label}`, entryIds, estimatedLines: n * 15 },
+    { type: 'contracts', title: `Contracts around ${label}`, entryIds, estimatedLines: 15 },
+    { type: 'identity', title: 'Repo identity', entryIds, estimatedLines: 8 },
+  ];
+}
+
+/**
+ * D-G row identity (audit §3.C) — what a picker row must say to be a different row.
+ *
+ * MEASURED on eShop before this existed: the five `OrderStatusChangedTo*IntegrationEventHandler`
+ * consumers rendered as five identical strings. `middleEllipsis(title, 26, 'head')` keeps the first
+ * 20 characters and the last 5, and those handlers share `OrderStatusChangedTo` (20) and `ndler`
+ * (5) exactly — S10's head bias fixed the tail-collision and left this one standing. The label
+ * alone cannot carry the identity, so the row carries the other two things the entry knows: what it
+ * DISPATCHES TO (the target member) and which project it lives in.
+ */
+export function entryRowIdentity(entry: EntryVm, budget = 26): {
+  primary: string;
+  secondary: string | null;
+  tooltip: string;
+} {
+  const primary = entry.route
+    ? middleEllipsis(entry.route, budget, 'tail')
+    : middleEllipsis(entry.title, budget, 'head');
+  // The target is the distinguishing fact for a consumer/handler (the five eShop rows differ only
+  // there); for a routed entry it is the action the route lands on. Never repeat the primary.
+  const target = entry.target && entry.target !== entry.title ? entry.target : null;
+  const secondary = target
+    ? middleEllipsis(target, budget, 'head')
+    : entry.project ?? null;
+  const tooltip = [
+    entry.route ? `${entry.httpMethod ? entry.httpMethod + ' ' : ''}${entry.route}` : null,
+    entry.route && entry.title !== entry.route ? entry.title : entry.route ? null : entry.title,
+    entry.target ? `→ ${entry.target}` : null,
+    entry.project ? `· ${entry.project}` : null,
+  ].filter((p): p is string => !!p).join(' ');
+  return { primary, secondary, tooltip };
 }
 
 @Component({
@@ -86,6 +142,42 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
   imports: [Icon, Withheld],
   host: { class: 'flex h-full min-h-0 flex-col' },
   template: `
+    <!-- N2.1 (audit §3.C, owner decision 2) — the second tab. Studio scope was entries-only in a
+         symbol-rooted product: the kernel resolves types and members, and every library rendered a
+         picker with nothing in it. Counts are on the tabs so an empty one says so before it is
+         opened. -->
+    <div class="flex items-center border-b border-line text-2xs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="flex-1 border-b-2 px-2 py-1 font-medium transition-colors"
+        [class.border-accent]="tab() === 'entries'"
+        [class.text-accent]="tab() === 'entries'"
+        [class.border-transparent]="tab() !== 'entries'"
+        [class.text-ink-subtle]="tab() !== 'entries'"
+        [attr.aria-selected]="tab() === 'entries'"
+        data-testid="picker-tab-entries"
+        (click)="tabOverride.set('entries')"
+      >
+        Entries {{ totalEntryCount() }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="flex-1 border-b-2 px-2 py-1 font-medium transition-colors"
+        [class.border-accent]="tab() === 'types'"
+        [class.text-accent]="tab() === 'types'"
+        [class.border-transparent]="tab() !== 'types'"
+        [class.text-ink-subtle]="tab() !== 'types'"
+        [attr.aria-selected]="tab() === 'types'"
+        [title]="typeCount() === 0 ? 'No public surface in this analysis' : typeCount() + ' public types across ' + typeGroups().length + ' namespaces'"
+        data-testid="picker-tab-types"
+        (click)="tabOverride.set('types')"
+      >
+        Types {{ typeCount() }}
+      </button>
+    </div>
+
     <div class="relative">
       <div class="flex items-center gap-1 border-b border-line px-2 py-1.5">
         <app-icon name="search" [size]="14" class="shrink-0 text-ink-subtle" />
@@ -93,7 +185,7 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
           #searchBox
           type="text"
           class="w-full min-w-0 bg-transparent text-xs text-ink placeholder:text-ink-subtle focus:outline-none"
-          placeholder="Filter services and entries…"
+          [placeholder]="tab() === 'types' ? 'Filter namespaces, types and members…' : 'Filter services and entries…'"
           [value]="filterText()"
           (input)="filterText.set(searchBox.value)"
           (focus)="omniboxOpen.set(true)"
@@ -113,9 +205,10 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
             <button
               type="button"
               class="flex w-full items-center gap-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
+              [title]="item.tooltip"
               (mousedown)="addOmniboxItem(item); closeOmnibox()"
             >
-              <app-icon [name]="kindIcon(item.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(item.kind)" />
+              <app-icon [name]="item.entry ? kindIcon(item.kind) : 'code'" [size]="14" class="shrink-0" [style.color]="item.entry ? kindColor(item.kind) : 'var(--vibe-accent-dim)'" />
               <span class="min-w-0 flex-1 truncate font-mono">{{ item.title }}</span>
               <span class="shrink-0 rounded px-1 py-0.5 text-2xs text-ink-subtle bg-hover">{{ item.kindLabel }}</span>
             </button>
@@ -144,15 +237,21 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
       </p>
     </div>
 
+    <!-- N1.2 (audit §3.A) — this said "From current trail" whatever the trail held, and
+         no-opped in silence when it held nothing pinnable. It now names its SOURCE (pins beat
+         the raw trail) and its COUNT, and is disabled with a stated reason at zero. -->
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
-        title="Seed cards from current explore trail"
+        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-ink-subtle hover:bg-hover hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        [class.text-accent]="pinCount() > 0"
+        [disabled]="pinCount() === 0 && trailCount() === 0"
+        [title]="seedTitle()"
+        data-testid="trail-seed"
         (click)="trailSeedRequest.emit()"
       >
-        <app-icon name="history" [size]="14" />
-        From current trail
+        <app-icon [name]="pinCount() > 0 ? 'bookmark' : 'history'" [size]="14" />
+        {{ seedLabel() }}
       </button>
     </div>
 
@@ -175,6 +274,49 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
       </div>
     }
 
+    @if (tab() === 'types') {
+      <!-- N2.1 — the LibrarySurface list, the same MapResponse.surface the library workbench
+           renders. Rows carry namespace + kind + member count; a click scopes the pack to that
+           type, which the server now resolves through the resolver get_context uses. -->
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        @for (group of typeGroups(); track group.namespace) {
+          <details class="group" open>
+            <summary class="flex cursor-pointer items-center gap-1.5 px-2 py-1 text-xs font-medium text-ink-muted hover:text-ink hover:bg-hover/50 transition-colors">
+              <app-icon name="chevron-right" [size]="10" class="shrink-0 transition-transform group-open:rotate-90" />
+              <app-icon name="layers" [size]="14" class="shrink-0 text-ink-subtle" />
+              <span class="min-w-0 flex-1 truncate" [title]="group.namespace">{{ group.namespace }}</span>
+              <span class="shrink-0 text-2xs tabular-nums text-ink-subtle">{{ group.types.length }}</span>
+            </summary>
+            <div class="pl-6">
+              @for (t of group.types; track t.name) {
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-1.5 border-l-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
+                  [class.border-transparent]="!selectedTypes().has(typeKey(group, t))"
+                  [class.border-accent]="selectedTypes().has(typeKey(group, t))"
+                  [attr.aria-pressed]="selectedTypes().has(typeKey(group, t))"
+                  [title]="typeKey(group, t) + ' — ' + t.kind + ', ' + t.members.length + ' public members' + (t.doc ? ' — ' + t.doc : '')"
+                  data-testid="picker-type-row"
+                  (click)="toggleType(group, t)"
+                >
+                  <span class="min-w-0 flex-1 truncate font-mono">{{ t.name }}</span>
+                  <span class="shrink-0 text-2xs text-ink-subtle">{{ t.kind }}</span>
+                  <span class="w-6 shrink-0 text-right text-2xs tabular-nums text-ink-subtle">{{ t.members.length }}</span>
+                </button>
+              }
+            </div>
+          </details>
+        } @empty {
+          @if (typeCount() === 0) {
+            <app-withheld [reason]="typesWithheld().reason" [text]="typesWithheld().text" />
+          } @else {
+            <div class="px-3 py-6 text-center text-xs text-ink-subtle">
+              No types match &ldquo;{{ filterText() }}&rdquo;.
+            </div>
+          }
+        }
+      </div>
+    } @else {
     <div class="min-h-0 flex-1 overflow-y-auto">
       @for (svc of filteredServices(); track svc.project; let last = $last) {
         <details class="group" open>
@@ -204,8 +346,17 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
                   <span class="w-8 shrink-0 text-2xs font-semibold" [class]="methodClass(entry.httpMethod)">{{ entry.httpMethod }}</span>
                 }
                 <!-- S10: middle-ellipsis, same rule as the entry deck (A-4). Plain CSS truncate
-                     rendered eleven identical /api/catalog/i... rows in this 230px column. -->
-                <span class="min-w-0 flex-1 truncate font-mono" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ shortLabel(entry) }}</span>
+                     rendered eleven identical /api/catalog/i... rows in this 230px column.
+                     N2.1 (D-G row identity): the label alone still collided — five eShop
+                     OrderStatusChangedTo*IntegrationEventHandler rows share the 20 leading and 5
+                     trailing characters the head-biased ellipsis keeps. The row now also says what
+                     the entry dispatches to, which is where those five differ. -->
+                <span class="flex min-w-0 flex-1 flex-col" [title]="rowIdentity(entry).tooltip">
+                  <span class="truncate font-mono">{{ rowIdentity(entry).primary }}</span>
+                  @if (rowIdentity(entry).secondary; as sub) {
+                    <span class="truncate font-mono text-2xs text-ink-subtle" data-testid="entry-row-identity">{{ sub }}</span>
+                  }
+                </span>
                 <!-- T5.5 (finding 50) — the kind glyph says WHAT it is on hover; color alone
                      read as an error badge. -->
                 <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
@@ -226,23 +377,27 @@ export function scopePickerWithheld(analyzed: boolean, isLibrary: boolean): { re
         }
       }
     </div>
+    }
 
     <div class="flex items-center gap-2 border-t border-line px-2 py-1">
       <span class="text-2xs text-ink-subtle">
-        {{ selectedEntries().size }} of {{ totalEntryCount() }} selected
+        {{ selectedCount() }} of {{ tab() === 'types' ? typeCount() : totalEntryCount() }} selected
       </span>
       <button
         type="button"
         class="ml-auto rounded px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-30"
-        [class.bg-accent]="selectedEntries().size > 0"
-        [class.text-accent-ink]="selectedEntries().size > 0"
-        [class.hover:bg-accent/90]="selectedEntries().size > 0"
-        [class.text-accent]="selectedEntries().size === 0"
-        [disabled]="selectedEntries().size === 0"
+        [class.bg-accent]="selectedCount() > 0"
+        [class.text-accent-ink]="selectedCount() > 0"
+        [class.hover:bg-accent/90]="selectedCount() > 0"
+        [class.text-accent]="selectedCount() === 0"
+        [disabled]="selectedCount() === 0"
+        [title]="tab() === 'types'
+          ? 'Adds signatures + usage + bodies + flow + contracts + identity for the selected types'
+          : 'Adds the full entry card set for the selected entries'"
         data-testid="add-to-context"
         (click)="addSelected()"
       >
-        Add{{ selectedEntries().size > 0 ? ' ' + selectedEntries().size : '' }} to context
+        Add{{ selectedCount() > 0 ? ' ' + selectedCount() : '' }} to context
       </button>
     </div>
   `,
@@ -254,6 +409,12 @@ export class ScopePicker {
    * carried out, and false on every library. */
   readonly analyzed = input(false);
   readonly isLibrary = input(false);
+  /** N2.1 — MapResponse.surface, the same structured surface the library workbench renders.
+   * The Types tab is a second view of it, not a second source. */
+  readonly surface = input<LibrarySurfaceVm | undefined>(undefined);
+  /** N1.2 — how many steps the seed button would actually draw on, by source. Pins win. */
+  readonly pinCount = input(0);
+  readonly trailCount = input(0);
 
   readonly cardsChange = output<readonly ContextCardSeed[]>();
   readonly trailSeedRequest = output<void>();
@@ -263,14 +424,55 @@ export class ScopePicker {
 
   protected readonly showPresetPicker = signal(false);
 
+  /** N1.2 — label and title state the source, the count, and (at zero) why nothing happens. */
+  protected readonly seedLabel = computed(() => {
+    const pins = this.pinCount();
+    if (pins > 0) return `From ${pins} pinned step${pins === 1 ? '' : 's'}`;
+    const trail = this.trailCount();
+    return trail > 0 ? `From current trail (${trail})` : 'From current trail';
+  });
+
+  protected readonly seedTitle = computed(() => {
+    const pins = this.pinCount();
+    if (pins > 0) return `Seeds one flow card per pinned step (${pins}) — pins win over the raw trail`;
+    if (this.trailCount() > 0) return 'Seeds one flow card per trail step. Press p in Explore to pin the ones that matter — pins take priority here';
+    return 'Nothing to seed from yet — explore an entry, then press p to pin it';
+  });
+
   protected readonly selectedEntries = signal<ReadonlySet<string>>(new Set());
+  /** N2.1 — type selection is keyed by the namespace-qualified name, which is also the focus
+   * string sent to the server; one identity, no translation step. */
+  protected readonly selectedTypes = signal<ReadonlySet<string>>(new Set());
 
   protected readonly totalEntryCount = computed(() =>
     this.entryGroups().reduce((n, g) => n + g.entries.length, 0),
   );
 
+  protected readonly typeCount = computed(() =>
+    (this.surface()?.groups ?? []).reduce((n, g) => n + g.types.length, 0),
+  );
+
+  /** N2.1 — the tab the user picked, or (until they pick one) the tab that has something in it.
+   * A library opens on Types instead of on an empty entry list explaining itself. */
+  protected readonly tabOverride = signal<'entries' | 'types' | null>(null);
+  protected readonly tab = computed<'entries' | 'types'>(() =>
+    this.tabOverride() ?? (this.totalEntryCount() === 0 && this.typeCount() > 0 ? 'types' : 'entries'));
+
+  protected readonly typeGroups = computed<readonly SurfaceGroupVm[]>(() =>
+    filterGroups(this.surface()?.groups ?? [], this.filterText()));
+
+  protected readonly selectedCount = computed(() =>
+    this.tab() === 'types' ? this.selectedTypes().size : this.selectedEntries().size);
+
   protected readonly pickerWithheld = computed(() =>
     scopePickerWithheld(this.analyzed(), this.isLibrary()));
+
+  /** N2.1 — the Types tab's own empty state. "Analyze a repo" is only true when nothing was
+   * analyzed; an app with no library surface is a different, honest sentence. */
+  protected readonly typesWithheld = computed<{ reason: WithheldReason; text: string }>(() =>
+    this.analyzed()
+      ? { reason: 'archetype', text: 'No public surface in this analysis — this repo is scoped by its entry points. Use the Entries tab.' }
+      : { reason: 'not-computed', text: 'Analyze a repo to see its public types.' });
 
   protected readonly allEntries = computed<readonly EntryVm[]>(() =>
     this.entryGroups().flatMap((g) => g.entries),
@@ -320,7 +522,36 @@ export class ScopePicker {
     });
   }
 
+  protected typeKey(group: SurfaceGroupVm, t: { name: string }): string {
+    return typeFocus(group.namespace, t.name);
+  }
+
+  protected toggleType(group: SurfaceGroupVm, t: { name: string }): void {
+    const key = this.typeKey(group, t);
+    this.selectedTypes.update((set) => {
+      const next = new Set(set);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }
+
+  /** N2.1 — the D-G row identity, per row. Called from the template; the function is pure and
+   * exported so the collision it fixes is pinned by a spec, not by a screenshot. */
+  protected rowIdentity(entry: EntryVm): { primary: string; secondary: string | null; tooltip: string } {
+    return entryRowIdentity(entry);
+  }
+
   protected addSelected(): void {
+    if (this.tab() === 'types') {
+      const focuses = [...this.selectedTypes()];
+      if (focuses.length === 0) return;
+      const label = focuses.length === 1
+        ? (focuses[0].split('.').pop() ?? focuses[0])
+        : `${focuses.length} types`;
+      this.cardsChange.emit(typeCardSeeds(focuses, label));
+      this.selectedTypes.set(new Set());
+      return;
+    }
     const entries = this.allEntries().filter((e) => this.selectedEntries().has(e.focus));
     if (entries.length === 0) return;
     const entryIds = entries.map((e) => e.nodeId);
@@ -392,10 +623,13 @@ export class ScopePicker {
   protected readonly omniboxOpen = signal(false);
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  protected readonly omniboxResults = computed<readonly { title: string; kind: string; kindLabel: string; entry: EntryVm }[]>(() => {
+  /** N2.1 — the omnibox searches BOTH tabs. Two empty states pointed the reader at "the omnibox
+   * above" to pick a type (audit §3.F.8) and it only ever searched entries — on the one repo
+   * where the sentence appears, a library, it had nothing to return. */
+  protected readonly omniboxResults = computed<readonly OmniboxItem[]>(() => {
     const q = this.filterText().trim().toLowerCase();
     if (!q) return [];
-    const results: { title: string; kind: string; kindLabel: string; entry: EntryVm }[] = [];
+    const results: OmniboxItem[] = [];
     for (const group of this.entryGroups()) {
       for (const entry of group.entries) {
         if (entry.title.toLowerCase().includes(q) || (entry.route ?? '').toLowerCase().includes(q) || (entry.target ?? '').toLowerCase().includes(q)) {
@@ -403,9 +637,23 @@ export class ScopePicker {
             title: entry.route || entry.title,
             kind: entry.kind,
             kindLabel: KIND_LABELS[entry.kind] ?? entry.kind,
+            tooltip: entryRowIdentity(entry).tooltip,
             entry,
           });
         }
+      }
+    }
+    for (const group of this.surface()?.groups ?? []) {
+      for (const t of group.types) {
+        if (!t.name.toLowerCase().includes(q) && !group.namespace.toLowerCase().includes(q)) continue;
+        const focus = typeFocus(group.namespace, t.name);
+        results.push({
+          title: t.name,
+          kind: t.kind,
+          kindLabel: t.kind,
+          tooltip: `${focus} — ${t.kind}, ${t.members.length} public members`,
+          typeFocus: focus,
+        });
       }
     }
     return results.slice(0, 15);
@@ -420,8 +668,20 @@ export class ScopePicker {
     this.omniboxOpen.set(false);
   }
 
-  protected addOmniboxItem(item: { entry: EntryVm }): void {
-    const entry = item.entry;
+  protected addOmniboxItem(item: OmniboxItem): void {
+    if (item.typeFocus) {
+      // N2.1 — a type from the omnibox seeds the card that answers the question a library reader
+      // is actually asking: who uses this. One card, not the whole type set — the omnibox is the
+      // quick path; the Types tab's Add is the deliberate one.
+      this.omniboxCard.emit({
+        type: 'usage',
+        title: `Who uses ${item.title}`,
+        entryIds: [item.typeFocus],
+        estimatedLines: 15,
+      });
+      return;
+    }
+    const entry = item.entry!;
     const seed: ContextCardSeed = {
       type: 'flow',
       title: `Flow: ${entry.route || entry.title}`,
@@ -430,4 +690,15 @@ export class ScopePicker {
     };
     this.omniboxCard.emit(seed);
   }
+}
+
+/** N2.1 — one omnibox row, from either tab: an entry (carries its EntryVm) or a surface type
+ * (carries the focus string the server resolves). Exactly one of the two is set. */
+interface OmniboxItem {
+  readonly title: string;
+  readonly kind: string;
+  readonly kindLabel: string;
+  readonly tooltip: string;
+  readonly entry?: EntryVm;
+  readonly typeFocus?: string;
 }

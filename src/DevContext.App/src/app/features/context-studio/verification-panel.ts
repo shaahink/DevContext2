@@ -38,13 +38,20 @@ export interface SectionVerificationVm {
             type="button"
             class="rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors disabled:opacity-40"
             data-testid="verification-refresh"
-            title="Re-check every cited file against the disk"
+            title="Rebuild the pack and re-check every file it cites against the disk"
             [disabled]="verifying()"
             (click)="refreshRequest.emit()"
           >
             <app-icon name="refresh" [size]="12" [class.animate-spin]="verifying()" />
           </button>
         </div>
+
+        <!-- N1.1 (backlog #28) — checkedAt was set by the Studio and declared here, and the
+             template never rendered it: a freshness verdict with no indication of WHEN it was
+             taken. A ledger that cannot say when it looked is not evidence. -->
+        <p class="mb-1 text-2xs text-ink-subtle tabular-nums" data-testid="verification-checked-at">
+          Checked {{ checkedAtLabel(v.checkedAt) }} · covers this pack's sections
+        </p>
 
         @if (v.anyStale) {
           <p class="mb-1 text-2xs text-warn" data-testid="verification-stale">
@@ -100,6 +107,12 @@ export class VerificationPanel {
 
   readonly refreshRequest = output<void>();
   readonly reanalyzeRequest = output<void>();
+
+  /** N1.1 — wall-clock time the ledger was taken; the pack is rebuilt often enough that a
+   * relative "2 minutes ago" would need a ticking clock to stay true. */
+  protected checkedAtLabel(epochMs: number): string {
+    return new Date(epochMs).toLocaleTimeString(undefined, { hour12: false });
+  }
 
   protected shortFile(file: string): string {
     // Keep the tail (filename + one parent) readable in the narrow rail; full path on [title].

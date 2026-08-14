@@ -1,0 +1,43 @@
+{
+  "bundleDirectory": "C:/Code/DevContext2-desktop/src/DevContext.App/src-tauri/resources/server",
+  "bundled": [
+    "devcontext-mcp.exe",
+    "DevContext.Server.dll"
+  ],
+  "binaryPath": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+  "setupNote": "The snippets name the executable the probe just resolved — copy one, or let DevContext write the config into the repo for you.",
+  "repoShown": "C:\\Users\\shahi\\AppData\\Local\\Temp\\devcontext-n42-RWoNAz",
+  "commands": {
+    "claude": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+    "cursor": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+    "vscode": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe"
+  },
+  "firstResult": "Updated .mcp.json",
+  "vscodeResult": "Wrote .vscode/mcp.json",
+  "secondResult": ".mcp.json already points here",
+  "mcpJson": {
+    "mcpServers": {
+      "github": {
+        "command": "gh-mcp",
+        "args": [
+          "--stdio"
+        ]
+      },
+      "devcontext": {
+        "command": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+        "args": []
+      }
+    }
+  },
+  "vscodeMcpJson": {
+    "servers": {
+      "devcontext": {
+        "type": "stdio",
+        "command": "C:\\Code\\DevContext2-desktop\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+        "args": []
+      }
+    }
+  },
+  "workRepo": "C:\\Users\\shahi\\AppData\\Local\\Temp\\devcontext-n42-RWoNAz",
+  "failures": []
+}

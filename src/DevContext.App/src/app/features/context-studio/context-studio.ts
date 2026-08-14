@@ -1,27 +1,42 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
+import { copyToClipboard } from '../../core/clipboard';
 import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import type { ContextCardSeed, ContextIntent, OutputFormat, PackProposal } from '../../models/context-card';
 import { type EntryVm } from '../../models/view-models';
+import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
-import { BudgetPanel } from './budget-panel';
+import { ToastService } from '../../ui/toast/toast';
+import { BudgetPanel, type SuggestedFocusVm } from './budget-panel';
 import { totalCardTokens } from './card-tokens';
 import { type ContextCard, CompositionView } from './composition-view';
+import { archetypeProposal, proposeFromTrail, seedsFromSteps } from './pack-proposal';
 import { packPreviewHtml } from './pack-preview';
-import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
+import { ScopePicker } from './scope-picker';
 import { type PackVerification, type SectionVerificationVm, VerificationPanel } from './verification-panel';
 
+// N2.1 — `usage` (the inbound direction of a symbol-rooted pack) takes a different seat per
+// intent: a reader TRACING wants the outbound spine first and callers after it, a reader
+// EXPLAINING wants to know who depends on this before reading its body, and a REVIEW of a change
+// leads with blast radius. Every card type must appear in every row or it sorts to the end.
 const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
-  trace: ['flow', 'signatures', 'bodies', 'di_wiring', 'config', 'entities', 'contracts', 'tests', 'identity'],
-  explain: ['identity', 'di_wiring', 'entities', 'contracts', 'signatures', 'bodies', 'flow', 'tests', 'config'],
-  review: ['flow', 'bodies', 'signatures', 'di_wiring', 'entities', 'contracts', 'tests', 'config', 'identity'],
+  trace: ['flow', 'signatures', 'bodies', 'usage', 'di_wiring', 'config', 'entities', 'contracts', 'tests', 'identity'],
+  explain: ['identity', 'usage', 'di_wiring', 'entities', 'contracts', 'signatures', 'bodies', 'flow', 'tests', 'config'],
+  review: ['usage', 'flow', 'bodies', 'signatures', 'di_wiring', 'entities', 'contracts', 'tests', 'config', 'identity'],
 };
 
 /** T5.6 — debounce between a pack-relevant change and the re-pack RPC. */
 export const REPACK_DEBOUNCE_MS = 350;
+
+/** N0.1 — a failed export must say why, not just fail to toast. */
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 @Component({
   selector: 'app-context-studio',
@@ -33,12 +48,31 @@ export const REPACK_DEBOUNCE_MS = 350;
         [entryGroups]="session.entryGroups()"
         [analyzed]="session.ready()"
         [isLibrary]="session.mapResponse()?.isLibrary ?? false"
+        [surface]="session.mapResponse()?.surface"
+        [pinCount]="pinCount()"
+        [trailCount]="trailCount()"
         (cardsChange)="onCardsChange($event)"
         (trailSeedRequest)="onTrailSeed()"
         (omniboxCard)="onCardsChange([$event])"
       />
 
       <div class="flex min-w-0 flex-1 flex-col bg-base">
+        <!-- N3.1 (audit §4 Room 1) — Studio never opens empty after exploration, so it must say when
+             the cards on screen are a SUGGESTION rather than a composition. Without this line a
+             proposed pack is indistinguishable from one the reader built, which is the same
+             fabricated-confidence failure §3.D found on the MCP page. It disappears the moment the
+             reader edits anything: from then on the pack is theirs. -->
+        @if (proposalSource(); as src) {
+          <div
+            class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-3 py-1.5 text-2xs"
+            data-testid="studio-proposal-banner"
+          >
+            <app-icon name="zap" [size]="11" class="text-accent" />
+            <span class="text-ink-muted">Proposed from <span class="text-ink">{{ src }}</span> — edit it, or start over.</span>
+            <button type="button" class="ml-auto text-ink-subtle hover:text-ink" (click)="onClearProposal()">Clear</button>
+          </div>
+        }
+
         <app-composition-view
           class="min-h-0 flex-1"
           [cards]="cards()"
@@ -47,6 +81,37 @@ export const REPACK_DEBOUNCE_MS = 350;
           (cardReorder)="onReorder($event)"
           (cardRetry)="onRetry()"
         />
+
+        <!-- N3.2 (STUDIO-MCP §8.3, decision 3) — the hand-off, after Save has written the file.
+             The pack is now an ADDRESS in the repo, so this strip says the address, whether the
+             default gitignore is actually in force, and hands over the one line that points an
+             agent at it. It also admits when the composition has moved on since the write: the
+             file is still there and the line still true, but it no longer describes what is on
+             screen, and a strip that hid that would be the same fabricated confidence again. -->
+        @if (handoffFile(); as saved) {
+          <div
+            class="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-t border-line bg-surface px-3 py-1.5 text-2xs"
+            data-testid="pack-handoff"
+          >
+            <app-icon name="check" [size]="11" class="text-success" />
+            <span class="text-ink-muted">Saved to <span class="font-mono text-ink" [title]="saved.path">{{ saved.relativePath }}</span></span>
+            @if (saved.gitignored) {
+              <span class="text-ink-subtle">· gitignored</span>
+            } @else {
+              <span class="text-warn" data-testid="handoff-not-ignored">· not gitignored — this repo's .devcontext/.gitignore does not cover packs/</span>
+            }
+            @if (handoffStale()) {
+              <span class="text-warn" data-testid="handoff-stale">· edited since — Save again to update the file</span>
+            }
+            <code class="min-w-0 flex-1 truncate font-mono text-ink-subtle" data-testid="agent-line">{{ saved.agentLine }}</code>
+            <button
+              type="button"
+              class="shrink-0 rounded border border-line px-1.5 py-0.5 text-ink-muted hover:border-accent hover:text-ink"
+              data-testid="copy-agent-line"
+              (click)="void onCopyAgentLine()"
+            >{{ agentLineCopied() ? 'Copied!' : 'Copy line for CLAUDE.md' }}</button>
+          </div>
+        }
 
         <!-- D4.5 (L4): the LIVE pack preview — renders exactly what Copy/Save serve,
              recomputed by the same debounced repack every scope/budget/intent change
@@ -61,7 +126,14 @@ export const REPACK_DEBOUNCE_MS = 350;
             Live preview
             <span class="normal-case font-normal tracking-normal">— exactly what Copy copies</span>
             @if (packTotals(); as t) {
-              <span class="ml-auto font-normal normal-case tracking-normal tabular-nums" [class.text-warn]="t.total > budgetTokens()">
+              <!-- N0.1 (audit §3.F.4) — three DIFFERENT numbers: what the pack costs, the share
+                   of the ceiling that reached an entry which produced sections, and the ceiling.
+                   allocated used to be the ceiling echoed back, so two labels named one number. -->
+              <span
+                class="ml-auto font-normal normal-case tracking-normal tabular-nums"
+                [class.text-warn]="t.total > budgetTokens()"
+                title="total = tokens in this pack · allocated = budget that reached an entry with content · budget = your ceiling"
+              >
                 {{ t.total }} tok · allocated {{ t.allocated }} · budget {{ budgetTokens() }}
               </span>
             }
@@ -85,6 +157,9 @@ export const REPACK_DEBOUNCE_MS = 350;
         class="w-48 shrink-0 border-l border-line bg-surface"
         [cards]="cards()"
         [omitted]="packOmitted()"
+        [fillNote]="packFillNote()"
+        [suggestedFocuses]="packSuggestedFocuses()"
+        (focusSuggestionPicked)="onSuggestedFocus($event)"
         [packPending]="packPending()"
         [exportReady]="exportReady()"
         [budget]="budgetTokens()"
@@ -93,8 +168,10 @@ export const REPACK_DEBOUNCE_MS = 350;
         (selectedIntentChange)="onIntentChange($event)"
         [(selectedFormat)]="selectedFormat"
         [(showAllBodies)]="showAllBodies"
-        (copyRequest)="onCopy()"
-        (saveRequest)="onSave()"
+        [copied]="copied()"
+        (copyRequest)="void onCopy()"
+        (saveRequest)="void onSave()"
+        [saving]="saving()"
         (globalBodiesChange)="onGlobalBodiesChange()"
       >
         <app-verification-panel
@@ -112,22 +189,141 @@ export class ContextStudio {
   protected readonly session = inject(SessionStore);
   private readonly api = inject(DevContextApi);
   private readonly trailStore = inject(TrailStore);
+  /** N3.1 — what a sender left on the way in. Taken once, in the effect below. */
+  private readonly handoff = inject(StudioHandoffStore);
+  private readonly toast = inject(ToastService);
+  private readonly prefs = inject(PrefsStore);
+
+  /** N1.2 — the picker's seed button states its SOURCE and its COUNT, so it can no longer be a
+   * button that silently does nothing (audit §3.A). Both are read straight off the trail store. */
+  protected readonly pinCount = computed(() => this.trailStore.pins().length);
+  protected readonly trailCount = computed(() => this.trailStore.steps().length);
 
   protected readonly cards = signal<readonly ContextCard[]>([]);
-  protected readonly selectedIntent = signal<ContextIntent>('trace');
-  protected readonly selectedFormat = signal<OutputFormat>('markdown');
+  /** N0.1 (audit §3.F.7) — set only after the clipboard write resolves; drives Copy's label. */
+  protected readonly copied = signal(false);
+  // N1.1 (audit §3.F.6 / backlog #29) — shaping is a PREFERENCE and is restored from prefs;
+  // cards are session state and are dropped when the handle changes (see the effect below).
+  protected readonly selectedIntent = signal<ContextIntent>(this.prefs.studioIntent());
+  protected readonly selectedFormat = signal<OutputFormat>(this.prefs.studioFormat());
   protected readonly showAllBodies = signal(true);
-  protected readonly budgetTokens = signal(4000);
+  protected readonly budgetTokens = signal(this.prefs.studioBudget());
 
-  /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes. */
+  constructor() {
+    // N1.1 (audit §3.F.6 / backlog #29) — CARDS ARE KEYED TO THE HANDLE. The file had no
+    // effect() at all: every writer of `cards` was a user action and nothing observed
+    // session.handle(), so after a re-analyze or a repo switch the cards still held entryIds
+    // from the previous graph. ResolveFocus returned null for the ones that had moved and the
+    // card degraded to an empty body instead of saying it was stale — and Studio state
+    // survives a tab switch, so the stale set was still on screen on the way back.
+    // Chose handle-effect invalidation over per-tab keying: the handle is the identity of the
+    // graph the ids are addressed in, and it is the thing that actually invalidates them.
+    effect(() => {
+      const handle = this.session.handle();
+      untracked(() => {
+        if (handle === this.cardsHandle) return;
+        this.cardsHandle = handle;
+        if (this.cards().length > 0) {
+          this.toast.show('Repo re-analyzed — Studio cards cleared (they addressed the old graph)', 'info');
+        }
+        this.resetPackState();
+      });
+    });
+
+    // N1.1 — the output format is a two-way model on the budget panel, so it has no handler
+    // to persist from; observe it instead. Shaping preferences outlive the session.
+    effect(() => {
+      const format = this.selectedFormat();
+      untracked(() => this.prefs.setStudioFormat(format));
+    });
+
+    // N3.1 (audit §4 Room 1 / owner decision 3) — THE DEFAULT STATE. Studio's panes used to open
+    // empty every time, which is why the audit called the loop severed: the user had just explored a
+    // flow and the hand-off desk knew nothing about it. Now, per graph:
+    //   1. a proposal a sender left on the way in (Explore / Insights / NodeCard) wins;
+    //   2. else pins, else the trail, become a proposed pack;
+    //   3. else — a fresh session with no exploration — the archetype preset.
+    // Everything it reads outside the trigger is read UNTRACKED on purpose: this fires once per
+    // handle, not every time the trail moves. `proposedHandle` is what makes it once — otherwise
+    // clearing the proposal would be undone by the proposer on the next change detection.
+    effect(() => {
+      const ready = this.session.ready();
+      const groups = this.session.entryGroups();
+      const handoff = this.handoff.pending();
+      untracked(() => {
+        const handle = this.session.handle();
+        if (!ready || !handle) return;
+        if (handoff) {
+          const taken = this.handoff.take();
+          this.proposedHandle = handle;
+          if (taken) this.applyProposal(taken);
+          return;
+        }
+        if (this.proposedHandle === handle) return;
+        this.proposedHandle = handle;
+        if (this.cards().length > 0) return;
+        const proposal =
+          proposeFromTrail(this.trailStore.pins(), this.trailStore.steps(), groups)
+          ?? archetypeProposal(groups, this.session.mapResponse()?.surface, this.session.mapResponse()?.isLibrary ?? false);
+        if (proposal) this.applyProposal(proposal);
+      });
+    });
+  }
+
+  /** N3.1 — the source sentence for cards that were PROPOSED rather than picked; null the moment
+   * the reader touches them. Drives the banner above the composition view. */
+  protected readonly proposalSource = signal<string | null>(null);
+
+  /** The handle a proposal has already been made for. One proposal per graph. */
+  private proposedHandle: string | null = null;
+
+  private applyProposal(proposal: PackProposal): void {
+    this.onCardsChange(proposal.seeds);
+    // AFTER onCardsChange, which clears the flag for the user-driven case.
+    this.proposalSource.set(proposal.source);
+  }
+
+  /** N3.1 — "this is not what I wanted": drop the proposal and its cards in one click, rather than
+   * removing five cards one at a time to get back to the empty desk. */
+  protected onClearProposal(): void {
+    this.proposalSource.set(null);
+    this.cards.set([]);
+    this.schedulePack();
+  }
+
+  /** N1.1 — the handle the current cards were addressed in. Seeded from the live handle so the
+   * effect's own first run is a no-op; only a REAL change of graph clears anything. */
+  private cardsHandle: string | null = this.session.handle();
+
+  private resetPackState(): void {
+    if (this.packTimer !== null) clearTimeout(this.packTimer);
+    this.packTimer = null;
+    this.packSeq++;                 // orphan any repack still in flight for the old handle
+    this.cards.set([]);
+    this.proposalSource.set(null);  // N3.1 — a proposal belongs to the graph it was proposed from
+    this.serverPack.set(null);
+    this.packOmitted.set([]);
+    this.clearPackHonesty();
+    this.packTotals.set(null);
+    this.packVerification.set(null);
+    this.packPending.set(false);
+    // N3.2 — the saved path belongs to the repo that was analyzed; after a switch it addresses
+    // somebody else's tree, and the agent line would point an agent at the wrong repo.
+    this.handoffFile.set(null);
+  }
+
+  /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes.
+   * N1.1 — and it is remembered: the ceiling reset to 4000 on every reload. */
   protected onBudgetChange(value: number): void {
     this.budgetTokens.set(value);
+    this.prefs.setStudioBudget(value);
     this.schedulePack();
   }
 
   /** T5.6 — intent reorders the cards AND re-packs (the server honors card order + intent). */
   protected onIntentChange(intent: ContextIntent): void {
     this.selectedIntent.set(intent);
+    this.prefs.setStudioIntent(intent);
     this.sortByIntent(intent);
     this.schedulePack();
   }
@@ -167,6 +363,13 @@ export class ContextStudio {
   /** T5.1 (audit R1) — what the server cut, rendered in the budget panel. */
   protected readonly packOmitted = signal<readonly string[]>([]);
 
+  /** N2.2 (audit §4) — the server's fill-rate note and its suggested next focuses, held exactly
+   * as they arrived. Both are ContextPackBuilder's verdict, the same one `get_context` returns to
+   * an agent; deriving either here would recreate the drift N2.2 exists to close. Null/empty is
+   * the normal case: a pack that met its ≥85% fill promise owes no explanation. */
+  protected readonly packFillNote = signal<string | null>(null);
+  protected readonly packSuggestedFocuses = signal<readonly SuggestedFocusVm[]>([]);
+
   /** T5.6 — true from a pack-relevant change until the re-pack lands; gates Copy/Save. */
   protected readonly packPending = signal(false);
 
@@ -178,69 +381,39 @@ export class ContextStudio {
   private packTimer: ReturnType<typeof setTimeout> | null = null;
   private packSeq = 0;
 
-  /** T5.2 (audit R6) — the staleness ledger for the current pack; null until verified. */
+  /** T5.2 (audit R6) — the staleness ledger for the current pack; null until a pack lands.
+   * N1.1 (wire item 4 / backlog #28) — it is now the ledger the SERVER computed over the
+   * sections it actually assembled, read straight off the pack response. The client used to
+   * build it from one VerifyContext per focus, each handed the whole budget ceiling and each
+   * verifying every section of that focus: three divergences from the pack on screen (budget,
+   * section set, and N RPCs per card edit). There is no second source of this fact now, so
+   * there is nothing left to diverge. */
   protected readonly packVerification = signal<PackVerification | null>(null);
-  protected readonly verifying = signal(false);
-  private verifySeq = 0;
 
-  /** T5.2 — verify every unique focus the cards reference and merge per section. */
-  private async verifyPack(): Promise<void> {
-    const handle = this.session.handle();
-    const focuses = [...new Set(this.cards().flatMap((c) => c.entryIds))];
-    if (!handle || focuses.length === 0) {
-      this.packVerification.set(null);
-      return;
-    }
-    const seq = ++this.verifySeq;
-    this.verifying.set(true);
-    try {
-      const results = await Promise.all(
-        focuses.map((f) => this.api.verifyContext(handle, f, this.budgetTokens())),
-      );
-      if (seq !== this.verifySeq) return;
-      const found = results.filter((r) => r.found);
-      if (found.length === 0) {
-        this.packVerification.set(null);
-        return;
-      }
-      const byKey = new Map<string, { stale: boolean; filesChecked: number; changed: Map<string, SectionVerificationVm['changed'][number]> }>();
-      for (const r of found) {
-        for (const s of r.sections) {
-          let agg = byKey.get(s.key);
-          if (!agg) {
-            agg = { stale: false, filesChecked: 0, changed: new Map() };
-            byKey.set(s.key, agg);
-          }
-          agg.stale ||= s.stale;
-          agg.filesChecked += s.filesChecked;
-          for (const d of s.changed) {
-            agg.changed.set(d.file, { file: d.file, status: d.status, lineDelta: d.lineDelta });
-          }
-        }
-      }
-      this.packVerification.set({
-        anyStale: found.some((r) => r.anyStale),
-        analyzedGitHead: found[0].analyzedGitHead,
-        currentGitHead: found[0].currentGitHead,
-        checkedAt: Date.now(),
-        sections: [...byKey.entries()].map(([key, a]) => ({
-          key,
-          stale: a.stale,
-          filesChecked: a.filesChecked,
-          changed: [...a.changed.values()],
-        })),
-      });
-    } catch {
-      // Verification is advisory — a failed check must never block the Studio; the panel
-      // simply disappears rather than claiming fresh OR stale without evidence.
-      if (seq === this.verifySeq) this.packVerification.set(null);
-    } finally {
-      if (seq === this.verifySeq) this.verifying.set(false);
-    }
+  /** N1.1 — verification arrives WITH the pack, so "verifying" is "packing". */
+  protected readonly verifying = computed(() => this.packPending());
+
+  /** N1.1 — refresh re-checks the disk, and the only honest way to do that now is to rebuild
+   * the pack: the ledger is a property of a build, not a query you can re-issue beside it. */
+  protected onVerifyRefresh(): void {
+    if (this.cards().length === 0) return;
+    this.schedulePack(true);
   }
 
-  protected onVerifyRefresh(): void {
-    void this.verifyPack();
+  private readVerification(pack: ContextPackResponse): PackVerification | null {
+    if (pack.verification.length === 0) return null;
+    return {
+      anyStale: pack.anyStale,
+      analyzedGitHead: pack.analyzedGitHead,
+      currentGitHead: pack.currentGitHead,
+      checkedAt: Date.now(),
+      sections: pack.verification.map((s): SectionVerificationVm => ({
+        key: s.key,
+        stale: s.stale,
+        filesChecked: s.filesChecked,
+        changed: s.changed.map((d) => ({ file: d.file, status: d.status, lineDelta: d.lineDelta })),
+      })),
+    };
   }
 
   protected onReanalyze(): void {
@@ -250,6 +423,8 @@ export class ContextStudio {
   protected onCardsChange(seeds: readonly ContextCardSeed[]): void {
     const handle = this.session.handle();
     if (!handle) return;
+    // N3.1 — an edit makes the pack the reader's; only applyProposal re-raises the flag afterwards.
+    this.proposalSource.set(null);
 
     const entryMap = new Map<string, EntryVm>();
     for (const group of this.session.entryGroups()) {
@@ -281,6 +456,25 @@ export class ContextStudio {
     this.schedulePack();
   }
 
+  /** N2.2 — the honesty note belongs to the pack that produced it; every path that drops a pack
+   * drops it too. A note left standing over a cleared or failed pack is stale advice, which is
+   * exactly the failure mode N2.2 is fixing on the other side. */
+  private clearPackHonesty(): void {
+    this.packFillNote.set(null);
+    this.packSuggestedFocuses.set([]);
+  }
+
+  /** N2.2 — following a suggestion. The focus string is one ContextPackBuilder accepts verbatim
+   * (route form, else the entry title), so it goes straight in as a flow card's entryId through
+   * the SAME resolver path N2.1 gave BuildMulti — no client-side lookup, nothing to resolve here.
+   * Already-carded focuses are dropped rather than duplicated; the server excludes the pack's own
+   * focuses, but a second click on the same suggestion should not stack a second card. */
+  protected onSuggestedFocus(s: SuggestedFocusVm): void {
+    if (!this.session.handle()) return;
+    if (this.cards().some((c) => c.entryIds.length === 1 && c.entryIds[0] === s.focus)) return;
+    this.onCardsChange([{ type: 'flow', title: s.focus, entryIds: [s.focus], estimatedLines: 0 }]);
+  }
+
   /** T5.6 (audit C1) — ONE re-pack path for every pack-relevant change (add/remove/reorder/
    * retry/budget/intent). Debounced; always sends the WHOLE card set, so the export can never
    * be a stale earlier batch (the pre-T5.6 pack held only the most recent add). config/tests
@@ -293,6 +487,7 @@ export class ContextStudio {
     if (this.cards().length === 0) {
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.clearPackHonesty();
       this.packTotals.set(null);
       this.packVerification.set(null);
       this.packPending.set(false);
@@ -307,7 +502,10 @@ export class ContextStudio {
 
   private async repack(handle: string): Promise<void> {
     const seq = ++this.packSeq;
-    const specs = this.cards().map((c) => ({ type: c.type, title: c.title, entryIds: [...c.entryIds] }));
+    // N1.1 (audit §3.F.2) — bodyEnabled rides the request. It used to stop at the eye icon.
+    const specs = this.cards().map((c) => ({
+      type: c.type, title: c.title, entryIds: [...c.entryIds], excludeBodies: !c.bodyEnabled,
+    }));
     try {
       const pack = await this.api.getContextPack(handle, specs, {
         budgetTokens: this.budgetTokens(),
@@ -321,6 +519,10 @@ export class ContextStudio {
       // split across a tag boundary; the probe caught headings double-spacing.)
       this.serverPack.set(pack.assembledMarkdown ? pack.assembledMarkdown.replace(/\r\n/g, '\n') : null);
       this.packOmitted.set(pack.omitted);
+      // N2.2 — proto3 has no null: "" is the server saying the pack met its fill promise.
+      this.packFillNote.set(pack.fillNote.length > 0 ? pack.fillNote : null);
+      this.packSuggestedFocuses.set(pack.suggestedFocuses.map(
+        (s) => ({ focus: s.focus, kind: s.kind, depth: s.depth })));
       // D4.5 (L4) — surface the server's token truth in the preview header.
       this.packTotals.set(pack.assembledMarkdown
         ? { total: pack.totalTokens, allocated: pack.allocatedTokens }
@@ -366,7 +568,8 @@ export class ContextStudio {
       );
 
       // T5.2 (audit R6) — every fresh pack gets a fresh staleness ledger, unprompted.
-      void this.verifyPack();
+      // N1.1 — and it is the ledger for THIS pack, built server-side from its own sections.
+      this.packVerification.set(this.readVerification(pack));
     } catch (e) {
       if (seq !== this.packSeq) return;
       // T5.1 (audit R4) — a failed RPC must SAY so on the cards, not just stop the spinners.
@@ -374,6 +577,7 @@ export class ContextStudio {
       const message = e instanceof Error ? e.message : 'Context pack request failed';
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.clearPackHonesty();
       this.packTotals.set(null);
       this.packVerification.set(null);
       this.cards.update((prev) => prev.map((c) => ({ ...c, loading: false, error: message })));
@@ -391,10 +595,14 @@ export class ContextStudio {
     this.schedulePack(true);
   }
 
+  /** N1.1 — a body toggle is now pack-relevant, so it takes the one re-pack path like every
+   * other shaping change. Before, it repainted an icon and left the bytes alone. */
   protected onToggleBody(id: string): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) =>
       prev.map((c) => (c.id === id ? { ...c, bodyEnabled: !c.bodyEnabled } : c)),
     );
+    this.schedulePack();
   }
 
   protected onGlobalBodiesChange(): void {
@@ -402,47 +610,61 @@ export class ContextStudio {
     this.cards.update((prev) =>
       prev.map((c) => ({ ...c, bodyEnabled: showAll })),
     );
+    this.schedulePack();
   }
 
   protected onRemove(id: string): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) => prev.filter((c) => c.id !== id));
     this.schedulePack();
   }
 
+  /** N1.2 (audit §3.A / backlog #26) — THE reader for `TrailStore.pins()`. Until this, the
+   * pin idiom was advertised on three surfaces and implemented on none: `pins()` had no reader
+   * outside the store and its own spec, so pinning changed nothing about any pack, ever.
+   *
+   * Pins WIN over the raw trail when there are any — a pin is an explicit "this one matters",
+   * the trail is just where the user has been. The old body read `steps()` unconditionally and
+   * kept `kind === 'entry'` only, which also meant a pinned graph NODE seeded nothing at all;
+   * every kind now resolves through its `focus` (a node step carries the focus of the trace it
+   * was explored under — workbench-page.ts:255), so a pin can never be silently worthless.
+   *
+   * Resolution is by FOCUS against the live `entryGroups()`, never by the pinned nodeId: that
+   * is what keeps a pin from carrying a dead id across a re-analyze (the trap N1.1's card
+   * invalidation was about). A pin that no longer resolves is REPORTED, not dropped in silence
+   * — the old body returned early on an empty result and the click looked broken. */
   protected onTrailSeed(): void {
-    const steps = this.trailStore.steps();
-    if (steps.length === 0) return;
-    const seeds: ContextCardSeed[] = [];
-    const seen = new Set<string>();
-    for (const step of steps) {
-      if (step.kind === 'entry') {
-        const found = this.findEntryByFocus(step.focus);
-        if (found && !seen.has(found.nodeId)) {
-          seen.add(found.nodeId);
-          seeds.push({
-            type: 'flow',
-            title: `Flow: ${step.title}`,
-            entryIds: [found.nodeId],
-            estimatedLines: 15,
-          });
-        }
-      }
+    const pins = this.trailStore.pins();
+    const fromPins = pins.length > 0;
+    const steps = fromPins ? pins : this.trailStore.steps();
+    const source = fromPins ? 'pins' : 'the trail';
+    if (steps.length === 0) {
+      this.toast.show('Nothing to seed from — explore an entry, then press p to pin it', 'info');
+      return;
     }
-    if (seeds.length > 0) {
-      this.onCardsChange(seeds);
-    }
-  }
 
-  private findEntryByFocus(focus: string) {
-    for (const group of this.session.entryGroups()) {
-      for (const e of group.entries) {
-        if (e.focus === focus) return e;
-      }
+    // N3.1 — the seed rule moved to pack-proposal.ts because Explore's send-to-Studio and Studio's
+    // own default state now build from the same steps. Three copies of "a step becomes a flow card"
+    // is how the three surfaces would start disagreeing about what a pin is worth.
+    const { seeds, unresolved } = seedsFromSteps(steps, this.session.entryGroups());
+
+    if (seeds.length === 0) {
+      this.toast.show(
+        `Nothing in ${source} resolves to an entry in this graph (${unresolved} of ${steps.length} unresolved)`,
+        'error',
+      );
+      return;
     }
-    return null;
+    this.onCardsChange(seeds);
+    const tail = unresolved > 0 ? ` — ${unresolved} did not resolve in this graph` : '';
+    this.toast.show(
+      `Seeded ${seeds.length} card${seeds.length === 1 ? '' : 's'} from ${steps.length} ${fromPins ? 'pinned step' + (steps.length === 1 ? '' : 's') : 'trail steps'}${tail}`,
+      unresolved > 0 ? 'info' : 'success',
+    );
   }
 
   protected onReorder(event: { fromIndex: number; toIndex: number }): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) => {
       const arr = [...prev];
       const [item] = arr.splice(event.fromIndex, 1);
@@ -453,36 +675,93 @@ export class ContextStudio {
     this.schedulePack();
   }
 
-  /** D4.5 (L4) — Copy serves the preview's exact string (one computed, one truth). */
-  protected onCopy(): void {
+  /** D4.5 (L4) — Copy serves the preview's exact string (one computed, one truth).
+   * N0.1 (audit §3.F.7) — through the app's Tauri-aware clipboard helper, and the toast +
+   * the button's "Copied!" label now report the outcome: both used to fire on click while
+   * a floating `navigator.clipboard` promise (the API that is flaky in WebView2, i.e. in
+   * the shipped desktop shell) was still in flight, and a rejection was invisible. */
+  protected async onCopy(): Promise<void> {
     const text = this.previewText();
     if (text === null) return;
-    void navigator.clipboard.writeText(text);
+    try {
+      await copyToClipboard(text);
+      this.copied.set(true);
+      this.toast.show('Context copied to clipboard', 'success');
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
   }
 
-  protected onSave(): void {
-    const format = this.selectedFormat();
+  /** N3.2 — where the last Save landed, exactly as the server reported it. Null until a Save
+   * succeeds. `savedText` is kept beside it so the strip can tell the truth about drift: the
+   * file is a snapshot, and the composition on screen moves on without it. */
+  protected readonly handoffFile = signal<{
+    path: string; relativePath: string; gitignored: boolean; agentLine: string; savedText: string;
+  } | null>(null);
+
+  /** N3.2 — the composition has changed since the write. Compares the EXPORT STRING, which is
+   * what was written, not the card list: a re-pack that returns identical bytes is not drift. */
+  protected readonly handoffStale = computed(() => {
+    const saved = this.handoffFile();
+    return saved !== null && this.previewText() !== saved.savedText;
+  });
+
+  /** N3.2 — Save in flight; the button says so instead of looking inert during the RPC. */
+  protected readonly saving = signal(false);
+  protected readonly agentLineCopied = signal(false);
+
+  /** N3.2 (STUDIO-MCP §8.3, decision 3) — Save is the REPO-FILE HAND-OFF now. It used to hand
+   * the pack to the browser/webview download path, which is why its toast could name a file but
+   * never a location: it did not choose one, and in the Tauri shell "downloads" is not where a
+   * repo artifact belongs. The server writes it into the analyzed repo — the only channel that
+   * works in dev:web AND in the shipped shell, since the app's fs capabilities reach LOCALDATA
+   * and nothing else. The toast reports the path the SERVER returned; nothing here predicts it. */
+  protected async onSave(): Promise<void> {
+    const handle = this.session.handle();
     const text = this.previewText();
-    if (text === null) return;
-    const mime = format === 'plain' ? 'text/plain'
-      : format === 'json' ? 'application/json'
-      : 'text/markdown;charset=utf-8';
-    const blob = new Blob([text], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = this.saveFileName(format);
-    a.click();
-    URL.revokeObjectURL(url);
+    if (text === null || !handle) return;
+    this.saving.set(true);
+    try {
+      const res = await this.api.savePackFile(handle, this.saveSlug(), text, this.selectedFormat());
+      this.handoffFile.set({
+        path: res.path,
+        relativePath: res.relativePath,
+        gitignored: res.gitignored,
+        agentLine: res.agentLine,
+        savedText: text,
+      });
+      this.toast.show(`Saved ${res.relativePath}`, 'success');
+    } catch (err) {
+      this.toast.show(`Save failed: ${errorText(err)}`, 'error');
+    } finally {
+      this.saving.set(false);
+    }
   }
 
-  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt|json}`, never a hardcoded name. */
-  protected saveFileName(format: OutputFormat): string {
+  /** N3.2 — the hand-off line goes through the same WebView2-safe helper Copy uses, and the
+   * label follows the outcome rather than the click (the N0.1 §3.F.7 rule, applied here too). */
+  protected async onCopyAgentLine(): Promise<void> {
+    const saved = this.handoffFile();
+    if (saved === null) return;
+    try {
+      await copyToClipboard(saved.agentLine);
+      this.agentLineCopied.set(true);
+      this.toast.show('Line copied — paste it into CLAUDE.md or your agent prompt', 'success');
+      setTimeout(() => this.agentLineCopied.set(false), 2000);
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
+  }
+
+  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}`, never a hardcoded name. N3.2: a STEM,
+   * not a file name — the extension follows the format and is the server's to append, next to
+   * the sanitizing that keeps a slug from addressing a path. */
+  protected saveSlug(): string {
     const label = this.session.summary()?.label ?? '';
     const repo = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'devcontext';
     const date = new Date().toISOString().slice(0, 10);
-    const ext = format === 'plain' ? 'txt' : format === 'json' ? 'json' : 'md';
-    return `${repo}-context-${date}.${ext}`;
+    return `${repo}-context-${date}`;
   }
 
   /** T5.6 (audit C1) — ONE build path: exports are exactly the current server pack, or nothing

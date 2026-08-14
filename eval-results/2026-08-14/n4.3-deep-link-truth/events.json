@@ -1,0 +1,38 @@
+[
+  {
+    "sessionHandle": "16b752abfb394572bb4ce532586f7053",
+    "rpc": "ListEntryPoints",
+    "argsDigest": "full:True",
+    "sessionRepo": "C:\\Code\\DevContext2-desktop\\eval-repos\\TodoApi",
+    "origin": "agent",
+    "mcpTool": "entrypoints",
+    "primaryArg": ""
+  },
+  {
+    "sessionHandle": "16b752abfb394572bb4ce532586f7053",
+    "rpc": "GetTrace",
+    "argsDigest": "focus:GET /",
+    "sessionRepo": "C:\\Code\\DevContext2-desktop\\eval-repos\\TodoApi",
+    "origin": "agent",
+    "mcpTool": "trace",
+    "primaryArg": "GET /"
+  },
+  {
+    "sessionHandle": "16b752abfb394572bb4ce532586f7053",
+    "rpc": "GetContext",
+    "argsDigest": "focus:GET /",
+    "sessionRepo": "C:\\Code\\DevContext2-desktop\\eval-repos\\TodoApi",
+    "origin": "agent",
+    "mcpTool": "get_context",
+    "primaryArg": "GET /"
+  },
+  {
+    "sessionHandle": "16b752abfb394572bb4ce532586f7053",
+    "rpc": "GetGraphFacets",
+    "argsDigest": "focus:GET /",
+    "sessionRepo": "C:\\Code\\DevContext2-desktop\\eval-repos\\TodoApi",
+    "origin": "agent",
+    "mcpTool": "get_context",
+    "primaryArg": "GET /"
+  }
+]

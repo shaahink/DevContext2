@@ -26,7 +26,9 @@
 
 ## Transport checks
 - [x] Cold start: server started and accepted initialize
-- [x] Analyze: the call returned its own handle in 10.8s
+- [x] Analyze: the call returned its own handle in 5.3s (desktop run) / 10.8s (engine run) — the two
+      pre-release runs measured this independently on the same day; the spread is machine load, both
+      runs having shared one box. Every other figure in this file matched between them exactly.
 - [x] Session lifecycle: create, list, close
 
 ## Tool coverage
