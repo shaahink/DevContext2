@@ -66,7 +66,7 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                 // string nobody writes by accident. GitVersion's new CLI declares every command this
                 // way against its OWN ICommand<T> + a source generator, so E7's refusal to trust
                 // ICommand-ish bases (which stands — see below) left the whole tool invisible.
-                var commandVerb = FindCommandAttributeVerb(classDecl);
+                var (commandVerb, parentCommandType) = FindCommandAttributeVerb(classDecl);
                 if (commandVerb is not null) isCommand = true;
 
                 foreach (var bt in classDecl.BaseList?.Types ?? default)
@@ -121,7 +121,7 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                 }
 
                 model.Detections.Add(new CliCommandDetection(
-                    className, settingsType ?? "object", executeMethod, commandVerb)
+                    className, settingsType ?? "object", executeMethod, commandVerb, parentCommandType)
                 {
                     ExtractorName = Name,
                     SourceFile = filePath,
@@ -136,28 +136,63 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
 
     /// <summary>Batch B — the verb from a <c>[Command("output", ...)]</c>-shaped attribute, or null.
     /// The string argument is required: a bare <c>[Command]</c> is exactly the ambiguous, name-only
-    /// evidence E7 refuses.</summary>
-    private static string? FindCommandAttributeVerb(
+    /// evidence E7 refuses.
+    /// <para>D1.3 (#14) — the leaf is read off the NAME SYNTAX, not off <c>ToString()</c>. A generic
+    /// attribute's text is <c>Command&lt;ConfigCommand&gt;</c>, so the old after-the-last-dot slice
+    /// compared "Command&lt;ConfigCommand&gt;" against "Command" and skipped every sub-command
+    /// GitVersion declares. The type argument is not noise to strip: it names the PARENT command, and
+    /// it rides out as the second returned value.</para></summary>
+    private static (string? Verb, string? ParentCommandType) FindCommandAttributeVerb(
         Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax classDecl)
     {
         foreach (var attributeList in classDecl.AttributeLists)
         {
             foreach (var attribute in attributeList.Attributes)
             {
-                var name = attribute.Name.ToString();
-                var leaf = name[(name.LastIndexOf('.') + 1)..];
+                var (leaf, parent) = SplitAttributeName(attribute.Name);
                 if (leaf is not ("Command" or "CommandAttribute")) continue;
                 var firstArgument = attribute.ArgumentList?.Arguments.FirstOrDefault();
                 if (firstArgument?.Expression is
                         Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax literal
                     && literal.Token.Value is string verb && verb.Length > 0)
                 {
-                    return verb;
+                    return (verb, parent);
                 }
             }
         }
-        return null;
+        return (null, null);
     }
+
+    /// <summary>D1.3 (#14) — an attribute's simple name and, when it is generic, its first type
+    /// argument's simple name. Handles the qualified (<c>GitVersion.CommandAttribute</c>), alias-qualified
+    /// and generic (<c>Command&lt;ConfigCommand&gt;</c>) spellings the syntax can take.</summary>
+    private static (string Leaf, string? TypeArgument) SplitAttributeName(
+        Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax nameSyntax)
+    {
+        var name = nameSyntax;
+        if (name is Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax alias) name = alias.Name;
+        if (name is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax qualified) name = qualified.Right;
+
+        if (name is Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax generic)
+        {
+            var arg = generic.TypeArgumentList.Arguments.FirstOrDefault();
+            return (generic.Identifier.ValueText, SimpleTypeName(arg));
+        }
+        return (name is Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax simple
+            ? simple.Identifier.ValueText
+            : name.ToString(), null);
+    }
+
+    /// <summary>The parent command's simple type name — the same spelling a sibling declaration's
+    /// class identifier carries, which is what the entry builder joins the two ends of the tree on.</summary>
+    private static string? SimpleTypeName(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax? type) => type switch
+    {
+        null => null,
+        Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax q => SimpleTypeName(q.Right),
+        Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax g => g.Identifier.ValueText,
+        Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax s => s.Identifier.ValueText,
+        _ => type.ToString(),
+    };
 
     /// <summary>B4 (Prism D1.1d) — plain <c>Main()</c> becomes an entry. For every production console
     /// exe with CLI-tool evidence (see <see cref="Graph.ArchetypeDetector.IsCliToolCandidate"/>) that

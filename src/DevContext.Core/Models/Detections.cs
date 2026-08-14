@@ -213,11 +213,16 @@ public sealed record GraphQlFieldDetection(
 /// <param name="CommandName">Batch B — the verb this command is invoked as, when the tool declares
 /// one via a <c>[Command("output")]</c>-shaped attribute. Null for base-class-detected commands
 /// (the framework assembles the verb) and for the plain-Main fallback.</param>
+/// <summary><para>D1.3 (#14) — <paramref name="ParentCommandType"/> is the type argument of a generic
+/// command attribute: GitVersion declares a sub-command as <c>[Command&lt;ConfigCommand&gt;("init")]</c>,
+/// where the type argument names the PARENT command, not a settings type. It is the only link a
+/// two-level command tree has; without it four of GitVersion's nine verbs read as top-level groups.</para></summary>
 public sealed record CliCommandDetection(
     string CommandType,
     string SettingsType,
     string ExecuteMethod,
-    string? CommandName = null
+    string? CommandName = null,
+    string? ParentCommandType = null
 ) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a Refit HTTP client interface (attributed with [Get]/[Post]/etc.).</summary>
