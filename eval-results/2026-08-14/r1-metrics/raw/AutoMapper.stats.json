@@ -1,0 +1,128 @@
+{
+  "snapshotCache": "miss \u00B7 saved dfa6dd5",
+  "nodeCount": 478,
+  "edgeCount": 279,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 259,
+      "verified": 156,
+      "joined": 0,
+      "approx": 103
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 2,
+      "verified": 2,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Resolves",
+      "total": 16,
+      "verified": 0,
+      "joined": 3,
+      "approx": 13
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 2,
+      "verified": 0,
+      "joined": 0,
+      "approx": 2
+    }
+  ],
+  "totalWallMs": 25147,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 429
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 3714
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 2490
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 14469
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 2142
+    },
+    {
+      "stage": "Insights",
+      "ms": 201
+    },
+    {
+      "stage": "Compression",
+      "ms": 325
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 720
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: AutoMapper (5 dependents)",
+      "evidence": [
+        "AutoMapper (5 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 46 interfaces, 111 classes (181 total public types)",
+      "evidence": [
+        "46 interfaces",
+        "111 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 20 Extension \u00B7 15 Singleton \u00B7 6 Transient \u00B7 3 Scoped (44 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: IGlobalConfiguration (46) \u00B7 TypeMap (30) \u00B7 TypePair (20) \u00B7 ProfileMap (15) \u00B7 TypeMapDetails (10)",
+      "evidence": [
+        "IGlobalConfiguration (46)",
+        "TypeMap (30)",
+        "TypePair (20)",
+        "ProfileMap (15)",
+        "TypeMapDetails (10)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

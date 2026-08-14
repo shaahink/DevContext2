@@ -681,17 +681,40 @@ _Found in session #23._
 
 _Found in session #28._
 
+**RESOLVED 2026-08-14 (R1.1) — RETIRED, and the premise above inverted first.** E1 lifted the
+Semantic share 8x (eShop 0.057 → 0.438) and the floor became reachable: the insight fired on 2 of 12
+poles and every claim was false — 5/5 on eshop-microservices (four `: ICarterModule` HTTP endpoints
+and a `Decorate<>`d repository), 3/5 outright on VerticalSlice with 2 unresolvable. Measured
+precision 0/10. No floor value fixes it: the types are live by *registration*, which a call-edge
+share cannot observe. Source deleted; `eval/lens-audit.ps1` now fails if the id ever re-emits.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md`.
+
 <a id="23"></a>
 
 ### #23 · G10 · L3.4 hub-scope broadening never fires: sparseGraph=false + hubScopeNodes=0 on 11/11 poles including its own trigger population (Dapper/Serilog/MahApps/MediatR); identity-strip's sparse line has never rendered (G10.1)
 
 _Found in session #28._
 
+**REFUTED 2026-08-14 (R1.1) — it fires.** Hangfire reports `sparseGraph=true`, `hubScopeNodes=34`;
+the 11-pole G10 set simply never contained a repo that clears both gates. The broadening is kept
+unchanged with the new measurement at the call site. The residual — 3 of the 4 gate-passing poles
+still exit at `k < 5` because `model.CallEdges` spans <10 types on them while the graph carries
+hundreds of Calls edges from the BodyFacts path — is **conductor bug #18**.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md` §4.
+
 <a id="24"></a>
 
 ### #24 · G10 · Deep-spine ratio is saturated (1.000 on 5/11 poles, 0.96-0.98 on the rest): the report prints it as coverage but it separates no repo (G10.1)
 
 _Found in session #28._
+
+**RESOLVED 2026-08-14 (R1.1) — RETIRED.** Re-measured on 12 poles post-E1: 1.000 on eight, 0.982
+(eShop) and 0.994 (FastEndpoints) on the two others, 0 only where entries == 0 (a divide artifact).
+Every before/after pole reads exactly what it read on 2026-08-02, so E1's 8x Semantic lift moved it
+not at all. The bar was NOT raised — that is a question about the step distribution, which no
+surface exposes. Removed from `GraphStats`/`GraphQuery`, the report's "Deep spine (>=2)" row, and the
+CLI `query stats` payload. No proto field and no golden pinned it.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md` §5.
 
 <a id="25"></a>
 

@@ -1,4 +1,4 @@
-# DevContext pre-release - engine and agent face Phase Tracker
+﻿# DevContext pre-release - engine and agent face Phase Tracker
 
 **Plan:** DevContext pre-release - engine and agent face | **Branch:** `feat/pre-release-engine` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
@@ -19,13 +19,15 @@ descriptors remain. A third property (Kind:null is justified in the allow-list o
 that blind spot.
 WATCH: McpQaGateTests orphans a DevContext.Server.exe that locks Core.dll and fails the NEXT build
 with MSB3027. Identify the pid from the build error and stop that one - do not kill by name.
+
+
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
 | Done | 11 |
-| Claimed (unconfirmed) | 3 |
+| Claimed (unconfirmed) | 4 |
 
 ## Checkpoints
 
@@ -65,7 +67,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.1-EVIDENCE.md |
 | D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.2-EVIDENCE.md |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | DONE | 796843f | eval-results/2026-08-14/d1-filed/D1.3-EVIDENCE.md |
-| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | TODO | - | - |
+| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | DONE | a221296 | eval-results/2026-08-14/d1-rung4/D1.4-EVIDENCE.md |
 
 ### R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph
 

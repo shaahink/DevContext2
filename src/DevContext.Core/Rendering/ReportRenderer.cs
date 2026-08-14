@@ -136,7 +136,7 @@ public static class ReportRenderer
 
         var graph = query.Graph;
         var entries = snapshot.Entries;
-        var (seams, withTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
+        var (seams, withTarget) = query.Stats();
         var report = snapshot.Report;
         var model = snapshot.Model;
 
@@ -152,8 +152,8 @@ public static class ReportRenderer
         sb.AppendLine($"| Entries | {entries.Length} |");
         sb.AppendLine($"| With target | {withTarget}/{entries.Length} |");
 
-        if (entries.Length > 0)
-            sb.AppendLine($"| Deep spine (>=2) | {entriesWithDeepSpine}/{entries.Length} ({(int)Math.Round(deepSpineRatio * 100)}%) |");
+        // R1.1 (#24): the "Deep spine (>=2)" row is GONE. It printed 100% on eight of twelve poles
+        // and 98%/99% on the two others — a coverage number that read the same everywhere.
 
         // V1.1 (#25): "Verified edges %" was (total - approx)/total, i.e. every Join edge counted as
         // verified — Join being the Resolution default, that included every edge nobody labelled. The
@@ -306,7 +306,7 @@ public static class ReportRenderer
             sb.AppendLine();
         }
 
-        var (seams, withTarget, _, _) = query.Stats();
+        var (seams, withTarget) = query.Stats();
         if (seams.Length > 0)
         {
             sb.AppendLine("### Graph Seams");

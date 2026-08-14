@@ -332,7 +332,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights,
         string snapshotCache, DevContext.Core.Models.RunReport? report)
     {
-        var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
+        var (seams, entriesWithTarget) = query.Stats();
         var entries = query.EntryPoints();
         var byKind = entries.GroupBy(e => e.Kind.ToString())
             .OrderByDescending(g => g.Count())
@@ -352,8 +352,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             sparseGraph = graph.IsSparseGraph,
             hubScopeNodes = graph.HubScopeNodeCount,
             entriesWithTarget,
-            entriesWithDeepSpine,
-            deepSpineRatio,
+            // R1.1 (#24): entriesWithDeepSpine/deepSpineRatio left this payload with the metric —
+            // saturated on 12 poles post-E1 (GraphStats.Compute carries the measurement).
             entriesByKind = byKind,
             // V1.1 (#25): read the tier split off the row. This used to be `verified = total - approx`,
             // which called every Join edge — the enum's default, so every edge nobody labelled —

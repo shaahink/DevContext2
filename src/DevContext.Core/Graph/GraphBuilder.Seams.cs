@@ -196,18 +196,29 @@ public sealed partial class GraphBuilder
         var edgeCount = g.EdgeCount;
         var ratio = nodeCount > 0 ? (double)edgeCount / nodeCount : 0;
 
-        // G10.1 RE-MEASURED 2026-08-02, 11 poles (eval-results/2026-08-02/G10/threshold-grid.txt):
-        // THIS BROADENING NEVER FIRES. `query stats` reported sparseGraph=false and hubScopeNodes=0
-        // on all eleven — including the four this method exists for (Dapper, Serilog, MahApps.Metro
-        // and MediatR: 0-1 entries, edge/node ratio 0.30-0.45, so they pass the gate below and
-        // should come out sparse). Its one UI surface, identity-strip's hub-scope line, has
-        // therefore never rendered on a measured pole. The gate below is not what shuts it — the
-        // k < 5 return further down is the only other exit, and on Dapper the Calls edges alone
-        // span 32 distinct types, which puts k at 16. Something between the two is eating it.
+        // R1.1 RE-MEASURED 2026-08-14, 12 poles, post-E1, calibration commit HEAD of this change
+        // (eval-results/2026-08-14/r1-metrics/threshold-grid-post-e1.txt):
+        // IT FIRES. The 2026-08-02 comment here said "THIS BROADENING NEVER FIRES" on the strength
+        // of 11 poles that all read sparseGraph=false — but that set simply never contained a repo
+        // that clears BOTH gates. Hangfire does: `query stats` reports sparseGraph=true,
+        // hubScopeNodes=34, so up to 500 synthesised Calls edges are bound on it. That is live,
+        // shipped behaviour on library-shaped repos, and this is the first measurement of it.
         //
-        // Deliberately not chased or "fixed" here: making it fire adds up to 500 synthesised Calls
-        // edges to every library-shaped repo, which is a product change with a matrix behind it,
-        // not a threshold correction. Tracked as a conductor bug with this measurement attached.
+        // Still true, and now with the arithmetic: four of the twelve satisfy the gate below
+        // (MediatR, FluentValidation, AutoMapper, Hangfire — 0-2 entries), and only Hangfire
+        // reaches the hub stage. Where the other three go follows from the code: with 0 entries the
+        // gate below cannot return, and the only other exit is `k < 5`, so on each of them
+        // `model.CallEdges` spans fewer than TEN distinct types. AutoMapper carries 259 Calls edges
+        // in the finished graph — so those edges are not coming from `model.CallEdges`, and this
+        // method is sizing its hubs off a channel that is no longer the graph's main call source
+        // (the BodyFacts path is). Filed as a conductor bug rather than fixed here: making it fire
+        // on the other three would add synthesised edges to every library-shaped repo, which is a
+        // product change with a matrix behind it, not a threshold correction.
+        //
+        // The gate itself is UNCHANGED and deliberately so — entries < 5 or ratio < 0.1 is the
+        // sparseness definition the broadening was designed against, it selects exactly the
+        // library-shaped poles here (and no app-shaped one), and moving it either way changes what
+        // the product synthesises rather than what it measures.
         if (entries.Length >= 5 && ratio >= 0.1) return (false, 0);
 
         // Compute degree centrality for all types with a FilePath (in-scope, production code).
