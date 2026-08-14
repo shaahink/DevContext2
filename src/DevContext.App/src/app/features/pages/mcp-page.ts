@@ -2,7 +2,7 @@ import { Component, inject, signal, type WritableSignal, type OnDestroy, type On
 import { FormsModule } from '@angular/forms';
 import { copyToClipboard } from '../../core/clipboard';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
-import { DevContextApi } from '../../data-access/devcontext-api';
+import { DevContextApi, type McpHostConfig } from '../../data-access/devcontext-api';
 import { ToastService } from '../../ui/toast/toast';
 
 function errorText(err: unknown): string {
@@ -51,48 +51,12 @@ interface SessionItem {
   analyzedAt: string;
 }
 
-// N0.2 (audit §3.F.10) — `devcontext-mcp` is NOT on PATH after a desktop install: the Tauri
-// bundle publishes only resources/server/**, and it is not a global dotnet tool
-// (docs/product/mcp-reference.md §Register). Every host snippet here used to name the bare
-// command, so a first-run user copied a config that could not resolve. Until N4.2 ships the
-// binary in the bundle and substitutes the resolved path, these carry the documented
-// build-output path with an explicit placeholder — one you can SEE is a placeholder.
-const MCP_COMMAND_PLACEHOLDER = 'C:/path/to/DevContext2/src/DevContext.Mcp/bin/Debug/net10.0/devcontext-mcp.exe';
-
-const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
-  {
-    host: 'Claude Code',
-    snippet: `{
-  "mcpServers": {
-    "devcontext": {
-      "command": "${MCP_COMMAND_PLACEHOLDER}",
-      "args": []
-    }
-  }
-}`,
-  },
-  {
-    host: 'Cursor',
-    snippet: `{
-  "mcpServers": {
-    "devcontext": {
-      "command": "${MCP_COMMAND_PLACEHOLDER}"
-    }
-  }
-}`,
-  },
-  {
-    host: 'VS Code',
-    snippet: `{
-  "inputs": [],
-  "servers": {
-    "devcontext": {
-      "command": "${MCP_COMMAND_PLACEHOLDER}"
-    }
-  }
-}`,
-  },
-];
+/** N4.2 — what a write-config click did, per host card. */
+interface WrittenConfig {
+  ok: boolean;
+  text: string;
+  title: string;
+}
 
 @Component({
   selector: 'app-mcp-page',
@@ -176,34 +140,71 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
         }
       </div>
 
-      <!-- Config snippets -->
+      <!-- Host config — N4.2 (audit §4, Room 2: "setup that works").
+           The snippets are no longer written here. They arrive with the status read, composed by
+           the same server code that writes the config file, around the same path the probe above
+           resolved. That is the whole fix: the page used to hard-code a placeholder that read
+           like a real machine's path, so a first-run user pasted a config naming an executable
+           nobody had. It cannot drift from the writer now, because it IS the writer's output. -->
       <div>
-        <h3 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Host Config</h3>
-        <!-- N0.2 (audit §3.F.10) — this used to read "ships with the desktop installer", which is
-             false: the Tauri bundle publishes only resources/server/**, devcontext-mcp is not a
-             global dotnet tool, and nothing puts it on PATH. N4.2 makes the true version of that
-             sentence true; until then the page says what a user must actually do. -->
-        <p class="mb-2 text-2xs text-ink-subtle" data-testid="mcp-setup-note">
-          Build it first — <code class="font-mono">dotnet build src/DevContext.Mcp</code> — then point your host at
-          the built <code class="font-mono">devcontext-mcp</code> executable by full path. It is not on PATH after a
-          desktop install and it is not a global dotnet tool yet, so replace the placeholder path below.
-        </p>
+        <div class="flex items-center justify-between mb-2 gap-3">
+          <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Host Config</h3>
+          @if (writeTarget(); as target) {
+            <div class="flex items-center gap-2 text-2xs text-ink-subtle min-w-0">
+              <span class="shrink-0">Write into</span>
+              @if (sessions().length > 1) {
+                <select
+                  class="rounded border border-line bg-base px-1.5 py-0.5 text-2xs max-w-xs"
+                  data-testid="write-config-repo"
+                  [ngModel]="target.handle"
+                  (ngModelChange)="configHandle.set($event)"
+                >
+                  @for (s of sessions(); track s.handle) {
+                    <option [value]="s.handle">{{ s.repo }}</option>
+                  }
+                </select>
+              } @else {
+                <span class="font-mono truncate" data-testid="write-config-repo">{{ target.repo }}</span>
+              }
+            </div>
+          }
+        </div>
+        <p class="mb-2 text-2xs text-ink-subtle" data-testid="mcp-setup-note">{{ setupNote() }}</p>
         <div class="grid grid-cols-3 gap-3">
-          @for (cfg of configSnippets; track cfg.host) {
-            <div class="rounded border border-line bg-surface p-3">
+          @for (cfg of hosts(); track cfg.id) {
+            <div class="rounded border border-line bg-surface p-3 flex flex-col">
               <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs font-medium">{{ cfg.host }}</span>
+                <span class="text-xs font-medium">{{ cfg.label }}</span>
                 <!-- N0.2 (audit §3.F.11) — copy() used to guess which card was clicked by
                      sniffing the snippet text for the host name, and no snippet contains it,
                      so every copy flipped the VS Code card to "Copied!". The card says which
                      one it is; it does not need to be guessed. -->
                 <button
                   class="text-2xs text-ink-subtle hover:text-ink transition-colors"
-                  [attr.data-testid]="'copy-snippet-' + cfg.host"
-                  (click)="void copy(cfg.host, cfg.snippet)"
-                >{{ copied() === cfg.host ? 'Copied!' : 'Copy' }}</button>
+                  [attr.data-testid]="'copy-snippet-' + cfg.id"
+                  (click)="void copy(cfg.id, cfg.snippet)"
+                >{{ copied() === cfg.id ? 'Copied!' : 'Copy' }}</button>
               </div>
-              <pre class="text-2xs text-ink-subtle overflow-x-auto max-h-24 font-mono">{{ cfg.snippet }}</pre>
+              <pre class="text-2xs text-ink-subtle overflow-x-auto max-h-24 font-mono"
+                   [attr.data-testid]="'snippet-' + cfg.id">{{ cfg.snippet }}</pre>
+              <div class="mt-2 pt-2 border-t border-line space-y-1">
+                <button
+                  class="w-full rounded border border-line px-2 py-1 text-2xs font-medium hover:bg-surface-raised transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  [disabled]="!canWriteConfig() || writingHost() !== null"
+                  [title]="writeButtonTitle(cfg)"
+                  [attr.data-testid]="'write-config-' + cfg.id"
+                  (click)="void writeConfig(cfg)"
+                >{{ writingHost() === cfg.id ? 'Writing…' : 'Write ' + cfg.relativePath }}</button>
+                @if (written()[cfg.id]; as result) {
+                  <div
+                    class="text-2xs break-all"
+                    [class.text-ink-subtle]="result.ok"
+                    [class.text-danger]="!result.ok"
+                    [title]="result.title"
+                    [attr.data-testid]="'write-result-' + cfg.id"
+                  >{{ result.text }}</div>
+                }
+              </div>
             </div>
           }
         </div>
@@ -430,7 +431,12 @@ export class McpPage implements OnInit, OnDestroy {
   protected readonly visibleTokens = computed(() =>
     this.visibleEvents().reduce((n, e) => n + e.estTokens, 0));
 
-  protected readonly configSnippets = CONFIG_SNIPPETS;
+  /** N4.2 — the setup cards, as the server composed them. The page renders; it does not build. */
+  protected readonly hosts = signal<readonly McpHostConfig[]>([]);
+  /** Which analyzed repo a write-config click targets; empty means "the first session". */
+  protected readonly configHandle = signal('');
+  protected readonly writingHost = signal<string | null>(null);
+  protected readonly written = signal<Record<string, WrittenConfig>>({});
   /**
    * The sandbox probes gRPC RPCs but LABELS them with MCP tool names, so this list drifts from the
    * real menu independently of it. Two rows were already wrong when G2.1 folded the menu: there is
@@ -473,6 +479,39 @@ export class McpPage implements OnInit, OnDestroy {
     const sessions = live > 0 ? `${live} analysis session(s) open.` : 'No analysis sessions open.';
     return `Every tool call this server serves is forwarded — ${watchers} watcher(s) attached. ${sessions}`;
   });
+
+  /**
+   * N4.2 — where a written config would go. The config is PROJECT-scoped (see McpConfigWriter for
+   * why it is not the user-global file), so it needs an analyzed repo; with none open there is
+   * nothing honest to write and the buttons say so.
+   */
+  protected readonly writeTarget = computed(() => {
+    const open = this.sessions();
+    if (open.length === 0) return null;
+    return open.find((s) => s.handle === this.configHandle()) ?? open[0];
+  });
+
+  protected readonly canWriteConfig = computed(() => this.writeTarget() !== null && this.binaryFound());
+
+  /** What the user must actually do next, keyed off what the probe found — not a fixed sentence. */
+  protected readonly setupNote = computed(() => {
+    if (!this.binaryFound()) {
+      return 'No devcontext-mcp on this machine yet — build it (dotnet build src/DevContext.Mcp) or install the '
+        + 'desktop bundle, then Re-check. Until then the snippets below carry a placeholder, not a path.';
+    }
+    const shipped = this.binarySource() === 'bundle'
+      ? 'It ships beside this app, so the path below exists on any machine with the installer. '
+      : '';
+    return `${shipped}The snippets name the executable the probe just resolved — copy one, or let DevContext write `
+      + 'the config into the repo for you.';
+  });
+
+  protected writeButtonTitle(host: McpHostConfig): string {
+    if (!this.binaryFound()) return 'Nothing to point a host at yet — devcontext-mcp was not found';
+    const target = this.writeTarget();
+    if (!target) return 'Analyze a repo first — the config is written into that repo';
+    return `Write ${host.relativePath} into ${target.repo}, merging with anything already there`;
+  }
 
   /** N4.1 — the check the old page could not make at all: has an agent ever actually been here. */
   protected readonly lastAgentCallText = computed(() => {
@@ -525,6 +564,38 @@ export class McpPage implements OnInit, OnDestroy {
     this.lastAgentCallAtUtcMs.set(status.lastAgentCallAtUtcMs);
     this.lastAgentTool.set(status.lastAgentTool);
     this.agentCallCount.set(status.agentCallCount);
+    this.hosts.set(status.hosts);
+  }
+
+  /**
+   * N4.2 — the write-config-for-me button. The server owns the whole decision: which file, which
+   * key, which command path, and whether anything needed changing. This reports what came back,
+   * including "unchanged" — a button that claimed to write every time would be the same species
+   * of lie the audit found in the old status dot.
+   */
+  protected async writeConfig(host: McpHostConfig): Promise<void> {
+    const target = this.writeTarget();
+    if (!target || this.writingHost() !== null) return;
+
+    this.writingHost.set(host.id);
+    try {
+      const result = await this.api.writeMcpConfig(target.handle, host.id);
+      const text = result.action === 'unchanged'
+        ? `${result.relativePath} already points here`
+        : `${result.action === 'created' ? 'Wrote' : 'Updated'} ${result.relativePath}`;
+      this.record(host.id, { ok: true, text, title: `${result.path}\ncommand: ${result.command}` });
+      this.toast.show(`${text} — restart ${host.label} to pick it up`, 'success');
+    } catch (err) {
+      const message = errorText(err);
+      this.record(host.id, { ok: false, text: message, title: message });
+      this.toast.show(`Could not write ${host.relativePath}: ${message}`, 'error');
+    } finally {
+      this.writingHost.set(null);
+    }
+  }
+
+  private record(hostId: string, result: WrittenConfig): void {
+    this.written.update((all) => ({ ...all, [hostId]: result }));
   }
 
   /**

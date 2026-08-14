@@ -45,6 +45,33 @@ export interface McpStatus {
   readonly lastAgentTool: string;
   /** Agent-origin calls served since the server started. */
   readonly agentCallCount: number;
+  /** N4.2 — one setup card per agent host, composed server-side around the probed path. */
+  readonly hosts: readonly McpHostConfig[];
+}
+
+/**
+ * N4.2 — a host's setup card. The page renders this; it does not build one. The snippet is
+ * assembled by the same server code that writes the config file, so "copy this" and "write it
+ * for me" cannot produce two different configurations.
+ */
+export interface McpHostConfig {
+  /** "claude" | "cursor" | "vscode" — what writeMcpConfig takes. */
+  readonly id: string;
+  /** Display name. */
+  readonly label: string;
+  /** Repo-relative config path the write button produces, e.g. .vscode/mcp.json. */
+  readonly relativePath: string;
+  /** The config JSON, carrying the resolved absolute command path when one was found. */
+  readonly snippet: string;
+}
+
+/** N4.2 — what the write-config button did, reported by the side that did it. */
+export interface McpConfigWritten {
+  readonly path: string;
+  readonly relativePath: string;
+  /** "created" | "updated" | "unchanged". */
+  readonly action: string;
+  readonly command: string;
 }
 
 export interface AnalyzeSpec {
@@ -263,9 +290,30 @@ export class DevContextApi {
         lastAgentCallAtUtcMs: Number(resp.lastAgentCallAtUtcMs),
         lastAgentTool: resp.lastAgentTool,
         agentCallCount: Number(resp.agentCallCount),
+        hosts: resp.hosts.map((h) => ({
+          id: h.id,
+          label: h.label,
+          relativePath: h.relativePath,
+          snippet: h.snippet,
+        })),
       };
     } catch {
       return null;
     }
+  }
+
+  /**
+   * N4.2 (STUDIO-MCP §4, Room 2) — write the host's project-scoped MCP config into the analyzed
+   * repo. Unlike the reads above this one is allowed to fail loudly: a config that did not get
+   * written must not look like one that did, so the caller sees the error.
+   */
+  async writeMcpConfig(handle: string, host: string): Promise<McpConfigWritten> {
+    const resp = await this.client.writeMcpConfig({ handle, host });
+    return {
+      path: resp.path,
+      relativePath: resp.relativePath,
+      action: resp.action,
+      command: resp.command,
+    };
   }
 }

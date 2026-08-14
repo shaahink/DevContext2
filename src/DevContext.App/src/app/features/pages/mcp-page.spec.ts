@@ -18,6 +18,7 @@ describe('McpPage', () => {
   let stopMcp: Mock;
   let mcpHandshake: Mock;
   let observeToolCalls: Mock;
+  let writeMcpConfig: Mock;
 
   /**
    * N4.1 — the status the server MEASURED. The old page's whole status was one boolean that a
@@ -33,8 +34,24 @@ describe('McpPage', () => {
       lastAgentCallAtUtcMs: 0,
       lastAgentTool: '',
       agentCallCount: 0,
+      // N4.2 — the setup cards arrive WITH the status, composed server-side around the path the
+      // probe resolved. The page no longer owns a snippet template, so a stub that omitted these
+      // renders no cards at all — which is the point: there is one composer, and it is not here.
+      hosts: hostCards('C:/app/resources/server/devcontext-mcp.exe'),
       ...overrides,
     };
+  }
+
+  function hostCards(command: string) {
+    return [
+      { id: 'claude', label: 'Claude Code', relativePath: '.mcp.json', snippet: snippetFor('mcpServers', command) },
+      { id: 'cursor', label: 'Cursor', relativePath: '.cursor/mcp.json', snippet: snippetFor('mcpServers', command) },
+      { id: 'vscode', label: 'VS Code', relativePath: '.vscode/mcp.json', snippet: snippetFor('servers', command) },
+    ];
+  }
+
+  function snippetFor(key: string, command: string) {
+    return JSON.stringify({ [key]: { devcontext: { command, args: [] } } }, null, 2);
   }
 
   function session(overrides: Record<string, unknown> = {}) {
@@ -82,9 +99,15 @@ describe('McpPage', () => {
     observeToolCalls = vi.fn().mockReturnValue({
       async *[Symbol.asyncIterator]() { /* silent stream */ },
     });
+    writeMcpConfig = vi.fn().mockResolvedValue({
+      path: 'C:/Code/eshop/.mcp.json',
+      relativePath: '.mcp.json',
+      action: 'created',
+      command: 'C:/app/resources/server/devcontext-mcp.exe',
+    });
     TestBed.configureTestingModule({
       providers: [
-        { provide: DevContextApi, useValue: { getMcpStatus } },
+        { provide: DevContextApi, useValue: { getMcpStatus, writeMcpConfig } },
         { provide: DEVCONTEXT_CLIENT, useValue: { listSessions, startMcp, stopMcp, mcpHandshake, observeToolCalls } },
       ],
     });
@@ -125,25 +148,96 @@ describe('McpPage', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const { fixture, el } = await createPage();
 
-    (el.querySelector('[data-testid="copy-snippet-Cursor"]') as HTMLButtonElement).click();
+    (el.querySelector('[data-testid="copy-snippet-cursor"]') as HTMLButtonElement).click();
     await new Promise((r) => setTimeout(r, 5));
     fixture.detectChanges();
 
-    expect(text(el, 'copy-snippet-Cursor')).toBe('Copied!');
-    expect(text(el, 'copy-snippet-VS Code')).toBe('Copy');
-    expect(text(el, 'copy-snippet-Claude Code')).toBe('Copy');
+    expect(text(el, 'copy-snippet-cursor')).toBe('Copied!');
+    expect(text(el, 'copy-snippet-vscode')).toBe('Copy');
+    expect(text(el, 'copy-snippet-claude')).toBe('Copy');
   });
 
-  it('host snippets do not promise a command that will not resolve (§3.F.10)', async () => {
+  /**
+   * N4.2 (audit §4, Room 2 "setup that works") — the snippets used to be a constant in this file
+   * with a hard-coded C:/path/to/DevContext2/... in it: a path that read like a real machine's and
+   * existed on none. They now arrive with the status read, so what the page shows is what the
+   * server resolved and what its write-config button would produce.
+   */
+  it('host snippets carry the RESOLVED path the server probed, not a page-side placeholder', async () => {
     const { el } = await createPage();
     const snippets = [...el.querySelectorAll('pre')].map((p) => p.textContent ?? '');
 
     expect(snippets).toHaveLength(3);
     for (const s of snippets) {
-      expect(s).not.toContain('"command": "devcontext-mcp"'); // bare command is not on PATH
-      expect(s).toContain('devcontext-mcp.exe');
+      expect(s).not.toContain('"command": "devcontext-mcp"');      // bare command is not on PATH
+      expect(s).not.toContain('C:/path/to/');                       // and no invented path
+      expect(s).toContain('C:/app/resources/server/devcontext-mcp.exe');
     }
     expect(text(el, 'mcp-setup-note')).not.toContain('ships with the desktop installer');
+    // Source "bundle" is the one case where shipping-with-the-app IS true, so the note says it.
+    expect(text(el, 'mcp-setup-note')).toContain('ships beside this app');
+  });
+
+  it('with no binary found the snippet admits it instead of naming a plausible path', async () => {
+    getMcpStatus.mockResolvedValue(status({
+      binaryFound: false, binaryPath: '', binarySource: '',
+      hosts: hostCards('<absolute path to devcontext-mcp.exe>'),
+    }));
+    const { el } = await createPage();
+
+    expect(text(el, 'snippet-claude')).toContain('<absolute path to devcontext-mcp.exe>');
+    expect(text(el, 'mcp-setup-note')).toContain('dotnet build src/DevContext.Mcp');
+    // and nothing offers to write a config naming something that is not there
+    expect((el.querySelector('[data-testid="write-config-claude"]') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('write-config writes into the SELECTED analyzed repo and reports what the server did', async () => {
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    const { fixture, el } = await createPage();
+
+    expect(text(el, 'write-config-repo')).toBe('C:/Code/eshop');
+    (el.querySelector('[data-testid="write-config-vscode"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(writeMcpConfig).toHaveBeenCalledWith('handle-abcdef123456', 'vscode');
+    expect(text(el, 'write-result-vscode')).toBe('Wrote .mcp.json');
+  });
+
+  it('write-config repeats the server\'s "unchanged" instead of claiming a write', async () => {
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    writeMcpConfig.mockResolvedValue({
+      path: 'C:/Code/eshop/.mcp.json', relativePath: '.mcp.json', action: 'unchanged',
+      command: 'C:/app/resources/server/devcontext-mcp.exe',
+    });
+    const { fixture, el } = await createPage();
+
+    (el.querySelector('[data-testid="write-config-claude"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'write-result-claude')).toBe('.mcp.json already points here');
+  });
+
+  it('a refused write is shown as a failure, not as a silent no-op', async () => {
+    listSessions.mockResolvedValue({ sessions: [session()] });
+    writeMcpConfig.mockRejectedValue(new Error('.mcp.json is not valid JSON'));
+    const { fixture, el } = await createPage();
+
+    (el.querySelector('[data-testid="write-config-claude"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'write-result-claude')).toContain('not valid JSON');
+    expect(el.querySelector('[data-testid="write-result-claude"]')?.className).toContain('text-danger');
+  });
+
+  it('with no analyzed session there is nothing to write into, and the button says so', async () => {
+    const { el } = await createPage();
+
+    const button = el.querySelector('[data-testid="write-config-claude"]') as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('title')).toContain('Analyze a repo first');
   });
 
   it('the feed total counts the rows on screen, and rows carry the WIRE time (§3.F.12)', async () => {
