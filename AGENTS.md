@@ -146,9 +146,12 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 
 - **`docs/dev/research/PLAN.md` §2 STATUS — the live entry point.** The graph-v2 strand is the
   current work; §2 is written to be read cold and says what is closed and what is next (S11:
-  D-F insight dedup · D-G Studio · D-H). Findings the autonomous run filed rather than fixed are
-  in `docs/dev/research/BUG-BACKLOG.md` (31 open — the last 7 filed by the 2026-08-13 Studio/MCP
-  audit's stage N0, which also records the 10 it fixed).
+  D-F insight dedup · D-H — **D-G was settled 2026-08-14** by the pre-release desktop run's N2,
+  see `DECISIONS.md` §D-G). Findings the autonomous run filed rather than fixed are in
+  `docs/dev/research/BUG-BACKLOG.md` (**24 open as of 2026-08-14**, 7 high; the 2026-08-13
+  Studio/MCP audit's 16 §3.F items are all closed, and the file's FIXED-in-N* sections say by
+  which checkpoint). The pre-release program itself is
+  `docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md` §3 — two conductor runs, engine and desktop.
 - **No `*-START.md` sits at the repo root** — that is deliberate, and means no phase is mid-flight.
   The four closed trackers are in `docs/dev/archive/trackers/`: `GRAPH-V2-START.md` (22/22,
   2026-08-02), `PRISM-START.md`, `TAPESTRY-START.md` (T0–T8, 2026-07-17), `GITHUB-READY-START.md`.

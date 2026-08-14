@@ -22,10 +22,10 @@ renders the curated catalog the engine's T1 produces), handled by sequencing N4 
 
 | Decision | Where decided | Consequence here |
 |---|---|---|
-| Pins: IMPLEMENT | STUDIO-MCP §8.1 | Desktop N1 wires pins for real; N3 the affordances |
-| Pack convergence: FULL | STUDIO-MCP §8.2 | Desktop N2 (`BuildMulti`→`ResolveEntry`, `usage` card, type/member scope). Settles S11's D-G |
-| Hand-off: REPO FILE FIRST | STUDIO-MCP §8.3 | Desktop N3 writes `.devcontext/packs/<slug>.md` + "point your agent here" line; server-registered packs staged AFTER W1 curation freeze (deferred) |
-| MCP page: FULL DECK + SHIP BINARY | STUDIO-MCP §8.4 | Desktop N4: real status, write-config, served catalog via `ListTools`, feed in MCP vocabulary, `devcontext-mcp` in the Tauri bundle |
+| Pins: IMPLEMENT | STUDIO-MCP §8.1 | Desktop N1 wires pins for real; N3 the affordances — **SHIPPED** `e448d64` (N1.2) + `f427027` (N3.1) |
+| Pack convergence: FULL | STUDIO-MCP §8.2 | Desktop N2 (`BuildMulti`→`ResolveEntry`, `usage` card, type/member scope). Settles S11's D-G — **SHIPPED** `104c9d0`+`8c38e0b`+`e769246`; D-G written up in `DECISIONS.md` §D-G |
+| Hand-off: REPO FILE FIRST | STUDIO-MCP §8.3 | Desktop N3 writes `.devcontext/packs/<slug>.md` + "point your agent here" line; server-registered packs staged AFTER W1 curation freeze (deferred) — **SHIPPED** `6efcef6`+`032c9b8` (N3.2); the staged half is still deferred |
+| MCP page: FULL DECK + SHIP BINARY | STUDIO-MCP §8.4 | Desktop N4: real status, write-config, served catalog via `ListTools`, feed in MCP vocabulary, `devcontext-mcp` in the Tauri bundle — **SHIPPED** N4.1/N4.2/N4.3 (the RPC is named `ListMcpTools`) |
 | W-ordering: W2a before W2; W5 parallel; W6 after W2 | GRAPH-DETECTION §11 | Engine stage order V1 → E1 → R1, D1 parallelizable |
 | Adoption gate before the full study | DEEP-EVAL §4 / RESULTS §10.1 | Engine A1.2 is the $10 gate; the $200 study stays owner-gated (§6) |
 | Reader = owner refinement first | DESKTOP audit header | M1/M2/M3/M6-proper are OUT of both runs; only the proto/mapper prerequisites + hygiene ride (desktop M1 stage) |
@@ -46,15 +46,23 @@ renders the curated catalog the engine's T1 produces), handled by sequencing N4 
 
 ### Run B — desktop agent loop (`conductor.desktop.plan.json`, branch `feat/pre-release-desktop`, worktree `C:/Code/DevContext2-desktop`)
 
-| Stage | = audit item | Specification lives in | Depends on |
-|---|---|---|---|
-| **N0** truth batch | STUDIO-MCP N0 | STUDIO-MCP §3.F (no-decision items) + §5 N0 | — |
-| **N1** Studio truth + pins | STUDIO-MCP N1 (pins DECIDED) | STUDIO-MCP §5 N1 | N0 |
-| **N2** pack convergence | STUDIO-MCP N2 (FULL) | STUDIO-MCP §5 N2 + §4 wire items 4/5 | N1 |
-| **M1** hygiene + Reader prerequisites | DESKTOP M7 + §4 shopping list | DESKTOP §4 (proto items 1–4) + §5 M7 (no-decision subset) | — |
-| **N3** loop joints | STUDIO-MCP N3 + hand-off decision 3 | STUDIO-MCP §5 N3 + §4 Room 1 | N1, N2 |
-| **N4** MCP page rebuild | STUDIO-MCP N4 (FULL DECK + SHIP) | STUDIO-MCP §5 N4 + §4 Room 2 + wire items 1–3 | **Run A's T1** (curated catalog) — see §4 |
-| **Z1** close-out | — | docs/backlog reconciliation | N4 |
+| Stage | = audit item | Specification lives in | Depends on | Outcome (2026-08-14) |
+|---|---|---|---|---|
+| **N0** truth batch | STUDIO-MCP N0 | STUDIO-MCP §3.F (no-decision items) + §5 N0 | — | **DONE** 3/3 — `36bf916`, `98c5067` (10 of the 16 §3.F items) |
+| **N1** Studio truth + pins | STUDIO-MCP N1 (pins DECIDED) | STUDIO-MCP §5 N1 | N0 | **DONE** 2/2 — `56ebc25`+`e3a9bc2`, `e448d64`+`366cc3a` |
+| **N2** pack convergence | STUDIO-MCP N2 (FULL) | STUDIO-MCP §5 N2 + §4 wire items 4/5 | N1 | **DONE** 2/2 — `104c9d0`+`8c38e0b`, `e769246`; acceptance met on a real FluentValidation clone. **Settles S11's D-G** |
+| **M1** hygiene + Reader prerequisites | DESKTOP M7 + §4 shopping list | DESKTOP §4 (proto items 1–4) + §5 M7 (no-decision subset) | — | **DONE** 2/2 — `3f1db01`+`3a10029`, `e928f7a` |
+| **N3** loop joints | STUDIO-MCP N3 + hand-off decision 3 | STUDIO-MCP §5 N3 + §4 Room 1 | N1, N2 | **DONE** 2/2 — `f427027`, `6efcef6`+`032c9b8` |
+| **N4** MCP page rebuild | STUDIO-MCP N4 (FULL DECK + SHIP) | STUDIO-MCP §5 N4 + §4 Room 2 + wire items 1–3 | **Run A's T1** (curated catalog) — see §4 | **DONE** 3/3 — `7c6b6be`+`7f78edc`, `d48a122`+`7486a73`, `6c2501e`+`fbb929b`+`a4896f2`+`c41f489`. The T1 dependency was honoured by merging the engine branch first (`153c99f`) |
+| **Z1** close-out | — | docs/backlog reconciliation | N4 | **IN FLIGHT** — this table, the audit's status pass, DECISIONS §D-G, the backlog tally, then the README screenshot sync |
+
+**Run B verdict.** 14 checkpoints over 7 stages, all delivered; N5 stays deferred by §5's own
+default (§7 records it). The cross-run dependency behaved as §4 predicted — sequencing put T1 on
+the branch before N4 rendered its catalog, so nothing was left half-served. The one cross-run
+*hazard* §4 did not predict was `eval/gates.ps1` killing the sibling run's server and test hosts
+by name machine-wide; both runs went red the same hour on 2026-08-14 for that single cause, fixed
+with an OS-handle gate lock on both branches (`e926593` engine / `674a030` desktop). Any future
+two-run plan on one machine inherits that fix, not the discovery.
 
 Overlap risk between the runs is low by construction: Run A lives in `src/DevContext.Core/Graph*`,
 `src/DevContext.Mcp`, `eval/`; Run B lives in `src/DevContext.App`, proto/`DevContext.Contracts`,

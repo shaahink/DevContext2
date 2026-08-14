@@ -98,7 +98,10 @@
       surfaced one non-blocking issue, logged as `OWNER-TODO.md` §6: every action in all three
       workflows targets the deprecated Node 20 and is being force-run on Node 24.
       The four things worth carrying forward:
-      **(1) `docs/dev/research/BUG-BACKLOG.md` — 31 open findings (9 high).** Measured, evidenced,
+      **(1) `docs/dev/research/BUG-BACKLOG.md` — 24 open findings (7 high) as of 2026-08-14**, down
+      from the 31 this run exported: N0–N4 and M1 of the pre-release desktop run closed the Studio/MCP
+      items, and the engine run's closures are not deducted yet (its own Z1 reconciles them, so a
+      G-stage item there may already be fixed in code). Measured, evidenced,
       and deliberately NOT fixed because each is a product decision rather than a correction. This
       is the highest-value list in the strand. Start there, not from a fresh audit. The 7 high ones
       are mostly G4's: every MCP tool ships an EMPTY description while 31 XML doc summaries sit in
@@ -118,8 +121,9 @@
 - [ ] S11 — R3 continued: D-F · D-G · D-H · C-2/C-3 + D-3/D-4 · render kernel built AFTER the
       decisions it serves · re-point `screenshot-gate.mts` as pages land.
       **This is the next owner-interactive session.** C-2/C-3 and D-3/D-4 were delivered
-      autonomously as G5–G7, so what remains here is D-F (insight dedup, engine-side), D-G (Studio)
-      and D-H. RE-DRIVE the live app before any R3 work — a full-page screenshot cannot judge a
+      autonomously as G5–G7, and **D-G was settled and landed on 2026-08-14** by the pre-release
+      desktop run's N2 (pack convergence: FULL — `DECISIONS.md` §D-G), so what remains here is
+      **D-F (insight dedup, engine-side) and D-H**. RE-DRIVE the live app before any R3 work — a full-page screenshot cannot judge a
       canvas (`r3-canvas-zoom.mts`).
 - [~] R4 (parallel lane) — now driven by conductor as stage **G1** (`docs/dev/archive/trackers/GRAPH-V2-START.md`).
       **§1 item 1 LANDED 2026-07-29**: `map` returns the structured surface (it was dropping the

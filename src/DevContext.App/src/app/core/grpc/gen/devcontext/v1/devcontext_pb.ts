@@ -2672,7 +2672,7 @@ export const ContextResponseSchema: GenMessage<ContextResponse> = /*@__PURE__*/
  */
 export type ContextSection = Message<"devcontext.v1.ContextSection"> & {
   /**
-   * "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests"
+   * "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests" | "usage"
    *
    * @generated from field: string key = 1;
    */
@@ -2758,7 +2758,11 @@ export const ContextPackRequestSchema: GenMessage<ContextPackRequest> = /*@__PUR
  */
 export type ContextCardSpec = Message<"devcontext.v1.ContextCardSpec"> & {
   /**
-   * "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+   * The card vocabulary is single-sourced by ContextPackBuilder.CardTypeSections; N2.1 added
+   * "usage". A type absent from that table is not an error — the pack reports it back in
+   * `omitted` as a client-only type.
+   *
+   * "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity" | "usage"
    *
    * @generated from field: string type = 1;
    */

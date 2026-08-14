@@ -801,7 +801,7 @@ message ContextResponse {
 }
 
 message ContextSection {
-  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests"
+  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests" | "usage"
   int32 tokens = 2;
   string content = 3;
   repeated string source_locations = 4;  // T4.4 — repo-relative file:line set the section derived from (capped)
@@ -821,7 +821,10 @@ message ContextPackRequest {
 }
 
 message ContextCardSpec {
-  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+  // The card vocabulary is single-sourced by ContextPackBuilder.CardTypeSections; N2.1 added
+  // "usage". A type absent from that table is not an error — the pack reports it back in
+  // `omitted` as a client-only type.
+  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity" | "usage"
   string title = 2;
   repeated string entry_ids = 3;    // nodeIds of selected entries
   // N1.1 — the Studio's per-card eye toggle, on the wire at last. Stated NEGATIVELY so
