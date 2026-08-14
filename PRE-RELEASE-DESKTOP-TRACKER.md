@@ -4,19 +4,20 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N4.3 CLOSED (4 of 4) and CLAIMED DONE. Stage N4 is complete; next session starts Z1.
-LANDED s22: a4896f2 - ToolCallEvent field 11 (primary_arg) declared WITH its reader; server decodes
-x-mcp-arg1-b64 beside args_digest; feed rows render open/replay and navigate. The routing decision is
-keyed on the gRPC METHOD the server recorded, read off the generated descriptor
-(DevContextService.method.getTrace.name), NEVER on the MCP tool name - a name table here is bug #4's
-disease. GetTrace/GetNode/GetImpact -> /explore?focus; GetContext/GetContextPack -> Studio via
-StudioHandoffStore. A row whose repo is not open adopts that live session first or refuses out loud.
-c41f489 - eval/mcp-qa/deep-link-truth.js drives a REAL sidecar and subscribes to ObserveToolCalls over
-gRPC-web: 10/10 PASS (GetTrace + GetContext both carry primary_arg="GET /"). Now a gate in step 2c
-beside partial-truth. It also closed s21's NOT PROVEN - ListMcpTools live: 14 advertised, 8 specialists.
-Gates: pnpm test 277/277 (28 files), pnpm build clean, Server + Mcp builds 0w/0e, contract-sweep 0 NEW.
-NEXT (Z1.1): step 2c now costs ~1-2min more; Z1.2 screenshots need a restarted dev server (trap 5) and
-10-mcp visibly changed (feed rows gained an open/replay affordance). Evidence: eval-results/2026-08-14/N4.3-deep-links.md
+Z1.1 and Z1.2 both CLOSED and CLAIMED. **All 14 checkpoints of run B are DONE - the plan is empty.**
+d910b74 (Z1.1) - every 3.F item and every N0-N5 move in STUDIO-MCP-AUDIT carries its outcome+commit
+(16/16 closed, N5 deferred); DECISIONS.md gains a D-G subsection (SETTLED by N2, so S11 = D-F + D-H);
+BUG-BACKLOG 27 -> 24 open (#30/#31 by N2.1, #4 by N4.3), tally scoped to Run B on purpose - engine
+closures are Run A's Z1 to write up, so a G-stage item there may already be fixed in code here.
+MEASURED, do not re-derive: #31's "client-only type" branch is a WIRE-FACING GUARD, not dead code;
+#32 is still open and its repro cited a 4000 default N2.2 deleted (corrected). Also fixed: the proto's
+two card-vocabulary comments omitted "usage" (regenerated), and M1.2's table numbered a run-bug as #30.
+c1661b8 (Z1.2) - 12 shots re-captured + new 13-mcp-feed.png. TRAP: the feed has NO backlog and is
+agents-only, so /mcp can only shoot empty unless real traffic arrives while the page is subscribed -
+scripts/seed-agent-calls.mjs drives a real sidecar at the running server; and fullPage on /mcp yields
+the VIEWPORT (the shell scrolls internally), hence the second shot. README captions follow the UI.
+NEXT: nothing is open. The full battery I launched (bg full-battery, log .conductor/bg-logs/) is the
+last verdict; then merge to develop is OWNER-SIGNED, and the engine run's Z1 owns the 22-tools claim.
 
 
 ## Baseline numbers (from run.db)
