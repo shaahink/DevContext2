@@ -251,7 +251,7 @@ if ($SkipMcpQa) {
 # Every other step in this battery reads the engine from the inside: C# tests, expectation JSON,
 # the CLI. None of them speaks MCP, and that hole is exactly where bug #5 lived for a year — the
 # C# source carried 26 XML doc summaries while `tools/list` on the wire carried 22 empty strings,
-# through every green gate. So these two probes drive a REAL MCP handshake over stdio against the
+# through every green gate. So these probes drive a REAL MCP handshake over stdio against the
 # binary step 1 just built and judge the REPLY, never the source.
 #
 #   wire-truth.js    (~15s, no analyze) every tool AND parameter carries a description; the menu is
@@ -264,6 +264,11 @@ if ($SkipMcpQa) {
 #                    trace with 0 steps says why; an elided pack names the elision and the
 #                    budgetTokens lever (and the probe proves it actually found an elided pack, so
 #                    a green here can't be vacuous).
+#   deep-link-truth.js (~1-2min, analyzes TodoApi) N4.3: the desktop's MCP feed rows navigate off
+#                    two ToolCallEvent fields, so it subscribes to ObserveToolCalls over gRPC-web
+#                    and reads back what a real trace/get_context call streamed — the RPC name the
+#                    page routes on, the subject it opens, the repo it belongs to. Also the one
+#                    live drive of ListMcpTools, which serves that page's catalog.
 #
 # Both print PASS/FAIL per bar and exit non-zero on any FAIL. Proven RED first, on a real pre-fix
 # binary built from 5853ac0 (the commit before the T1 fixes): eval-results/2026-08-13/t1-wire-truth-gate/.
@@ -305,7 +310,8 @@ Write-Pass "wire truth: every tool + parameter described, menu curated, enum dia
 $ptRepo = Join-Path $repoRoot "eval-repos\TodoApi"
 if (-not (Test-Path (Join-Path $ptRepo "TodoApp.sln"))) {
     Write-Host "  SKIP  partial-truth: eval-repos\TodoApi absent (git submodule update --init)." -ForegroundColor Yellow
-    Write-Host "        NOT COVERED by this verdict: entry round-trip, trace-by-nodeId, elision honesty." -ForegroundColor Yellow
+    Write-Host "        NOT COVERED by this verdict: entry round-trip, trace-by-nodeId, elision honesty," -ForegroundColor Yellow
+    Write-Host "        and the MCP feed's deep links (deep-link-truth analyzes the same repo)." -ForegroundColor Yellow
 } else {
     $ptResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\partial-truth.js") $wireOut $ptRepo }
     $ptExit = $LASTEXITCODE
@@ -318,6 +324,24 @@ if (-not (Test-Path (Join-Path $ptRepo "TodoApp.sln"))) {
         exit 2
     }
     Write-Pass "partial truth: entry names round-trip, nodeId traces, every elision named"
+
+    # N4.3 — the MCP page's feed rows are navigable, and both halves of that decision are made
+    # from ToolCallEvent: `tool` (the gRPC method the server recorded) and `primary_arg` (the
+    # subject, stamped by the sidecar). If either stops arriving, or the RPC is spelled
+    # differently than mcp-page.ts routes on, the row silently loses its link - nothing errors and
+    # nothing logs. So it is measured on the real wire, through the same gRPC-web transport the
+    # desktop uses. Shares the TodoApi guard above: same repo, same submodule.
+    $dlResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\deep-link-truth.js") (Join-Path $wireOut "deep-link") $ptRepo }
+    $dlExit = $LASTEXITCODE
+    Write-Host (($dlResult | Select-String "PASS|FAIL|focus:|handle:") -join "`n")
+    if ($dlExit -ne 0) {
+        Write-Host ($dlResult -join "`n")
+        Write-Fail "deep-link-truth probe failed (exit $dlExit) - see $wireOut\deep-link" -Step 2
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 2c - deep-link truth)" -ForegroundColor Red
+        exit 2
+    }
+    Write-Pass "deep-link truth: feed rows carry the RPC and the subject the desktop navigates on"
 }
 
 # Step 4: CLI strict-mode matrix
