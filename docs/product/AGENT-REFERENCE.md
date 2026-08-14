@@ -37,11 +37,11 @@ The proto is the authority for server ⇄ app ⇄ MCP. RPCs:
 
 ```
 Session:   Analyze · ListSessions · CloseSession · Ping · GetStats
-Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints
-Trace:     GetTrace · GetNeighbors · GetNode · GetImpact
+Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints · GetFlowIndex
+Trace:     GetTrace · GetNeighbors · GetNode · GetImpact · GetSeam
 Search:    SearchNodes · FindTestsFor · ConfigLookup
-Source:    ReadSource · Render
-Context:   GetContext · GetContextPack · VerifyContext
+Source:    ReadSource · GetFileOverlay · Render
+Context:   GetContext · GetContextPack · VerifyContext · SavePackFile
 MCP mgmt:  StartMcp · StopMcp · GetMcpStatus · ObserveToolCalls
 ```
 

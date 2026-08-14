@@ -24,7 +24,13 @@ import { pickHeroFlow } from '../../core/flow-ranking';
         Open atlas
       </a>
 
-      <a class="btn-onboard" routerLink="/mcp">
+      <!-- N3.2 (STUDIO-MCP §5 N3, decision 3) — this used to jump to the MCP page, which answers
+           a different question: how to CONNECT an agent to this server. "Point your agent here"
+           is about handing an agent the context for this repo, and since decision 3 that has a
+           concrete artifact — the Studio composes a pack, Save writes it to .devcontext/packs/,
+           and the hand-off strip gives you the line to paste into CLAUDE.md. So the tile routes
+           through the Studio, and the MCP page stays where it is reached as MCP setup. -->
+      <a class="btn-onboard" routerLink="/context" data-testid="point-agent-here">
         <span class="i-lucide-terminal h-3.5 w-3.5"></span>
         Point your agent here
       </a>

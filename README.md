@@ -81,10 +81,15 @@ The **Table Lens** gives you a CDK-virtualized spreadsheet of every entry point 
 Assemble LLM-ready context packs with the **Context Studio** — a three-pane tool:
 - **Scope picker** (left): browse services → entries as a tree, search with omnibox, use presets like *"I'm changing this endpoint"*
 - **Composition view** (center): ordered cards for flows, signatures, bodies, DI wiring, config, entities, contracts, tests — drag to reorder, toggle body on/off
-- **Budget panel** (right): token budget slider with per-card meter, intent selector (trace / explain / review), format (markdown / plain), Copy / Save with toast feedback
+- **Budget panel** (right): token budget slider with per-card meter, intent selector (trace / explain / review), format (markdown / plain), Copy / **Save to repo** with toast feedback
 
 Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD) and carries
 **per-section provenance** — which files each section came from and how it was resolved.
+
+**Hand it to your agent.** *Save to repo* writes the pack into the repo it describes —
+`.devcontext/packs/<name>.md`, gitignored by default — and hands back a one-line instruction to
+paste into `CLAUDE.md` or your agent prompt. The pack a human composed becomes the context an
+agent reads, as a file in the tree rather than a paste that goes stale.
 
 <p align="center">
   <a href="docs/screenshots/08-context-studio.png"><img src="docs/screenshots/08-context-studio.png" alt="Context Studio" width="45%"></a>

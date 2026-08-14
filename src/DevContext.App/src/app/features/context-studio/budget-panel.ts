@@ -213,10 +213,11 @@ export interface SuggestedFocusVm {
         type="button"
         class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover disabled:opacity-30 transition-colors"
         data-testid="save-context"
-        [disabled]="cards().length === 0 || !exportReady()"
+        [disabled]="cards().length === 0 || !exportReady() || saving()"
         (click)="onSave()"
+        title="Writes the pack into this repo under .devcontext/packs/ and gives you a line to point an agent at it"
       >
-        Save
+        {{ saving() ? 'Saving…' : 'Save to repo' }}
       </button>
     </div>
   `,
@@ -235,6 +236,9 @@ export class BudgetPanel {
   readonly packPending = input(false);
   /** T5.6 (audit C1) — false while the pack is stale/absent; Copy/Save disabled, never stale bytes. */
   readonly exportReady = input(true);
+  /** N3.2 — Save is a round-trip to the server now (it writes the file), so the button has a
+   * state between click and outcome. Without it a slow write reads as a dead button. */
+  readonly saving = input(false);
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();

@@ -82,6 +82,37 @@ function errorText(err: unknown): string {
           (cardRetry)="onRetry()"
         />
 
+        <!-- N3.2 (STUDIO-MCP §8.3, decision 3) — the hand-off, after Save has written the file.
+             The pack is now an ADDRESS in the repo, so this strip says the address, whether the
+             default gitignore is actually in force, and hands over the one line that points an
+             agent at it. It also admits when the composition has moved on since the write: the
+             file is still there and the line still true, but it no longer describes what is on
+             screen, and a strip that hid that would be the same fabricated confidence again. -->
+        @if (handoffFile(); as saved) {
+          <div
+            class="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-t border-line bg-surface px-3 py-1.5 text-2xs"
+            data-testid="pack-handoff"
+          >
+            <app-icon name="check" [size]="11" class="text-success" />
+            <span class="text-ink-muted">Saved to <span class="font-mono text-ink" [title]="saved.path">{{ saved.relativePath }}</span></span>
+            @if (saved.gitignored) {
+              <span class="text-ink-subtle">· gitignored</span>
+            } @else {
+              <span class="text-warn" data-testid="handoff-not-ignored">· not gitignored — this repo's .devcontext/.gitignore does not cover packs/</span>
+            }
+            @if (handoffStale()) {
+              <span class="text-warn" data-testid="handoff-stale">· edited since — Save again to update the file</span>
+            }
+            <code class="min-w-0 flex-1 truncate font-mono text-ink-subtle" data-testid="agent-line">{{ saved.agentLine }}</code>
+            <button
+              type="button"
+              class="shrink-0 rounded border border-line px-1.5 py-0.5 text-ink-muted hover:border-accent hover:text-ink"
+              data-testid="copy-agent-line"
+              (click)="void onCopyAgentLine()"
+            >{{ agentLineCopied() ? 'Copied!' : 'Copy line for CLAUDE.md' }}</button>
+          </div>
+        }
+
         <!-- D4.5 (L4): the LIVE pack preview — renders exactly what Copy/Save serve,
              recomputed by the same debounced repack every scope/budget/intent change
              already triggers. The core loop: see the context an agent would get, live. -->
@@ -139,7 +170,8 @@ function errorText(err: unknown): string {
         [(showAllBodies)]="showAllBodies"
         [copied]="copied()"
         (copyRequest)="void onCopy()"
-        (saveRequest)="onSave()"
+        (saveRequest)="void onSave()"
+        [saving]="saving()"
         (globalBodiesChange)="onGlobalBodiesChange()"
       >
         <app-verification-panel
@@ -275,6 +307,9 @@ export class ContextStudio {
     this.packTotals.set(null);
     this.packVerification.set(null);
     this.packPending.set(false);
+    // N3.2 — the saved path belongs to the repo that was analyzed; after a switch it addresses
+    // somebody else's tree, and the agent line would point an agent at the wrong repo.
+    this.handoffFile.set(null);
   }
 
   /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes.
@@ -658,39 +693,75 @@ export class ContextStudio {
     }
   }
 
-  /** N0.1 (audit §3.F.7) — the toast follows the export instead of preceding it, and says
-   * what actually happened: this path hands the file to the browser/webview download, which
-   * is why it reports the file name rather than claiming a save location it never chose. */
-  protected onSave(): void {
-    const format = this.selectedFormat();
+  /** N3.2 — where the last Save landed, exactly as the server reported it. Null until a Save
+   * succeeds. `savedText` is kept beside it so the strip can tell the truth about drift: the
+   * file is a snapshot, and the composition on screen moves on without it. */
+  protected readonly handoffFile = signal<{
+    path: string; relativePath: string; gitignored: boolean; agentLine: string; savedText: string;
+  } | null>(null);
+
+  /** N3.2 — the composition has changed since the write. Compares the EXPORT STRING, which is
+   * what was written, not the card list: a re-pack that returns identical bytes is not drift. */
+  protected readonly handoffStale = computed(() => {
+    const saved = this.handoffFile();
+    return saved !== null && this.previewText() !== saved.savedText;
+  });
+
+  /** N3.2 — Save in flight; the button says so instead of looking inert during the RPC. */
+  protected readonly saving = signal(false);
+  protected readonly agentLineCopied = signal(false);
+
+  /** N3.2 (STUDIO-MCP §8.3, decision 3) — Save is the REPO-FILE HAND-OFF now. It used to hand
+   * the pack to the browser/webview download path, which is why its toast could name a file but
+   * never a location: it did not choose one, and in the Tauri shell "downloads" is not where a
+   * repo artifact belongs. The server writes it into the analyzed repo — the only channel that
+   * works in dev:web AND in the shipped shell, since the app's fs capabilities reach LOCALDATA
+   * and nothing else. The toast reports the path the SERVER returned; nothing here predicts it. */
+  protected async onSave(): Promise<void> {
+    const handle = this.session.handle();
     const text = this.previewText();
-    if (text === null) return;
-    const mime = format === 'plain' ? 'text/plain'
-      : format === 'json' ? 'application/json'
-      : 'text/markdown;charset=utf-8';
-    const name = this.saveFileName(format);
+    if (text === null || !handle) return;
+    this.saving.set(true);
     try {
-      const blob = new Blob([text], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = name;
-      a.click();
-      URL.revokeObjectURL(url);
+      const res = await this.api.savePackFile(handle, this.saveSlug(), text, this.selectedFormat());
+      this.handoffFile.set({
+        path: res.path,
+        relativePath: res.relativePath,
+        gitignored: res.gitignored,
+        agentLine: res.agentLine,
+        savedText: text,
+      });
+      this.toast.show(`Saved ${res.relativePath}`, 'success');
     } catch (err) {
       this.toast.show(`Save failed: ${errorText(err)}`, 'error');
-      return;
+    } finally {
+      this.saving.set(false);
     }
-    this.toast.show(`Downloading ${name}`, 'success');
   }
 
-  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt|json}`, never a hardcoded name. */
-  protected saveFileName(format: OutputFormat): string {
+  /** N3.2 — the hand-off line goes through the same WebView2-safe helper Copy uses, and the
+   * label follows the outcome rather than the click (the N0.1 §3.F.7 rule, applied here too). */
+  protected async onCopyAgentLine(): Promise<void> {
+    const saved = this.handoffFile();
+    if (saved === null) return;
+    try {
+      await copyToClipboard(saved.agentLine);
+      this.agentLineCopied.set(true);
+      this.toast.show('Line copied — paste it into CLAUDE.md or your agent prompt', 'success');
+      setTimeout(() => this.agentLineCopied.set(false), 2000);
+    } catch (err) {
+      this.toast.show(`Copy failed: ${errorText(err)}`, 'error');
+    }
+  }
+
+  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}`, never a hardcoded name. N3.2: a STEM,
+   * not a file name — the extension follows the format and is the server's to append, next to
+   * the sanitizing that keeps a slug from addressing a path. */
+  protected saveSlug(): string {
     const label = this.session.summary()?.label ?? '';
     const repo = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'devcontext';
     const date = new Date().toISOString().slice(0, 10);
-    const ext = format === 'plain' ? 'txt' : format === 'json' ? 'json' : 'md';
-    return `${repo}-context-${date}.${ext}`;
+    return `${repo}-context-${date}`;
   }
 
   /** T5.6 (audit C1) — ONE build path: exports are exactly the current server pack, or nothing

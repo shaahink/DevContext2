@@ -19,6 +19,7 @@ import type {
   ProgressEvent,
   ReadSourceResponse,
   RenderResponse,
+  SavePackFileResponse,
   SearchResponse,
   StatsResponse,
   TraceResponse,
@@ -175,6 +176,12 @@ export class DevContextApi {
       budgetTokens: options?.budgetTokens ?? 8000,
       intent: options?.intent ?? 'trace',
     });
+  }
+
+  /** N3.2 — the repo-file hand-off: the server writes the pack into the analyzed repo and
+   * reports where it went. The client proposes a slug and gets back the sanitized one. */
+  savePackFile(handle: string, slug: string, content: string, format: 'markdown' | 'plain' | 'json'): Promise<SavePackFileResponse> {
+    return this.client.savePackFile({ handle, slug, content, format });
   }
 
   readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {

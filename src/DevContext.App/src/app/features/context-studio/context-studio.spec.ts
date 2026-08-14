@@ -39,7 +39,12 @@ interface StudioTestSurface {
   onRetry(): void;
   onVerifyRefresh(): void;
   onReanalyze(): void;
-  saveFileName(format: OutputFormat): string;
+  saveSlug(): string;
+  // N3.2 — the repo-file hand-off.
+  onSave(): Promise<void>;
+  onCopyAgentLine(): Promise<void>;
+  handoffFile(): { path: string; relativePath: string; gitignored: boolean; agentLine: string } | null;
+  handoffStale(): boolean;
   buildContext(format: OutputFormat): string | null;
   // D4.5 (L4) — the live preview surface
   previewText(): string | null;
@@ -113,6 +118,8 @@ async function flush(): Promise<void> {
 
 describe('ContextStudio', () => {
   let getContextPack: Mock;
+  /** N3.2 — the repo-file hand-off RPC. */
+  let savePackFile: Mock;
   /** N1.1 — kept as a mock precisely so the specs can prove it is NEVER called: the ledger
    * rides the pack response now, so a VerifyContext RPC from the Studio is a regression. */
   let verifyContext: Mock;
@@ -131,6 +138,12 @@ describe('ContextStudio', () => {
 
   beforeEach(() => {
     getContextPack = vi.fn();
+    savePackFile = vi.fn().mockResolvedValue({
+      path: 'C:/repos/eshop/.devcontext/packs/eshop-context.md',
+      relativePath: '.devcontext/packs/eshop-context.md',
+      gitignored: true,
+      agentLine: 'Read .devcontext/packs/eshop-context.md before answering questions about this repo.',
+    });
     verifyContext = vi.fn();
     reAnalyze = vi.fn();
     handle = signal<string | null>('h1');
@@ -148,7 +161,7 @@ describe('ContextStudio', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: DevContextApi, useValue: { getContextPack, verifyContext } },
+        { provide: DevContextApi, useValue: { getContextPack, verifyContext, savePackFile } },
         { provide: PrefsStore, useValue: prefs },
         {
           provide: SessionStore,
@@ -466,7 +479,7 @@ describe('ContextStudio', () => {
     expect(json.cards[0].sections[0].sourceLocations).toContain('src/App/Handler.cs:12');
     expect(json.markdown.length).toBeGreaterThan(0);
     const date = new Date().toISOString().slice(0, 10);
-    expect(studio.saveFileName('json')).toBe(`eshop-microservices-context-${date}.json`);
+    expect(studio.saveSlug()).toBe(`eshop-microservices-context-${date}`);
   });
 
   it('previews render the sections\' real content, never a title echo (T5.5)', async () => {
@@ -676,11 +689,12 @@ describe('ContextStudio', () => {
     );
   });
 
-  it('saves as ${repo}-context-${date} with the format extension (T5.1 R5 + T5.6)', () => {
+  // N3.2 — the name is a STEM now; the extension follows the format and is appended by the server
+  // beside the sanitizing (tests/DevContext.Server.Tests/PackFileHandoffTests.cs pins both on disk).
+  it('names the pack ${repo}-context-${date}, never a hardcoded name (T5.1 R5 + T5.6)', () => {
     const { studio } = createStudio();
     const date = new Date().toISOString().slice(0, 10);
-    expect(studio.saveFileName('markdown')).toBe(`eshop-microservices-context-${date}.md`);
-    expect(studio.saveFileName('plain')).toBe(`eshop-microservices-context-${date}.txt`);
+    expect(studio.saveSlug()).toBe(`eshop-microservices-context-${date}`);
   });
 
   // ---- D4.5 (L4): the live pack preview ------------------------------------------
@@ -795,6 +809,114 @@ describe('ContextStudio', () => {
     await flush();
     expect(toast.messages().map((m) => [m.text, m.kind]))
       .toEqual([['Copy failed: no clipboard', 'error']]);
+  });
+
+  // ---------------------------------------------------------------------------------------
+  // N3.2 (STUDIO-MCP §8.3, decision 3) — the REPO-FILE HAND-OFF. Save used to be a browser
+  // download: the pack left the app and the app could not say where it went. These pin that
+  // Save now writes into the repo through the server, that the strip reports the SERVER's path
+  // rather than one predicted here, and that the point-your-agent line is real and copyable.
+  // What lands on disk is pinned on the other side, in PackFileHandoffTests.
+  // ---------------------------------------------------------------------------------------
+
+  async function savedStudio() {
+    getContextPack.mockResolvedValue(packResponse());
+    const made = createStudio();
+    made.studio.onCardsChange([flowSeed()]);
+    await flush();
+    made.fixture.detectChanges();
+    (made.fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-testid="save-context"]')!.click();
+    await flush();
+    made.fixture.detectChanges();
+    return made;
+  }
+
+  it('Save writes the pack into the repo through the server, not the browser download (N3.2)', async () => {
+    const { studio } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+
+    expect(savePackFile).toHaveBeenCalledTimes(1);
+    const [handle, slug, content, format] = savePackFile.mock.calls[0] as [string, string, string, string];
+    expect(handle).toBe('h1');
+    expect(slug).toBe(studio.saveSlug());
+    // Byte-for-byte what the preview shows — Save and Copy serve one string (D4.5 L4).
+    expect(content).toBe(studio.previewText());
+    expect(format).toBe('markdown');
+    // The toast names the path the SERVER returned; the client never predicts a location.
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Saved .devcontext/packs/eshop-context.md', 'success']]);
+  });
+
+  it('the hand-off strip renders the server path, the gitignore state and the agent line (N3.2)', async () => {
+    const { fixture } = await savedStudio();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const strip = el.querySelector('[data-testid="pack-handoff"]');
+    expect(strip).not.toBeNull();
+    expect(strip!.textContent).toContain('.devcontext/packs/eshop-context.md');
+    expect(strip!.textContent).toContain('gitignored');
+    expect(el.querySelector('[data-testid="agent-line"]')!.textContent)
+      .toContain('Read .devcontext/packs/eshop-context.md');
+    // Nothing claims a hand-off before one exists.
+    expect(el.querySelector('[data-testid="handoff-stale"]')).toBeNull();
+  });
+
+  it('says so when the repo already had a gitignore that does not cover packs (N3.2)', async () => {
+    savePackFile.mockResolvedValue({
+      path: 'C:/repos/eshop/.devcontext/packs/p.md',
+      relativePath: '.devcontext/packs/p.md',
+      gitignored: false,
+      agentLine: 'Read .devcontext/packs/p.md before answering questions about this repo.',
+    });
+    const { fixture } = await savedStudio();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="handoff-not-ignored"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="pack-handoff"]')!.textContent).not.toContain('· gitignored');
+  });
+
+  it('admits the composition moved on since the file was written (N3.2)', async () => {
+    const { fixture, studio } = await savedStudio();
+    expect(studio.handoffStale()).toBe(false);
+
+    // A re-pack with different bytes: the file on disk no longer describes what is on screen.
+    getContextPack.mockResolvedValue(packResponse({ assembledMarkdown: '# a different pack\n' }));
+    studio.onCardsChange([flowSeed('Flow: GET /orders')]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.handoffStale()).toBe(true);
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="handoff-stale"]')).not.toBeNull();
+  });
+
+  it('the point-your-agent line copies through the app clipboard helper (N3.2)', async () => {
+    const { fixture } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    const btn = (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-testid="copy-agent-line"]')!;
+    btn.click();
+    await flush();
+    fixture.detectChanges();
+
+    expect(writeText).toHaveBeenCalledWith(
+      'Read .devcontext/packs/eshop-context.md before answering questions about this repo.');
+    expect(btn.textContent?.trim()).toBe('Copied!');
+    expect(toast.messages().some((m) => m.text.includes('paste it into CLAUDE.md'))).toBe(true);
+  });
+
+  it('a failed write is reported and claims no hand-off (N3.2)', async () => {
+    savePackFile.mockRejectedValue(new Error('repo root is read-only'));
+    const { fixture, studio } = await savedStudio();
+    const toast = TestBed.inject(ToastService);
+
+    expect(studio.handoffFile()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="pack-handoff"]')).toBeNull();
+    expect(toast.messages().map((m) => [m.text, m.kind]))
+      .toEqual([['Save failed: repo root is read-only', 'error']]);
   });
 
   // ---------------------------------------------------------------------------------------
