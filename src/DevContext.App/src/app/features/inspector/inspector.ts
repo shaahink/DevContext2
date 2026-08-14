@@ -9,7 +9,7 @@ import { ToastService } from '../../ui/toast/toast';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
-import { repoRelativePath } from '../../core/format';
+import { edgeTier, repoRelativePath } from '../../core/format';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { highlightCSharp } from '../../core/code-highlight';
 import type { TraceNodeVm } from '../../models/view-models';
@@ -162,7 +162,11 @@ function isAlphanumeric(c: string): boolean {
                     <span class="shrink-0 w-8 text-2xs text-ink-subtle tabular-nums">{{ site.line > 0 ? site.line : '—' }}</span>
                     <span class="shrink-0 text-2xs text-accent">{{ site.kind }}</span>
                     <span class="min-w-0 flex-1 truncate font-mono text-2xs" [title]="site.toTitle">{{ site.toTitle }}</span>
-                    @if (site.resolution === 'Syntactic') { <span class="shrink-0 text-2xs text-warn">approx</span> }
+                    @if (edgeTier(site.resolution); as tier) {
+                      @if (tier !== 'verified') {
+                        <span class="shrink-0 text-2xs" [class.text-warn]="tier === 'approx'">{{ tier }}</span>
+                      }
+                    }
                   </button>
                 }
               }
@@ -357,6 +361,11 @@ export class Inspector {
   private readonly workspace = inject(WorkspaceStore);
 
   protected readonly isTauriEnv = isTauri();
+
+  /** V1.1 (#25) — the overlay reads the ONE edge-tier definition. It used to test
+   * the wire string inline and mark only Syntactic, so a Join site rode along unlabelled
+   * and looked as trustworthy as a Roslyn-resolved one. */
+  protected readonly edgeTier = edgeTier;
 
   /** Repo-relative display (T6.8, audit B13); absolute stays on [title] + the copy button. */
   protected relPath(filePath: string): string {
