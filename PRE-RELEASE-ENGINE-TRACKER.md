@@ -4,21 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-D1.1 + D1.2 both CLOSED (D1.2 with an AMEND: 3 of its 4 items). The instrument is
-tests/DevContext.Core.Tests/CatalogReachabilityTests.cs and it is TWO harnesses: (a) a 42-project
-SWEEP from the catalog's OWN declarations, neutrally named so SelfNamePatterns cannot mask a hole,
-6 seconds; (b) NAMED SHAPE CASES, each in its OWN one-project repo -- isolation is load-bearing,
-because signals are repo-wide and a shape in the big sweep gets its gate satisfied by a sibling.
-Adding a case = one table row. eval/expectations/catalog-reachability-allow.txt is a RATCHET both
-ways: closing a hole FAILS the sweep until you delete its line (that is how the Orleans closure
-proved itself). 5 lines left, and they ARE the work list: signal:testing (#14), kind:ScheduledJob@-
-(-> D1.4, bugs #17), kind:PublicApi@-, kind:HttpEndpoint@blazor (#15, -> D1.3),
-kind:FunctionEntry@aws-lambda (#16). NEXT = D1.3 (filed set; #14 generic command verbs is also E1.4's
-blocker, so E1.4 re-opens after it). D1.4 should write Hangfire/Quartz as SHAPE CASES and set
-BackgroundWorkerKind.TimedJob there -- that is the honest ScheduledJob producer.
-WATCH: the new <UseWPF>/<UseWindowsForms> probe is the only change that can move a real repo's
-signals; eval-repos has only eShop/TodoApi/VerticalSlice locally, so the battery's eval step is the
-first place a pole-level move would show.
+D1.3 CLAIMED WITH AN AMEND: 3 of its 5 filed items closed (796843f #14, 0a614cc blazor, 1122d02
+#20+#19), each RED-FIRST with the log kept in eval-results/2026-08-14/d1-filed/. STILL OPEN and
+inside D1.3's own text: (a) #2's detection half - addressable entry names single-sourced; (b)
+per-detection Confidence read-or-deleted - I measured that no reader exists in Core (every
+.Confidence read belongs to Insight/GraphEdge/FeatureSignal/DispatchSeamDescriptor), but the honest
+verdict is the compile-based sweep: delete Detection.Confidence, build, classify each error as a
+read or a write. E1.4 CAN NOW RE-OPEN - #14 was its stated blocker.
+THE TRAP THAT COST ME MOST: `git stash` to get a red run echoes every restored file back into
+context. Do the red run BEFORE you write the fix, or accept the cost knowingly.
+WATCH, and it is the only real risk in 1122d02: RunnableProjects now drops EXE projects when
+ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model) is true. That verdict needs an EXPLICIT
+IsPackable, so eShop/TodoApi/VerticalSlice are untouched (unit suite green, 816 tests) - but no
+LIBRARY pole exists locally, so the battery's eval step is the first place AutoMapper-shaped repos
+would show a move. McpQaGateTests failed once mid-session and passed alone on re-run: bug #1's known
+first-run-after-a-Core-change flake, not a regression.
+
 
 ## Baseline numbers (from run.db)
 
@@ -26,6 +27,7 @@ first place a pole-level move would show.
 |---|---|
 | Total checkpoints | 20 |
 | Done | 11 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -62,8 +64,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | IN PROGRESS | - | - |
-| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | TODO | - | - |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.1-EVIDENCE.md |
+| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.2-EVIDENCE.md |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | TODO | - | - |
 | D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | TODO | - | - |
 

@@ -1,0 +1,24 @@
+  Passed DevContext.Core.Tests.EntrySurfaceCatalogTests.MinimalApis_still_triggers_from_the_web_sdk_hint 
+  Passed DevContext.Core.Tests.EntrySurfaceCatalogTests.OpenApi_package_is_not_a_minimal_apis_signal 
+  Passed DevContext.Core.Tests.GraphBuilderTests.Cli_sub_command_is_titled_with_the_verb_a_user_types_and_the_tree_has_two_levels 
+  Passed DevContext.Core.Tests.GraphBuilderTests.Cli_sub_command_whose_parent_is_not_detected_keeps_its_own_verb 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.GenericCommandAttribute_IsDetected_AndCarriesTheParentCommandType 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.WpfICommand_ViewModelHelper_IsNotDetected 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.SystemCommandLine_RootCommand_WithUsing_DetectsCliCommand 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.SpectreCommand_WithSettings_DetectsCliCommand 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.NonGenericCommandAttribute_CarriesNoParent 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.BareCommandBase_WithoutSystemCommandLineUsing_IsNotDetected 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.GenericCommandAttribute_WithoutVerbString_IsStillNotDetected 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.CommandAttribute_WithVerb_DetectsCommandAndSettings 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.CommandAttribute_WithoutVerbString_IsNotDetected 
+  Passed DevContext.Core.Tests.CliCommandExtractorTests.InterfaceNameContainingICommand_IsNotDetected 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "hosted-service-unregistered") 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "winforms-exe") 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "avalonia-exe") 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Report_the_reachability_matrix 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_kind_has_a_producing_path 
+  Passed DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_signal_is_reachable_from_a_consumer_app 
+Test Run Successful.
+Total tests: 20
+     Passed: 20
+ Total time: 14.4522 Seconds

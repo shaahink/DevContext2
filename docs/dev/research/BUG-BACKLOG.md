@@ -531,6 +531,8 @@ WORKAROUND USED IN G5.1: analyse a fresh copy under a new directory name.
 
 ### #14 · G5 · A GENERIC command attribute is not recognised — `[Command&lt;ConfigCommand&gt;("init", ...)]` makes GitVersion's four SUB-commands invisible, so the command surface shows 5 verbs where the tool ships 9
 
+> **FIXED 2026-08-14 (D1.3, commit 796843f).** The filed mechanism is confirmed verbatim; the leaf is now read off the name SYNTAX and the type argument rides out as `CliCommandDetection.ParentCommandType`, which `CliCommandEntryPointBuilder.VerbPath` turns into the two-level title `config init (ConfigInitCommand)`. Red-first log: `eval-results/2026-08-14/d1-filed/bug14-red-run.txt`.
+
 ```text
 MEASURED 2026-07-29 during G5.1 on eval-repos/GitVersion (analyze --sln new-cli/GitVersion.slnx). Artifact: eval-results/2026-07-29/G5.1/raw/entries.json (5 entries) vs the repo source (9 [Command...] declarations).
 
@@ -663,9 +665,13 @@ NOT FIXED IN G6.2 (bar is arity). Related to the two-member-vocabularies bug fil
 
 ### #19 · — · Atlas/map states a FOURTH service count: STYLE evidence says "6 runnable web services" where the per-service breakdown lists 5 and the canvas draws 5 — same page, same scope, two counters
 
+> **FIXED 2026-08-14 (D1.3, commit 1122d02).** `CountRunnableWebProjects` was a third population with no production filter; it now iterates `ServiceBoundaryInference.RunnableProjects`, so the quoted count is a subset of the drawn services by construction. Red-first log: `eval-results/2026-08-14/d1-filed/bug19-bug20-red-run.txt` ("4 runnable web services" above a breakdown of 3).
+
 <a id="20"></a>
 
 ### #20 · G7 · A library's Atlas counts an auxiliary demo executable as a SERVICE: AutoMapper reads '1 services (1 drawn)' and the per-service breakdown names TestApp
+
+> **FIXED 2026-08-14 (D1.3, commit 1122d02).** `ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary` exposes the auxiliary-exe verdict the archetype ladder already made, and `RunnableProjects` reads it. Repo-level by construction, never the per-project half. Red-first log shows the exact symptom: `Collection: ["TestApp"]`.
 
 _Found in session #23._
 
