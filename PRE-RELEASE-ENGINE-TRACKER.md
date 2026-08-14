@@ -4,22 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-A1.2 CLAIMED (4f51931). Evidence eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md
-+ ADOPTION-GATE.md beside it. THE GATE CLEARS: median per-run mcp_call_share 0.306 vs the
-pre-registered 0.20 floor, so DESIGN §3.1's PROCEED branch fires - W3 runs as specified, arm B
-stays primary, B-vs-G remains a test of the MCP. Pilot (22 undescribed tools) was 0.015, 17/18
-below floor; this batch (14 curated described tools, prompt byte-unchanged) is 5/18 below.
-Pooled 0.354 and mean 0.335 clear too, so the verdict does not turn on the estimator. $6.42,
-0 censored, 0 isolation breaches; two devcontextShas in the rows are REPORT.md + the reporting
-script only, so one binary under test - verified, not assumed.
-THE TRAP THAT ATE s26 AND s27 IS SOLVED, use this shape: a `conductor bg` child dies with its
-parent, so LAUNCH FIRST TURN then BLOCK IN-SESSION on a PowerShell poll loop (45-60s sleeps,
-8-min foreground chunks) until the row count hits target. 18 runs = 22 min wall; ledger resumes
-on (question,arm,rep) so a kill only costs the row in flight.
-NEXT: STAGE A1 IS CLOSED (A1.1+A1.2 both DONE) and Z1.1/Z1.2 are the only open cards left in the
-run. Z1.1 wants "whatever A1.2 earned" in the README: the honest sentence is the 0.015 -> 0.306
-move on an unchanged prompt, and note adoption is not dominance (80 mcp vs 146 native calls).
-STILL UNBUILT, owned by nobody: questions/Driewie.json + the 2nd class-B question per repo.
+STAGE Z1 CLOSED - Z1.1 (82ede13) + Z1.2. The run is complete: T1 V1 E1 D1 R1 A1 Z1 all DONE.
+Z1.1 README honesty pass - four claims were FALSE and are fixed against measurements, not against
+other docs: "22 tools" in five places (tools/list answers 14 + 8 unlisted), "Cytoscape dagre"
+(it is ELK; package.json has no dagre), "no hallucinated code" (refuted by our OWN backlog #6,
+126/2453 phantom edges), and a gate-battery block listing five commands that are NOT the battery.
+The agent story is now stated as measured with both evidence links: 0.015 -> 0.306 vs the 0.20
+pre-registered floor, adoption is not dominance (80 mcp vs 146 native), primer-not-accelerator
+named out loud. Release-gate statuses are a Status column in PRE-RELEASE-PLAN section 8.
+Z1.2 BUG-BACKLOG reconciled: 24 filed -> 16 FIXED (each with an artifact path), 2 RETIRED,
+1 HELD-premise-REFUTED, 5 open of which only #3/#13/#16 are this engine's. The 18 defects this
+run filed into the gitignored run.db are now in that file too, or they die with the run.
+NEXT SESSION / OWNER: gate 1 (ripgrep test) is NOT MET and cannot be met here - eval-repos/ holds
+only eShop, TodoApi, VerticalSlice; DntSite has no checkout, AutoMapper is not in eval-repos.json,
+and PRODUCT-DIRECTION section 9's Blazor row still reads "(add one)", so that shape NEVER had a
+repo. It is a repo decision, not an engine defect. Gate 4 (unseen-repo non-inferiority, ~$200)
+is owner-gated and unrun, so the DEEP-EVAL allowed-to-fail branch IS the live release story and
+the README says so. Merge to develop remains owner-signed.
 
 
 ## Baseline numbers (from run.db)

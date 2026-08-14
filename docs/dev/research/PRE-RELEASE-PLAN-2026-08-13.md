@@ -34,15 +34,15 @@ renders the curated catalog the engine's T1 produces), handled by sequencing N4 
 
 ### Run A — engine & agent face (`conductor.engine.plan.json`, branch `feat/pre-release-engine`, worktree `C:/Code/DevContext2-engine`)
 
-| Stage | = audit item | Specification lives in | Depends on |
-|---|---|---|---|
-| **T1** trust pack | DEEP-EVAL W1.1–W1.4 | DEEP-EVAL §4 W1 + BUG-BACKLOG #5/#6/#10/#9/#2 | — |
-| **V1** one-vocabulary pack | GRAPH-DETECTION W2a | GRAPH-DETECTION §3.3 (#25, #17, #7-rider, #18) | — |
-| **E1** edge completeness | DEEP-EVAL W2 + GRAPH-DETECTION W2b | GRAPH-DETECTION §3.1 + §4.1/4.2 (#11→#12/TextSpan→re-measure #8→#7; dogfood invariant; matrix batch) | V1 (honest currency for acceptance numbers) |
-| **D1** detection declared-coverage | GRAPH-DETECTION W5 | GRAPH-DETECTION §8–9 (catalog-reachability instrument → Orleans/hosted/TimedJob/Avalonia → #14/#20/#2 → rung-4 jobs) | — (independent of E1 by design) |
-| **R1** metric recalibration | GRAPH-DETECTION W6 | GRAPH-DETECTION §3.3 #22/#23/#24, G10 discipline | E1 (thresholds read the post-E1 Semantic share) |
-| **A1** re-probe prep + adoption gate | DEEP-EVAL W3.7 + the §2.3 design debts | RESULTS.md §10, DESIGN.md, DEEP-EVAL §4 W3 | T1 (the gate measures the fixed surface) |
-| **Z1** close-out | DEEP-EVAL W4.11 + release-gate table | DEEP-EVAL §4 gate table; this doc §6 | A1 |
+| Stage | = audit item | Specification lives in | Depends on | Status (2026-08-14) |
+|---|---|---|---|---|
+| **T1** trust pack | DEEP-EVAL W1.1–W1.4 | DEEP-EVAL §4 W1 + BUG-BACKLOG #5/#6/#10/#9/#2 | — | **DONE** 4/4. #5/#6/#9/#10 and #2's agent half closed; menu curated 22 → 14 advertised + 8 unlisted; wire-truth gate now in the battery, proven red first |
+| **V1** one-vocabulary pack | GRAPH-DETECTION W2a | GRAPH-DETECTION §3.3 (#25, #17, #7-rider, #18) | — | **DONE** 3/3. #25, #17, #18 and the #7 rider closed; two standing invariants land red-first |
+| **E1** edge completeness | DEEP-EVAL W2 + GRAPH-DETECTION W2b | GRAPH-DETECTION §3.1 + §4.1/4.2 (#11→#12/TextSpan→re-measure #8→#7; dogfood invariant; matrix batch) | V1 (honest currency for acceptance numbers) | **DONE** 4/4. #11, #12, #7, #8 closed — #8 re-measured first because #11 refuted its stated mechanism; dogfood in-edge invariant in the battery; 13 new defects filed |
+| **D1** detection declared-coverage | GRAPH-DETECTION W5 | GRAPH-DETECTION §8–9 (catalog-reachability instrument → Orleans/hosted/TimedJob/Avalonia → #14/#20/#2 → rung-4 jobs) | — (independent of E1 by design) | **DONE** 4/4. Catalog-reachability instrument proven red on Orleans/TimedJob; #14/#19/#20 and #2's detection half closed; Hangfire + Quartz rung-4 entries |
+| **R1** metric recalibration | GRAPH-DETECTION W6 | GRAPH-DETECTION §3.3 #22/#23/#24, G10 discipline | E1 (thresholds read the post-E1 Semantic share) | **DONE** 1/1, and two premises did not survive: #22 RETIRED (it now fires, measured precision 0/10), #23 HELD but its "never fires" premise REFUTED, #24 RETIRED (saturated) |
+| **A1** re-probe prep + adoption gate | DEEP-EVAL W3.7 + the §2.3 design debts | RESULTS.md §10, DESIGN.md, DEEP-EVAL §4 W3 | T1 (the gate measures the fixed surface) | **DONE** 2/2. DESIGN amended + unseen repo built and build-verified; adoption gate **CLEARED** — median `mcp_call_share` 0.015 → **0.306** vs the 0.20 floor, so §3.1's PROCEED branch fired |
+| **Z1** close-out | DEEP-EVAL W4.11 + release-gate table | DEEP-EVAL §4 gate table; this doc §6 | A1 | **DONE** 2/2. Z1.1 README honesty pass + §8 gate statuses; Z1.2 backlog reconciled (24 → 5 open, only 2 this engine's), this table, full battery, push |
 
 ### Run B — desktop agent loop (`conductor.desktop.plan.json`, branch `feat/pre-release-desktop`, worktree `C:/Code/DevContext2-desktop`)
 
