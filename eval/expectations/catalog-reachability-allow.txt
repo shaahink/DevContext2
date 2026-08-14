@@ -1,0 +1,29 @@
+# catalog-reachability-allow.txt — the KNOWN holes in the entry-surface catalog.
+#
+# CatalogReachabilityTests (D1.1) generates a consumer-app repo from the catalog's OWN declarations,
+# analyses it, and asserts two properties per descriptor: its signal fires (P1) and its declared Kind
+# is produced by its own project (P2). Every line below is a descriptor that FAILS one of those.
+#
+# This file is a RATCHET, not a mute. The sweep fails in BOTH directions: an unlisted hole fails, and
+# a listed hole that has been CLOSED also fails ("delete this line"). So closing one in D1.2/D1.3
+# means deleting its line in the same commit.
+#
+# Format:  <id> = <measured reason>
+#   signal:<key>              — no consumer app can fire this signal
+#   kind:<Kind>@<signal|->    — this descriptor's own consumer-app shape does not produce its Kind
+#
+# Reasons are MEASURED (the sweep run + the named source lines), not read off a doc comment.
+
+signal:orleans = Descriptor ships Packages:[] and SdkHints:[]; PackageSignalMap/SdkSignalMap (DependencyExtractor.cs:13-47) are built ONLY from those, so the sole mechanism left is SelfNamePatterns ["Orleans","Microsoft.Orleans"] — a self-source map keyed on the ANALYSED repo's own project names, i.e. "this repo IS Orleans". A consumer app referencing Microsoft.Orleans.Server/.Client/.Sdk fires nothing. D1.2 closes it by putting the Orleans packages on the descriptor.
+
+signal:testing = Same shape as orleans: Packages:[] with SelfNamePatterns ["xunit","nunit"] only. A consumer repo's test project is named Foo.Tests and references xunit as a PACKAGE, so it never matches the project-name map. Secondary barrier measured in the source: DependencyExtractor's package loop skips test paths outright (IsSuppressedPath -> ProjectClassifier.IsTestPath, DependencyExtractor.cs:82-83,125), so declaring the packages alone would not be enough.
+
+kind:GrainMethod@orleans = Downstream of signal:orleans — OrleansGrainExtractor.ShouldRun gates on the orleans signal, so with no signal there is no detection and no entry. A grain (IGrainWithStringKey + Grain subclass) in the fixture produces nothing at all.
+
+kind:ScheduledJob@- = The shape a consumer app actually writes for a nightly job (a BackgroundService driving a PeriodicTimer, registered with AddHostedService<T>) produces a HostedService entry, measured. WorkerEntryPointBuilder.cs:23-26 has exactly two ScheduledJob paths: BackgroundWorkerKind.TimedJob — which NO producer ever sets (the enum declaration and this check are its only two references in Core) — and ServiceType=="DNTScheduler", set only by ProgramCsFlowExtractor.ExtractSchedulerJobs for AddJob<T>/AddScheduledTask<T>. So the kind is reachable only through one niche library.
+
+kind:PublicApi@- = No IEntryPointBuilder emits PublicApi: a public library class produces no entry at all. The kind is synthesized only by EntryPointResolver/TraceBuilder for focus/trace bridging, and ArchetypeProjection.CollectPublicApiEntries is dead because Library archetypes route to LibrarySurfaceRenderer instead.
+
+kind:HttpEndpoint@blazor = The CATALOG is the stale side here, not the engine. HttpEntryPointBuilder.cs:201-203 deliberately emits UiEntry for a .razor @page ("a Blazor page route is an interactive UI entry, NOT an HTTP REST endpoint" — T1.7, which stopped Blazor pages polluting the anonymous-endpoint security insight), and the sweep measures exactly that: the blazor project produces UiEntry. The descriptor still declares Kind: HttpEndpoint / RenderLabel "HTTP". Reconciling the two is D1.3's filed "Blazor UI-vs-HTTP distinction" item.
+
+kind:FunctionEntry@aws-lambda = AwsLambdaExtractor.cs:41-68 requires a [LambdaFunction] or [FunctionHandler] class ATTRIBUTE, or an ILambdaFunction base type. The canonical template shape — the class `dotnet new lambda.EmptyFunction` writes, `public string FunctionHandler(string input, ILambdaContext context)`, with only Amazon.Lambda.Core referenced — has none of the three (the attributes ship in the separate Amazon.Lambda.Annotations package), so the signal fires and the extractor still produces nothing.
