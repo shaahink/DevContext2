@@ -4,28 +4,28 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-E1.4 CLAIMED with an AMEND, not a green: half B (batch matrix) passes on every declared cell across
-all 7 poles; half A (class-C impact set on eShop) FAILS 3/6 key items and cannot be met inside E1.
-Evidence eval-results/2026-08-14/e1-batch/E1.4-EVIDENCE.md; commits 6d0dbac measurement, then the fix.
-THE NUMBER TO CARRY: impact(up) on CreateOrderCommandHandler = 2 nodes (the command, and Type:bool).
-impact(both) is an undirected 207/1137-node flood, so every "resolved" key item was a dragnet hit.
-Five mechanisms attributed and FILED as bugs #7-#13. The blocker is #7 = backlog #14: Sends stops at
-IdentifiedCommand`2 and never names CreateOrderCommand -- that is D1.3's own filed item, so E1.4
-should be RE-OPENED AFTER D1.3, not re-attempted here. Bugs #8 (inherited-interface Handles join) and
-#12 (no cross-service event join) are the other two blockers.
-LANDED THIS SESSION: eval/mcp-qa/classc-impact.js (repeatable, scores against the sealed key), and the
-one E1-scoped defect FIXED red-first -- a request marker (`X : IRequest<bool>`) was read as a HANDLER,
-minting Type:bool and Type:R (a generic parameter) and 8 false edges. Renderers updated with it (R-T1).
-NEXT: R1.1 (recalibrate #22/#23/#24 against the post-E1 graph). Bugs #5 and #6 still open.
-
+D1.1 + D1.2 both CLOSED (D1.2 with an AMEND: 3 of its 4 items). The instrument is
+tests/DevContext.Core.Tests/CatalogReachabilityTests.cs and it is TWO harnesses: (a) a 42-project
+SWEEP from the catalog's OWN declarations, neutrally named so SelfNamePatterns cannot mask a hole,
+6 seconds; (b) NAMED SHAPE CASES, each in its OWN one-project repo -- isolation is load-bearing,
+because signals are repo-wide and a shape in the big sweep gets its gate satisfied by a sibling.
+Adding a case = one table row. eval/expectations/catalog-reachability-allow.txt is a RATCHET both
+ways: closing a hole FAILS the sweep until you delete its line (that is how the Orleans closure
+proved itself). 5 lines left, and they ARE the work list: signal:testing (#14), kind:ScheduledJob@-
+(-> D1.4, bugs #17), kind:PublicApi@-, kind:HttpEndpoint@blazor (#15, -> D1.3),
+kind:FunctionEntry@aws-lambda (#16). NEXT = D1.3 (filed set; #14 generic command verbs is also E1.4's
+blocker, so E1.4 re-opens after it). D1.4 should write Hangfire/Quartz as SHAPE CASES and set
+BackgroundWorkerKind.TimedJob there -- that is the honest ScheduledJob producer.
+WATCH: the new <UseWPF>/<UseWindowsForms> probe is the only change that can move a real repo's
+signals; eval-repos has only eShop/TodoApi/VerticalSlice locally, so the battery's eval step is the
+first place a pole-level move would show.
 
 ## Baseline numbers (from run.db)
 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
-| Done | 7 |
-| Claimed (unconfirmed) | 3 |
+| Done | 11 |
 
 ## Checkpoints
 
@@ -53,16 +53,16 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | DONE | abfa564 | eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md |
-| E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | DONE | 8f0ce0a | eval-results/2026-08-13/e1-span/E1.2-EVIDENCE.md |
-| E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | DONE | f686e25 | eval-results/2026-08-13/e1-typenode/E1.3-EVIDENCE.md |
-| E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | TODO | - | - |
+| E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | DONE ✓ | abfa564 | eval-results/2026-08-13/e1-edges/E1.1-EVIDENCE.md |
+| E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | DONE ✓ | 8f0ce0a | eval-results/2026-08-13/e1-span/E1.2-EVIDENCE.md |
+| E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | DONE ✓ | f686e25 | eval-results/2026-08-13/e1-typenode/E1.3-EVIDENCE.md |
+| E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | DONE ✓ | 6d0dbac | eval-results/2026-08-14/e1-batch/E1.4-EVIDENCE.md |
 
 ### D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | TODO | - | - |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | IN PROGRESS | - | - |
 | D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | TODO | - | - |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | TODO | - | - |
 | D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | TODO | - | - |
