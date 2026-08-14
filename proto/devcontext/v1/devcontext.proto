@@ -125,6 +125,11 @@ service DevContextService {
   // initialize + tools/list JSON-RPC round trip over stdio. This is the only check that
   // proves the thing a host will spawn actually answers; everything else is inference.
   rpc McpHandshake(McpHandshakeRequest) returns (McpHandshakeResponse);
+  // N4.2 (audit §4 Room 2, "setup that works") — write the host's MCP config FOR the user
+  // instead of asking them to paste a snippet and get the path right. Server-side for the same
+  // reason SavePackFile is (N3.2): the client has no file system it can reach, and only this
+  // side knows both the repo root and the resolved devcontext-mcp path.
+  rpc WriteMcpConfig(WriteMcpConfigRequest) returns (WriteMcpConfigResponse);
   rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
@@ -995,6 +1000,22 @@ message GetMcpStatusResponse {
   string last_agent_tool = 7;
   // How many agent-origin tool calls this server has served since it started.
   int64 agent_call_count = 8;
+  // N4.2 — the host setup cards, composed HERE from the probe above. The snippet a user copies
+  // and the file the write-config button produces are then the same string built once: the page
+  // used to compose its own snippet around a hard-coded placeholder, which is how it came to
+  // advertise a path that existed on nobody's machine.
+  repeated McpHostConfig hosts = 9;
+}
+
+// N4.2 — one agent host's setup card.
+message McpHostConfig {
+  string id = 1;             // "claude" | "cursor" | "vscode" — what WriteMcpConfig takes
+  string label = 2;          // display name of the host
+  string relative_path = 3;  // repo-relative config file the write button produces
+  // The config JSON for this host, carrying the RESOLVED absolute path when the probe found a
+  // binary — and a visibly bracketed placeholder when it did not, because a snippet that names
+  // a plausible-looking path nobody has is worse than one that admits it.
+  string snippet = 4;
 }
 
 message McpHandshakeRequest {}
@@ -1017,6 +1038,33 @@ message McpHandshakeResponse {
   int64 elapsed_ms = 8;
   // Empty when ok; otherwise what went wrong, in a form a human can act on.
   string error = 9;
+}
+
+// ---------------------------------------------------------------------------
+// N4.2 (audit §4 Room 2) — write-config-for-me
+// ---------------------------------------------------------------------------
+
+message WriteMcpConfigRequest {
+  // The analysed session whose repo receives the config. PROJECT-scoped on purpose: a
+  // user-global host config (~/.claude.json, ~/.cursor/mcp.json) is a file this server cannot
+  // see, cannot verify it wrote correctly, and would be destructive to get wrong. The repo the
+  // user just analysed is the one they want the agent pointed at anyway.
+  string handle = 1;
+  // Host id, not the display label: "claude" | "cursor" | "vscode". Unknown ids are rejected.
+  string host = 2;
+}
+
+// Written by the side that did the writing — the client predicts none of it (it knows neither
+// the repo root nor which devcontext-mcp the probe resolved).
+message WriteMcpConfigResponse {
+  string path = 1;            // absolute path of the config file written
+  string relative_path = 2;   // repo-relative, e.g. .mcp.json or .vscode/mcp.json
+  // "created" (no config existed), "updated" (merged into one that did — other servers in the
+  // file are preserved), or "unchanged" (it already named this exact command).
+  string action = 3;
+  // The devcontext-mcp path that was written into the config: the same one the status probe
+  // resolved, so the snippet on screen and the file on disk cannot disagree.
+  string command = 4;
 }
 
 message ObserveToolCallsRequest {}

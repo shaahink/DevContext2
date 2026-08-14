@@ -7,7 +7,7 @@
     "frontendDist": "../dist/devcontext-app/browser",
     "devUrl": "http://localhost:4200",
     "beforeDevCommand": "pnpm start",
-    "beforeBuildCommand": "pnpm publish:server && pnpm build"
+    "beforeBuildCommand": "pnpm publish:sidecars && pnpm build"
   },
   "app": {
     "windows": [],

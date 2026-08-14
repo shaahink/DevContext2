@@ -712,7 +712,7 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.GetMcpStatusResponse> GetMcpStatus(Proto.GetMcpStatusRequest request, ServerCallContext context)
     {
         var binary = McpBinaryLocator.Probe();
-        return Task.FromResult(new Proto.GetMcpStatusResponse
+        var response = new Proto.GetMcpStatusResponse
         {
             ObserverCount = mcpObs.ObserverCount,
             McpBinaryFound = binary.Found,
@@ -721,7 +721,22 @@ public sealed class DevContextGrpcService(
             LastAgentCallAtUtcMs = mcpObs.LastAgentCallAtUtcMs,
             LastAgentTool = mcpObs.LastAgentTool,
             AgentCallCount = mcpObs.AgentCallCount,
-        });
+        };
+
+        // N4.2 — the setup cards are composed from the SAME probe, so the snippet on screen names
+        // the binary this server just found rather than a placeholder the page invented.
+        foreach (var target in McpConfigWriter.Targets)
+        {
+            response.Hosts.Add(new Proto.McpHostConfig
+            {
+                Id = target.Id,
+                Label = target.Label,
+                RelativePath = target.RelativePath,
+                Snippet = McpConfigWriter.SnippetFor(target, binary),
+            });
+        }
+
+        return Task.FromResult(response);
     }
 
     /// <summary>N4.1 — spawn the resolved devcontext-mcp binary and run one real
@@ -748,6 +763,32 @@ public sealed class DevContextGrpcService(
         response.ToolNames.AddRange(result.ToolNames);
         return response;
     }
+
+    /// <summary>N4.2 (audit §4 Room 2, "setup that works") — write the host's MCP config instead
+    /// of handing over a snippet with a placeholder in it. Project-scoped, merged into whatever
+    /// is already there; see <see cref="McpConfigWriter"/> for why it is not the user-global
+    /// file. The command written is the same probe result the status card renders.</summary>
+    public override Task<Proto.WriteMcpConfigResponse> WriteMcpConfig(
+        Proto.WriteMcpConfigRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var target = McpConfigWriter.TargetFor(request.Host)
+                ?? throw new RpcException(new Status(
+                    StatusCode.InvalidArgument,
+                    $"Unknown MCP host '{request.Host}' — known hosts: {string.Join(", ", McpConfigWriter.Targets.Select(t => t.Id))}"));
+
+            // The ANALYZED root, exactly as SavePackFile picks it (N3.2): the config points an
+            // agent at the tree the session's file:line references belong to.
+            var root = session.Snapshot.RootPath is { Length: > 0 } r ? r : session.RepoRoot;
+            var written = McpConfigWriter.Write(root, target, McpBinaryLocator.Probe());
+            return new Proto.WriteMcpConfigResponse
+            {
+                Path = written.Path,
+                RelativePath = written.RelativePath,
+                Action = written.Action,
+                Command = written.Command,
+            };
+        });
 
     public override async Task ObserveToolCalls(
         Proto.ObserveToolCallsRequest request,

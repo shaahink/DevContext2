@@ -24,14 +24,24 @@ tool-**call** feed, and a try-a-tool sandbox.
 
 ## Setup
 
-Build once from the repo root — this produces both the MCP exe and the server it spawns:
+**Installed the desktop app?** `devcontext-mcp` ships inside the installer (N4.2), beside the
+server under the app's `resources/server/`. Open the desktop app's **MCP** page: the status card
+names the resolved absolute path it found, each host card's snippet already contains that path,
+and **Write `.mcp.json`** (or `.cursor/mcp.json` / `.vscode/mcp.json`) writes the config into the
+repo you have analyzed — merging with any MCP servers already registered there, never replacing
+them. **Test handshake** on the same page spawns that exe and runs one real `initialize` +
+`tools/list` round trip, so you can see it answer before you point an agent at it.
+
+**Working from source?** Build once from the repo root — this produces both the MCP exe and the
+server it spawns:
 
 ```powershell
 dotnet build DevContext.slnx
 ```
 
 Then register the built exe with your client (it is not yet a global `dotnet tool` — use the full
-path or put the directory on `PATH`):
+path or put the directory on `PATH`). The paths below are placeholders; the desktop MCP page
+prints the real one for your machine:
 
 **Claude Code / Cursor** (`.mcp.json` / MCP settings):
 
