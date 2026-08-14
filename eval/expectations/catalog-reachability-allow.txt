@@ -14,11 +14,7 @@
 #
 # Reasons are MEASURED (the sweep run + the named source lines), not read off a doc comment.
 
-signal:orleans = Descriptor ships Packages:[] and SdkHints:[]; PackageSignalMap/SdkSignalMap (DependencyExtractor.cs:13-47) are built ONLY from those, so the sole mechanism left is SelfNamePatterns ["Orleans","Microsoft.Orleans"] — a self-source map keyed on the ANALYSED repo's own project names, i.e. "this repo IS Orleans". A consumer app referencing Microsoft.Orleans.Server/.Client/.Sdk fires nothing. D1.2 closes it by putting the Orleans packages on the descriptor.
-
 signal:testing = Same shape as orleans: Packages:[] with SelfNamePatterns ["xunit","nunit"] only. A consumer repo's test project is named Foo.Tests and references xunit as a PACKAGE, so it never matches the project-name map. Secondary barrier measured in the source: DependencyExtractor's package loop skips test paths outright (IsSuppressedPath -> ProjectClassifier.IsTestPath, DependencyExtractor.cs:82-83,125), so declaring the packages alone would not be enough.
-
-kind:GrainMethod@orleans = Downstream of signal:orleans — OrleansGrainExtractor.ShouldRun gates on the orleans signal, so with no signal there is no detection and no entry. A grain (IGrainWithStringKey + Grain subclass) in the fixture produces nothing at all.
 
 kind:ScheduledJob@- = The shape a consumer app actually writes for a nightly job (a BackgroundService driving a PeriodicTimer, registered with AddHostedService<T>) produces a HostedService entry, measured. WorkerEntryPointBuilder.cs:23-26 has exactly two ScheduledJob paths: BackgroundWorkerKind.TimedJob — which NO producer ever sets (the enum declaration and this check are its only two references in Core) — and ServiceType=="DNTScheduler", set only by ProgramCsFlowExtractor.ExtractSchedulerJobs for AddJob<T>/AddScheduledTask<T>. So the kind is reachable only through one niche library.
 

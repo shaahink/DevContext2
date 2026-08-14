@@ -213,11 +213,22 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["MassTransit"]),
 
+        // D1.2 — the packages are what makes this descriptor reachable AT ALL. With `Packages: []` the
+        // only mechanism left was SelfNamePatterns, which is a SELF-SOURCE map keyed on the analysed
+        // repo's own project names ("this repo IS Orleans") — so a consumer app referencing Orleans
+        // fired no signal, OrleansGrainExtractor never ran, and GrainMethod entries could not exist
+        // outside Orleans' own repo (which self-sources to Library). Measured by
+        // CatalogReachabilityTests. One FAMILY KEY, the same idiom "AspNetCore.HealthChecks" already
+        // uses here: TryMatchSignal falls back to prefix matching, so this covers .Server (silo host),
+        // .Client, .Sdk (grain + interface classlibs), .Core and every .Persistence.*/.Clustering.*
+        // provider. Listing the four leaf ids instead would miss a provider-only project — measured.
+        // The self-source guard still wins on Orleans' own repo: a self-sourced key cannot be
+        // re-registered from a PackageReference (DependencyExtractor.cs:125, 195).
         new(SignalKey: ArchitectureSignals.Keys.Orleans,
             Kind:       EntryPointKind.GrainMethod,
             RenderLabel:"Orleans",
             Role:       SurfaceRole.AppEntry,
-            Packages:   [],
+            Packages:   ["Microsoft.Orleans"],
             SdkHints:   [],
             SelfNamePatterns: ["Orleans", "Microsoft.Orleans"]),
 
