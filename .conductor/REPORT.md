@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 05:26 UTC · branch `` · HEAD ``_
+_Updated 2026-08-14 10:55 UTC · branch `feat/pre-release-desktop` · HEAD `96dba52`_
 
-**Status:** Idle — advisor: human intervention required [0s ago, 05:26:56Z]
-**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 3
+**Status:** Idle — advisor: human intervention required [5h 28m ago, 05:26:56Z]
+**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0
 **Checkpoints:** 14/16 done · **Sessions run:** 24 · **Cost:** $174.1670 (agent $173.9954 + gates $0.1716) · **Tokens:** 2,763,891 in / 1,086,129 out
-**Confirmed phases:** N0, N1, N2, M1, N3
+**Confirmed phases:** N0, N1, N2, M1, N3, N4
 
 ## Stage progress
 
@@ -16,7 +16,7 @@ _Updated 2026-08-14 05:26 UTC · branch `` · HEAD ``_
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | confirmed ✓ |
-| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ██████████ 3/3 | gating… |
+| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ██████████ 3/3 | confirmed ✓ |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (3/3)</summary>
@@ -125,10 +125,8 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
 | stage N3 | 2 | 34.6M | 98.6% | $23.90 | 2 | 17.3M | $11.95 |
-| stage N4 | 5 | 71.4M | 98.5% | $50.47 | 3 | 23.8M | $16.82 |
-| stage (no stage) | 1 | 0M | - | $0.00 | - | - | - |
-| 2026-08 | 23 | 243.9M | 98.5% | $174.19 | 14 | 17.4M | $12.44 |
-| unknown | 1 | 0M | - | $0.00 | - | - | - |
+| stage N4 | 6 | 71.4M | 98.5% | $50.47 | 3 | 23.8M | $16.82 |
+| 2026-08 | 24 | 243.9M | 98.5% | $174.19 | 14 | 17.4M | $12.44 |
 
 _Where the money goes: agent $174.00 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
 
@@ -137,15 +135,6 @@ _Where the money goes: agent $174.00 (100%) · gate $0.17 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 00:05:41  ▪ gate fast-engine pass [phase]  (1m51s)
-08-14 00:05:42  ▪ gate guards pass [phase]  (1m06s)
-08-14 00:05:42  ▪ gate battery FAIL [phase]  (56.6s)
-08-14 00:05:51  • session #16 M1 Fix started (attempt 2/4)
-08-14 00:16:09  • session #16 M1 → Progress · 2 commit(s)  (10m17s)
-08-14 00:50:30  ▪ gate fast-app pass [phase]  (6m39s)
-08-14 00:50:30  ▪ gate fast-engine pass [phase]  (2m03s)
-08-14 00:50:30  ▪ gate guards pass [phase]  (1m18s)
-08-14 00:50:31  ▪ gate battery pass [phase]  (14m26s)
 08-14 00:50:31  ✓ checkpoint M1.1 confirmed
 08-14 00:50:31  ✓ checkpoint M1.2 confirmed
 08-14 00:50:31  ▸ stage M1 confirmed  (2h01m57s)
@@ -177,6 +166,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 06:26:54  • session #23 N4 → AgentError  (1h01m29s)
 08-14 06:26:55  • session #24 N4 Fix started (attempt 3/6)
 08-14 06:26:56  ■ needs human — advisor: human intervention required
+08-14 06:26:56  • session #24 N4 → AgentError  (1.3s)
+08-14 11:18:37  ◆ run resumed · DevContext pre-release - desktop agent loop
+08-14 11:54:56  ▪ gate fast-app pass [phase]  (16m13s)
+08-14 11:54:56  ▪ gate fast-engine pass [phase]  (3m06s)
+08-14 11:54:57  ▪ gate guards pass [phase]  (3m10s)
+08-14 11:54:57  ▪ gate battery pass [phase]  (13m40s)
+08-14 11:54:57  ✓ checkpoint N4.1 confirmed
+08-14 11:54:57  ✓ checkpoint N4.2 confirmed
+08-14 11:54:57  ✓ checkpoint N4.3 confirmed
 ```
 
 ## Health
@@ -188,7 +186,7 @@ sessions 24 · retries 9 (38 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #21: 23,529,294 context tokens (≥ 20,000,000)
-⚠ [gate-oscillation] gate 'battery' flipped pass/fail 4x
+⚠ [gate-oscillation] gate 'battery' flipped pass/fail 5x
 ```
 
 ## Repo
@@ -196,8 +194,9 @@ sessions 24 · retries 9 (38 %) · overall Alert
 _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
-branch: ?
-working tree: clean
+branch: feat/pre-release-desktop
+working tree: M eval-results/2026-08-14/mcp-qa.md
+vs upstream: up to date
 ```
 
 ### Commits by session
@@ -244,6 +243,10 @@ working tree: clean
   - [`f7789a7`](https://github.com/shaahink/DevContext2/commit/f7789a7) docs(n4): N4.3 handoff - stage N4 closed, next session starts Z1
   - [`c41f489`](https://github.com/shaahink/DevContext2/commit/c41f489) test(mcp): N4.3 - measure the deep links on the wire, and make it a gate
   - [`a4896f2`](https://github.com/shaahink/DevContext2/commit/a4896f2) feat(mcp-page): N4.3 - the feed stops being a window and becomes a door
+
+## Last gate run
+
+fast-app:OK · fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
