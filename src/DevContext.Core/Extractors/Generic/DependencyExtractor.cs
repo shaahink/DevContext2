@@ -165,6 +165,20 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                             ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectSdk", outputType ?? "WinExe"));
                     }
 
+                    // D1.2 — <UseWPF>/<UseWindowsForms> is the property that MAKES a project a desktop
+                    // app, and it is independent of OutputType: a WinForms app that declares Exe rather
+                    // than WinExe (common, and what you get when the console window is wanted) fired
+                    // NOTHING — no package, no WindowsDesktop SDK, no WinExe. The flags were already
+                    // parsed onto ProjectInfo and read by ArchitectureStyleDetector.IsDesktopUiProject;
+                    // the signal simply never looked at them. Same shape as the UseMaui probe below.
+                    if (!selfSourcedKeys.Contains(ArchitectureSignals.Keys.DesktopUi)
+                        && (Resolvers.CsprojReader.ParseUsesWpf(doc) || Resolvers.CsprojReader.ParseUsesWinForms(doc)))
+                    {
+                        model.Architecture.Register(FeatureSignal.CreateDetected(
+                            ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectProperty",
+                            Resolvers.CsprojReader.ParseUsesWpf(doc) ? "UseWPF=true" : "UseWindowsForms=true"));
+                    }
+
                     // B2 (Prism D1.2b): MAUI — <UseMaui>true</UseMaui> is SDK-provided (.NET 7+), no
                     // package reference exists to match; the mobile TFM triple is corroborating evidence.
                     if (!selfSourcedKeys.Contains(ArchitectureSignals.Keys.Maui)

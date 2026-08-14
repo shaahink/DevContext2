@@ -1,0 +1,4 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    73, Skipped:     0, Total:    73, Duration: 3 s - DevContext.Core.Tests.dll (net10.0)

@@ -725,6 +725,158 @@ public sealed class CatalogReachabilityTests
             """);
     }
 
+    // ── Named consumer-app shapes, each analysed in its OWN repo ─────────────────────────────────
+    // The sweep above asks "can the catalog's declaration be reached at all". This asks the other
+    // half: "does the shape a real consumer app writes reach the surface it should". Each case gets
+    // an isolated one-project repo, because signals are repo-wide — put these in the big fixture and
+    // a sibling project's signal would satisfy the extractor gate and hide the hole.
+
+    private sealed record ShapeCase(
+        string Id,
+        string Sdk,
+        string[] Packages,
+        (string Name, string Value)[] Props,
+        (string Path, string Content)[] Files,
+        string? ExpectSignal,
+        EntryPointKind? ExpectKind);
+
+    private static readonly ShapeCase[] ShapeCases =
+    [
+        // A WinForms app that declares OutputType Exe rather than WinExe. UseWindowsForms is already
+        // parsed onto ProjectInfo (CsprojReader.ParseUsesWinForms) and read by ArchitectureStyleDetector,
+        // but the desktop-ui SIGNAL never looked at it.
+        new("winforms-exe", "Microsoft.NET.Sdk", [],
+            [("OutputType", "Exe"), ("UseWindowsForms", "true")],
+            [
+                ("MainForm.cs", """
+                    using System.Windows.Forms;
+
+                    namespace Consumer;
+
+                    public partial class MainForm : Form
+                    {
+                        public MainForm() => InitializeComponent();
+
+                        private void OnSaveClick(object sender, EventArgs e) { }
+                    }
+                    """),
+                ("Program.cs", """
+                    using System.Windows.Forms;
+
+                    namespace Consumer;
+
+                    internal static class Program
+                    {
+                        [STAThread]
+                        private static void Main()
+                        {
+                            Application.EnableVisualStyles();
+                            Application.Run(new MainForm());
+                        }
+                    }
+                    """),
+            ],
+            ArchitectureSignals.Keys.DesktopUi, EntryPointKind.UiEntry),
+
+        // A cross-platform Avalonia desktop head. Declared Exe, not WinExe — a WinExe-declared Avalonia
+        // app is already caught by the generic "Microsoft.NET.Sdk + WinExe" rule, so the honest fixture
+        // for the Avalonia-specific gap is the shape that gets nothing today.
+        new("avalonia-exe", "Microsoft.NET.Sdk", ["Avalonia", "Avalonia.Desktop", "Avalonia.Themes.Fluent"],
+            [("OutputType", "Exe")],
+            [
+                ("MainWindow.axaml.cs", """
+                    using Avalonia.Controls;
+
+                    namespace Consumer;
+
+                    public partial class MainWindow : Window
+                    {
+                        public MainWindow() => InitializeComponent();
+                    }
+                    """),
+                ("App.axaml.cs", """
+                    using Avalonia;
+                    using Avalonia.Controls.ApplicationLifetimes;
+
+                    namespace Consumer;
+
+                    public partial class App : Application
+                    {
+                        public override void OnFrameworkInitializationCompleted()
+                        {
+                            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                                desktop.MainWindow = new MainWindow();
+                        }
+                    }
+                    """),
+            ],
+            ArchitectureSignals.Keys.DesktopUi, EntryPointKind.UiEntry),
+    ];
+
+    public static TheoryData<string> ShapeIds()
+    {
+        var data = new TheoryData<string>();
+        foreach (var c in ShapeCases) data.Add(c.Id);
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(ShapeIds))]
+    public async Task Consumer_app_shape_reaches_its_surface(string id)
+    {
+        var shape = ShapeCases.Single(c => c.Id == id);
+        var repo = Path.Combine(Path.GetTempPath(), "dc2-catalog-shapes", shape.Id);
+        if (Directory.Exists(repo)) Directory.Delete(repo, recursive: true);
+        var dir = Path.Combine(repo, "src", "ConsumerApp");
+        Directory.CreateDirectory(dir);
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"<Project Sdk=\"{shape.Sdk}\">");
+        sb.AppendLine("  <PropertyGroup>");
+        sb.AppendLine("    <TargetFramework>net10.0</TargetFramework>");
+        foreach (var (n, v) in shape.Props) sb.AppendLine($"    <{n}>{v}</{n}>");
+        sb.AppendLine("  </PropertyGroup>");
+        if (shape.Packages.Length > 0)
+        {
+            sb.AppendLine("  <ItemGroup>");
+            foreach (var pkg in shape.Packages) sb.AppendLine($"    <PackageReference Include=\"{pkg}\" Version=\"1.0.0\" />");
+            sb.AppendLine("  </ItemGroup>");
+        }
+        sb.AppendLine("</Project>");
+        WriteFile(Path.Combine(dir, "ConsumerApp.csproj"), sb.ToString());
+        foreach (var (path, content) in shape.Files)
+            WriteFile(Path.Combine(dir, path.Replace('/', Path.DirectorySeparatorChar)), content);
+        WriteFile(Path.Combine(repo, "ConsumerApp.slnx"),
+            "<Solution>\n  <Folder Name=\"/src/\">\n    <Project Path=\"src/ConsumerApp/ConsumerApp.csproj\" />\n  </Folder>\n</Solution>\n");
+
+        var snapshot = await AnalyzeAsync(repo);
+        var signalOk = shape.ExpectSignal is null || snapshot.Model.Architecture.Has(shape.ExpectSignal);
+        var kindOk = shape.ExpectKind is null || snapshot.Entries.Any(e => e.Kind == shape.ExpectKind);
+        var reached = signalOk && kindOk;
+
+        var allowed = Allowed();
+        var allowId = $"shape:{shape.Id}";
+        if (allowed.ContainsKey(allowId))
+        {
+            Assert.False(reached,
+                $"""
+                Shape '{shape.Id}' now reaches its surface — delete its line from
+                eval/expectations/catalog-reachability-allow.txt (the file only ratchets down).
+                """);
+            return;
+        }
+
+        Assert.True(reached,
+            $"""
+            Consumer-app shape '{shape.Id}' does not reach its surface (repo: {repo}):
+              signal {shape.ExpectSignal ?? "-"}: {(signalOk ? "fired" : "MISSING")}
+              kind   {shape.ExpectKind?.ToString() ?? "-"}: {(kindOk ? "produced" : "MISSING")}
+              entries produced: {(snapshot.Entries.Length == 0 ? "(none)" : string.Join(", ", snapshot.Entries.Select(e => $"{e.Kind}:{e.Title}")))}
+            Close the path, or add {allowId} to eval/expectations/catalog-reachability-allow.txt with
+            the MEASURED reason.
+            """);
+    }
+
     /// <summary>
     /// The sweep's own report. Not an assertion — it is how a session reads what the catalog can and
     /// cannot reach without re-deriving it, and it is the evidence artifact D1.2 diffs against.

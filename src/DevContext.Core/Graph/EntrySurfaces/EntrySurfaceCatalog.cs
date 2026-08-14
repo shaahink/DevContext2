@@ -119,7 +119,12 @@ public static class EntrySurfaceCatalog
             Kind:       EntryPointKind.UiEntry,
             RenderLabel:"UI",
             Role:       SurfaceRole.AppEntry,
-            Packages:   ["Microsoft.WindowsAppSDK", "CommunityToolkit.WinUI", "CommunityToolkit.Mvvm"],
+            // D1.2 — "Avalonia" is a family key (prefix matching covers Avalonia.Desktop,
+            // Avalonia.Themes.*, Avalonia.ReactiveUI). Avalonia was documented in DesktopEntryExtractor
+            // and undetectable: its base types (Window/UserControl) were already handled, but no
+            // package or SDK in this catalog fired desktop-ui, so a cross-platform Avalonia head
+            // (OutputType Exe, not WinExe) reached nothing. Measured by the avalonia-exe shape case.
+            Packages:   ["Microsoft.WindowsAppSDK", "CommunityToolkit.WinUI", "CommunityToolkit.Mvvm", "Avalonia"],
             SdkHints:   ["Microsoft.NET.Sdk.WindowsDesktop"],
             SelfNamePatterns: []),
 

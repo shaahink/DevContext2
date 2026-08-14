@@ -1,0 +1,28 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:05.53]     DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "winforms-exe") [FAIL]
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "winforms-exe") [4 s]
+  Error Message:
+   Consumer-app shape 'winforms-exe' does not reach its surface (repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-shapes\winforms-exe):
+  signal desktop-ui: MISSING
+  kind   UiEntry: MISSING
+  entries produced: (none)
+Close the path, or add shape:winforms-exe to eval/expectations/catalog-reachability-allow.txt with
+the MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(String id) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 869
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:07.92]     DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "avalonia-exe") [FAIL]
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "avalonia-exe") [2 s]
+  Error Message:
+   Consumer-app shape 'avalonia-exe' does not reach its surface (repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-shapes\avalonia-exe):
+  signal desktop-ui: MISSING
+  kind   UiEntry: MISSING
+  entries produced: (none)
+Close the path, or add shape:avalonia-exe to eval/expectations/catalog-reachability-allow.txt with
+the MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(String id) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 869
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 6 s - DevContext.Core.Tests.dll (net10.0)
