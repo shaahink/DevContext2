@@ -50,7 +50,6 @@ public sealed class WolverineExtractor : IDiscoveryExtractor
                             ExtractorName = Name,
                             SourceFile = filePath,
                             LineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                            Confidence = 0.8f,
                         });
                         break;
                     }

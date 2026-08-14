@@ -13,8 +13,6 @@ public abstract record Detection
     public required string SourceFile { get; init; }
     /// <summary>Line number in the source file.</summary>
     public required int LineNumber { get; init; }
-    /// <summary>Confidence level of this detection (0.0 to 1.0).</summary>
-    public float Confidence { get; init; } = 1.0f;
 }
 
 /// <summary>

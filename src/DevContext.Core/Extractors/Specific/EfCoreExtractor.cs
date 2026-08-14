@@ -148,7 +148,6 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     ExtractorName = extractorName,
                     SourceFile = filePath,
                     LineNumber = lineNumber,
-                    Confidence = 0.8f,
                 });
 
                 // Detect ApplyConfigurationsFromAssembly pattern
@@ -242,7 +241,6 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                             ExtractorName = "EfCoreExtractor",
                             SourceFile = filePath,
                             LineNumber = lineNumber,
-                            Confidence = 0.7f,
                         });
                     }
                     else if (inv.ArgumentList.Arguments.Count > 0)
@@ -261,7 +259,6 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                                 ExtractorName = "EfCoreExtractor",
                                 SourceFile = filePath,
                                 LineNumber = lineNumber,
-                                Confidence = 0.7f,
                             });
                         }
                     }
@@ -317,7 +314,6 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                         ExtractorName = extractorName,
                         SourceFile = filePath,
                         LineNumber = lineNumber,
-                        Confidence = 0.9f,
                     });
                 }
             }

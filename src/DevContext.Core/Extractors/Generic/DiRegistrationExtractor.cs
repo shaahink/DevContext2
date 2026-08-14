@@ -102,7 +102,6 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = lineNumber,
-                    Confidence = 0.9f,
                 });
             }
 
@@ -207,7 +206,6 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = lineNumber,
-                    Confidence = 0.7f,
                 });
             }
             else if (methodName.StartsWith("Auto") || methodName.StartsWith("Scan"))
@@ -224,7 +222,6 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = lineNumber,
-                    Confidence = 0.6f,
                 });
             }
         }

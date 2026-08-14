@@ -128,7 +128,6 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = lineNumber,
-                        Confidence = 0.8f,
                     });
                 }
             }

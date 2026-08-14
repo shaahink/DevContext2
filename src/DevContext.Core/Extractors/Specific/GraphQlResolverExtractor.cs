@@ -82,7 +82,6 @@ public sealed class GraphQlResolverExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                        Confidence = 0.85f,
                     });
                 }
 
@@ -95,7 +94,6 @@ public sealed class GraphQlResolverExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                        Confidence = 0.8f,
                     });
                 }
             }

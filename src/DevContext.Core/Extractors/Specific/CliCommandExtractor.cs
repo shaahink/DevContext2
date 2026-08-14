@@ -126,7 +126,6 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                    Confidence = 0.85f,
                 });
             }
         }
@@ -253,7 +252,6 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = file,
                     LineNumber = line,
-                    Confidence = 0.7f,
                 });
                 break; // one entry per project
             }

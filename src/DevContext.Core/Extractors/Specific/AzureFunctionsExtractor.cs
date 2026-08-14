@@ -68,7 +68,6 @@ public sealed class AzureFunctionsExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                    Confidence = 0.95f,
                 });
             }
         }

@@ -159,7 +159,6 @@ public sealed class AspireExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = lineNumber,
-                        Confidence = 0.8f,
                     });
                 }
             }
