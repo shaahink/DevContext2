@@ -130,7 +130,7 @@
       "optional": false,
       "tier": "full",
       "parallel": false,
-      "timeoutMinutes": 25
+      "timeoutMinutes": 60
     },
     {
       "name": "guards",
@@ -147,7 +147,7 @@
       "optional": false,
       "tier": "full",
       "parallel": false,
-      "timeoutMinutes": 45
+      "timeoutMinutes": 80
     }
   ],
   "gatePolicy": "perPhase",
@@ -164,8 +164,8 @@
     "maxBackoffs": 10,
     "maxRunCostUsd": 350,
     "approvalMode": false,
-    "maxSessionTokens": 26000000,
-    "softBreakRatio": 0.62,
+    "maxSessionTokens": 31000000,
+    "softBreakRatio": 0.8,
     "maxConcurrentLanes": 2,
     "stallPatternTermination": true,
     "sameFailureCircuitBreaker": true,

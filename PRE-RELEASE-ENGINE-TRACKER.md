@@ -28,7 +28,7 @@ STILL UNBUILT, owned by nobody: questions/Driewie.json + the 2nd class-B questio
 |---|---|
 | Total checkpoints | 20 |
 | Done | 16 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -81,7 +81,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | DONE | 1d30e02 | eval-results/2026-08-14/a1-preregistration/A1.1-EVIDENCE.md |
-| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | IN PROGRESS | - | - |
+| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | DONE | 4f51931 | eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md |
 
 ### Z1 — Close-out: README honesty pass, release-gate statuses, backlog reconciliation
 
