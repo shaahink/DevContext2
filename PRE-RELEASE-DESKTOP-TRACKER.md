@@ -4,21 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N3 IS CLOSED. N3.2 landed and claimed (6efcef6 server + 032c9b8 app, evidence
-eval-results/2026-08-14/N3.2-repo-file-handoff.md). New RPC SavePackFile writes
-.devcontext/packs/<slug>.md into the analyzed repo + .devcontext/.gitignore holding packs/; Studio
-Save is no longer a download and its strip shows the SERVER's path, the gitignore state, the
-copyable CLAUDE.md line, and admits drift; Home's tile routes to /context. VERIFIED LIVE end to end
-in the browser against a temp fixture copy, file read back off disk, preview and file both 1326
-chars. Gates: lint 0, 256/256 tests (28 files), ng build 0, dotnet 0w/0e, contract-sweep PASS.
-NEXT: N4.1 — but N4.3 needs Run A's T1 merged in; check that before sequencing N4.
-TRAPS worth having (all measured this session): `conductor bg start -- pnpm ...` CANNOT spawn pnpm
-here (MODULE_NOT_FOUND, exits 0s) — use pnpm.cmd, or run pnpm test / pnpm build separately in the
-foreground (~40s/~90s). A SINGLE spec runs as `pnpm ng test --watch=false --include=<path>` —
-`pnpm vitest run <file>` dies with "Need to call TestBed.initTestEnvironment() first". A git commit
-whose message came from a PowerShell here-string failed twice with a lock error; -m and -F worked.
-Still standing: lint any NEWLY ADDED spec; ContextStudio seeds itself on open (createStudio() clears
-the proposal unless you pass {keepProposal:true}).
+N4.1 LANDED + CLAIMED (db9987e code, 55e8727 fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
+Status card now MEASURES: server-side binary probe (bundle -> PATH -> dev-build, path rendered),
+watcher count, last-agent-call, and a McpHandshake RPC that spawns devcontext-mcp and does a real
+initialize+tools/list over stdio (live: 22 tools, protocol 2024-11-05, ~6s). StartMcp/StopMcp RPCs +
+the global mute are DELETED (telemetry_streaming reserved). Live probe with a REAL mcp process:
+src/DevContext.App/scripts/n41-verify-status.mts - 8/8 PASS, re-run it after any N4.2/N4.3 edit.
+DO NOT RE-DERIVE: (1) the MCP sidecar speaks gRPC-WEB, not native gRPC, so the old content-type
+origin tag called every agent call "ui" and the agents-only feed showed nothing - now OriginTag.FromRequest
+(Origin / x-user-agent connect-es / Mozilla => ui, else agent). (2) The feed + status still name gRPC
+methods (GetStats), not MCP tool names - that is N4.3's wrap. (3) conductor note with a PS here-string
+fails; use one quoted line. git commit needs -F <file>, -m can hit a lock. PNGs under eval-results
+are gitignored - git add -f. NEXT: N4.2 (ship devcontext-mcp in the Tauri bundle via publish:server's
+sibling, resolved absolute path in snippets, write-config-per-host) - that also flips the probe source
+from dev-build to bundle. N4.3 still needs Run A's T1 merged in (T1.1-T1.4 ARE on origin/feat/pre-release-engine,
+NOT merged here yet - merge it before N4.3 and record the merge).
 
 
 ## Baseline numbers (from run.db)
@@ -27,7 +27,7 @@ the proposal unless you pass {keepProposal:true}).
 |---|---|
 | Total checkpoints | 16 |
 | Done | 9 |
-| Claimed (unconfirmed) | 1 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -68,7 +68,7 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | DONE | f427027 | eval-results/2026-08-14/N3.1-loop-joints.md |
-| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | TODO | - | - |
+| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | DONE | 6efcef6 | eval-results/2026-08-14/N3.2-repo-file-handoff.md |
 
 ### N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)
 
