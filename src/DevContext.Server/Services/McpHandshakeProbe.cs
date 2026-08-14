@@ -3,6 +3,25 @@ using System.Text.Json;
 
 namespace DevContext.Server.Services;
 
+/// <summary>N4.3 — one parameter of one tool, as its <c>inputSchema</c> advertises it.</summary>
+public sealed record McpToolParam(string Name, string Type, bool Required, string Description);
+
+/// <summary>
+/// N4.3 — one entry of the menu. <see cref="Specialist"/> entries came from the unknown-tool
+/// envelope rather than <c>tools/list</c>, so they carry <see cref="Why"/> and no parameters:
+/// that is all a client can see of an unlisted tool, and inventing the rest is what this whole
+/// checkpoint exists to stop.
+/// </summary>
+public sealed record McpToolDescriptor(
+    string Name,
+    string Description,
+    IReadOnlyList<McpToolParam> Parameters,
+    bool Specialist,
+    string Why);
+
+/// <summary>N4.3 — a folded tool name and the call that replaces it, as the envelope reports it.</summary>
+public sealed record McpRetiredTool(string Retired, string Replacement, string Call);
+
 /// <summary>What one real MCP round trip established. <see cref="Error"/> is empty iff Ok.</summary>
 public sealed record McpHandshakeResult(
     bool Ok,
@@ -10,16 +29,28 @@ public sealed record McpHandshakeResult(
     string ServerName,
     string ServerVersion,
     string ProtocolVersion,
-    IReadOnlyList<string> ToolNames,
+    IReadOnlyList<McpToolDescriptor> Tools,
+    IReadOnlyList<McpToolDescriptor> Specialists,
+    IReadOnlyList<McpRetiredTool> Retired,
     long ElapsedMs,
-    string Error);
+    string Error)
+{
+    /// <summary>The advertised names, in wire order — what N4.1's handshake card renders.</summary>
+    public IReadOnlyList<string> ToolNames => [.. Tools.Select(t => t.Name)];
+}
 
-/// <summary>The four facts a successful <c>initialize</c> + <c>tools/list</c> pair yields.</summary>
+/// <summary>The facts a successful <c>initialize</c> + <c>tools/list</c> pair yields, plus the
+/// unlisted half when the caller asked for it.</summary>
 internal sealed record HandshakeFacts(
     string ServerName,
     string ServerVersion,
     string ProtocolVersion,
-    IReadOnlyList<string> ToolNames);
+    IReadOnlyList<McpToolDescriptor> Tools,
+    IReadOnlyList<McpToolDescriptor> Specialists,
+    IReadOnlyList<McpRetiredTool> Retired)
+{
+    public IReadOnlyList<string> ToolNames => [.. Tools.Select(t => t.Name)];
+}
 
 /// <summary>
 /// N4.1 (STUDIO-MCP audit §4, Room 2) — the handshake test.
@@ -35,10 +66,14 @@ public static class McpHandshakeProbe
     /// <summary>The MCP protocol revision the desktop asks for. Servers may negotiate down.</summary>
     private const string ClientProtocolVersion = "2024-11-05";
 
+    /// <param name="includeUnlisted">N4.3 — also call one name that does not exist, so the
+    /// unknown-tool envelope yields the unlisted specialists and the retired aliases. Off for the
+    /// handshake card, which only needs to know that <c>tools/list</c> answered.</param>
     public static async Task<McpHandshakeResult> RunAsync(
         McpBinaryProbe binary,
         TimeSpan timeout,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeUnlisted = false)
     {
         var sw = Stopwatch.StartNew();
 
@@ -75,7 +110,7 @@ public static class McpHandshakeProbe
             _ = process.StandardError.ReadToEndAsync(CancellationToken.None);
 
             var facts = await ConverseAsync(
-                process.StandardInput, process.StandardOutput, timeoutCts.Token).ConfigureAwait(false);
+                process.StandardInput, process.StandardOutput, timeoutCts.Token, includeUnlisted).ConfigureAwait(false);
 
             return new McpHandshakeResult(
                 Ok: true,
@@ -83,7 +118,9 @@ public static class McpHandshakeProbe
                 ServerName: facts.ServerName,
                 ServerVersion: facts.ServerVersion,
                 ProtocolVersion: facts.ProtocolVersion,
-                ToolNames: facts.ToolNames,
+                Tools: facts.Tools,
+                Specialists: facts.Specialists,
+                Retired: facts.Retired,
                 ElapsedMs: sw.ElapsedMilliseconds,
                 Error: string.Empty);
         }
@@ -112,7 +149,8 @@ public static class McpHandshakeProbe
     internal static async Task<HandshakeFacts> ConverseAsync(
         TextWriter toServer,
         TextReader fromServer,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeUnlisted = false)
     {
         // Escaped rather than a raw literal: the request ends in three closing braces, which a
         // raw interpolated string reads as an interpolation delimiter.
@@ -139,14 +177,112 @@ public static class McpHandshakeProbe
         if (!list.TryGetProperty("tools", out var tools) || tools.ValueKind != JsonValueKind.Array)
             throw new InvalidOperationException("tools/list answered without a tools array.");
 
-        var names = new List<string>();
+        var advertised = new List<McpToolDescriptor>();
         foreach (var tool in tools.EnumerateArray())
         {
             if (tool.TryGetProperty("name", out var name) && name.GetString() is { Length: > 0 } s)
-                names.Add(s);
+                advertised.Add(ReadTool(s, tool));
         }
 
-        return new HandshakeFacts(serverName, serverVersion, protocolVersion, names);
+        if (!includeUnlisted)
+            return new HandshakeFacts(serverName, serverVersion, protocolVersion, advertised, [], []);
+
+        // N4.3 — the unlisted half. There is no protocol call for "what did you NOT advertise",
+        // and that is by design (T1.2): a specialist is off the menu on purpose. What the server
+        // does have is the envelope it hands an agent that calls a name it does not know, which
+        // names every specialist with what it answers and every folded alias with its replacement.
+        // So we ask the same question an agent asks by accident. The name below cannot collide
+        // with a real tool, and an unknown-tool call has no side effect — it never reaches a session.
+        await SendAsync(toServer,
+            """{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"__devcontext_catalog_probe__","arguments":{}}}""",
+            ct).ConfigureAwait(false);
+        var envelope = await ReadResultAsync(fromServer, id: 3, step: "tools/call", ct).ConfigureAwait(false);
+
+        var (specialists, retired) = ReadEnvelope(envelope);
+        return new HandshakeFacts(serverName, serverVersion, protocolVersion, advertised, specialists, retired);
+    }
+
+    /// <summary>One tools/list entry → name, description and the parameters its inputSchema declares.</summary>
+    private static McpToolDescriptor ReadTool(string name, JsonElement tool)
+    {
+        var description = tool.TryGetProperty("description", out var d) ? d.GetString() ?? "" : "";
+
+        var parameters = new List<McpToolParam>();
+        if (tool.TryGetProperty("inputSchema", out var schema) && schema.ValueKind == JsonValueKind.Object)
+        {
+            var required = new HashSet<string>(StringComparer.Ordinal);
+            if (schema.TryGetProperty("required", out var req) && req.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var r in req.EnumerateArray())
+                    if (r.GetString() is { Length: > 0 } rs) required.Add(rs);
+            }
+
+            if (schema.TryGetProperty("properties", out var props) && props.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in props.EnumerateObject())
+                {
+                    var type = prop.Value.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String
+                        ? t.GetString() ?? "" : "";
+                    var paramDoc = prop.Value.TryGetProperty("description", out var pd) ? pd.GetString() ?? "" : "";
+                    parameters.Add(new McpToolParam(prop.Name, type, required.Contains(prop.Name), paramDoc));
+                }
+            }
+        }
+
+        return new McpToolDescriptor(name, description, parameters, Specialist: false, Why: string.Empty);
+    }
+
+    /// <summary>
+    /// The unknown-tool reply is a CallToolResult whose single text block is the JSON envelope.
+    /// A server that answers it differently (an older build, say) yields empty lists rather than
+    /// an error: the advertised menu is still the answer to the question that was asked.
+    /// </summary>
+    private static (IReadOnlyList<McpToolDescriptor> Specialists, IReadOnlyList<McpRetiredTool> Retired)
+        ReadEnvelope(JsonElement callResult)
+    {
+        if (!callResult.TryGetProperty("content", out var content) || content.ValueKind != JsonValueKind.Array)
+            return ([], []);
+
+        foreach (var block in content.EnumerateArray())
+        {
+            if (!block.TryGetProperty("text", out var text) || text.GetString() is not { Length: > 0 } payload)
+                continue;
+
+            JsonDocument doc;
+            try { doc = JsonDocument.Parse(payload); }
+            catch (JsonException) { continue; }
+
+            using (doc)
+            {
+                var root = doc.RootElement;
+                if (root.ValueKind != JsonValueKind.Object) continue;
+
+                var specialists = new List<McpToolDescriptor>();
+                if (root.TryGetProperty("specialistTools", out var spec) && spec.ValueKind == JsonValueKind.Object)
+                {
+                    // Description stays empty and the line goes in Why: tools/list never described
+                    // these (they are not on it), so calling the envelope's sentence a "description"
+                    // would put a second-hand string in the field that means "off the wire".
+                    foreach (var s in spec.EnumerateObject())
+                        specialists.Add(new McpToolDescriptor(
+                            s.Name, Description: string.Empty, [], Specialist: true, Why: s.Value.GetString() ?? ""));
+                }
+
+                var retired = new List<McpRetiredTool>();
+                if (root.TryGetProperty("retiredTools", out var ret) && ret.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var r in ret.EnumerateArray())
+                        retired.Add(new McpRetiredTool(
+                            r.TryGetProperty("retired", out var a) ? a.GetString() ?? "" : "",
+                            r.TryGetProperty("replacement", out var b) ? b.GetString() ?? "" : "",
+                            r.TryGetProperty("call", out var c) ? c.GetString() ?? "" : ""));
+                }
+
+                return (specialists, retired);
+            }
+        }
+
+        return ([], []);
     }
 
     private static async Task SendAsync(TextWriter toServer, string json, CancellationToken ct)
@@ -190,7 +326,7 @@ public static class McpHandshakeProbe
     }
 
     private static McpHandshakeResult Failed(string command, Stopwatch sw, string error)
-        => new(false, command, string.Empty, string.Empty, string.Empty, [], sw.ElapsedMilliseconds, error);
+        => new(false, command, string.Empty, string.Empty, string.Empty, [], [], [], sw.ElapsedMilliseconds, error);
 
     private static string ExitHint(Process? process)
     {

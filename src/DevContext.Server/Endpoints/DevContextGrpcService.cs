@@ -769,6 +769,60 @@ public sealed class DevContextGrpcService(
         return response;
     }
 
+    /// <summary>
+    /// N4.3 (audit §4 Room 2, "the catalog, served") — the menu, read off the wire.
+    ///
+    /// This makes exactly one promise, and it is the reason the RPC exists: nothing in the reply
+    /// was composed on this side. The advertised tools and their parameter descriptions come from
+    /// a real <c>tools/list</c>; the unlisted specialists and the retired aliases come from the
+    /// unknown-tool envelope the same process serves an agent. A desktop that renders this cannot
+    /// advertise a tool the server does not have, which is what BUG-BACKLOG #4 was.
+    /// </summary>
+    public override async Task<Proto.ListMcpToolsResponse> ListMcpTools(
+        Proto.ListMcpToolsRequest request, ServerCallContext context)
+    {
+        var result = await McpHandshakeProbe
+            .RunAsync(McpBinaryLocator.Probe(), TimeSpan.FromSeconds(30), context.CancellationToken,
+                includeUnlisted: true)
+            .ConfigureAwait(false);
+
+        var response = new Proto.ListMcpToolsResponse
+        {
+            Ok = result.Ok,
+            Command = result.Command,
+            ElapsedMs = result.ElapsedMs,
+            Error = result.Error,
+        };
+        response.Tools.AddRange(result.Tools.Select(ToProto));
+        response.Specialists.AddRange(result.Specialists.Select(ToProto));
+        response.Retired.AddRange(result.Retired.Select(r => new Proto.RetiredMcpTool
+        {
+            Retired = r.Retired,
+            Replacement = r.Replacement,
+            Call = r.Call,
+        }));
+        return response;
+
+        static Proto.McpToolDescriptor ToProto(McpToolDescriptor tool)
+        {
+            var proto = new Proto.McpToolDescriptor
+            {
+                Name = tool.Name,
+                Description = tool.Description,
+                Specialist = tool.Specialist,
+                Why = tool.Why,
+            };
+            proto.Parameters.AddRange(tool.Parameters.Select(p => new Proto.McpToolParameter
+            {
+                Name = p.Name,
+                Type = p.Type,
+                Required = p.Required,
+                Description = p.Description,
+            }));
+            return proto;
+        }
+    }
+
     /// <summary>N4.2 (audit §4 Room 2, "setup that works") — write the host's MCP config instead
     /// of handing over a snippet with a placeholder in it. Project-scoped, merged into whatever
     /// is already there; see <see cref="McpConfigWriter"/> for why it is not the user-global

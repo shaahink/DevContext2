@@ -19,6 +19,7 @@ describe('McpPage', () => {
   let mcpHandshake: Mock;
   let observeToolCalls: Mock;
   let writeMcpConfig: Mock;
+  let listMcpTools: Mock;
 
   /**
    * N4.1 — the status the server MEASURED. The old page's whole status was one boolean that a
@@ -69,6 +70,46 @@ describe('McpPage', () => {
     };
   }
 
+  /**
+   * N4.3 — the catalog as the server read it off a live tools/list. Shaped like the real thing:
+   * a curated menu (T1.2), the unlisted specialists that menu leaves out, and the folded names.
+   */
+  function catalog(overrides: Record<string, unknown> = {}) {
+    return {
+      ok: true,
+      error: '',
+      command: 'C:/app/resources/server/devcontext-mcp.exe',
+      elapsedMs: 900,
+      tools: [
+        {
+          name: 'trace', description: 'Follow one entry point through the code that serves it.',
+          specialist: false, why: '',
+          parameters: [
+            { name: 'handle', type: 'string', required: true, description: 'Session handle from analyze.' },
+            { name: 'focus', type: 'string', required: true, description: 'Entry point, symbol or node id.' },
+            { name: 'depth', type: 'integer', required: false, description: 'How far to follow.' },
+          ],
+        },
+        {
+          name: 'read_source', description: 'Read the source of one symbol.',
+          specialist: false, why: '', parameters: [],
+        },
+        {
+          name: 'get_context', description: 'Compose an LLM-sized context pack.',
+          specialist: false, why: '', parameters: [],
+        },
+      ],
+      specialists: [
+        { name: 'tests_for', description: '', specialist: true, why: 'Which tests cover a symbol.', parameters: [] },
+        { name: 'node', description: '', specialist: true, why: 'One node by id.', parameters: [] },
+      ],
+      retired: [
+        { retired: 'flow', replacement: 'trace', call: 'trace(handle, focus:"POST /basket/checkout")' },
+      ],
+      ...overrides,
+    };
+  }
+
   /** One event as the server streams it — note the WIRE timestamp. */
   function evt(overrides: Record<string, unknown> = {}) {
     return {
@@ -105,9 +146,10 @@ describe('McpPage', () => {
       action: 'created',
       command: 'C:/app/resources/server/devcontext-mcp.exe',
     });
+    listMcpTools = vi.fn().mockResolvedValue(catalog());
     TestBed.configureTestingModule({
       providers: [
-        { provide: DevContextApi, useValue: { getMcpStatus, writeMcpConfig } },
+        { provide: DevContextApi, useValue: { getMcpStatus, writeMcpConfig, listMcpTools } },
         { provide: DEVCONTEXT_CLIENT, useValue: { listSessions, startMcp, stopMcp, mcpHandshake, observeToolCalls } },
       ],
     });
@@ -404,6 +446,62 @@ describe('McpPage', () => {
     expect(startMcp).not.toHaveBeenCalled();
     expect(stopMcp).not.toHaveBeenCalled();
     expect(el.querySelector('[data-testid="mcp-toggle"]')).toBeNull(); // the mute is gone
+  });
+
+  /**
+   * N4.3 (audit §4, Room 2 "the catalog, served"; BUG-BACKLOG #4) — the page used to carry its
+   * own literal array of eight tool names. It offered `search`, which the MCP has never exposed
+   * (it is `find`), and `insights`, folded into `stats` by G2.1 — and because the failure is a
+   * LABEL, nothing errored. These pin that the menu on screen is the one the server just read
+   * off a live tools/list, and that there is no second list to drift.
+   */
+  it('renders the menu the server read off tools/list, with the descriptions T1.1 put there', async () => {
+    const { el } = await createPage();
+
+    expect(listMcpTools).toHaveBeenCalledTimes(1);
+    expect(text(el, 'catalog-tool-trace')).toBe('trace');
+    expect(text(el, 'mcp-catalog')).toContain('Follow one entry point through the code that serves it.');
+    // parameters, required-ness and their descriptions all came off the same reply
+    expect(text(el, 'mcp-catalog')).toContain('handle*');
+    expect(text(el, 'mcp-catalog')).toContain('depth');
+    expect(text(el, 'mcp-catalog-source')).toContain('devcontext-mcp.exe');
+  });
+
+  it('shows the unlisted specialists and the retired names, both harvested from the envelope', async () => {
+    const { el } = await createPage();
+
+    expect(text(el, 'catalog-specialist-tests_for')).toBe('tests_for');
+    expect(text(el, 'mcp-specialists')).toContain('Which tests cover a symbol.');
+    expect(text(el, 'mcp-retired')).toContain('flow');
+    expect(text(el, 'mcp-retired')).toContain('trace');
+  });
+
+  it('Try-a-Tool offers the SERVED names — no page-side list, and no phantom "search"', async () => {
+    const { el } = await createPage();
+    const options = [...el.querySelectorAll<HTMLOptionElement>('#try-tool-select option')];
+    const names = options.map((o) => o.value);
+
+    expect(names).toEqual(['trace', 'read_source', 'get_context', 'tests_for', 'node']);
+    expect(names).not.toContain('search');   // the drifted label the literal array carried
+    expect(names).not.toContain('insights'); // folded into stats by G2.1, still listed here after
+    // read_source has no single gRPC RPC behind it, so the option is disabled and says why
+    // rather than being quietly dropped — an omission is how the old list read as complete.
+    const readSource = options.find((o) => o.value === 'read_source')!;
+    expect(readSource.disabled).toBe(true);
+    expect(readSource.title).toContain('call it from an agent');
+    expect(options.find((o) => o.value === 'trace')!.disabled).toBe(false);
+  });
+
+  it('a catalog that could not be read says so instead of rendering an empty menu', async () => {
+    listMcpTools.mockResolvedValue(catalog({
+      ok: false, error: 'devcontext-mcp.exe did not answer within 30s.',
+      tools: [], specialists: [], retired: [],
+    }));
+    const { el } = await createPage();
+
+    expect(text(el, 'mcp-catalog-error')).toContain('did not answer within 30s');
+    expect(el.querySelector('[data-testid="mcp-catalog"]')).toBeNull();
+    expect([...el.querySelectorAll('#try-tool-select option')]).toHaveLength(0);
   });
 
   it('"use" prefills Try-a-Tool with the live handle and enables Run', async () => {

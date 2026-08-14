@@ -2,7 +2,7 @@ import { Component, inject, signal, type WritableSignal, type OnDestroy, type On
 import { FormsModule } from '@angular/forms';
 import { copyToClipboard } from '../../core/clipboard';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
-import { DevContextApi, type McpHostConfig } from '../../data-access/devcontext-api';
+import { DevContextApi, type McpCatalog, type McpHostConfig } from '../../data-access/devcontext-api';
 import { ToastService } from '../../ui/toast/toast';
 
 function errorText(err: unknown): string {
@@ -210,6 +210,94 @@ interface WrittenConfig {
         </div>
       </div>
 
+      <!-- The catalog — N4.3 (audit §4, Room 2: "the catalog, served").
+           This is the menu an agent reads at connect, read the way an agent reads it: the server
+           spawns devcontext-mcp, runs tools/list, and calls one name that does not exist so the
+           unknown-tool envelope names the unlisted specialists and the folded aliases. Until this
+           landed the page kept its own array of tool names (BUG-BACKLOG #4) and had been wrong
+           since the day the menu was curated. There is no such array left; if a tool is on screen
+           it is because the process said so a moment ago. -->
+      <div>
+        <div class="flex items-center justify-between mb-2 gap-3">
+          <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">
+            Tool Catalog
+            @if (catalog(); as cat) {
+              @if (cat.ok) {
+                <span class="ml-2 font-normal normal-case tracking-normal">{{ cat.tools.length }} advertised · {{ cat.specialists.length }} unlisted</span>
+              }
+            }
+          </h3>
+          <button
+            class="text-2xs text-ink-subtle hover:text-ink transition-colors"
+            [class.opacity-50]="catalogLoading()"
+            [disabled]="catalogLoading()"
+            title="Spawn devcontext-mcp and re-read tools/list"
+            data-testid="mcp-catalog-refresh"
+            (click)="void loadCatalog()"
+          >{{ catalogLoading() ? 'Reading…' : 'Re-read' }}</button>
+        </div>
+
+        @if (catalog(); as cat) {
+          @if (!cat.ok) {
+            <p class="text-xs text-danger py-2" data-testid="mcp-catalog-error">{{ cat.error }}</p>
+          } @else {
+            <p class="mb-2 text-2xs text-ink-subtle" data-testid="mcp-catalog-source">
+              Read from {{ cat.command }} in {{ cat.elapsedMs }}ms — this is exactly what an agent sees.
+            </p>
+            <div class="rounded border border-line bg-surface divide-y divide-line/50" data-testid="mcp-catalog">
+              @for (t of cat.tools; track t.name) {
+                <div class="p-2.5">
+                  <div class="flex items-baseline gap-2 flex-wrap">
+                    <span class="font-mono text-xs font-medium" [attr.data-testid]="'catalog-tool-' + t.name">{{ t.name }}</span>
+                    @for (p of t.parameters; track p.name) {
+                      <span class="chip text-2xs font-mono" [title]="p.description">
+                        {{ p.name }}{{ p.required ? '*' : '' }}@if (p.type) {<span class="text-ink-subtle">: {{ p.type }}</span>}
+                      </span>
+                    }
+                  </div>
+                  <div class="mt-1 text-2xs text-ink-subtle">{{ t.description || 'No description on the wire.' }}</div>
+                </div>
+              }
+            </div>
+
+            @if (cat.specialists.length > 0) {
+              <!-- Demoted is not deleted (T1.2): these are built, callable by name, and simply
+                   kept off the menu an agent reads. Showing them is the point of a supervisor's
+                   view — the human is the one who might want an unlisted verb. -->
+              <div class="mt-3">
+                <h4 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle mb-1.5">Unlisted specialists</h4>
+                <div class="rounded border border-line bg-surface divide-y divide-line/50" data-testid="mcp-specialists">
+                  @for (s of cat.specialists; track s.name) {
+                    <div class="flex items-baseline gap-2 p-2 text-2xs">
+                      <span class="font-mono font-medium shrink-0 w-28 truncate" [attr.data-testid]="'catalog-specialist-' + s.name">{{ s.name }}</span>
+                      <span class="text-ink-subtle">{{ s.why }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (cat.retired.length > 0) {
+              <div class="mt-3">
+                <h4 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle mb-1.5">Retired names</h4>
+                <div class="rounded border border-line bg-surface divide-y divide-line/50" data-testid="mcp-retired">
+                  @for (r of cat.retired; track r.retired) {
+                    <div class="flex items-baseline gap-2 p-2 text-2xs">
+                      <span class="font-mono line-through text-ink-subtle shrink-0 w-28 truncate">{{ r.retired }}</span>
+                      <span class="text-ink-subtle">folded into <span class="font-mono text-ink">{{ r.replacement }}</span> — {{ r.call }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        } @else {
+          <p class="text-xs text-ink-subtle py-4 text-center" data-testid="mcp-catalog-pending">
+            Reading the menu from devcontext-mcp…
+          </p>
+        }
+      </div>
+
       <!-- Sessions -->
       <div>
         <div class="flex items-center justify-between mb-2">
@@ -356,8 +444,14 @@ interface WrittenConfig {
                 class="w-full rounded border border-line bg-base px-2 py-1.5 text-xs"
                 [(ngModel)]="selectedTool"
               >
-                @for (t of availableTools; track t) {
-                  <option [value]="t">{{ t }}</option>
+                <!-- N4.3 — the options ARE the served catalog. What this sandbox can drive is a
+                     smaller set (it speaks gRPC, and several tools have no single RPC behind
+                     them), so the rest are disabled and say why rather than being hidden: a menu
+                     that quietly omits tools is how the old literal array read as complete. -->
+                @for (t of sandboxTools(); track t.name) {
+                  <option [value]="t.name" [disabled]="!t.drivable" [title]="t.hint">
+                    {{ t.name }}{{ t.drivable ? '' : ' — not from here' }}
+                  </option>
                 }
               </select>
             </div>
@@ -437,13 +531,40 @@ export class McpPage implements OnInit, OnDestroy {
   protected readonly configHandle = signal('');
   protected readonly writingHost = signal<string | null>(null);
   protected readonly written = signal<Record<string, WrittenConfig>>({});
+  /** N4.3 — the served catalog. Null until the first read comes back. */
+  protected readonly catalog = signal<McpCatalog | null>(null);
+  protected readonly catalogLoading = signal(false);
+
   /**
-   * The sandbox probes gRPC RPCs but LABELS them with MCP tool names, so this list drifts from the
-   * real menu independently of it. Two rows were already wrong when G2.1 folded the menu: there is
-   * no MCP tool called search (it is find), and insights was a second door onto the same GetStats
-   * call that stats makes — now folded away. See UnknownToolHandler for the menu itself.
+   * N4.3 (BUG-BACKLOG #4) — the sandbox's menu, derived from the SERVED catalog.
+   *
+   * What stood here was a literal array of eight tool names: a third hand-maintained copy of the
+   * menu, and it had drifted before anyone noticed — it offered `search`, which is not and never
+   * was an MCP tool (the MCP calls it `find`), and `insights`, which G2.1 folded into `stats`.
+   * The failure mode is a LABEL, so nothing ever errored. The list is now whatever tools/list
+   * just returned, and the only thing this class still decides is which of them a gRPC-speaking
+   * page can actually drive.
    */
-  protected readonly availableTools = ['stats', 'map', 'entrypoints', 'trace', 'node', 'find', 'impact', 'get_context'];
+  protected readonly sandboxTools = computed(() => {
+    const cat = this.catalog();
+    const menu = cat?.ok ? [...cat.tools, ...cat.specialists] : [];
+    return menu.map((t) => {
+      const drivable = McpPage.DRIVABLE.has(t.name);
+      return {
+        name: t.name,
+        drivable,
+        hint: drivable
+          ? (t.description || t.why || t.name)
+          : `${t.name} has no single gRPC RPC behind it — call it from an agent, or watch it land in the feed`,
+      };
+    });
+  });
+
+  /** The tool names this page can put on the wire itself; see tryTool for the mapping. */
+  private static readonly DRIVABLE = new Set([
+    'stats', 'map', 'entrypoints', 'trace', 'node', 'find', 'impact', 'get_context',
+  ]);
+
   protected selectedTool = 'stats';
   protected tryHandle = '';
   protected tryArg = '';
@@ -535,6 +656,8 @@ export class McpPage implements OnInit, OnDestroy {
     // subscribing renders one lower than the truth it is describing.
     this.startStream();
     await this.refreshStatus();
+    // N4.3 — spawns a process, so it is read ONCE at open and on demand, not on the 30s poll.
+    void this.loadCatalog();
     // MEASURED: subscribing is a network round trip, so the read above still beats it and the
     // card opened saying "0 watcher(s) attached" while this very page was watching. One
     // follow-up read settles it without pretending to know the count locally.
@@ -565,6 +688,21 @@ export class McpPage implements OnInit, OnDestroy {
     this.lastAgentTool.set(status.lastAgentTool);
     this.agentCallCount.set(status.agentCallCount);
     this.hosts.set(status.hosts);
+  }
+
+  /**
+   * N4.3 — read the menu. This spawns devcontext-mcp and speaks MCP to it, so it is a second or
+   * two, not a poll; the button says so while it runs. A failure renders as a stated error, never
+   * as an empty menu.
+   */
+  protected async loadCatalog(): Promise<void> {
+    if (this.catalogLoading()) return;
+    this.catalogLoading.set(true);
+    try {
+      this.catalog.set(await this.api.listMcpTools());
+    } finally {
+      this.catalogLoading.set(false);
+    }
   }
 
   /**

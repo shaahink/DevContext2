@@ -65,6 +65,47 @@ export interface McpHostConfig {
   readonly snippet: string;
 }
 
+/**
+ * N4.3 — the MCP catalog, as the server read it off a live tools/list. Every string in here
+ * crossed the wire from the devcontext-mcp process; the app owns no list of tool names.
+ */
+export interface McpCatalog {
+  /** tools/list answered. False leaves the lists empty and `error` populated. */
+  readonly ok: boolean;
+  readonly error: string;
+  /** The executable that was spawned to answer. */
+  readonly command: string;
+  readonly elapsedMs: number;
+  /** The advertised menu, in the order tools/list returned it. */
+  readonly tools: readonly McpToolDescriptor[];
+  /** The unlisted specialists (T1.2) — callable by name, deliberately off the menu. */
+  readonly specialists: readonly McpToolDescriptor[];
+  readonly retired: readonly McpRetiredTool[];
+}
+
+export interface McpToolDescriptor {
+  readonly name: string;
+  /** From tools/list. Empty for a specialist — see `why`. */
+  readonly description: string;
+  readonly parameters: readonly McpToolParameter[];
+  readonly specialist: boolean;
+  /** For a specialist, the line the unknown-tool envelope gives an agent that calls it. */
+  readonly why: string;
+}
+
+export interface McpToolParameter {
+  readonly name: string;
+  readonly type: string;
+  readonly required: boolean;
+  readonly description: string;
+}
+
+export interface McpRetiredTool {
+  readonly retired: string;
+  readonly replacement: string;
+  readonly call: string;
+}
+
 /** N4.2 — what the write-config button did, reported by the side that did it. */
 export interface McpConfigWritten {
   readonly path: string;
@@ -315,5 +356,51 @@ export class DevContextApi {
       action: resp.action,
       command: resp.command,
     };
+  }
+
+  /**
+   * N4.3 (STUDIO-MCP §4, Room 2: "the catalog, served") — read the menu an agent gets. A
+   * transport failure comes back as an `ok: false` catalog rather than null, because the page
+   * has something honest to say about it ("the menu could not be read, here is why") and a
+   * silent null would render as an empty menu — which is exactly the confident-looking lie
+   * this checkpoint is removing.
+   */
+  async listMcpTools(): Promise<McpCatalog> {
+    try {
+      const resp = await this.client.listMcpTools({});
+      const toTool = (t: {
+        name: string; description: string; specialist: boolean; why: string;
+        parameters: readonly { name: string; type: string; required: boolean; description: string }[];
+      }): McpToolDescriptor => ({
+        name: t.name,
+        description: t.description,
+        specialist: t.specialist,
+        why: t.why,
+        parameters: t.parameters.map((p) => ({
+          name: p.name, type: p.type, required: p.required, description: p.description,
+        })),
+      });
+      return {
+        ok: resp.ok,
+        error: resp.error,
+        command: resp.command,
+        elapsedMs: Number(resp.elapsedMs),
+        tools: resp.tools.map(toTool),
+        specialists: resp.specialists.map(toTool),
+        retired: resp.retired.map((r) => ({
+          retired: r.retired, replacement: r.replacement, call: r.call,
+        })),
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        error: `The server could not read the MCP catalog: ${err instanceof Error ? err.message : String(err)}`,
+        command: '',
+        elapsedMs: 0,
+        tools: [],
+        specialists: [],
+        retired: [],
+      };
+    }
   }
 }

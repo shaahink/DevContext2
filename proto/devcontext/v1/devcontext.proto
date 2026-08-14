@@ -130,6 +130,13 @@ service DevContextService {
   // reason SavePackFile is (N3.2): the client has no file system it can reach, and only this
   // side knows both the repo root and the resolved devcontext-mcp path.
   rpc WriteMcpConfig(WriteMcpConfigRequest) returns (WriteMcpConfigResponse);
+  // N4.3 (audit §4 Room 2, "the catalog, served") — the menu an agent reads, read the same way
+  // the agent reads it. The page used to carry its own list of tool names; it was wrong the day
+  // T1.2 curated the menu (BUG-BACKLOG #4), and any list kept beside the real one is wrong
+  // eventually. This spawns devcontext-mcp, runs tools/list, and also calls one name that does
+  // not exist so the unknown-tool envelope yields the unlisted specialists and the retired
+  // aliases. Nothing in the response is composed here — every string came off the wire.
+  rpc ListMcpTools(ListMcpToolsRequest) returns (ListMcpToolsResponse);
   rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
@@ -1045,6 +1052,62 @@ message McpHandshakeResponse {
   int64 elapsed_ms = 8;
   // Empty when ok; otherwise what went wrong, in a form a human can act on.
   string error = 9;
+}
+
+// ---------------------------------------------------------------------------
+// N4.3 (audit §4 Room 2) — the catalog, served
+// ---------------------------------------------------------------------------
+
+message ListMcpToolsRequest {}
+
+// One parameter of one tool, exactly as the tool's inputSchema advertises it. T1.1 made these
+// descriptions reach the wire; before that every one of them was the empty string, which is why
+// this is worth rendering at all.
+message McpToolParameter {
+  string name = 1;
+  // JSON-schema type as advertised: "string", "integer", "boolean", … Empty if the schema
+  // gives none (an enum-only property, say) — reported as-is rather than guessed at.
+  string type = 2;
+  bool required = 3;
+  string description = 4;
+}
+
+// One entry of the menu. Advertised tools come from tools/list; specialists come from the
+// unknown-tool envelope, which is all a client can see of them — they are deliberately absent
+// from tools/list (T1.2), so their schema is not on the wire and `parameters` is empty for them.
+message McpToolDescriptor {
+  string name = 1;
+  string description = 2;
+  repeated McpToolParameter parameters = 3;
+  // True for the UNLISTED specialists: built, callable by name, kept off the menu an agent reads.
+  bool specialist = 4;
+  // For a specialist, the one line the envelope gives an agent that calls it — what it answers.
+  // Empty for advertised tools (their `description` is that line).
+  string why = 5;
+}
+
+// A tool name that was FOLDED into another one, with the call that replaces it. Harvested from
+// the same envelope an agent gets, so the page cannot advertise a retirement the server does not
+// actually honour.
+message RetiredMcpTool {
+  string retired = 1;
+  string replacement = 2;
+  string call = 3;
+}
+
+message ListMcpToolsResponse {
+  // True only when tools/list came back parsed. False leaves `error` populated and the lists empty.
+  bool ok = 1;
+  string error = 2;
+  // The executable that was spawned to answer this — the same path the status probe resolved.
+  string command = 3;
+  // The advertised menu, in the order tools/list returned it.
+  repeated McpToolDescriptor tools = 4;
+  // The unlisted specialists, by name, each with what it answers.
+  repeated McpToolDescriptor specialists = 5;
+  repeated RetiredMcpTool retired = 6;
+  // Wall clock of the whole round trip, spawn included.
+  int64 elapsed_ms = 7;
 }
 
 // ---------------------------------------------------------------------------
