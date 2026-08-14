@@ -29,7 +29,7 @@ the README says so. Merge to develop remains owner-signed.
 |---|---|
 | Total checkpoints | 20 |
 | Done | 16 |
-| Claimed (unconfirmed) | 2 |
+| Claimed (unconfirmed) | 4 |
 
 ## Checkpoints
 
@@ -88,8 +88,8 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| Z1.1 | README honesty pass: agent story stated as measured (primer + whatever A1.2 earned), results linked, claims ⊆ measurements; release-gate table statuses recorded | TODO | - | - |
-| Z1.2 | BUG-BACKLOG reconciled (fixed closed with evidence, re-measured re-statused); PRE-RELEASE-PLAN §3 stage table updated; full battery green; branch pushed | TODO | - | - |
+| Z1.1 | README honesty pass: agent story stated as measured (primer + whatever A1.2 earned), results linked, claims ⊆ measurements; release-gate table statuses recorded | DONE | 82ede13 | eval-results/2026-08-14/z1-honesty/Z1.1-EVIDENCE.md |
+| Z1.2 | BUG-BACKLOG reconciled (fixed closed with evidence, re-measured re-statused); PRE-RELEASE-PLAN §3 stage table updated; full battery green; branch pushed | DONE | 82ede13 | eval-results/2026-08-14/z1-honesty/Z1.2-EVIDENCE.md |
 
 ## Dependencies
 
