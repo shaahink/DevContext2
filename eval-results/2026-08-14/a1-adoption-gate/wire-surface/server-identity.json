@@ -1,0 +1,12 @@
+{
+  "endpoint": "http://127.0.0.1:5279",
+  "ok": true,
+  "health": {
+    "status": "ok",
+    "version": "1.0.0",
+    "baseDirectory": "C:\\Code\\DevContext2-engine\\src\\DevContext.Server\\bin\\Debug\\net10.0\\",
+    "pid": 13596,
+    "startedAt": "2026-08-14T03:53:28.7285370Z"
+  },
+  "detail": "C:\\Code\\DevContext2-engine\\src\\DevContext.Server\\bin\\Debug\\net10.0\\ (pid 13596, started 2026-08-14T03:53:28.7285370Z)"
+}

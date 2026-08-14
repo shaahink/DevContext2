@@ -1,0 +1,11 @@
+{
+  "protocolError": null,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"count\":0,\"sessions\":[]}"
+      }
+    ]
+  }
+}

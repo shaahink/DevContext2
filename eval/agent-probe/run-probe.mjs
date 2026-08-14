@@ -2,6 +2,7 @@
 //
 //   node eval/agent-probe/run-probe.mjs --repo eShop --reps 3 [--arms G,M,B] [--questions id,id]
 //   node eval/agent-probe/run-probe.mjs --repo eShop --reps 3 --dry-run
+//   node eval/agent-probe/run-probe.mjs --repo eShop --reps 3 --arms B --results-dir a1.2-adoption-gate
 //
 // What this file is responsible for, in the order the design cares about:
 //
@@ -26,7 +27,20 @@ import { createInterface } from "readline";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "..", "..");
 const EVAL_REPOS = join(REPO_ROOT, "eval-repos");
-const RESULTS = join(HERE, "results");
+// A1.2 - `--results-dir <name>` redirects the WHOLE output tree to results/<name>/. A re-measurement
+// that changes the product under test (the adoption gate re-runs arm B against the trust pack's
+// revised tool surface) cannot append to the ledger the pilot was analysed from: analyse.mjs pools
+// every arm-B row it finds, so eighteen new rows would silently restate RESULTS.md's published
+// numbers as an average of two different products. Separate ledger, separate report, both intact.
+// Nothing else about a run changes - same arms, same prompt, same caps, same resume semantics.
+// (`argOf` is a hoisted function declaration, so it is callable here.)
+const RESULTS_SUBDIR = argOf("results-dir", "") || "";
+if (/[\\/]|^\.\.?$/.test(RESULTS_SUBDIR)) {
+  console.error("\nREFUSED: --results-dir takes a single directory NAME under eval/agent-probe/results/, not a path\n");
+  process.exit(2);
+}
+const RESULTS = RESULTS_SUBDIR ? join(HERE, "results", RESULTS_SUBDIR) : join(HERE, "results");
+const RESULTS_REL = RESULTS_SUBDIR ? `results/${RESULTS_SUBDIR}` : "results";
 const RAW = join(RESULTS, "raw");
 const RUNS_JSONL = join(RESULTS, "runs.jsonl");
 // Infrastructure interruptions are quarantined here, never into runs.jsonl and never into raw/.
@@ -166,7 +180,7 @@ function alreadyRecorded() {
   for (const [i, line] of lines.entries()) {
     let r;
     try { r = JSON.parse(line); }
-    catch { die(`results/runs.jsonl line ${i + 1} is not valid JSON - refusing to append to a corrupt ledger`); }
+    catch { die(`${RESULTS_REL}/runs.jsonl line ${i + 1} is not valid JSON - refusing to append to a corrupt ledger`); }
     done.add(cellKey(r));
   }
   return done;
@@ -570,8 +584,8 @@ async function runCell(cell, repoDir, ordinal, total, attempt = 1) {
     attempt,
     startedAt: new Date().toISOString(),
     ...facts,
-    rawStream: `results/raw/${cell.repo}/${base}.stream.jsonl`,
-    rawResult: `results/raw/${cell.repo}/${base}.result.json`,
+    rawStream: `${RESULTS_REL}/raw/${cell.repo}/${base}.stream.jsonl`,
+    rawResult: `${RESULTS_REL}/raw/${cell.repo}/${base}.result.json`,
   };
 
   appendFileSync(RUNS_JSONL, JSON.stringify(row) + "\n", "utf8");
@@ -665,7 +679,7 @@ async function main() {
     return;
   }
 
-  mkdirSync(RAW, { recursive: true });
+  mkdirSync(RAW, { recursive: true });   // creates RESULTS too when --results-dir names a fresh tree
   if (!OPT.skipWarm) await warmRepo(repoDir);
 
   // Every SPAWN counts against the ceiling, not every planned cell - a retry costs the same money
@@ -715,7 +729,7 @@ async function main() {
     if (consecutiveInfra >= INFRA_OUTAGE_STOP) break;
   }
 
-  console.log(`\ndone: ${recorded}/${planned.length} planned cells recorded in results/runs.jsonl ` +
+  console.log(`\ndone: ${recorded}/${planned.length} planned cells recorded in ${RESULTS_REL}/runs.jsonl ` +
               `($${spent.toFixed(4)} spent, ${censoredCount} censored, ${quarantined} infrastructure ` +
               `attempts quarantined to results/infra-failures.jsonl)`);
   if (unresolved.length) {

@@ -1,0 +1,276 @@
+{
+  "measuredAt": "2026-08-14T03:53:33.231Z",
+  "mcpExe": "C:\\Code\\DevContext2-engine\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+  "toolCount": 14,
+  "toolsWithEmptyDescription": 0,
+  "undescribedTools": [],
+  "paramCount": 52,
+  "paramsWithDescription": 52,
+  "toolsWithUndescribedParams": [],
+  "payload": {
+    "chars": 12358,
+    "approxTokens": 3090
+  },
+  "perToolChars": 883,
+  "tools": [
+    {
+      "name": "map",
+      "descriptionChars": 250,
+      "description": "The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface, archetype view, solution scope) plus rendered markdown. Bigger than overview - use when you need the whole picture. Example: map(\"abc123\")",
+      "params": 1,
+      "paramsDescribed": 1,
+      "paramsUndescribed": [],
+      "schemaChars": 516
+    },
+    {
+      "name": "entrypoints",
+      "descriptionChars": 261,
+      "description": "List entry points (HTTP routes, bus consumers, gRPC services, jobs). Summary by default: per-kind counts + top-N by score (~1.5k tok). Names round-trip into trace/get_context. Example: entrypoints(\"abc123\", kind:\"HttpEndpoint\"), entrypoints(\"abc123\", full:true)",
+      "params": 4,
+      "paramsDescribed": 4,
+      "paramsUndescribed": [],
+      "schemaChars": 925
+    },
+    {
+      "name": "usages",
+      "descriptionChars": 221,
+      "description": "Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")",
+      "params": 3,
+      "paramsDescribed": 3,
+      "paramsUndescribed": [],
+      "schemaChars": 722
+    },
+    {
+      "name": "trace",
+      "descriptionChars": 467,
+      "description": "Trace execution flow: the call spine from ONE entry, hop by hop. Address it with 'focus' OR 'query' - an entry route, a symbol name, or a nodeId from resolve/find. format:\"compact\" is the small flow summary (what it touches/emits, ~150 tok); format:\"default\" is the full tree. Omit depth/budgetTokens to get the server's trace policy; cut subtrees are named (\"N omitted\"); budgetTokens:0 gives the full tree. Example: trace(\"abc123\", \"POST /api/orders\", 6, \"compact\")",
+      "params": 6,
+      "paramsDescribed": 6,
+      "paramsUndescribed": [],
+      "schemaChars": 1410
+    },
+    {
+      "name": "overview",
+      "descriptionChars": 152,
+      "description": "One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Start here after analyze. Example: overview(\"abc123\")",
+      "params": 1,
+      "paramsDescribed": 1,
+      "paramsUndescribed": [],
+      "schemaChars": 423
+    },
+    {
+      "name": "stats",
+      "descriptionChars": 99,
+      "description": "Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats(\"abc123\")",
+      "params": 1,
+      "paramsDescribed": 1,
+      "paramsUndescribed": [],
+      "schemaChars": 367
+    },
+    {
+      "name": "resolve",
+      "descriptionChars": 187,
+      "description": "Resolve a symbol/route/file to candidates with kind, service, path and the nodeId every other tool takes. Never silently picks - returns all matches. Example: resolve(\"abc123\", \"Product\")",
+      "params": 3,
+      "paramsDescribed": 3,
+      "paramsUndescribed": [],
+      "schemaChars": 677
+    },
+    {
+      "name": "neighbors",
+      "descriptionChars": 498,
+      "description": "Outgoing/incoming edges of a node - one hop, with the seam kind and file:line on each. Optional 'kind' filters to one seam, which is how you ask a pointed question: who WRITES this table (direction:\"in\", kind:\"ReadsWrites\"), who SENDS this command (direction:\"in\", kind:\"Sends\"), who CONSUMES this event (kind:\"Consumes\"). The reply always names every kind this node does have, so a miss tells you what to ask instead. Example: neighbors(\"abc123\", query:\"Order\", direction:\"in\", kind:\"ReadsWrites\")",
+      "params": 5,
+      "paramsDescribed": 5,
+      "paramsUndescribed": [],
+      "schemaChars": 1301
+    },
+    {
+      "name": "find",
+      "descriptionChars": 156,
+      "description": "Free-text search across graph nodes, paginated. Returns nodeIds the navigation tools take. Example: find(\"abc123\", \"Order\", kind:\"Type\", limit:10, cursor:0)",
+      "params": 5,
+      "paramsDescribed": 5,
+      "paramsUndescribed": [],
+      "schemaChars": 866
+    },
+    {
+      "name": "read_source",
+      "descriptionChars": 128,
+      "description": "Read the source code behind a node, with its real file:line. Example: read_source(\"abc123\", query:\"OrderService\", mode:\"member\")",
+      "params": 5,
+      "paramsDescribed": 5,
+      "paramsUndescribed": [],
+      "schemaChars": 943
+    },
+    {
+      "name": "seam",
+      "descriptionChars": 418,
+      "description": "The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")",
+      "params": 5,
+      "paramsDescribed": 5,
+      "paramsUndescribed": [],
+      "schemaChars": 1138
+    },
+    {
+      "name": "impact",
+      "descriptionChars": 322,
+      "description": "Transitive impact analysis: upward (what reaches this) or downward (what this affects), grouped by service. Address the symbol with 'nodeId' or 'query', or pass 'files' for diff-aware \"I changed X, what breaks\". Example: impact(\"abc123\", query:\"OrderService\", direction:\"down\"), impact(\"abc123\", files:[\"path/to/file.cs\"])",
+      "params": 6,
+      "paramsDescribed": 6,
+      "paramsUndescribed": [],
+      "schemaChars": 1264
+    },
+    {
+      "name": "get_context",
+      "descriptionChars": 298,
+      "description": "Budget-priced context pack for a focus: the identity, trace, signatures and usage sections an agent needs to work on one thing, cut to fit budgetTokens. Anything elided is named in the reply, and raising budgetTokens brings it back. Example: get_context(\"abc123\", \"POST /api/orders\", 4000, \"trace\")",
+      "params": 5,
+      "paramsDescribed": 5,
+      "paramsUndescribed": [],
+      "schemaChars": 1144
+    },
+    {
+      "name": "analyze",
+      "descriptionChars": 224,
+      "description": "Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. Example: analyze(\"C:/repos/MyApp\"), analyze(\"C:/repos/GitVersion\", sln:\"GitVersion.slnx\")",
+      "params": 2,
+      "paramsDescribed": 2,
+      "paramsUndescribed": [],
+      "schemaChars": 637
+    }
+  ],
+  "advertised": [
+    "map",
+    "entrypoints",
+    "usages",
+    "trace",
+    "overview",
+    "stats",
+    "resolve",
+    "neighbors",
+    "find",
+    "read_source",
+    "seam",
+    "impact",
+    "get_context",
+    "analyze"
+  ],
+  "specialists": {
+    "close_session": "session lifecycle - sessions expire on their own; this is server housekeeping, not agent work",
+    "config": "ask it when the question is specifically about configuration keys",
+    "list_sessions": "session lifecycle - when two sessions make a handle-less call ambiguous the error already names them",
+    "node": "resolve() already returns title, kind, service and path; neighbors() carries the degrees",
+    "status": "session lifecycle - analyze() is idempotent and hands back the handle, so most agents never need this",
+    "tests_for": "ask it when the question is specifically about test coverage of a symbol",
+    "top_flows": "entrypoints() already returns the top-N by the same score, alongside the per-kind counts",
+    "verify_context": "ask it when a pack has been open long enough that the files behind it may have changed"
+  },
+  "enumDials": [
+    {
+      "tool": "read_source",
+      "arguments": {
+        "query": "X",
+        "mode": "full"
+      },
+      "dial": "mode",
+      "expect": "reject mode",
+      "ok": true,
+      "reply": {
+        "error": "Invalid mode: 'full'.",
+        "hint": "mode must be one of: window | member.",
+        "example": "read_source(handle, query:\"OrderService\", mode:\"member\")"
+      }
+    },
+    {
+      "tool": "neighbors",
+      "arguments": {
+        "query": "X",
+        "direction": "sideways"
+      },
+      "dial": "direction",
+      "expect": "reject direction",
+      "ok": true,
+      "reply": {
+        "error": "Invalid direction: 'sideways'.",
+        "hint": "direction must be one of: out | in | usages.",
+        "example": "neighbors(handle, query:\"OrderService\", direction:\"in\")"
+      }
+    },
+    {
+      "tool": "impact",
+      "arguments": {
+        "query": "X",
+        "direction": "sideways"
+      },
+      "dial": "direction",
+      "expect": "reject direction",
+      "ok": true,
+      "reply": {
+        "error": "Invalid direction: 'sideways'.",
+        "hint": "direction must be one of: up | down | both.",
+        "example": "impact(handle, query:\"OrderService\", direction:\"down\")"
+      }
+    },
+    {
+      "tool": "trace",
+      "arguments": {
+        "focus": "X",
+        "format": "verbose"
+      },
+      "dial": "format",
+      "expect": "reject format",
+      "ok": true,
+      "reply": {
+        "error": "Invalid format: 'verbose'.",
+        "hint": "format must be one of: default | compact.",
+        "example": "trace(handle, focus:\"POST /basket/checkout\", format:\"compact\")"
+      }
+    },
+    {
+      "tool": "get_context",
+      "arguments": {
+        "focus": "X",
+        "intent": "summarise"
+      },
+      "dial": "intent",
+      "expect": "reject intent",
+      "ok": true,
+      "reply": {
+        "error": "Invalid intent: 'summarise'.",
+        "hint": "intent must be one of: trace | explain | review.",
+        "example": "get_context(handle, focus:\"POST /api/orders\", intent:\"explain\")"
+      }
+    },
+    {
+      "tool": "read_source",
+      "arguments": {
+        "query": "X",
+        "mode": "member"
+      },
+      "dial": null,
+      "expect": "pass the guard",
+      "ok": true,
+      "reply": {
+        "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+        "hint": "Run analyze(path) first, then retry.",
+        "example": "analyze(path) then read_source(query:\"OrderService\")"
+      }
+    },
+    {
+      "tool": "impact",
+      "arguments": {
+        "query": "X",
+        "direction": "both"
+      },
+      "dial": null,
+      "expect": "pass the guard",
+      "ok": true,
+      "reply": {
+        "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+        "hint": "Run analyze(path) first, then retry.",
+        "example": "analyze(path) then impact(query:\"OrderService\")"
+      }
+    }
+  ]
+}
