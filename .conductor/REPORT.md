@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 02:10 UTC · branch `feat/pre-release-desktop` · HEAD `63039a4`_
+_Updated 2026-08-14 02:44 UTC · branch `feat/pre-release-desktop` · HEAD `15f604b`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 34m ago, 20:36:43Z]
-**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0 · working ▸ N4.2
-**Checkpoints:** 12/16 done · **Sessions run:** 19 · **Cost:** $136.8128 (agent $136.6413 + gates $0.1716) · **Tokens:** 2,123,178 in / 859,820 out
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [6h 08m ago, 20:36:43Z]
+**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0 · working ▸ N4.3
+**Checkpoints:** 13/16 done · **Sessions run:** 20 · **Cost:** $149.3521 (agent $149.1805 + gates $0.1716) · **Tokens:** 2,302,758 in / 937,186 out
 **Confirmed phases:** N0, N1, N2, M1, N3
 
 ## Stage progress
@@ -16,7 +16,7 @@ _Updated 2026-08-14 02:10 UTC · branch `feat/pre-release-desktop` · HEAD `6303
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | confirmed ✓ |
-| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ███░░░░░░░ 1/3 | **← active** |
+| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ███████░░░ 2/3 | **← active** |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (3/3)</summary>
@@ -65,12 +65,12 @@ _Updated 2026-08-14 02:10 UTC · branch `feat/pre-release-desktop` · HEAD `6303
 
 </details>
 
-<details><summary>N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) (1/3)</summary>
+<details><summary>N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) (2/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | ✅ DONE | - |
-| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | ⬜ TODO | - |
+| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | ✅ DONE | [`55d256a`](https://github.com/shaahink/DevContext2/commit/55d256a) |
+| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | ✅ DONE | - |
 | N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | ⬜ TODO | - |
 
 </details>
@@ -107,6 +107,7 @@ _Updated 2026-08-14 02:10 UTC · branch `feat/pre-release-desktop` · HEAD `6303
 | 17 | N3 | Deliver | 1 | 08-13 23:50 | 0:34 | Advanced | N3.1 | 3 | gates green (none configured) | $12.3222 |  | 191,578/77,214 |
 | 18 | N3 | Deliver | 1 | 08-14 00:25 | 0:33 | Advanced | N3.2 | 3 | gates green (none configured) | $11.5801 |  | 158,207/57,297 |
 | 19 | N4 | Deliver | 1 | 08-14 01:16 | 0:54 | Advanced | N4.1 | 6 | gates green (none configured) | $13.1109 |  | 183,047/92,185 |
+| 20 | N4 | Deliver | 1 | 08-14 02:10 | 0:33 | Advanced | N4.2 | 3 | gates green (none configured) | $12.5393 |  | 179,580/77,366 |
 
 ## Money
 
@@ -114,23 +115,22 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 18 | 172.6M | 98.4% | $123.72 | 11 | 15.7M | $11.25 |
+| **run total** | 19 | 190.8M | 98.4% | $136.83 | 12 | 15.9M | $11.40 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
 | stage N3 | 2 | 34.6M | 98.6% | $23.90 | 2 | 17.3M | $11.95 |
-| 2026-08 | 18 | 172.6M | 98.4% | $123.72 | 11 | 15.7M | $11.25 |
+| stage N4 | 1 | 18.2M | 98.5% | $13.11 | 1 | 18.2M | $13.11 |
+| 2026-08 | 19 | 190.8M | 98.4% | $136.83 | 12 | 15.9M | $11.40 |
 
-_Where the money goes: agent $123.53 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $136.64 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:44:15  • session #13 N2 Deliver started (attempt 1/6)
-08-13 22:07:39  • session #13 N2 → Advanced · done N2.2 · 3 commit(s)  (23m24s)
 08-13 22:48:23  ▪ gate fast-app pass [phase]  (14m03s)
 08-13 22:48:23  ▪ gate fast-engine pass [phase]  (4m34s)
 08-13 22:48:23  ▪ gate guards pass [phase]  (3m29s)
@@ -169,6 +169,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 02:16:11  ▸ stage N3 confirmed  (1h25m35s)
 08-14 02:16:16  ▸ stage N4 entered — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)
 08-14 02:16:16  • session #19 N4 Deliver started (attempt 1/6)
+08-14 03:10:59  • session #19 N4 → Advanced · done N4.1 · 6 commit(s)  (54m42s)
+08-14 03:10:59  • session #20 N4 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -176,7 +178,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 19 · retries 7 (37 %) · overall Alert
+sessions 20 · retries 7 (35 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
@@ -194,10 +196,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s6 (N2 Deliver)** — 3 commit(s):
-  - [`108301a`](https://github.com/shaahink/DevContext2/commit/108301a) docs(tracker): N2.1 closed - pack convergence evidence + handoff to N2.2
-  - [`8c38e0b`](https://github.com/shaahink/DevContext2/commit/8c38e0b) feat(studio): the picker gets a Types tab, and rows that are different rows (N2.1)
-  - [`104c9d0`](https://github.com/shaahink/DevContext2/commit/104c9d0) feat(pack): BuildMulti resolves symbols, not just entries - and usage becomes a card (N2.1)
 - **s13 (N2 Deliver)** — 3 commit(s):
   - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
   - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
@@ -236,27 +234,30 @@ vs upstream: up to date
   - [`7c6b6be`](https://github.com/shaahink/DevContext2/commit/7c6b6be) feat(mcp-page): N4.1 - the status card measures instead of performing
   - [`e5fd0cd`](https://github.com/shaahink/DevContext2/commit/e5fd0cd) chore(conductor): s18 N3 Advanced — Idle
   - [`55d256a`](https://github.com/shaahink/DevContext2/commit/55d256a) chore(conductor): s18 N3 Advanced — Idle
+- **s20 (N4 Deliver)** — 3 commit(s):
+  - [`15f604b`](https://github.com/shaahink/DevContext2/commit/15f604b) docs(n4): N4.2 evidence - measured against the published bundle, not just the dev build
+  - [`7486a73`](https://github.com/shaahink/DevContext2/commit/7486a73) feat(mcp-page): N4.2 - the page renders the server's setup cards and can write the config
+  - [`d48a122`](https://github.com/shaahink/DevContext2/commit/d48a122) feat(mcp): N4.2 - ship devcontext-mcp in the bundle, and write the host config for the user
 
 ## Last session result
 
-> SESSION-RESULT: **N4.1 (status that measures) is landed and claimed** — commits `7c6b6be` (proto + server + app + tests), `7f78edc` (origin-tag fix + watcher race + live probe), evidence `eval-results/2026-08-14/N4.1-status-that-measures.md`, branch pushed. The MCP page's status card no longer performs: a server-side `McpBinaryLocator` probes for `devcontext-mcp` (beside the server → PATH → this repo's build output) and the card renders the verdict with the absolute path a host config must name; `ObserverCount`, `last_agent_call_at_utc_ms`, `last_agent_tool` and `agent_call_count` ride the wire and are rendered; a new `McpHandshake` RPC spawns the resolved binary and runs a real `initialize`…
+> SESSION-RESULT: **N4.2 landed, claimed and pushed** (`d48a122` server+bundle, `7486a73` page+specs, `15f604b` evidence; evidence at `eval-results/2026-08-14/N4.2-setup-that-works.md`). `devcontext-mcp` now ships in the Tauri bundle — `pnpm publish:sidecars` publishes it into `src-tauri/resources/server` beside the server and `beforeBuildCommand` runs it, so the page's old "ships with the installer" claim is finally true; the host snippets are no longer built in the page at all but arrive on `GetMcpStatusResponse.hosts`, composed by the same server code that writes the config, around the path the probe resolved; and a new `WriteMcpConfig(handle, host)` RPC writes and **merges** `.mcp.json` / …
 
 ## Tracker handoff
 
 ```
-N4.1 LANDED + CLAIMED (7c6b6be code, 7f78edc fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
-Status card now MEASURES: server-side binary probe (bundle -> PATH -> dev-build, path rendered),
-watcher count, last-agent-call, and a McpHandshake RPC that spawns devcontext-mcp and does a real
-initialize+tools/list over stdio (live: 22 tools, protocol 2024-11-05, ~6s). StartMcp/StopMcp RPCs +
-the global mute are DELETED (telemetry_streaming reserved). Live probe with a REAL mcp process:
-src/DevContext.App/scripts/n41-verify-status.mts - 8/8 PASS, re-run it after any N4.2/N4.3 edit.
-DO NOT RE-DERIVE: (1) the MCP sidecar speaks gRPC-WEB, not native gRPC, so the old content-type
-origin tag called every agent call "ui" and the agents-only feed showed nothing - now OriginTag.FromRequest
-(Origin / x-user-agent connect-es / Mozilla => ui, else agent). (2) The feed + status still name gRPC
-methods (GetStats), not MCP tool names - that is N4.3's wrap. (3) conductor note with a PS here-string
-fails; use one quoted line. git commit needs -F <file>, -m can hit a lock. PNGs under eval-results
-are gitignored - git add -f. NEXT: N4.2 (ship devcontext-mcp in the Tauri bundle via publish:server's
-sibling, resolved absolute path in snippets, write-config-per-host) - that also flips the probe source
-from dev-build to bundle. N4.3 still needs Run A's T1 merged in (T1.1-T1.4 ARE on origin/feat/pre-release-engine,
-NOT merged here yet - merge it before N4.3 and record the merge).
+N4.2 LANDED + CLAIMED (d48a122 server/bundle, 7486a73 page, evidence eval-results/2026-08-14/N4.2-setup-that-works.md).
+devcontext-mcp now ships in the bundle (pnpm publish:sidecars = server + mcp into src-tauri/resources/server,
+beforeBuildCommand runs it); snippets are composed SERVER-side on GetMcpStatusResponse.hosts around the probed
+path (the page owns no snippet template any more); new RPC WriteMcpConfig(handle,host) writes+MERGES
+.mcp.json / .cursor/mcp.json / .vscode/mcp.json into the ANALYZED repo, refusing an unparseable file and
+reporting "unchanged" honestly. Gates: slnx 0w/0e, 14/14 McpConfigWriteTests, pnpm lint 0, pnpm test 267/267
+(was 256), n42-verify-setup.mts 11/11, n42-verify-bundle.mts 5/5, n41-verify-status.mts 8/8.
+DO NOT RE-DERIVE: (1) src-tauri/resources/server is a THIRD binary copy - re-run pnpm publish:sidecars after any
+proto/server edit or the bundle probe measures a stale server (it caught exactly that). (2) n42-verify-bundle.mts
+needs node --experimental-transform-types (generated devcontext_pb.ts has a TS enum). (3) NEVER run two Playwright
+probes at once - the first n41 re-run went red purely from that. (4) System.Text.Json's default encoder escapes
+angle brackets + non-ASCII paths; McpConfigWriter pins UnsafeRelaxedJsonEscaping.
+NEXT: N4.3 (ListTools RPC + curated catalog + feed keyed by MCP tool names, replay-in-Studio deep links).
+It REQUIRES Run A's T1 merged in - T1.1-T1.4 are on origin/feat/pre-release-engine, still NOT merged here.
 ```
