@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 03:47 UTC · branch `feat/pre-release-engine` · HEAD `c5a3888`_
+_Updated 2026-08-14 04:08 UTC · branch `feat/pre-release-engine` · HEAD `76a7e2b`_
 
 **Status:** Idle
 **Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0 · working ▸ A1.2
-**Checkpoints:** 17/20 done · **Sessions run:** 25 · **Cost:** $201.5779 (agent $201.3903 + gates $0.1876) · **Tokens:** 3,078,301 in / 1,340,419 out
+**Checkpoints:** 17/20 done · **Sessions run:** 27 · **Cost:** $207.6327 (agent $207.4452 + gates $0.1876) · **Tokens:** 3,245,549 in / 1,386,639 out
 **Confirmed phases:** T1, V1, E1, D1, R1
 
 ## Stage progress
@@ -74,8 +74,8 @@ _Updated 2026-08-14 03:47 UTC · branch `feat/pre-release-engine` · HEAD `c5a38
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ✅ DONE | - |
-| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | ⬜ TODO | - |
+| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ✅ DONE | [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) |
+| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | 🔄 IN PROGRESS | - |
 
 </details>
 
@@ -117,6 +117,8 @@ _Updated 2026-08-14 03:47 UTC · branch `feat/pre-release-engine` · HEAD `c5a38
 | 23 | D1 | Deliver | 1 | 08-14 01:16 | 0:28 | Advanced | D1.4 | 3 | gates green (none configured) | $12.0738 |  | 186,290/82,351 |
 | 24 | R1 | Deliver | 1 | 08-14 02:07 | 0:31 | Advanced | R1.1 | 3 | gates green (none configured) | $10.5692 |  | 167,565/71,470 |
 | 25 | A1 | Deliver | 1 | 08-14 03:08 | 0:38 | Advanced | A1.1 | 5 | gates green (none configured) | $14.4701 |  | 197,178/118,885 |
+| 26 | A1 | Deliver | 1 | 08-14 03:47 | 0:11 | Progress |  | 2 | gates green (none configured) | $3.7595 |  | 89,159/30,359 |
+| 27 | A1 | Deliver | 1 | 08-14 03:59 | 0:09 | Progress |  | 1 | gates green (none configured) | $2.2953 |  | 78,089/15,861 |
 
 ## Money
 
@@ -124,25 +126,22 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 24 | 259.9M | 98.4% | $187.13 | 16 | 16.2M | $11.70 |
+| **run total** | 26 | 283.6M | 98.4% | $205.36 | 17 | 16.7M | $12.08 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
 | stage D1 | 4 | 51.9M | 98.3% | $38.33 | 4 | 13M | $9.58 |
 | stage R1 | 1 | 14.5M | 98.3% | $10.57 | 1 | 14.5M | $10.57 |
-| 2026-08 | 24 | 259.9M | 98.4% | $187.13 | 16 | 16.2M | $11.70 |
+| stage A1 | 2 | 23.7M | 98.2% | $18.23 | 1 | 23.7M | $18.23 |
+| 2026-08 | 26 | 283.6M | 98.4% | $205.36 | 17 | 16.7M | $12.08 |
 
-_Where the money goes: agent $186.92 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $205.15 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 00:01:23  • session #18 E1 → Advanced · done E1.3 · 3 commit(s)  (50m05s)
-08-14 00:01:24  • session #19 E1 Deliver started (attempt 1/8)
-08-14 00:35:47  • session #19 E1 → Advanced · done E1.4 · 2 commit(s)  (34m22s)
-08-14 00:54:48  ▪ gate fast-engine pass [phase]  (4m18s)
 08-14 00:54:48  ▪ gate guards pass [phase]  (1m35s)
 08-14 00:54:48  ▪ gate battery pass [phase]  (12m59s)
 08-14 00:54:48  ✓ checkpoint E1.1 confirmed
@@ -179,6 +178,10 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 04:04:43  ▸ stage A1 entered — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
 08-14 04:04:44  ■ needs human — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume`
 08-14 04:08:05  • session #25 A1 Deliver started (attempt 1/4)
+08-14 04:47:09  • session #25 A1 → Advanced · done A1.1 · 5 commit(s)  (39m04s)
+08-14 04:47:10  • session #26 A1 Deliver started (attempt 1/4)
+08-14 04:58:58  • session #26 A1 → Progress · 2 commit(s)  (11m47s)
+08-14 04:59:01  • session #27 A1 Deliver started (attempt 1/4)
 ```
 
 ## Health
@@ -186,7 +189,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 25 · retries 8 (32 %) · overall Alert
+sessions 27 · retries 8 (30 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -199,22 +202,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: clean
-vs upstream: up to date
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, ?? eval/agent-probe/results/a1.2-adoption-gate/
+vs upstream: 3 ahead
 ```
 
 ### Commits by session
 
-- **s17 (E1 Deliver)** — 5 commit(s):
-  - [`0022029`](https://github.com/shaahink/DevContext2/commit/0022029) chore: drop the commit-message scratch file that git add -A swept in
-  - [`66a0846`](https://github.com/shaahink/DevContext2/commit/66a0846) chore: gate artifacts left dirty by the pre-session battery
-  - [`135d469`](https://github.com/shaahink/DevContext2/commit/135d469) docs(e1): E1.2 evidence + handoff (#12 closed via TextSpan-on-op)
-  - [`afee44b`](https://github.com/shaahink/DevContext2/commit/afee44b) fix(graph): an out-of-solution semantic bind is not a call target, in BOTH producers (E1.2 rider)
-  - [`8f0ce0a`](https://github.com/shaahink/DevContext2/commit/8f0ce0a) fix(graph): ops carry their own TextSpan so the semantic upgrade relocates exactly (E1.2, #12)
-- **s18 (E1 Deliver)** — 3 commit(s):
-  - [`52417c7`](https://github.com/shaahink/DevContext2/commit/52417c7) chore(e1): E1.3 handoff, plus the mcp-qa artifact a concurrent gate run left dirty
-  - [`ed59465`](https://github.com/shaahink/DevContext2/commit/ed59465) docs(e1): E1.3 evidence - #7 closed at both ends on Hangfire, #8 re-filed with its true mechanism
-  - [`f686e25`](https://github.com/shaahink/DevContext2/commit/f686e25) fix(graph): the invariant refusal is COUNTED, and #8 gets its regression fixture (E1.3)
 - **s19 (E1 Deliver)** — 2 commit(s):
   - [`1fbadde`](https://github.com/shaahink/DevContext2/commit/1fbadde) fix(graph): a REQUEST MARKER is not a handler, and its type arg is the RESPONSE (E1.4)
   - [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) eval(e1): the class-C impact question, asked of the engine over a real MCP session (E1.4)
@@ -244,10 +237,15 @@ vs upstream: up to date
   - [`a3f68ee`](https://github.com/shaahink/DevContext2/commit/a3f68ee) pre-register(probe): five amendments to DESIGN, written before the run they govern (A1.1)
   - [`67a6ef1`](https://github.com/shaahink/DevContext2/commit/67a6ef1) chore(conductor): s24 R1 Advanced — Idle
   - [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) chore(conductor): s24 R1 Advanced — Idle
+- **s26 (A1 Deliver)** — 2 commit(s):
+  - [`e15e576`](https://github.com/shaahink/DevContext2/commit/e15e576) eval(probe): the adoption gate reports one statistic and names the branch it fires (A1.2)
+  - [`c1d1ed7`](https://github.com/shaahink/DevContext2/commit/c1d1ed7) eval(probe): a re-measurement gets its own ledger, and the revised surface is measured first (A1.2)
+- **s27 (A1 Deliver)** — 1 commit(s):
+  - [`76a7e2b`](https://github.com/shaahink/DevContext2/commit/76a7e2b) eval(probe): the gate names which pre-flight assertions a B-only batch can carry (A1.2)
 
 ## Last session result
 
-> SESSION-RESULT: **A1.1 landed and is claimed DONE** (`conductor task --done A1.1`, evidence `eval-results/2026-08-14/a1-preregistration/A1.1-EVIDENCE.md`), across three pushed commits — `a3f68ee` the five DESIGN amendments, `711a23c` the unseen repo, `c5a3888` a pin-storage fix. `eval/agent-probe/DESIGN.md` now carries a §0 amendment log and five dated, in-place amendments written *before* any run: the unseen repo named/built/pinned, the "E and F at half weight" mix resolved to a per-repo assignment table, the non-inferiority endpoint replaced, κ made applicable with a degenerate-marginal rule, and arm **BI** added (verified: 21 argv elements, exactly one differs, and it is the system prompt…
+> Batch is on run 2 of 18. I'll stop polling and wait for the completion notification rather than burn context on checks.
 
 ## Tracker handoff
 
