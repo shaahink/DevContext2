@@ -1,0 +1,36 @@
+Overview map (no focus).
+Analyzing project...
+
+WORKER  ConsumerApp     (1 project)
+
+STACK  net10.0
+
+STYLE  Unknown  (confidence low)
+       evidence: ArchitectureStyleDetector
+
+WORKER VIEW
+   ConsumerApp (1)
+      ReconcileLedgerJob
+
+TOPOLOGY (depends-on)
+   ConsumerApp
+
+ENTRY POINTS
+   Scheduled (1)
+      ReconcileLedgerJob  (src/ConsumerApp/Jobs/ReconcileLedgerJob.cs:5)
+
+PACKAGES
+   Other:  Hangfire.Core 1.0.0
+
+→ drill in:  trace a focused entry   (e.g. trace "ReconcileLedgerJob")
+
+analyzed 1 files · 2 nodes · 1 edges · 1 entries · ~115 tokens · 1.2s stage2 
+×2.0
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │     ConsumerApp      │
+│   Time   │        1832ms        │
+│  Tokens  │  ~115 (budget 8000)  │
+│ Version  │ v1.0.6-preview.0.104 │
+╰──────────┴──────────────────────╯

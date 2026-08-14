@@ -469,6 +469,56 @@ public sealed class CatalogReachabilityTests
                 """),
         ],
 
+        // D1.4 — the quartz and hangfire descriptors declare Kind ScheduledJob as of rung 4, so P2 now
+        // holds them to it. Each project carries ONLY its own descriptor's package (fixture rule (a)),
+        // so a green here can only come from the catalog's own declaration.
+        [ArchitectureSignals.Keys.Quartz] =
+        [
+            ("Jobs/InvoiceSweepJob.cs", """
+                using Quartz;
+
+                namespace Consumer.Jobs;
+
+                [DisallowConcurrentExecution]
+                public sealed class InvoiceSweepJob : IJob
+                {
+                    public Task Execute(IJobExecutionContext context) => Task.CompletedTask;
+                }
+                """),
+            ("Program.cs", """
+                using Consumer.Jobs;
+                using Quartz;
+
+                var builder = Host.CreateApplicationBuilder(args);
+                builder.Services.AddQuartz(q => q.AddJob<InvoiceSweepJob>(j => j.WithIdentity("invoice-sweep")));
+                builder.Services.AddQuartzHostedService();
+                builder.Build().Run();
+                """),
+        ],
+
+        [ArchitectureSignals.Keys.Hangfire] =
+        [
+            ("Jobs/NightlyReportJob.cs", """
+                namespace Consumer.Jobs;
+
+                public sealed class NightlyReportJob
+                {
+                    public Task RunAsync() => Task.CompletedTask;
+                }
+                """),
+            ("Program.cs", """
+                using Consumer.Jobs;
+                using Hangfire;
+
+                var builder = Host.CreateApplicationBuilder(args);
+                builder.Services.AddHangfire(cfg => cfg.UseInMemoryStorage());
+
+                var host = builder.Build();
+                RecurringJob.AddOrUpdate<NightlyReportJob>("nightly-report", job => job.RunAsync(), Cron.Daily);
+                host.Run();
+                """),
+        ],
+
         ["kind:" + nameof(EntryPointKind.PublicApi)] =
         [
             ("Client/PaymentsClient.cs", """
@@ -493,6 +543,8 @@ public sealed class CatalogReachabilityTests
         [ArchitectureSignals.Keys.CliCommands] = [("OutputType", "Exe")],
         ["kind:" + nameof(EntryPointKind.HostedService)] = [("OutputType", "Exe")],
         ["kind:" + nameof(EntryPointKind.ScheduledJob)] = [("OutputType", "Exe")],
+        [ArchitectureSignals.Keys.Quartz] = [("OutputType", "Exe")],
+        [ArchitectureSignals.Keys.Hangfire] = [("OutputType", "Exe")],
     };
 
     private static string KeyOf(EntrySurfaceDescriptor d) =>
@@ -625,6 +677,30 @@ public sealed class CatalogReachabilityTests
         return await pipeline.AnalyzeAsync(ctx);
     }
 
+    /// <summary>The same pipeline, run all the way to the rendered Map — the render half of R-T1.</summary>
+    private static async Task<string> RenderAsync(string repoPath)
+    {
+        var fs = new RealFileSystem();
+        var cache = new AnalysisCache(fs);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+        var options = new ExtractionOptions { MaxOutputTokens = 8000, OutputFormat = OutputFormat.Markdown, AllowRoslyn = true };
+        using var loggerFactory = LoggerFactory.Create(_ => { });
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            Options = options,
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = cache,
+            Analysis = new SharedAnalysisContext(),
+            Logger = loggerFactory.CreateLogger("CatalogReachability"),
+        };
+        var result = await TestPipeline.Build(loggerFactory).RunAsync(ctx);
+        return result.Content;
+    }
+
     // ── The allow-list (a ratchet, not a mute) ───────────────────────────────────────────────────
 
     private static Dictionary<string, string> Allowed()
@@ -738,7 +814,14 @@ public sealed class CatalogReachabilityTests
         (string Name, string Value)[] Props,
         (string Path, string Content)[] Files,
         string? ExpectSignal,
-        EntryPointKind? ExpectKind);
+        EntryPointKind? ExpectKind)
+    {
+        /// <summary>D1.4 — R-T1's half of the case: the descriptor's RenderLabel must appear in the
+        /// rendered Map, not merely in the entry list. Detect≠render is this phase's recurring defect
+        /// class, and an entry the JSON knows and the map hides is exactly it. Null = not asserted
+        /// (the cases that predate this only ever claimed reachability).</summary>
+        public string? ExpectRenderLabel { get; init; }
+    }
 
     private static readonly ShapeCase[] ShapeCases =
     [
@@ -845,6 +928,113 @@ public sealed class CatalogReachabilityTests
                     """),
             ],
             null, EntryPointKind.HostedService),
+
+        // D1.4 rung 4 — the Hangfire consumer app. Hangfire has no job interface and no job base
+        // class: a job is a PLAIN class, and the only thing that makes it a job is the REGISTRATION
+        // (`RecurringJob.AddOrUpdate<T>`). So this fixture is registration-shaped on purpose, and it
+        // is the shape every Hangfire README and every consumer app writes.
+        new("hangfire-recurring-job", "Microsoft.NET.Sdk", ["Hangfire", "Hangfire.AspNetCore"],
+            [("OutputType", "Exe")],
+            [
+                ("Jobs/NightlyReportJob.cs", """
+                    namespace Consumer.Jobs;
+
+                    public sealed class NightlyReportJob
+                    {
+                        public Task RunAsync() => Task.CompletedTask;
+                    }
+                    """),
+                ("Program.cs", """
+                    using Consumer.Jobs;
+                    using Hangfire;
+                    using Microsoft.Extensions.DependencyInjection;
+                    using Microsoft.Extensions.Hosting;
+
+                    var builder = Host.CreateApplicationBuilder(args);
+                    builder.Services.AddHangfire(cfg => cfg.UseInMemoryStorage());
+                    builder.Services.AddHangfireServer();
+
+                    var host = builder.Build();
+                    RecurringJob.AddOrUpdate<NightlyReportJob>("nightly-report", job => job.RunAsync(), Cron.Daily);
+                    host.Run();
+                    """),
+            ],
+            ArchitectureSignals.Keys.Hangfire, EntryPointKind.ScheduledJob)
+            { ExpectRenderLabel = "Scheduled" },
+
+        // D1.4 rung 4 — the Quartz consumer app, which is the OTHER shape: an interface (`IJob`) plus
+        // a job attribute plus a container registration. All three are present here because all three
+        // are present in a real Quartz app; the builder only needs one of them to be enough.
+        new("quartz-ijob", "Microsoft.NET.Sdk", ["Quartz", "Quartz.Extensions.Hosting"],
+            [("OutputType", "Exe")],
+            [
+                ("Jobs/InvoiceSweepJob.cs", """
+                    using Quartz;
+
+                    namespace Consumer.Jobs;
+
+                    [DisallowConcurrentExecution]
+                    public sealed class InvoiceSweepJob : IJob
+                    {
+                        public Task Execute(IJobExecutionContext context) => Task.CompletedTask;
+                    }
+                    """),
+                ("Program.cs", """
+                    using Consumer.Jobs;
+                    using Microsoft.Extensions.DependencyInjection;
+                    using Microsoft.Extensions.Hosting;
+                    using Quartz;
+
+                    var builder = Host.CreateApplicationBuilder(args);
+                    builder.Services.AddQuartz(q =>
+                        q.AddJob<InvoiceSweepJob>(j => j.WithIdentity("invoice-sweep")));
+                    builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
+                    builder.Build().Run();
+                    """),
+            ],
+            ArchitectureSignals.Keys.Quartz, EntryPointKind.ScheduledJob)
+            { ExpectRenderLabel = "Scheduled" },
+
+        // D1.4 — the INTERFACE shape standing alone. Deliberately NO AddQuartz anywhere: the trigger
+        // is built in a library's own AddXxx() extension, in a config-driven scheduler bootstrapper,
+        // or in a host project outside the scan scope. Registration-only detection would show nothing,
+        // the same hole D1.2 closed for BackgroundService.
+        new("quartz-ijob-unregistered", "Microsoft.NET.Sdk", ["Quartz"], [],
+            [
+                ("Jobs/ArchiveOrdersJob.cs", """
+                    using Quartz;
+
+                    namespace Consumer.Jobs;
+
+                    public sealed class ArchiveOrdersJob : IJob
+                    {
+                        public Task Execute(IJobExecutionContext context) => Task.CompletedTask;
+                    }
+                    """),
+            ],
+            ArchitectureSignals.Keys.Quartz, EntryPointKind.ScheduledJob)
+            { ExpectRenderLabel = "Scheduled" },
+
+        // D1.4 — the ATTRIBUTE shape standing alone, which is the ONLY thing a Hangfire job class
+        // carries: Hangfire has no job interface and no job base class, so a job living in a library
+        // that the enqueueing host references is nothing but a plain class with a Hangfire attribute.
+        new("hangfire-attributed-job", "Microsoft.NET.Sdk", ["Hangfire.Core"], [],
+            [
+                ("Jobs/ReconcileLedgerJob.cs", """
+                    using Hangfire;
+
+                    namespace Consumer.Jobs;
+
+                    [AutomaticRetry(Attempts = 5)]
+                    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+                    public sealed class ReconcileLedgerJob
+                    {
+                        public Task RunAsync() => Task.CompletedTask;
+                    }
+                    """),
+            ],
+            ArchitectureSignals.Keys.Hangfire, EntryPointKind.ScheduledJob)
+            { ExpectRenderLabel = "Scheduled" },
     ];
 
     public static TheoryData<string> ShapeIds()
@@ -886,7 +1076,13 @@ public sealed class CatalogReachabilityTests
         var snapshot = await AnalyzeAsync(repo);
         var signalOk = shape.ExpectSignal is null || snapshot.Model.Architecture.Has(shape.ExpectSignal);
         var kindOk = shape.ExpectKind is null || snapshot.Entries.Any(e => e.Kind == shape.ExpectKind);
-        var reached = signalOk && kindOk;
+
+        // R-T1: the label has to reach the MAP, not just the entry list.
+        var rendered = shape.ExpectRenderLabel is null ? null : await RenderAsync(repo);
+        var renderOk = shape.ExpectRenderLabel is null
+            || rendered!.Contains(shape.ExpectRenderLabel, StringComparison.Ordinal);
+
+        var reached = signalOk && kindOk && renderOk;
 
         var allowed = Allowed();
         var allowId = $"shape:{shape.Id}";
@@ -905,9 +1101,69 @@ public sealed class CatalogReachabilityTests
             Consumer-app shape '{shape.Id}' does not reach its surface (repo: {repo}):
               signal {shape.ExpectSignal ?? "-"}: {(signalOk ? "fired" : "MISSING")}
               kind   {shape.ExpectKind?.ToString() ?? "-"}: {(kindOk ? "produced" : "MISSING")}
+              render {shape.ExpectRenderLabel ?? "-"}: {(renderOk ? "shown" : "NOT IN THE MAP")}
               entries produced: {(snapshot.Entries.Length == 0 ? "(none)" : string.Join(", ", snapshot.Entries.Select(e => $"{e.Kind}:{e.Title}")))}
             Close the path, or add {allowId} to eval/expectations/catalog-reachability-allow.txt with
             the MEASURED reason.
+            """);
+    }
+
+    /// <summary>
+    /// D1.4's false-positive guard, and the reason the job detector is signal-gated rather than
+    /// name-matched. <c>IJob</c> is not a Quartz-owned name — plenty of repos declare their own, and
+    /// <c>[DisallowConcurrentExecution]</c>-shaped attribute names are equally guessable. A repo that
+    /// references NO scheduler package must mint no ScheduledJob entry, whatever its types are called.
+    /// </summary>
+    [Fact]
+    public async Task A_repos_own_IJob_without_a_scheduler_package_mints_no_scheduled_job()
+    {
+        var repo = Path.Combine(Path.GetTempPath(), "dc2-catalog-shapes", "own-ijob-negative");
+        if (Directory.Exists(repo)) Directory.Delete(repo, recursive: true);
+        var dir = Path.Combine(repo, "src", "ConsumerApp");
+        Directory.CreateDirectory(dir);
+
+        WriteFile(Path.Combine(dir, "ConsumerApp.csproj"), """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>net10.0</TargetFramework>
+                <OutputType>Exe</OutputType>
+              </PropertyGroup>
+            </Project>
+            """);
+        WriteFile(Path.Combine(dir, "Jobs", "IJob.cs"), """
+            namespace Consumer.Jobs;
+
+            /// <summary>This repo's OWN job abstraction. Nothing to do with Quartz.</summary>
+            public interface IJob
+            {
+                Task Execute(CancellationToken ct);
+            }
+            """);
+        WriteFile(Path.Combine(dir, "Jobs", "ImportJob.cs"), """
+            namespace Consumer.Jobs;
+
+            public sealed class ImportJob : IJob
+            {
+                public Task Execute(CancellationToken ct) => Task.CompletedTask;
+            }
+            """);
+        WriteFile(Path.Combine(dir, "Program.cs"), """
+            using Consumer.Jobs;
+
+            var job = new ImportJob();
+            await job.Execute(CancellationToken.None);
+            """);
+        WriteFile(Path.Combine(repo, "ConsumerApp.slnx"),
+            "<Solution>\n  <Folder Name=\"/src/\">\n    <Project Path=\"src/ConsumerApp/ConsumerApp.csproj\" />\n  </Folder>\n</Solution>\n");
+
+        var snapshot = await AnalyzeAsync(repo);
+        var scheduled = snapshot.Entries.Where(e => e.Kind == EntryPointKind.ScheduledJob).ToArray();
+
+        Assert.True(scheduled.Length == 0,
+            $"""
+            A repo with its own IJob and NO scheduler package minted ScheduledJob entries (repo: {repo}):
+              {string.Join("\n  ", scheduled.Select(e => $"{e.Title} @ {e.Provenance}"))}
+            The job detector must stay gated on the quartz/hangfire signal.
             """);
     }
 

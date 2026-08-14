@@ -15,8 +15,8 @@ Entry points are the root nodes from which a Trace starts. They are resolved fro
 |---|---|---|---|
 | `HttpEndpoint` | `EndpointDetection` | `GraphBuilder.AddHttpEntryPoints` | `POST /api/orders` |
 | `MessageConsumer` | `MessageConsumerDetection` | (future: EntryPoint inventory) | `OrderCreatedConsumer` |
-| `HostedService` | `BackgroundWorkerDetection` | (future: EntryPoint inventory) | `CleanupWorker` |
-| `ScheduledJob` | `BackgroundWorkerDetection` (TimedJob) | (future: EntryPoint inventory) | Quartz job |
+| `HostedService` | `BackgroundWorkerDetection`, or a `BackgroundService`/`IHostedService` implementation | `WorkerEntryPointBuilder` | `CleanupWorker` |
+| `ScheduledJob` | `BackgroundWorkerDetection` (TimedJob) from a Hangfire/Quartz registration; or a Quartz `IJob` / a Hangfire-or-Quartz job attribute, gated on the framework signal | `WorkerEntryPointBuilder` | `InvoiceSweepJob` |
 | `DomainEventHandler` | `MediatRHandlerDetection` (Notification) | (future: EntryPoint inventory) | `OrderShippedHandler` |
 | `PublicApi` | `--focus` free-text match | `DiscoveryPipeline.ResolveEntryFromNode` | Any Type/Handler/Service/EntryPoint node |
 

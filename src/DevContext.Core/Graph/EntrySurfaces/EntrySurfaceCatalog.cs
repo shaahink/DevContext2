@@ -245,17 +245,24 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["Orleans", "Microsoft.Orleans"]),
 
+        // D1.4 (rung 4) — these two descriptors used to declare Kind: null, which made them signals
+        // ABOUT a repo and nothing more: measured pre-fix, a Hangfire or Quartz consumer app fired its
+        // signal and produced *not one entry of any kind* from its job surface. PRODUCT-DIRECTION §4's
+        // rung 4 ("scheduled jobs — detected; surface as entries") was the half that was missing.
+        // Role stays FrameworkLibrary on purpose: MassTransit above is the precedent (a library signal
+        // that still declares a Kind), and it keeps ArchetypeDetector's AppEntryKinds unchanged, so
+        // teaching the engine about jobs does not move any repo's archetype.
         new(SignalKey: ArchitectureSignals.Keys.Quartz,
-            Kind:       null,
-            RenderLabel:"",
+            Kind:       EntryPointKind.ScheduledJob,
+            RenderLabel:"Scheduled",
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Quartz"],
             SdkHints:   [],
             SelfNamePatterns: ["Quartz"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Hangfire,
-            Kind:       null,
-            RenderLabel:"",
+            Kind:       EntryPointKind.ScheduledJob,
+            RenderLabel:"Scheduled",
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Hangfire"],
             SdkHints:   [],
