@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext agent probe - does the MCP help an agent browse code run report
 
-_Updated 2026-08-11 02:30 UTC · branch `feat/agent-probe` · HEAD `f4aac18`_
+_Updated 2026-08-11 02:30 UTC · branch `feat/agent-probe` · HEAD `157420b`_
 
-**Status:** Idle
+**Status:** Completed
 **Stage:** R1 — Report and verdict · attempts used 0
 **Checkpoints:** 12/12 done · **Sessions run:** 7 · **Cost:** $51.7443 (agent $51.7389 + gates $0.0053) · **Tokens:** 950,772 in / 468,326 out
 **Confirmed phases:** K1, H1, P1, P2, A1, R1
@@ -106,7 +106,6 @@ _Where the money goes: agent $51.74 (100%) · gate $0.01 (0%) · blended $0.83/M
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-11 00:40:17  ▪ gate probe-full pass [phase]  (10.6s)
 08-11 00:40:18  ✓ checkpoint H1.1 confirmed
 08-11 00:40:18  ✓ checkpoint H1.2 confirmed
 08-11 00:40:18  ▸ stage H1 confirmed  (31m23s)
@@ -146,6 +145,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-11 03:30:50  ▪ gate probe-full pass [phase]  (7.5s)
 08-11 03:30:51  ✓ checkpoint R1.1 confirmed
 08-11 03:30:51  ✓ checkpoint R1.2 confirmed
+08-11 03:30:51  ▸ stage R1 confirmed  (22m17s)
 ```
 
 ## Health
