@@ -27,8 +27,8 @@ owns the README's "22 tools" line, which now sits beside a shot reading "14 adve
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 11 |
-| Claimed (unconfirmed) | 3 |
+| Done | 14 |
+| Claimed (unconfirmed) | 2 |
 
 ## Checkpoints
 
@@ -75,16 +75,16 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | DONE | 55d256a | eval-results/2026-08-14/N4.1-status-that-measures.md |
-| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | DONE | d48a122 | eval-results/2026-08-14/N4.2-setup-that-works.md |
-| N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | DONE | a4896f2 | eval-results/2026-08-14/N4.3-deep-links.md |
+| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | DONE ✓ | 55d256a | eval-results/2026-08-14/N4.1-status-that-measures.md |
+| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | DONE ✓ | d48a122 | eval-results/2026-08-14/N4.2-setup-that-works.md |
+| N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | DONE ✓ | a4896f2 | eval-results/2026-08-14/N4.3-deep-links.md |
 
 ### Z1 — Close-out: docs + backlog + README screenshot sync, full battery, push
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| Z1.1 | STUDIO-MCP-AUDIT statuses + DECISIONS.md (D-G settled by N2) + BUG-BACKLOG reconciled; PRE-RELEASE-PLAN §3 table updated for this run; full battery green; branch pushed | TODO | - | - |
-| Z1.2 | README screenshot sync: docs/screenshots refreshed via the existing capture pipeline (screenshot-readme.mts / capture-readme.mts) against the post-N4 app — at minimum 08-context-studio, 09-export, 10-mcp plus any visibly changed page; README captions updated where the UI changed (agent-story claims untouched — engine Z1 owns those); committed and pushed | TODO | - | - |
+| Z1.1 | STUDIO-MCP-AUDIT statuses + DECISIONS.md (D-G settled by N2) + BUG-BACKLOG reconciled; PRE-RELEASE-PLAN §3 table updated for this run; full battery green; branch pushed | DONE | d910b74 | eval-results/2026-08-14/Z1.1-docs-reconciliation.md |
+| Z1.2 | README screenshot sync: docs/screenshots refreshed via the existing capture pipeline (screenshot-readme.mts / capture-readme.mts) against the post-N4 app — at minimum 08-context-studio, 09-export, 10-mcp plus any visibly changed page; README captions updated where the UI changed (agent-story claims untouched — engine Z1 owns those); committed and pushed | DONE | d910b74 | eval-results/2026-08-14/Z1.2-screenshot-sync.md |
 
 ## Dependencies
 

@@ -1,8 +1,8 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 11:57 UTC · branch `feat/pre-release-desktop` · HEAD `90dee71`_
+_Updated 2026-08-14 11:57 UTC · branch `feat/pre-release-desktop` · HEAD `7a479ee`_
 
-**Status:** Idle — advisor: human intervention required [6h 30m ago, 05:26:56Z]
+**Status:** Completed
 **Stage:** Z1 — Close-out: docs + backlog + README screenshot sync, full battery, push · attempts used 0
 **Checkpoints:** 16/16 done · **Sessions run:** 25 · **Cost:** $189.2838 (agent $189.1122 + gates $0.1716) · **Tokens:** 2,975,483 in / 1,174,418 out
 **Confirmed phases:** N0, N1, N2, M1, N3, N4, Z1
@@ -140,8 +140,6 @@ _Where the money goes: agent $189.11 (100%) · gate $0.17 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 02:16:10  ▪ gate guards pass [phase]  (1m46s)
-08-14 02:16:11  ▪ gate battery pass [phase]  (8m02s)
 08-14 02:16:11  ✓ checkpoint N3.1 confirmed
 08-14 02:16:11  ✓ checkpoint N3.2 confirmed
 08-14 02:16:11  ▸ stage N3 confirmed  (1h25m35s)
@@ -180,6 +178,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 12:57:27  ▪ gate battery pass [phase]  (5m15s)
 08-14 12:57:27  ✓ checkpoint Z1.1 confirmed
 08-14 12:57:27  ✓ checkpoint Z1.2 confirmed
+08-14 12:57:27  ▸ stage Z1 confirmed  (1h02m17s)
+08-14 12:57:34  ◆ run finished — Completed · 16/16 checkpoints  (19h41m32s)
 ```
 
 ## Health
@@ -202,7 +202,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/pre-release-desktop
 working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
-vs upstream: up to date
+vs upstream: 1 ahead, 2 behind
 ```
 
 ### Commits by session
