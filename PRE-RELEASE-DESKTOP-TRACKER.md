@@ -4,21 +4,21 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N3.1 LANDED and claimed (f427027, evidence eval-results/2026-08-14/N3.1-loop-joints.md): lint exit 0,
-248/248 tests (27 files, was 224/25), ng build exit 0. Explore (trail-bar button + Ctrl+E), Insights
-cards and NodeCard all route into Studio through StudioHandoffStore; Studio proposes on open —
-handoff, else pins, else trail, else the archetype preset — behind a banner that says it is a
-PROPOSAL and vanishes on the first edit. NEXT: N3.2, back on TODO, untouched.
-READ THE LEDGER BEFORE STARTING N3.2 — the mechanism question is already settled there: the Tauri fs
-route is blocked (capabilities scope fs to $LOCALDATA only, no write/mkdir perms; a repo is anywhere,
-so it needs a blanket `**` scope or Rust), so a NEW SERVER RPC is the recommendation — the only
-channel that works in dev:web AND Tauri, hence the only one you can verify live. Budget trap #4 for
-it (proto → rebuild Contracts AND pnpm gen:proto, server+app in lockstep, contract-sweep needs a
-reader per new field). Gitignore-by-default = write `.devcontext/.gitignore` holding `packs/`.
-TRAP that now applies to every Studio spec: ContextStudio SEEDS ITSELF on open, so a spec asserting
-on cards must clear the proposal first — context-studio.spec.ts `createStudio()` does it by default
-and takes `{keepProposal:true}`. Still standing: lint any NEWLY ADDED spec (tsc can't catch
-prefer-function-type; ng build never compiles specs); pnpm check SHORT-CIRCUITS on a lint red.
+N3 IS CLOSED. N3.2 landed and claimed (6efcef6 server + 032c9b8 app, evidence
+eval-results/2026-08-14/N3.2-repo-file-handoff.md). New RPC SavePackFile writes
+.devcontext/packs/<slug>.md into the analyzed repo + .devcontext/.gitignore holding packs/; Studio
+Save is no longer a download and its strip shows the SERVER's path, the gitignore state, the
+copyable CLAUDE.md line, and admits drift; Home's tile routes to /context. VERIFIED LIVE end to end
+in the browser against a temp fixture copy, file read back off disk, preview and file both 1326
+chars. Gates: lint 0, 256/256 tests (28 files), ng build 0, dotnet 0w/0e, contract-sweep PASS.
+NEXT: N4.1 — but N4.3 needs Run A's T1 merged in; check that before sequencing N4.
+TRAPS worth having (all measured this session): `conductor bg start -- pnpm ...` CANNOT spawn pnpm
+here (MODULE_NOT_FOUND, exits 0s) — use pnpm.cmd, or run pnpm test / pnpm build separately in the
+foreground (~40s/~90s). A SINGLE spec runs as `pnpm ng test --watch=false --include=<path>` —
+`pnpm vitest run <file>` dies with "Need to call TestBed.initTestEnvironment() first". A git commit
+whose message came from a PowerShell here-string failed twice with a lock error; -m and -F worked.
+Still standing: lint any NEWLY ADDED spec; ContextStudio seeds itself on open (createStudio() clears
+the proposal unless you pass {keepProposal:true}).
 
 
 ## Baseline numbers (from run.db)
@@ -26,8 +26,8 @@ prefer-function-type; ng build never compiles specs); pnpm check SHORT-CIRCUITS 
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 7 |
-| Claimed (unconfirmed) | 2 |
+| Done | 9 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -60,14 +60,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | DONE | a95d620 | eval-results/2026-08-13/M1.1-reader-prereqs.md |
-| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | DONE | 7ccbf56 | eval-results/2026-08-13/M1-gate-red-lint-fix.md |
+| M1.1 | Proto/mapper shopping list: TraceNode structured file_path+line_number; ReadSource file mode (or GetFileSource) with caps; per-file edge overlay query on the wire; ProtoMapper stops dropping MultiImplCount/DiHostCount/TestOnly/OmittedNames | DONE ✓ | a95d620 | eval-results/2026-08-13/M1.1-reader-prereqs.md |
+| M1.2 | Hygiene: MapResponse.stack populated or its three consumers stop rendering it (bug filed either way); Layer/Feature lens slots hidden until data exists; createTab MAX_TABS lie fixed; dock resizer added; high-contrast theme selectable or removed | DONE ✓ | 7ccbf56 | eval-results/2026-08-13/M1-gate-red-lint-fix.md |
 
 ### N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | TODO | - | - |
+| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | DONE | f427027 | eval-results/2026-08-14/N3.1-loop-joints.md |
 | N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | TODO | - | - |
 
 ### N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)
