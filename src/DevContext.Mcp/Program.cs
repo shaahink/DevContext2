@@ -22,8 +22,14 @@ try
     var services = new ServiceCollection();
     services.AddLogging(b => b.AddSerilog(dispose: true));
 
-    // M3.1 — connect to the DevContext server; spawn it if not running
-    var serverEndpoint = "http://127.0.0.1:5179";
+    // M3.1 — connect to the DevContext server; spawn it if not running.
+    // DEVCONTEXT_ENDPOINT (T1.4): EnsureServerRunning reuses ANY server already answering /health
+    // here, whichever checkout built it — measured 2026-08-13, a probe in this repo was silently
+    // served by a second repo's engine on the same machine. The server the shim spawns inherits
+    // this process's environment, so setting one variable pins a whole probe/gate run to its own
+    // port and its own build.
+    var serverEndpoint = Environment.GetEnvironmentVariable("DEVCONTEXT_ENDPOINT")
+        ?? "http://127.0.0.1:5179";
     var serverProcess = ServerShim.EnsureServerRunning(serverEndpoint);
 
     // gRPC-Web uses HTTP/1.1 transport — force version 1.1
@@ -56,6 +62,12 @@ try
 
     var toolsInstance = services.BuildServiceProvider().GetRequiredService<DevContextTools>();
 
+    // T1.2 — only the CORE half is registered, so `tools/list` advertises the curated menu. The
+    // specialists are built here too and handed to the fallback handler, which invokes them: they
+    // are unlisted, not removed. McpToolMenu owns the split; nothing here restates it.
+    var (coreTools, specialistTools) = McpToolMenu.Build(toolsInstance);
+    foreach (var t in coreTools) services.AddSingleton(t);
+
     services.AddMcpServer(options =>
     {
         options.ServerInfo = new()
@@ -64,7 +76,6 @@ try
             Version = "1.0.0", // M3.1 - version comes from server via Ping, static here
         };
     })
-    .WithTools(toolsInstance)
     .WithCallToolHandler(UnknownToolHandler.Handle)
     .WithStdioServerTransport();
 
@@ -80,11 +91,13 @@ try
     var toolNames = provider.GetRequiredService<IOptions<McpServerOptions>>()
         .Value.ToolCollection?.PrimitiveNames ?? [];
     UnknownToolHandler.UseToolNames(toolNames);
+    UnknownToolHandler.UseSpecialists(specialistTools, McpToolMenu.SpecialistReasons(toolsInstance));
     if (UnknownToolHandler.ToolNames.Count == 0)
         logger.LogError("No tools registered — the unknown-tool handler cannot name the menu.");
     else
-        logger.LogInformation("Tool menu: {Count} tools — {Names}", UnknownToolHandler.ToolNames.Count,
-            string.Join(", ", UnknownToolHandler.ToolNames));
+        logger.LogInformation("Tool menu: {Count} advertised — {Names}; {SpecCount} unlisted specialists — {Specialists}",
+            UnknownToolHandler.ToolNames.Count, string.Join(", ", UnknownToolHandler.ToolNames),
+            UnknownToolHandler.SpecialistNames.Count, string.Join(", ", UnknownToolHandler.SpecialistNames));
 
     logger.LogInformation("DevContext MCP server starting (stdio → gRPC proxy to {Endpoint})", serverEndpoint);
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Text;
 using DevContext.Protos;
 using Grpc.Core;
@@ -24,6 +25,24 @@ public sealed class DevContextTools
     // DevContextTools is a singleton for the life of the MCP process (Program.cs), so this field
     // is exactly "the session THIS client analyzed".
     private string? _lastAnalyzedHandle;
+
+    // T1.1 (BUG-BACKLOG #5) — the wire carrier for every tool/parameter description is
+    // [Description]; ModelContextProtocol 1.4.0 does NOT read the XML doc file (measured, see
+    // DevContext.Mcp.csproj). The XML `///` summaries that used to sit on these methods were
+    // deleted rather than kept alongside: two spellings of the same sentence, one of which never
+    // ships, is exactly how this defect survived a year. One carrier, and a gate reads it off the
+    // wire (eval/mcp-qa/wire-truth.js).
+    //
+    // `handle` is on 21 of 22 tools; a const keeps that one sentence single-sourced.
+    private const string HandleDoc = "Session handle from analyze(). Omit to use this client's last analyzed session.";
+    private const string NodeIdDoc = "Exact node id, as returned by resolve/find/neighbors.";
+
+    /// <summary>T1.3 (BUG-BACKLOG #9) — the marker Core's ContextPackBuilder puts on every omitted[]
+    /// line that reports a CUT (as opposed to an empty section). MCP references Contracts only, not
+    /// Core, so this is a MIRROR of <c>ContextPackBuilder.ElidedPrefix</c> — and a mirrored constant
+    /// is exactly the drift class this program has been bitten by, so
+    /// <c>McpElisionContractTests</c> (Server.Tests sees both assemblies) pins the two together.</summary>
+    public const string ElidedPrefix = "elided ";
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -66,6 +85,19 @@ public sealed class DevContextTools
     // WhenWritingNull drops absent fields). Candidates (did-you-mean) attach for unknown symbols.
     private static string Envelope(string error, string hint, string example, object? candidates = null)
         => JsonSerializer.Serialize(new { error, hint, example, candidates }, JsonOpts);
+
+    // T1.3 (BUG-BACKLOG #10) — an out-of-range enum is REJECTED, not quietly re-interpreted.
+    //
+    // Every one of these dials used to be a bare string forwarded to a `==` or a `switch` with a
+    // `_ =>` default: read_source(mode:"full") returned a 20-line window with found:true, and
+    // impact(direction:"sideways") computed Up and then ECHOED "sideways" back in the response. The
+    // agent has no way to notice — there is no field in either reply that disagrees with what it
+    // asked for. That is the confident-partial-truth family, and the fix is to answer the question
+    // it actually asked or say why not.
+    private static string? RejectBadEnum(string param, string value, string[] allowed, string example)
+        => allowed.Contains(value, StringComparer.Ordinal) ? null
+            : Envelope($"Invalid {param}: '{value}'.",
+                $"{param} must be one of: {string.Join(" | ", allowed)}.", example);
 
     // Map an RpcException from the server into an actionable envelope for the given tool.
     private static string FromRpc(RpcException ex, string tool, string example)
@@ -187,9 +219,11 @@ public sealed class DevContextTools
             "Pass the exact nodeId (from resolve(query)).", example, multi));
     }
 
-    /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. In a multi-solution repo, sln picks which solution to analyze (name, file name, or repo-relative path). Example: analyze("C:/repos/MyApp"), analyze("C:/repos/GitVersion", sln:"GitVersion.slnx")</summary>
     [McpServerTool]
-    public async Task<string> Analyze(string path, string? sln = null)
+    [Description("Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. Example: analyze(\"C:/repos/MyApp\"), analyze(\"C:/repos/GitVersion\", sln:\"GitVersion.slnx\")")]
+    public async Task<string> Analyze(
+        [Description("Absolute path to the repo root, or a GitHub URL/owner-name to clone.")] string path,
+        [Description("Which solution to analyze in a multi-solution repo: name, file name, or repo-relative path.")] string? sln = null)
     {
         var req = new AnalyzeRequest { Path = path };
         if (sln is { Length: > 0 }) req.Sln = sln;
@@ -300,9 +334,9 @@ public sealed class DevContextTools
         return $"Served from cache — no analysis ran. The numbers below describe an analysis{when}{head}.{elapsed}";
     }
 
-    /// <summary>One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Example: overview("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Overview(string? handle = null)
+    [Description("One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Start here after analyze. Example: overview(\"abc123\")")]
+    public async Task<string> Overview([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "overview", "analyze(\"C:/repos/MyApp\") then overview()"); }
@@ -406,9 +440,12 @@ public sealed class DevContextTools
         return JsonSerializer.Serialize(new { handle, archetype = map.Archetype, tokens, text, startHere }, JsonOpts);
     }
 
-    /// <summary>Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks — returns all matches. Example: resolve("abc123", "Product")</summary>
     [McpServerTool]
-    public async Task<string> Resolve(string? handle = null, string? query = null, int limit = 10)
+    [Description("Resolve a symbol/route/file to candidates with kind, service, path and the nodeId every other tool takes. Never silently picks - returns all matches. Example: resolve(\"abc123\", \"Product\")")]
+    public async Task<string> Resolve(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("Symbol, route or file to resolve - a short name is fine.")] string? query = null,
+        [Description("Max candidates to return (default 10).")] int limit = 10)
     {
         if (string.IsNullOrWhiteSpace(query))
             return Envelope("Missing required parameter 'query'.",
@@ -471,9 +508,10 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Check if a session handle is still valid. Example: status("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Status(string? handle = null)
+    [SpecialistTool("session lifecycle - analyze() is idempotent and hands back the handle, so most agents never need this")]
+    [Description("Check whether a session handle is still valid. Example: status(\"abc123\")")]
+    public async Task<string> Status([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "status", "analyze(path) then status()"); }
@@ -489,9 +527,10 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "status", "status(handle)"); }
     }
 
-    /// <summary>Release a session's resources (engine + any clone). Idempotent. Example: close_session("abc123")</summary>
     [McpServerTool]
-    public async Task<string> CloseSession(string? handle = null)
+    [SpecialistTool("session lifecycle - sessions expire on their own; this is server housekeeping, not agent work")]
+    [Description("Release a session's resources (engine + any clone). Idempotent. Example: close_session(\"abc123\")")]
+    public async Task<string> CloseSession([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "close_session", "close_session(handle)"); }
@@ -512,8 +551,9 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "close_session", "close_session(handle)"); }
     }
 
-    /// <summary>List all active analysis sessions on the server. Example: list_sessions()</summary>
     [McpServerTool]
+    [SpecialistTool("session lifecycle - when two sessions make a handle-less call ambiguous the error already names them")]
+    [Description("List all active analysis sessions on the server, with the repo each one covers. Example: list_sessions()")]
     public async Task<string> ListSessions()
     {
         ListSessionsResponse resp;
@@ -541,9 +581,9 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Stats(string? handle = null)
+    [Description("Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats(\"abc123\")")]
+    public async Task<string> Stats([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "stats", "analyze(path) then stats()"); }
@@ -562,7 +602,10 @@ public sealed class DevContextTools
             {
                 kind = seam.Seam,
                 total = seam.Count,
-                verified = seam.Count - seam.Approx,
+                // V1.1 (#25): read the carried tier split. This was `seam.Count - seam.Approx`, which
+                // reported every unlabelled (Join-default) edge to the agent as Roslyn-verified.
+                verified = seam.Verified,
+                joined = seam.Joined,
                 approx = seam.Approx,
             }).ToArray(),
             insights = resp.Insights.Select(i => new
@@ -600,9 +643,13 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "stats", "stats(handle)"); }
     }
 
-    /// <summary>List entry points (HTTP routes, bus consumers, gRPC services). Summary by default: per-kind counts + top-N by score (≤~1.5k tok). Pass kind to filter, top to widen, full:true for every entry. Example: entrypoints("abc123", kind:"HttpEndpoint"), entrypoints("abc123", full:true)</summary>
     [McpServerTool]
-    public async Task<string> Entrypoints(string? handle = null, string? kind = null, bool full = false, int top = 15)
+    [Description("List entry points (HTTP routes, bus consumers, gRPC services, jobs). Summary by default: per-kind counts + top-N by score (~1.5k tok). Names round-trip into trace/get_context. Example: entrypoints(\"abc123\", kind:\"HttpEndpoint\"), entrypoints(\"abc123\", full:true)")]
+    public async Task<string> Entrypoints(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("Filter to one entry kind, e.g. HttpEndpoint, MessageConsumer, GrpcService. Omit for all kinds.")] string? kind = null,
+        [Description("true = every entry instead of the scored top-N summary.")] bool full = false,
+        [Description("How many entries the summary lists per kind (default 15).")] int top = 15)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "entrypoints", "analyze(path) then entrypoints()"); }
@@ -670,9 +717,9 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface, archetype view, solution scope) + rendered markdown. Example: map("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Map(string? handle = null)
+    [Description("The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface, archetype view, solution scope) plus rendered markdown. Bigger than overview - use when you need the whole picture. Example: map(\"abc123\")")]
+    public async Task<string> Map([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "map", "analyze(path) then map()"); }
@@ -796,9 +843,10 @@ public sealed class DevContextTools
             }).ToArray(),
         }).ToArray();
 
-    /// <summary>Top 20 entry points ranked by importance score. Example: top_flows("abc123")</summary>
     [McpServerTool]
-    public async Task<string> TopFlows(string? handle = null)
+    [SpecialistTool("entrypoints() already returns the top-N by the same score, alongside the per-kind counts")]
+    [Description("Top 20 entry points ranked by importance score - the shortlist of flows worth tracing. Example: top_flows(\"abc123\")")]
+    public async Task<string> TopFlows([Description(HandleDoc)] string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "top_flows", "analyze(path) then top_flows()"); }
@@ -872,8 +920,8 @@ public sealed class DevContextTools
     // threw the nodeId away, so the one thing that made a starting point ADDRESSABLE was the thing
     // it dropped. The points now ride overview's envelope in full.
 
-    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = the call spine from ONE entry; format:"compact" is the small flow summary (what it touches/emits, ~150 tok) and format:"default" the full tree. Omit depth/budgetTokens for the server's trace policy (depth 6, ~4000 tok); cut subtrees are named ("N omitted"); budgetTokens:0 gives the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
+    [Description("Trace execution flow: the call spine from ONE entry, hop by hop. Address it with 'focus' OR 'query' - an entry route, a symbol name, or a nodeId from resolve/find. format:\"compact\" is the small flow summary (what it touches/emits, ~150 tok); format:\"default\" is the full tree. Omit depth/budgetTokens to get the server's trace policy; cut subtrees are named (\"N omitted\"); budgetTokens:0 gives the full tree. Example: trace(\"abc123\", \"POST /api/orders\", 6, \"compact\")")]
     // G2.2 (R4 §1 item 12) — depth and budgetTokens are NULLABLE, and that is the whole fix.
     //
     // They used to be `int depth = 6, int budgetTokens = 4000`: literals mirroring TracePolicy,
@@ -883,13 +931,21 @@ public sealed class DevContextTools
     // were unreachable, and TracePolicy.ElasticDepth (which fires only when the caller left the
     // depth to the server) could never run at all. Mirroring a constant does not keep two surfaces
     // together; not restating it does. The server, which owns TracePolicy, decides.
-    public async Task<string> Trace(string? handle = null, string? focus = null, int? depth = null, string format = "default", string? query = null, int? budgetTokens = null)
+    public async Task<string> Trace(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("What to trace: an entry route, a symbol name, or a nodeId.")] string? focus = null,
+        [Description("Max hops. Omit for the server's trace policy (elastic depth).")] int? depth = null,
+        [Description("\"default\" (full tree) or \"compact\" (~150-token flow summary). Any other value is rejected.")] string format = "default",
+        [Description("Synonym for 'focus'.")] string? query = null,
+        [Description("Token budget for the rendered tree. Omit for the server's policy; 0 = no budget, full tree.")] int? budgetTokens = null)
     {
         focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
             return Envelope("Missing required parameter 'focus' (or 'query').",
                 "Pass an entry route or symbol as 'focus' or 'query'.",
                 "trace(handle, focus:\"POST /basket/checkout\")");
+        if (RejectBadEnum("format", format, ["default", "compact"],
+            "trace(handle, focus:\"POST /basket/checkout\", format:\"compact\")") is { } badFormat) return badFormat;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "trace", "analyze(path) then trace(focus:\"POST /basket/checkout\")"); }
         try
@@ -911,6 +967,18 @@ public sealed class DevContextTools
                     "trace(handle, focus:\"POST /basket/checkout\")",
                     suggestions.Length > 0 ? suggestions : null);
             }
+
+            // T1.3 (BUG-BACKLOG #6) — `found:true` with zero steps is the VACUOUS shape: it passes any
+            // "did I get a trace" assertion and tells the agent nothing. A trace that resolved to a
+            // node with no outgoing wiring must SAY that, and name the call that would show the other
+            // direction — otherwise "this type calls nothing" and "trace could not walk this" are the
+            // same reply. Kept next to the response so both formats carry it.
+            var stepCount = CountTraceSteps(resp.Root);
+            var emptyNote = stepCount == 0 && resp.Root is { } r0
+                ? $"0 steps: nothing outbound was resolved from '{r0.Title}' — it calls, sends or handles "
+                  + $"nothing the graph could bind. Its callers are the other direction: "
+                  + $"neighbors(nodeId:\"{r0.NodeId}\", direction:\"in\"), or usages(nodeId:\"{r0.NodeId}\")."
+                : null;
 
             if (format == "compact")
             {
@@ -936,7 +1004,8 @@ public sealed class DevContextTools
                     found = true,
                     format = "compact",
                     focus,
-                    steps = CountTraceSteps(resp.Root),
+                    steps = stepCount,
+                    note = emptyNote,
                     touches = resp.TouchedEntities.Count,
                     emits = resp.EmittedEvents.Count,
                     tokens,
@@ -958,6 +1027,8 @@ public sealed class DevContextTools
                     title = resp.Root.Title,
                     kind = resp.Root.Kind,
                 } : null,
+                steps = stepCount,
+                note = emptyNote,
                 budgetTokens,
                 budgetSource = budgetTokens is null ? "server trace policy" : "caller",
                 omitted = OmittedNodes(resp.Root),
@@ -1054,9 +1125,13 @@ public sealed class DevContextTools
         children = node.Children.Select(SerializeTraceNode).ToArray(),
     };
 
-    /// <summary>Detail card for a graph node: title, kind, file path, degrees. Address with 'nodeId' (precise) or 'query' (fuzzy). Example: node("abc123", query:"OrderService")</summary>
     [McpServerTool]
-    public async Task<string> Node(string? handle = null, string? nodeId = null, string? query = null)
+    [SpecialistTool("resolve() already returns title, kind, service and path; neighbors() carries the degrees")]
+    [Description("Detail card for a graph node: title, kind, file path, in/out degrees. Address with 'nodeId' (precise) or 'query' (fuzzy). Example: node(\"abc123\", query:\"OrderService\")")]
+    public async Task<string> Node(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
             return Envelope("Missing 'nodeId' or 'query'.",
@@ -1097,14 +1172,23 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "node", "node(handle, nodeId:\"OrderService\")"); }
     }
 
-    /// <summary>Outgoing/incoming edges of a node. Address with 'nodeId' (precise) or 'query' (fuzzy). direction: out|in|usages. Optional 'kind' filters to one seam, which is how you ask a pointed question: who WRITES this table (direction:"in", kind:"ReadsWrites"), who SENDS this command (direction:"in", kind:"Sends"), who CONSUMES this event (kind:"Consumes"). The reply always names every kind this node does have, so a miss tells you what to ask instead. Example: neighbors("abc123", query:"Order", direction:"in", kind:"ReadsWrites")</summary>
     [McpServerTool]
-    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out", string? query = null, string? kind = null)
+    [Description("Outgoing/incoming edges of a node - one hop, with the seam kind and file:line on each. Optional 'kind' filters to one seam, which is how you ask a pointed question: who WRITES this table (direction:\"in\", kind:\"ReadsWrites\"), who SENDS this command (direction:\"in\", kind:\"Sends\"), who CONSUMES this event (kind:\"Consumes\"). The reply always names every kind this node does have, so a miss tells you what to ask instead. Example: neighbors(\"abc123\", query:\"Order\", direction:\"in\", kind:\"ReadsWrites\")")]
+    public async Task<string> Neighbors(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("\"out\" (default), \"in\", or \"usages\". Any other value is rejected.")] string direction = "out",
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null,
+        [Description("Filter to one seam kind, e.g. Calls, ReadsWrites, Sends, Consumes. Omit for all kinds.")] string? kind = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
             return Envelope("Missing 'nodeId' or 'query'.",
                 "Pass a precise nodeId (or a fuzzy query) and direction (out|in|usages).",
                 "neighbors(handle, query:\"OrderService\", direction:\"out\")");
+        // Server-side this is `Direction is "in" or "usages" ? In : Out`, so anything else was
+        // silently answered as `out` — and the reply echoed the word the caller sent.
+        if (RejectBadEnum("direction", direction, ["out", "in", "usages"],
+            "neighbors(handle, query:\"OrderService\", direction:\"in\")") is { } badDir) return badDir;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "neighbors", "analyze(path) then neighbors(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
@@ -1164,9 +1248,12 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "neighbors", "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")"); }
     }
 
-    /// <summary>Find all usages (in-edges) of a node across the codebase. Address with 'nodeId'/'query' — a short name or fuzzy query resolves (ambiguity-honest). Example: usages("abc123", query:"IOrderRepository")</summary>
     [McpServerTool]
-    public async Task<string> Usages(string? handle = null, string? nodeId = null, string? query = null)
+    [Description("Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")")]
+    public async Task<string> Usages(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
         nodeId ??= query; // T3.1 — `query` synonym; usages already resolves short names below
         if (string.IsNullOrWhiteSpace(nodeId))
@@ -1278,9 +1365,14 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "usages", "usages(handle, nodeId:\"IOrderRepository\")"); }
     }
 
-    /// <summary>Free-text search across graph nodes, paginated. limit default 20, cursor for offset. Example: find("abc123", "Order", kind:"Type", limit:10, cursor:0)</summary>
     [McpServerTool]
-    public async Task<string> Find(string? handle = null, string? query = null, string? kind = null, int limit = 20, int cursor = 0)
+    [Description("Free-text search across graph nodes, paginated. Returns nodeIds the navigation tools take. Example: find(\"abc123\", \"Order\", kind:\"Type\", limit:10, cursor:0)")]
+    public async Task<string> Find(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("Search term - substring match over node titles.")] string? query = null,
+        [Description("Filter to one node kind, e.g. Type, Member, Entry. Omit for all kinds.")] string? kind = null,
+        [Description("Page size (default 20).")] int limit = 20,
+        [Description("Offset into the result list, for paging (default 0).")] int cursor = 0)
     {
         if (string.IsNullOrWhiteSpace(query))
             return Envelope("Missing required parameter 'query'.",
@@ -1351,14 +1443,24 @@ public sealed class DevContextTools
         return title;
     }
 
-    /// <summary>Transitive impact analysis: upward (what reaches this) or downward (what does this affect). Grouped by service. Address the symbol with 'nodeId' or 'query'; or diff-aware 'files' mode for "I changed X". Example: impact("abc123", query:"OrderService", direction:"down"), impact("abc123", files:["path/to/file.cs"])</summary>
     [McpServerTool]
-    public async Task<string> Impact(string? handle = null, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null, string? query = null)
+    [Description("Transitive impact analysis: upward (what reaches this) or downward (what this affects), grouped by service. Address the symbol with 'nodeId' or 'query', or pass 'files' for diff-aware \"I changed X, what breaks\". Example: impact(\"abc123\", query:\"OrderService\", direction:\"down\"), impact(\"abc123\", files:[\"path/to/file.cs\"])")]
+    public async Task<string> Impact(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("How many hops to walk (default 4).")] int maxDepth = 4,
+        [Description("\"up\" (default, what reaches this), \"down\" (what this affects), or \"both\". Any other value is rejected.")] string direction = "up",
+        [Description("Changed file paths for diff-aware impact, instead of a single symbol.")] string[]? files = null,
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query) && (files is null || files.Length == 0))
             return Envelope("Provide 'nodeId'/'query' or 'files'.",
                 "Give a symbol (nodeId or fuzzy query), or the changed files for diff-aware impact.",
                 "impact(handle, query:\"OrderService\", direction:\"down\")");
+        // MEASURED against DevContextGrpcService.GetImpact, not read off this file's own docs: the
+        // server switch accepts up | down | both and defaults everything else to Up.
+        if (RejectBadEnum("direction", direction, ["up", "down", "both"],
+            "impact(handle, query:\"OrderService\", direction:\"down\")") is { } badImpactDir) return badImpactDir;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "impact", "analyze(path) then impact(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId) && !string.IsNullOrWhiteSpace(query) && (files is null || files.Length == 0))
@@ -1430,10 +1532,14 @@ public sealed class DevContextTools
         catch { return false; }
     }
 
-    /// <summary>The wiring path BETWEEN two symbols — how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers "does the checkout endpoint actually reach the payment service, and through what". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget (not the graph) ended the search. Example: seam(handle, from:"OrdersController", to:"OrderingContext")</summary>
     [McpServerTool]
-    public async Task<string> Seam(string? handle = null, string? from = null, string? to = null,
-        int maxDepth = 8, int maxPaths = 3)
+    [Description("The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")")]
+    public async Task<string> Seam(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("The starting symbol - a nodeId or a resolvable name.")] string? from = null,
+        [Description("The destination symbol - a nodeId or a resolvable name.")] string? to = null,
+        [Description("Max hops to search before giving up (default 8).")] int maxDepth = 8,
+        [Description("How many distinct paths to return (default 3).")] int maxPaths = 3)
     {
         if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to))
             return Envelope("Missing 'from' or 'to'.",
@@ -1488,9 +1594,12 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "seam", "seam(handle, from:\"OrdersController\", to:\"OrderingContext\")"); }
     }
 
-    /// <summary>Find config key usage sites (IConfiguration, GetValue, GetSection). Optional key filter. Example: config("abc123", "GrpcSettings:DiscountUrl")</summary>
     [McpServerTool]
-    public async Task<string> Config(string? handle = null, string? key = null)
+    [SpecialistTool("ask it when the question is specifically about configuration keys")]
+    [Description("Find config key usage sites (IConfiguration, GetValue, GetSection) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
+    public async Task<string> Config(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("Config key to filter on, e.g. \"GrpcSettings:DiscountUrl\". Omit for every key found.")] string? key = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "config", "analyze(path) then config()"); }
@@ -1543,9 +1652,14 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "config", "config(handle, key:\"ConnectionStrings:Database\")"); }
     }
 
-    /// <summary>Best-effort: find test methods whose call closure reaches a node. Address with 'nodeId' or 'query'. Method: walks in-edges up to maxDepth and name/path/project-classifies callers as tests; 0 means none reached (not "untested"). Example: tests_for("abc123", query:"OrderService")</summary>
     [McpServerTool]
-    public async Task<string> TestsFor(string? handle = null, string? nodeId = null, int maxDepth = 6, string? query = null)
+    [SpecialistTool("ask it when the question is specifically about test coverage of a symbol")]
+    [Description("Best-effort: find test methods whose call closure reaches a node. Method: walks in-edges up to maxDepth and classifies callers as tests by name/path/project. 0 results means none reached in the graph, NOT \"untested\". Example: tests_for(\"abc123\", query:\"OrderService\")")]
+    public async Task<string> TestsFor(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("How many in-edge hops to walk (default 6).")] int maxDepth = 6,
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
             return Envelope("Missing 'nodeId' or 'query'.",
@@ -1595,15 +1709,22 @@ public sealed class DevContextTools
     // from the same RPC, and stats already serialised every insight field but one; `confidence` now
     // rides with them, so the fold drops nothing.
 
-    /// <summary>Budget-priced context pack for a focus. Address with 'focus' OR 'query'. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
     [McpServerTool]
-    public async Task<string> GetContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string intent = "trace", string? query = null)
+    [Description("Budget-priced context pack for a focus: the identity, trace, signatures and usage sections an agent needs to work on one thing, cut to fit budgetTokens. Anything elided is named in the reply, and raising budgetTokens brings it back. Example: get_context(\"abc123\", \"POST /api/orders\", 4000, \"trace\")")]
+    public async Task<string> GetContext(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("What to build the pack around: an entry route, a symbol name, or a nodeId.")] string? focus = null,
+        [Description("Token budget for the pack (default 8000). Raise it to un-elide sections the reply says were cut.")] int budgetTokens = 8000,
+        [Description("\"trace\" (default), \"explain\", or \"review\" - shifts which sections get the budget. Any other value is rejected.")] string intent = "trace",
+        [Description("Synonym for 'focus'.")] string? query = null)
     {
         focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
             return Envelope("Missing required parameter 'focus' (or 'query').",
                 "Pass the entry/symbol to build context for as 'focus' or 'query'.",
                 "get_context(handle, focus:\"POST /api/orders\")");
+        if (RejectBadEnum("intent", intent, ["trace", "explain", "review"],
+            "get_context(handle, focus:\"POST /api/orders\", intent:\"explain\")") is { } badIntent) return badIntent;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "get_context", "analyze(path) then get_context(focus:\"POST /api/orders\")"); }
         try
@@ -1632,25 +1753,32 @@ public sealed class DevContextTools
             // connected subgraph is small — everything reachable is already in the pack), and a
             // content-exhausted under-fill suggests better-connected focuses so the agent has a
             // next move instead of a near-empty pack.
+            // T1.3 (BUG-BACKLOG #9) — two different claims used to be welded to one number. "fill %"
+            // is totalTokens/budgetTokens and legitimately FALLS as the budget rises; "the pack is
+            // complete" is a property of what got cut. Reading completeness off the ratio produced
+            // the silent-wrong-answer shape: MEASURED on TodoApi, get_context("Extensions", 1500)
+            // rendered "… (+64 lines)" in its own content and said "the pack already contains
+            // everything reachable from this focus" — the one reply that should say "ask for more"
+            // was the one that said "there is no more" (raising to 20000 doubled the content).
+            // The completeness half is now ANSWERED BY THE PACK: the builder declares every cut it
+            // made on an `elided ` line, so this reads a fact instead of inferring one from a ratio.
             string? fillNote = null;
             object[]? suggestedFocuses = null;
             var fillPct = budgetTokens > 0 ? (int)(resp.TotalTokens * 100L / budgetTokens) : 100;
-            if (fillPct < 85)
+            var elisions = resp.Omitted.Where(o => o.StartsWith(ElidedPrefix, StringComparison.Ordinal)).ToArray();
+            var legacyCut = resp.Omitted.Any(o => o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+            if (elisions.Length > 0 || legacyCut)
             {
-                var budgetCut = resp.Omitted.Any(o =>
-                    o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
-                    o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
-                if (budgetCut)
-                {
-                    fillNote = $"fill {fillPct}%: sections were cut to fit the budget — raise budgetTokens for the rest (see omitted).";
-                }
-                else
-                {
-                    fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
-                    suggestedFocuses = await SuggestConnectedAsync(handle, focus);
-                    if (suggestedFocuses.Length > 0)
-                        fillNote += " Better-connected focuses in suggestedFocuses.";
-                }
+                // Named at ANY fill: an elision at 90% fill is still content the agent did not get.
+                fillNote = $"fill {fillPct}%: INCOMPLETE — {elisions.Length + (legacyCut ? 1 : 0)} cut(s) were made to fit "
+                    + $"budgetTokens={budgetTokens}; each is named in omitted[]. Raise budgetTokens for the rest.";
+            }
+            else if (fillPct < 85)
+            {
+                fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
+                suggestedFocuses = await SuggestConnectedAsync(handle, focus);
+                if (suggestedFocuses.Length > 0)
+                    fillNote += " Better-connected focuses in suggestedFocuses.";
             }
 
             return JsonSerializer.Serialize(new
@@ -1668,9 +1796,14 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "get_context", "get_context(handle, focus:\"POST /api/orders\")"); }
     }
 
-    /// <summary>Has the source drifted since analyze? Compares analyze-time file hashes vs disk per pack section for a focus. Returns per-section stale flags, changed files with line deltas, and repo HEAD then/now. Method: hash + line-count delta only (no diff). Example: verify_context("abc123", "POST /api/orders")</summary>
     [McpServerTool]
-    public async Task<string> VerifyContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string? query = null)
+    [SpecialistTool("ask it when a pack has been open long enough that the files behind it may have changed")]
+    [Description("Has the source drifted since analyze? Compares analyze-time file hashes against disk, per pack section for a focus. Returns per-section stale flags, changed files with line deltas, and repo HEAD then/now. Method: hash + line-count delta only, no diff. Example: verify_context(\"abc123\", \"POST /api/orders\")")]
+    public async Task<string> VerifyContext(
+        [Description(HandleDoc)] string? handle = null,
+        [Description("The same focus you passed to get_context.")] string? focus = null,
+        [Description("Same budget as the get_context call being verified (default 8000), so the same sections are compared.")] int budgetTokens = 8000,
+        [Description("Synonym for 'focus'.")] string? query = null)
     {
         focus ??= query; // same synonym contract as get_context (T3.1)
         if (string.IsNullOrWhiteSpace(focus))
@@ -1716,14 +1849,21 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "verify_context", "verify_context(handle, focus:\"POST /api/orders\")"); }
     }
 
-    /// <summary>Read source code for a node. Address with 'nodeId' or 'query'. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", query:"OrderService", mode:"member")</summary>
     [McpServerTool]
-    public async Task<string> ReadSource(string? handle = null, string? nodeId = null, int windowLines = 20, string mode = "window", string? query = null)
+    [Description("Read the source code behind a node, with its real file:line. Example: read_source(\"abc123\", query:\"OrderService\", mode:\"member\")")]
+    public async Task<string> ReadSource(
+        [Description(HandleDoc)] string? handle = null,
+        [Description(NodeIdDoc)] string? nodeId = null,
+        [Description("Lines of context around the node in window mode (default 20).")] int windowLines = 20,
+        [Description("\"window\" (default, windowLines around the node) or \"member\" (the whole declaration body). Any other value is rejected.")] string mode = "window",
+        [Description("Fuzzy name to resolve instead of a nodeId.")] string? query = null)
     {
         if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
             return Envelope("Missing 'nodeId' or 'query'.",
                 "Pass a nodeId (or fuzzy query). mode: window|member.",
                 "read_source(handle, query:\"OrderService\", mode:\"member\")");
+        if (RejectBadEnum("mode", mode, ["window", "member"],
+            "read_source(handle, query:\"OrderService\", mode:\"member\")") is { } badMode) return badMode;
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "read_source", "analyze(path) then read_source(query:\"OrderService\")"); }
         if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId

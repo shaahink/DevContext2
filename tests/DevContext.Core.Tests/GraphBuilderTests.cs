@@ -617,6 +617,72 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Cli_sub_command_is_titled_with_the_verb_a_user_types_and_the_tree_has_two_levels()
+    {
+        // D1.3 (#14) — the render half. The type argument of [Command<ConfigCommand>("init")] is the
+        // only parent link a two-level tree has; without it `init` and `show` read as two more
+        // top-level groups and cli.command-tree asserted a flat tree it had no evidence for.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Gv.Cli", @"C:/repo/src/Gv.Cli/Gv.Cli.csproj", "C#", ["net10.0"], [], [])],
+        };
+        void Detect(string type, string verb, string? parent) => model.Detections.Add(
+            new CliCommandDetection(type, "object", "InvokeAsync", verb, parent)
+            {
+                ExtractorName = "test",
+                SourceFile = $@"C:/repo/src/Gv.Cli/{type}.cs",
+                LineNumber = 7,
+            });
+        Detect("ConfigCommand", "config", null);
+        Detect("ConfigInitCommand", "init", "ConfigCommand");
+        Detect("ConfigShowCommand", "show", "ConfigCommand");
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.Contains(entries, e => e.Title == "config init (ConfigInitCommand)");
+        Assert.Contains(entries, e => e.Title == "config show (ConfigShowCommand)");
+        Assert.Contains(entries, e => e.Title == "config (ConfigCommand)");
+
+        // The tree insight groups on the first word of the title, so a real parent verb is what makes
+        // it print one group of three instead of three groups of one.
+        var tree = new Insights.CliArchetypeSource()
+            .Compute(model, graph, entries)
+            .Single(i => i.Id == "cli.command-tree");
+        Assert.Contains("3 CLI commands, 1 top-level groups", tree.Title);
+        Assert.Contains("config (3 commands)", tree.Evidence);
+    }
+
+    [Fact]
+    public void Cli_sub_command_whose_parent_is_not_detected_keeps_its_own_verb()
+    {
+        // The negative that makes the path worth trusting: an unresolvable parent contributes NOTHING
+        // rather than a guessed prefix. A repo that references a command base it does not declare
+        // (or a parent with no verb of its own) still gets the leaf verb, which is true.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Gv.Cli", @"C:/repo/src/Gv.Cli/Gv.Cli.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new CliCommandDetection("OrphanCommand", "object", "InvokeAsync", "init", "MissingParent")
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:/repo/src/Gv.Cli/OrphanCommand.cs",
+            LineNumber = 7,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.Equal("init (OrphanCommand)", Assert.Single(entries, e => e.Kind == EntryPointKind.CliCommand).Title);
+    }
+
+    [Fact]
     public void Cli_command_that_calls_nothing_is_left_honestly_unwired()
     {
         // The other half of the same rule, and the one that makes the first half worth trusting.

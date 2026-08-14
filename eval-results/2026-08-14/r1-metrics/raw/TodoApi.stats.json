@@ -1,0 +1,197 @@
+{
+  "snapshotCache": "miss \u00B7 saved 307a1ea",
+  "nodeCount": 114,
+  "edgeCount": 67,
+  "entryCount": 12,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 12,
+  "entriesWithDeepSpine": 12,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 11,
+    "UiEntry": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 48,
+      "verified": 6,
+      "joined": 12,
+      "approx": 30
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 2,
+      "verified": 0,
+      "joined": 0,
+      "approx": 2
+    },
+    {
+      "kind": "Resolves",
+      "total": 14,
+      "verified": 0,
+      "joined": 14,
+      "approx": 0
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 1,
+      "verified": 0,
+      "joined": 1,
+      "approx": 0
+    },
+    {
+      "kind": "DependsOn",
+      "total": 2,
+      "verified": 0,
+      "joined": 2,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 9163,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 250
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 430
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 533
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 5080
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 980
+    },
+    {
+      "stage": "Insights",
+      "ms": 370
+    },
+    {
+      "stage": "Compression",
+      "ms": 199
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 549
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "5/11 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "evidence": [
+        "POST /users/token/{provider}",
+        "POST /auth/register",
+        "POST /auth/login",
+        "GET /auth/login/{provider}",
+        "GET /auth/signin/{provider}"
+      ],
+      "confidence": 0.55,
+      "confidenceBasis": "6/11 endpoints have known auth"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Auth surface: 6 protected, 5 unannotated of 11 API endpoints",
+      "evidence": [
+        "6 protected",
+        "GET /todos/",
+        "GET /todos/{id}",
+        "5 no auth annotation"
+      ],
+      "confidence": 0.5454545454545454,
+      "confidenceBasis": "6/11 API endpoints have auth annotations"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 12/12 (100%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 33 Extension \u00B7 5 Singleton \u00B7 5 Scoped (43 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 11 HTTP \u00B7 1 UI",
+      "evidence": [
+        "11 HTTP",
+        "1 UI"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Todo.Api (2 dependents) \u00B7 Todo.Web.Shared (2 dependents) \u00B7 TodoApp.ServiceDefaults (1 dependents)",
+      "evidence": [
+        "Todo.Api (2 dependents)",
+        "Todo.Web.Shared (2 dependents)",
+        "TodoApp.ServiceDefaults (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 2 entities across 2 scopes",
+      "evidence": [
+        "Todo.Api (1 entities)",
+        "TodoDbContext (1 entities)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Entity detection is name/heuristic-based \u2014 may miss some code-first models"
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: TodoDbContext (8) \u00B7 TodoClient (6)",
+      "evidence": [
+        "TodoDbContext (8)",
+        "TodoClient (6)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

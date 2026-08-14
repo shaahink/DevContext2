@@ -1,0 +1,239 @@
+{
+  "snapshotCache": "miss \u00B7 saved 43831e2",
+  "nodeCount": 163,
+  "edgeCount": 142,
+  "entryCount": 16,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 15,
+  "entriesWithDeepSpine": 16,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 15,
+    "DomainEventHandler": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 62,
+      "verified": 28,
+      "joined": 16,
+      "approx": 18
+    },
+    {
+      "kind": "Sends",
+      "total": 9,
+      "verified": 9,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Handles",
+      "total": 10,
+      "verified": 0,
+      "joined": 10,
+      "approx": 0
+    },
+    {
+      "kind": "Consumes",
+      "total": 1,
+      "verified": 0,
+      "joined": 1,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 8,
+      "verified": 8,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Resolves",
+      "total": 10,
+      "verified": 0,
+      "joined": 9,
+      "approx": 1
+    },
+    {
+      "kind": "WrappedBy",
+      "total": 40,
+      "verified": 0,
+      "joined": 40,
+      "approx": 0
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 1,
+      "verified": 0,
+      "joined": 0,
+      "approx": 1
+    },
+    {
+      "kind": "DependsOn",
+      "total": 1,
+      "verified": 0,
+      "joined": 1,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 11269,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 787
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1331
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 1190
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 3518
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 404
+    },
+    {
+      "stage": "Insights",
+      "ms": 699
+    },
+    {
+      "stage": "Compression",
+      "ms": 277
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 1729
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "risk.unvalidated-endpoints",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Missing validation: 8/12 write endpoints have no FluentValidation validator",
+      "evidence": [
+        "PATCH /UpdateDetail/{id} \u2192 UpdateTodoItemDetailCommand",
+        "DELETE /{id} \u2192 DeleteTodoItemCommand",
+        "DELETE /{id} \u2192 DeleteTodoListCommand",
+        "POST /logout \u2192 Users",
+        "POST / \u2192 EndpointRouteBuilderExtensions"
+      ],
+      "confidence": 0.65,
+      "confidenceBasis": "Validator detection from AbstractValidator\u003CT\u003E subclasses; target resolution from graph dispatch edges"
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "14/15 endpoints anonymous, incl. 9 POST/PUT/DELETE",
+      "evidence": [
+        "POST /",
+        "PUT /{id}",
+        "PATCH /UpdateDetail/{id}",
+        "DELETE /{id}",
+        "GET /"
+      ],
+      "confidence": 0.07,
+      "confidenceBasis": "1/15 endpoints have known auth"
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 1 protected, 14 unannotated of 15 API endpoints",
+      "evidence": [
+        "1 protected",
+        "POST /logout",
+        "14 no auth annotation"
+      ],
+      "confidence": 0.06666666666666667,
+      "confidenceBasis": "1/15 API endpoints have auth annotations"
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: ISaveChangesInterceptor (2 impls)",
+      "evidence": [
+        "ISaveChangesInterceptor (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.middleware-pipeline",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Middleware pipeline: 4 behaviours",
+      "evidence": [
+        "AuthorizationBehaviour",
+        "PerformanceBehaviour",
+        "UnhandledExceptionBehaviour",
+        "ValidationBehaviour"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "Pipeline/handler detection is structural \u2014 reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 15/16 (93%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 25 Extension \u00B7 5 Scoped \u00B7 2 Transient \u00B7 1 Singleton (33 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "msg.produce-consume",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Message flow: 0 producers, 1 consumers, 0 message types",
+      "evidence": [
+        "1 consumers"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Message detection is body-scan \u2014 producer edges may miss DI-resolved bus dispatches"
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 15 HTTP \u00B7 1 DomainEventHandler",
+      "evidence": [
+        "15 HTTP",
+        "1 DomainEventHandler"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Shared (3 dependents) \u00B7 Shared (2 dependents) \u00B7 Application (2 dependents)",
+      "evidence": [
+        "Shared (3 dependents)",
+        "Shared (2 dependents)",
+        "Application (2 dependents)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

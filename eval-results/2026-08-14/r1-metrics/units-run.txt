@@ -1,0 +1,12 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:16.76]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+[xUnit.net 00:00:17.33]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+
+Passed!  - Failed:     0, Passed:   108, Skipped:     0, Total:   108, Duration: 26 s - DevContext.Server.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:   814, Skipped:     2, Total:   816, Duration: 1 m - DevContext.Core.Tests.dll (net10.0)

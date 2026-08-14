@@ -246,6 +246,80 @@ if ($SkipMcpQa) {
     Write-Pass "MCP QA gate passed"
 }
 
+# Step 2c: Wire-truth gate (pre-release T1.4) — what an AGENT actually receives.
+#
+# Every other step in this battery reads the engine from the inside: C# tests, expectation JSON,
+# the CLI. None of them speaks MCP, and that hole is exactly where bug #5 lived for a year — the
+# C# source carried 26 XML doc summaries while `tools/list` on the wire carried 22 empty strings,
+# through every green gate. So these two probes drive a REAL MCP handshake over stdio against the
+# binary step 1 just built and judge the REPLY, never the source.
+#
+#   wire-truth.js    (~15s, no analyze) every tool AND parameter carries a description; the menu is
+#                    the curated one; an unknown name gets the did-you-mean envelope naming the
+#                    unlisted specialists; all five enum dials reject an out-of-range value while a
+#                    valid one still reaches the real code path.
+#   partial-truth.js (~2-4min, analyzes TodoApi) the confident-partial-truth family: every
+#                    entrypoints title round-trips through get_context AND trace; trace(nodeId) is
+#                    never weaker than trace(bare name) and never renders a phantom; a found:true
+#                    trace with 0 steps says why; an elided pack names the elision and the
+#                    budgetTokens lever (and the probe proves it actually found an elided pack, so
+#                    a green here can't be vacuous).
+#
+# Both print PASS/FAIL per bar and exit non-zero on any FAIL. Proven RED first, on a real pre-fix
+# binary built from 5853ac0 (the commit before the T1 fixes): eval-results/2026-08-13/t1-wire-truth-gate/.
+Write-Step "Step 2c: Wire-truth gate (real MCP handshake)"
+$node = Get-Command node -ErrorAction SilentlyContinue
+$mcpExe = Join-Path $repoRoot "src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe"
+# TEMP, not eval-results\: these probes dump ~800KB of raw wire transcript per run, and the battery
+# runs after every session. The path is printed on failure, which is when anyone wants it.
+$wireOut = Join-Path $env:TEMP "devcontext-gate-wire-truth"
+if (-not $node) {
+    Write-Fail "node not on PATH - the wire-truth probes cannot run (this step is not optional)" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - node missing)" -ForegroundColor Red
+    exit 2
+}
+if (-not (Test-Path $mcpExe)) {
+    Write-Fail "devcontext-mcp.exe not built at $mcpExe" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - MCP exe missing)" -ForegroundColor Red
+    exit 2
+}
+$wireResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\wire-truth.js") $wireOut }
+$wireExit = $LASTEXITCODE
+Write-Host ($wireResult -join "`n")
+if ($wireExit -ne 0) {
+    Write-Fail "wire-truth probe failed (exit $wireExit) - see $wireOut" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - wire truth)" -ForegroundColor Red
+    exit 2
+}
+Write-Pass "wire truth: every tool + parameter described, menu curated, enum dials reject"
+
+# partial-truth analyzes a repo, so it needs the eval-repos submodule. Absent = a HOLE in this
+# verdict, printed the way step 3 prints its skipped repos - never a silent pass.
+# The marker is a REAL file inside the pin (TodoApp.sln), not the directory: an uninitialised
+# submodule leaves the directory there and empty, so Test-Path on the dir alone would report
+# covered and skip forever. Measured 2026-08-13 - the first draft of this check tested for a
+# TodoApi.csproj that does not exist in the pin, and would have skipped on every machine.
+$ptRepo = Join-Path $repoRoot "eval-repos\TodoApi"
+if (-not (Test-Path (Join-Path $ptRepo "TodoApp.sln"))) {
+    Write-Host "  SKIP  partial-truth: eval-repos\TodoApi absent (git submodule update --init)." -ForegroundColor Yellow
+    Write-Host "        NOT COVERED by this verdict: entry round-trip, trace-by-nodeId, elision honesty." -ForegroundColor Yellow
+} else {
+    $ptResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\partial-truth.js") $wireOut $ptRepo }
+    $ptExit = $LASTEXITCODE
+    Write-Host (($ptResult | Select-String "PASS|FAIL|GREEN|RED|handle:") -join "`n")
+    if ($ptExit -ne 0) {
+        Write-Host ($ptResult -join "`n")
+        Write-Fail "partial-truth probe failed (exit $ptExit) - see $wireOut" -Step 2
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 2c - partial truth)" -ForegroundColor Red
+        exit 2
+    }
+    Write-Pass "partial truth: entry names round-trip, nodeId traces, every elision named"
+}
+
 # Step 4: CLI strict-mode matrix
 Write-Step "Step 4: CLI --strict matrix"
 $cliProject = Join-Path $repoRoot "src\DevContext.Cli"

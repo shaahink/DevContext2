@@ -107,7 +107,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                     {
                         if (!component.Methods.Any(m => m.Name == lifecycle)) continue;
                         var lifecycleId = NodeId.ForMember(handlerFqn, lifecycle);
-                        g.AddNode(new GraphNode(lifecycleId, ep.HandlerType + "." + lifecycle, NodeKind.Member)
+                        g.AddNode(new GraphNode(lifecycleId, SymbolCanon.MemberTitle(lifecycleId.Key), NodeKind.Member)
                         {
                             FilePath = ep.SourceFile,
                         });
@@ -125,7 +125,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                 {
                     var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
                     handlerNodeId = memberNodeId;
-                    g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
+                    g.AddNode(new GraphNode(memberNodeId, SymbolCanon.MemberTitle(memberNodeId.Key), NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
                         SourceBody = ep.HandlerBody,
@@ -164,7 +164,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                     var ownerKey = ownerType?.Id ?? Path.GetFileNameWithoutExtension(ep.SourceFile);
                     var lambdaId = NodeId.ForMember(ownerKey, $"<lambda> {key}");
                     handlerNodeId = lambdaId;
-                    g.AddNode(new GraphNode(lambdaId, $"<lambda> {key}", NodeKind.Member)
+                    g.AddNode(new GraphNode(lambdaId, SymbolCanon.MemberTitle(lambdaId.Key), NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
                         SourceBody = ep.HandlerBody,

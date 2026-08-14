@@ -1,0 +1,245 @@
+{
+  "snapshotCache": "miss \u00B7 saved 7e43d80",
+  "nodeCount": 415,
+  "edgeCount": 340,
+  "entryCount": 34,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 30,
+  "entriesWithDeepSpine": 34,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 27,
+    "GrpcService": 4,
+    "DomainEventHandler": 2,
+    "MessageConsumer": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 199,
+      "verified": 115,
+      "joined": 34,
+      "approx": 50
+    },
+    {
+      "kind": "Sends",
+      "total": 33,
+      "verified": 33,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Handles",
+      "total": 18,
+      "verified": 0,
+      "joined": 18,
+      "approx": 0
+    },
+    {
+      "kind": "Raises",
+      "total": 4,
+      "verified": 4,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Consumes",
+      "total": 5,
+      "verified": 0,
+      "joined": 5,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 26,
+      "verified": 12,
+      "joined": 0,
+      "approx": 14
+    },
+    {
+      "kind": "Resolves",
+      "total": 15,
+      "verified": 0,
+      "joined": 14,
+      "approx": 1
+    },
+    {
+      "kind": "WrappedBy",
+      "total": 36,
+      "verified": 0,
+      "joined": 36,
+      "approx": 0
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 1,
+      "verified": 0,
+      "joined": 0,
+      "approx": 1
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 3,
+      "verified": 0,
+      "joined": 3,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 14651,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 797
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 1100
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 1487
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 7990
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1200
+    },
+    {
+      "stage": "Insights",
+      "ms": 244
+    },
+    {
+      "stage": "Compression",
+      "ms": 74
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 371
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "27/27 endpoints anonymous, incl. 9 POST/PUT/DELETE",
+      "evidence": [
+        "POST /basket/checkout",
+        "DELETE /basket/{userName}",
+        "GET /basket/{userName}",
+        "POST /basket",
+        "POST /products"
+      ],
+      "confidence": 0,
+      "confidenceBasis": "0/27 endpoints have known auth"
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 5 events (2 integration), 1 cross-service, 1 orphan",
+      "evidence": [
+        "BasketCheckoutEvent: Basket.API \u2192 Ordering.Application",
+        "OrderDto \u2190 Ordering.Application (no consumer)",
+        "\u003Cregistration\u003E \u2192 BuildingBlocks.Messaging",
+        "OrderCreatedEvent \u2192 Ordering.Application",
+        "OrderUpdatedEvent \u2192 Ordering.Application"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "Publisher\u2192event\u2192consumer join over Raises\u002BConsumes seams; events matched by type name within the detected event set"
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: ISaveChangesInterceptor (2 impls)",
+      "evidence": [
+        "ISaveChangesInterceptor (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "graph.orphans",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Possible dead code: 5 public types with zero inbound references",
+      "evidence": [
+        "CheckoutBasketEndpoints",
+        "DeleteBasketEndpoints",
+        "GetBasketEndpoints",
+        "StoreBasketEndpoints",
+        "CachedBasketRepository"
+      ],
+      "confidence": 0.4,
+      "confidenceBasis": "coverage basis: 58% of 199 Calls edges verified, 30/34 entries wired; body-constructed, implemented, and entity-indexed types excluded"
+    },
+    {
+      "id": "web.middleware-pipeline",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Middleware pipeline: 2 behaviours",
+      "evidence": [
+        "LoggingBehavior",
+        "ValidationBehavior"
+      ],
+      "confidence": 0.8,
+      "confidenceBasis": "Pipeline/handler detection is structural \u2014 reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 30/34 (88%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 27 HTTP \u00B7 4 GrpcService \u00B7 2 DomainEventHandler \u00B7 1 Bus",
+      "evidence": [
+        "27 HTTP",
+        "4 GrpcService",
+        "2 DomainEventHandler",
+        "1 Bus"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: BuildingBlocks (3 dependents) \u00B7 BuildingBlocks.Messaging (2 dependents) \u00B7 Ordering.Application (2 dependents)",
+      "evidence": [
+        "BuildingBlocks (3 dependents)",
+        "BuildingBlocks.Messaging (2 dependents)",
+        "Ordering.Application (2 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 6 entities across 4 scopes",
+      "evidence": [
+        "Ordering.Domain (3 entities)",
+        "Discount.Grpc (1 entities)",
+        "DiscountContext (1 entities)",
+        "ApplicationDbContext (1 entities)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Entity detection is name/heuristic-based \u2014 may miss some code-first models"
+    }
+  ]
+}

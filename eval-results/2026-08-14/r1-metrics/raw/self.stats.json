@@ -1,0 +1,156 @@
+{
+  "snapshotCache": "miss \u00B7 saved eb98517",
+  "nodeCount": 1634,
+  "edgeCount": 2476,
+  "entryCount": 30,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 28,
+  "entriesWithDeepSpine": 30,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "GrpcService": 26,
+    "CliCommand": 3,
+    "HttpEndpoint": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 2466,
+      "verified": 1126,
+      "joined": 30,
+      "approx": 1310
+    },
+    {
+      "kind": "Resolves",
+      "total": 9,
+      "verified": 0,
+      "joined": 7,
+      "approx": 2
+    },
+    {
+      "kind": "ServiceLink",
+      "total": 1,
+      "verified": 0,
+      "joined": 1,
+      "approx": 0
+    }
+  ],
+  "totalWallMs": 76259,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 36172
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 2411
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 5347
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 28869
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1316
+    },
+    {
+      "stage": "Insights",
+      "ms": 375
+    },
+    {
+      "stage": "Compression",
+      "ms": 253
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 195
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 1 consumed keys have no appsettings default",
+      "evidence": [
+        "x"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "1/1 endpoints anonymous",
+      "evidence": [
+        "GET /health"
+      ],
+      "confidence": 0,
+      "confidenceBasis": "0/1 endpoints have known auth"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 28/30 (93%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 28 Singleton \u00B7 12 Extension (40 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 26 GrpcService \u00B7 1 HTTP",
+      "evidence": [
+        "26 GrpcService",
+        "1 HTTP"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: DevContext.Core (2 dependents) \u00B7 DevContext.Core (2 dependents) \u00B7 DevContext.Contracts (2 dependents)",
+      "evidence": [
+        "DevContext.Core (2 dependents)",
+        "DevContext.Core (2 dependents)",
+        "DevContext.Contracts (2 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: DiscoveryModel (106) \u00B7 SealableBag (72) \u00B7 CodeGraph (67) \u00B7 NodeId (48) \u00B7 SymbolCanon (48)",
+      "evidence": [
+        "DiscoveryModel (106)",
+        "SealableBag (72)",
+        "CodeGraph (67)",
+        "NodeId (48)",
+        "SymbolCanon (48)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

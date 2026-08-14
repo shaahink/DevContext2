@@ -5,7 +5,7 @@ import type {
   TraceNode,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
-import { repoRelativePath } from '../core/format';
+import { edgeTier, repoRelativePath } from '../core/format';
 
 export type AnalysisStatus = 'idle' | 'cloning' | 'analyzing' | 'ready' | 'error';
 
@@ -216,15 +216,18 @@ function orderIndex(kind: string): number {
   return i === -1 ? ENTRY_KIND_ORDER.length : i;
 }
 
-/** Confidence Ledger tree filter (proposal §3.5) — keeps a node if it's itself
- * non-`Semantic` OR any descendant is, so matches stay reachable from the root
- * instead of orphaning them by cutting a fully-verified ancestor. Returns null
- * when nothing in the (sub)tree matches. */
+/** Confidence Ledger tree filter (proposal §3.5) — keeps a node if it is itself in the `approx`
+ * tier OR any descendant is, so matches stay reachable from the root instead of orphaning them by
+ * cutting a fully-verified ancestor. Returns null when nothing in the (sub)tree matches.
+ *
+ * V1.1 (backlog #25): the test was `!== 'Semantic'`, so the "approx only" button also kept every
+ * JOIN-resolved node — nodes the trace's own badges leave unmarked, because they are not approx.
+ * One reading now, `edgeTier` in core/format. */
 export function filterApproxTree(node: TraceNodeVm): TraceNodeVm | null {
   const children = node.children
     .map(filterApproxTree)
     .filter((c): c is TraceNodeVm => c !== null);
-  const selfMatches = node.resolution !== 'Semantic';
+  const selfMatches = edgeTier(node.resolution) === 'approx';
   if (!selfMatches && children.length === 0) return null;
   return { ...node, children };
 }

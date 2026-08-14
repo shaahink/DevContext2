@@ -1,0 +1,111 @@
+﻿V1.2 MEMBER-TITLE VOCABULARY PROBE (one-rule mirror vs engine GraphNode.Title)
+cli: C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli mtime: 2026-08-13T21:14:05
+
+POLE eShop
+  EntryPoint   match     56   MISMATCH     53
+  Member       match    440   MISMATCH      0
+  Service      match     12   MISMATCH      0
+  Store        match      6   MISMATCH      0
+  Type         match    542   MISMATCH      3
+      EntryPoint id=EntryPoint:worker:GracePeriodManagerService
+         engine='GracePeriodManagerService'  mirror='worker:GracePeriodManagerService'
+      EntryPoint id=EntryPoint:domain:OrderCancelledDomainEventHandler
+         engine='OrderCancelledDomainEventHandler'  mirror='domain:OrderCancelledDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:OrderShippedDomainEventHandler
+         engine='OrderShippedDomainEventHandler'  mirror='domain:OrderShippedDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:OrderStatusChangedToAwaitingValidationDomainEventHandler
+         engine='OrderStatusChangedToAwaitingValidationDomainEventHandler'  mirror='domain:OrderStatusChangedToAwaitingValidationDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:OrderStatusChangedToPaidDomainEventHandler
+         engine='OrderStatusChangedToPaidDomainEventHandler'  mirror='domain:OrderStatusChangedToPaidDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:OrderStatusChangedToStockConfirmedDomainEventHandler
+         engine='OrderStatusChangedToStockConfirmedDomainEventHandler'  mirror='domain:OrderStatusChangedToStockConfirmedDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
+         engine='UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler'  mirror='domain:UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler'
+      EntryPoint id=EntryPoint:domain:ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
+         engine='ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler'  mirror='domain:ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler'
+
+POLE FluentValidation
+  Member       match    115   MISMATCH      0
+  Type         match    196   MISMATCH      7
+      Type id=Type:FluentValidation.Internal.AccessorCache`1.Key
+         engine='Key'  mirror='AccessorCache'
+      Type id=Type:FluentValidation.Internal.TrackingCollection`1.CaptureDisposable
+         engine='CaptureDisposable'  mirror='TrackingCollection'
+      Type id=Type:FluentValidation.Internal.TrackingCollection`1.EventDisposable
+         engine='EventDisposable'  mirror='TrackingCollection'
+      Type id=Type:FluentValidation.ValidatorDescriptor`1.RulesetMetadata
+         engine='RulesetMetadata'  mirror='ValidatorDescriptor'
+      Type id=Type:FluentValidation.Validators.PolymorphicValidator`2.DerivedValidatorFactory
+         engine='DerivedValidatorFactory'  mirror='PolymorphicValidator'
+      Type id=Type:FluentValidation.Validators.PrecisionScaleValidator`1.Info
+         engine='Info'  mirror='PrecisionScaleValidator'
+      Type id=Type:type.Assembly
+         engine='type.Assembly'  mirror='Assembly'
+
+POLE AutoMapper
+  Member       match    208   MISMATCH      0
+  Service      match      1   MISMATCH      0
+  Type         match    257   MISMATCH      1
+      Type id=Type:NullLoggerFactory.Instance
+         engine='NullLoggerFactory.Instance'  mirror='Instance'
+
+POLE MediatR
+  EntryPoint   match      0   MISMATCH      1
+  Member       match     21   MISMATCH      0
+  Type         match    149   MISMATCH      1
+      EntryPoint id=EntryPoint:domain:NotificationHandler
+         engine='NotificationHandler'  mirror='domain:NotificationHandler'
+      Type id=Type:TextWriter.Null
+         engine='TextWriter.Null'  mirror='Null'
+
+POLE CleanArchitecture
+  EntryPoint   match      5   MISMATCH      2
+  Member       match     37   MISMATCH      0
+  Service      match      2   MISMATCH      0
+  Type         match     86   MISMATCH      1
+      EntryPoint id=EntryPoint:domain:ContributorDeletedHandler
+         engine='ContributorDeletedHandler'  mirror='domain:ContributorDeletedHandler'
+      EntryPoint id=EntryPoint:domain:ContributorNameUpdatedEmailNotificationHandler
+         engine='ContributorNameUpdatedEmailNotificationHandler'  mirror='domain:ContributorNameUpdatedEmailNotificationHandler'
+      Type id=Type:builder.Configuration
+         engine='builder.Configuration'  mirror='Configuration'
+
+POLE dotnet-podcasts
+  EntryPoint   match     22   MISMATCH      2
+  Member       match    150   MISMATCH      0
+  Service      match      5   MISMATCH      0
+  Type         match    154   MISMATCH      0
+      EntryPoint id=EntryPoint:worker:Worker
+         engine='Worker'  mirror='worker:Worker'
+      EntryPoint id=EntryPoint:signalr:ListenTogetherHub
+         engine='ListenTogetherHub'  mirror='signalr:ListenTogetherHub'
+
+POLE DevContext
+  EntryPoint   match      1   MISMATCH     29
+  Member       match    743   MISMATCH      0
+  Service      match      3   MISMATCH      0
+  Type         match    483   MISMATCH      1
+      EntryPoint id=EntryPoint:grpc:DevContextService.Analyze
+         engine='DevContextService.Analyze'  mirror='grpc:DevContextService.Analyze'
+      EntryPoint id=EntryPoint:grpc:DevContextService.CloseSession
+         engine='DevContextService.CloseSession'  mirror='grpc:DevContextService.CloseSession'
+      EntryPoint id=EntryPoint:grpc:DevContextService.ListEntryPoints
+         engine='DevContextService.ListEntryPoints'  mirror='grpc:DevContextService.ListEntryPoints'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetMap
+         engine='DevContextService.GetMap'  mirror='grpc:DevContextService.GetMap'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetTrace
+         engine='DevContextService.GetTrace'  mirror='grpc:DevContextService.GetTrace'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetNode
+         engine='DevContextService.GetNode'  mirror='grpc:DevContextService.GetNode'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetNeighbors
+         engine='DevContextService.GetNeighbors'  mirror='grpc:DevContextService.GetNeighbors'
+      EntryPoint id=EntryPoint:grpc:DevContextService.SearchNodes
+         engine='DevContextService.SearchNodes'  mirror='grpc:DevContextService.SearchNodes'
+
+=== TOTALS ===
+  EntryPoint   match     84   MISMATCH     87
+  Member       match   1714   MISMATCH      0
+  Service      match     23   MISMATCH      0
+  Store        match      6   MISMATCH      0
+  Type         match   1867   MISMATCH     14

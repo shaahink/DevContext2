@@ -1,0 +1,30 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:05.20]     DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_kind_has_a_producing_path [FAIL]
+[xUnit.net 00:00:05.21]     DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_signal_is_reachable_from_a_consumer_app [FAIL]
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_kind_has_a_producing_path [7 ms]
+  Error Message:
+   Catalog descriptors whose declared Kind their own consumer-app shape does NOT produce
+(fixture repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-coverage) — descriptor→signal→extractor→builder→entry is broken:
+  kind:ScheduledJob@kind:ScheduledJob   produced instead: HostedService
+  kind:PublicApi@kind:PublicApi   produced instead: (no entries)
+  kind:HttpEndpoint@blazor   produced instead: UiEntry
+  kind:FunctionEntry@aws-lambda   produced instead: (no entries)
+  kind:GrainMethod@orleans   produced instead: (no entries)
+Close the path, or add the id to eval/expectations/catalog-reachability-allow.txt with the
+MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_kind_has_a_producing_path() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 707
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_signal_is_reachable_from_a_consumer_app [2 ms]
+  Error Message:
+   Catalog descriptors whose signal NO consumer app can fire (fixture repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-coverage):
+  signal:orleans
+  signal:testing
+Either give the descriptor a package/SDK/code-shape a consumer app can carry, or add the
+id to eval/expectations/catalog-reachability-allow.txt with the MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Every_catalog_signal_is_reachable_from_a_consumer_app() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 672
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     2, Passed:     1, Skipped:     0, Total:     3, Duration: 3 s - DevContext.Core.Tests.dll (net10.0)

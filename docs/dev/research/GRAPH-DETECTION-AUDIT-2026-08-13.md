@@ -80,6 +80,12 @@ These four are why the probe's arm M went 12/18 with impact 0/3. All filed in `B
 - **#17** — two Member-title vocabularies (343 owner-qualified vs 627 bare across 6 poles). Wants one member-title helper next to `SymbolCanon`, used by every producer.
 - **#18** — Type nodes minted from lambda/expression TEXT (a 20-line lambda body as a node title reaches the UI); the `GraphBuilder.Seams` filter is incomplete and not applied on every path.
 - **#22/#23/#24** — three graph metrics that have **never fired or never discriminated**: `graph.orphans` (Semantic-share floor 0.5 unreachable on 11/11 poles — and it's the one insight that gets live code deleted when wrong), L3.4 hub-scope broadening (`sparseGraph=false`+`hubScopeNodes=0` everywhere including its own trigger population), deep-spine ratio (saturated ≈1.0, separates nothing).
+  **[CLOSED 2026-08-14, R1.1 — and this bullet's own premise did not survive the re-measurement.]**
+  Post-E1, `graph.orphans` *inverted*: the floor became reachable and it fired 0/10 true, so it is
+  **retired**. The hub-scope broadening **does** fire (Hangfire: `sparseGraph=true`,
+  `hubScopeNodes=34`) — the 11-pole set never held a repo that clears its gates — so it is **held**
+  with the measurement at the call site. Deep-spine is still saturated on 12 poles and is
+  **retired**. `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md`.
 - **#13/#16** — snapshot freshness: `analyze --no-cache` doesn't invalidate what a later `query` reads (stale graph served with `snapshotCache: HIT` — a way to produce false evidence with correct commands); plus the ~1-in-50 rehydrate flake (dirty-fingerprint theory tested and REFUTED; next suspect is the swallowed `SaveAsync` failure).
 
 ### 3.4 Standing latents (named, carried)

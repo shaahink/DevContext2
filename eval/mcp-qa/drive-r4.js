@@ -389,9 +389,11 @@ const CASES = {
     check("the three folded tools are gone from tools/list",
       folded.every((f) => !real.includes(f)),
       folded.filter((f) => real.includes(f)).join(",") || "none present");
-    // 24 -> 21 by G2.1's fold; +1 for G3.1's `seam`. The number moves when the MENU moves, and
-    // only then — it is here to catch a tool appearing or vanishing without anyone saying so.
-    check("the menu is the folded size", real.length === 22, `${real.length} tools`);
+    // 24 -> 21 by G2.1's fold; +1 for G3.1's `seam`; 22 -> 14 by T1.2's curation, which demoted
+    // eight tools to UNLISTED specialists (still built, still callable — see wire-truth.js). The
+    // number moves when the MENU moves, and only then — it is here to catch a tool appearing or
+    // vanishing without anyone saying so.
+    check("the menu is the curated size", real.length === 14, `${real.length} tools`);
     check("the seam primitive is on the menu", real.includes("seam"), real.join(" "));
     // THE drift invariant.
     check("did-you-mean advertises exactly the real tool list",

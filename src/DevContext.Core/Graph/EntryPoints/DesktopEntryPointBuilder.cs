@@ -45,7 +45,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
                 foreach (var member in EntryMembers(de, isCommand, typeFqn, model))
                 {
                     var memberId = NodeId.ForMember(typeFqn, member);
-                    g.AddNode(new GraphNode(memberId, $"{typeName}.{member}", NodeKind.Member)
+                    g.AddNode(new GraphNode(memberId, SymbolCanon.MemberTitle(memberId.Key), NodeKind.Member)
                     {
                         FilePath = de.SourceFile,
                     });

@@ -119,7 +119,7 @@ public sealed class ArchitectureStyleDetector
 
         // Microservices: at least 2 runnable web services + (gateway OR bus) evidence.
         // Detects multi-service constellations even without Aspire orchestration (M1.9 / D5).
-        var runnableWebCount = CountRunnableWebProjects(scopedProjects);
+        var runnableWebCount = CountRunnableWebProjects(solutionScope, model);
         var hasGatewayEvidence = signals.TryGetValue(ArchitectureSignals.Keys.Gateway, out var gwSig) && gwSig.Detected;
         var busPackage = DetectBusPackage(scopedProjects);
         var hasBusEvidence = signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out _)
@@ -542,15 +542,21 @@ public sealed class ArchitectureStyleDetector
             || lowered.Contains(".eventbus");
     }
 
-    /// <summary>M1.9 — counts runnable web service projects (Exe output with web-server packages
-    /// or "api"/"web" project naming convention). Used for microservices detection.</summary>
-    private static int CountRunnableWebProjects(ImmutableArray<ProjectInfo> projects)
+    /// <summary>M1.9 — counts runnable WEB service projects; the microservices rung's evidence line
+    /// quotes this number.
+    /// <para>D1.3 (#19) — membership comes from
+    /// <see cref="Graph2.ServiceBoundaryInference.RunnableProjects"/>, the same list the canvas draws
+    /// and the per-service breakdown describes, so the count can only ever be a SUBSET of the services
+    /// on the page. It used to be a third predicate over the raw scoped projects with no production
+    /// filter at all — that is how one page came to say "6 runnable web services" above a breakdown of
+    /// 5 and a canvas of 5. What stays local is only the WEB question (this rung is about web services
+    /// specifically, and a console worker is a service without being one).</para></summary>
+    private static int CountRunnableWebProjects(Graph.SolutionScope scope, DiscoveryModel model)
     {
         var count = 0;
-        foreach (var proj in projects)
+        foreach (var proj in Graph2.ServiceBoundaryInference.RunnableProjects(scope, model))
         {
             if (IsInfrastructureProject(proj.Name)) continue;
-            var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
             var isWebSdk = proj.HasSdk(SdkIds.Web);
             var hasWebPkg = proj.PackageReferences.Any(pr =>
                 pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
@@ -558,7 +564,7 @@ public sealed class ArchitectureStyleDetector
             var isWebByName = proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase)
                 || proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase)
                 || proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase);
-            if (isExe || isWebSdk || hasWebPkg || isWebByName)
+            if (isWebSdk || hasWebPkg || isWebByName)
                 count++;
         }
         return count;
@@ -594,7 +600,7 @@ public sealed class ArchitectureStyleDetector
     {
         var scope = Graph.SolutionScope.FromModel(model);   // T1.4 — canonical file→project mapping
         return DetectStyles(model, scope,
-            Graph2.ServiceBoundaryInference.RunnableProjects(scope, model.SamplesAreTheProduct));
+            Graph2.ServiceBoundaryInference.RunnableProjects(scope, model));
     }
 
     /// <summary>R3 D-4 (G6.3) — the runnable apps this analysis did NOT cover, described with the same

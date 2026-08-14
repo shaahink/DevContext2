@@ -133,8 +133,10 @@ public sealed class GraphQuery
     /// <summary>map(facet?) — the orientation artifact (null on dry-run).</summary>
     public MapModel? Map() => _map;
 
-    /// <summary>stats() — per-seam edge counts (with the approx share) and entry→target coverage.</summary>
-    public (ImmutableArray<SeamStat> Seams, int EntriesWithTarget, int EntriesWithDeepSpine, double DeepSpineRatio) Stats()
+    /// <summary>stats() — per-seam edge counts (with the approx share) and entry→target coverage.
+    /// R1.1 (#24): the deep-spine pair left this tuple when the ratio was measured saturated on
+    /// 12 poles post-E1 — see <see cref="GraphStats.Compute"/>.</summary>
+    public (ImmutableArray<SeamStat> Seams, int EntriesWithTarget) Stats()
         => GraphStats.Compute(_graph, _entries);
 
     /// <summary>trace(entry, depth, ...) — resolve a focus to an entry and walk it. Null when the focus

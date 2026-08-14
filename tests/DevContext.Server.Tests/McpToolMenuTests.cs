@@ -31,14 +31,19 @@ namespace DevContext.Server.Tests;
 /// </summary>
 public sealed class McpToolMenuTests
 {
-    /// <summary>The menu as the SERVER advertises it, registered exactly as Program.cs does.</summary>
+    private static DevContextTools Tools() => new(
+        new DevContextService.DevContextServiceClient(
+            McpStubCallInvoker.FailAll(StatusCode.Unavailable, "not called")),
+        NullLogger<DevContextTools>.Instance);
+
+    /// <summary>The menu as the SERVER advertises it, registered exactly as Program.cs does — which
+    /// since T1.2 means the CORE half of <see cref="McpToolMenu"/>, not every attributed method.</summary>
     private static IReadOnlyList<string> RegisteredToolNames()
     {
         var services = new ServiceCollection();
-        services.AddMcpServer().WithTools(new DevContextTools(
-            new DevContextService.DevContextServiceClient(
-                McpStubCallInvoker.FailAll(StatusCode.Unavailable, "not called")),
-            NullLogger<DevContextTools>.Instance));
+        var (core, _) = McpToolMenu.Build(Tools());
+        foreach (var t in core) services.AddSingleton(t);
+        services.AddMcpServer();
 
         var options = services.BuildServiceProvider().GetRequiredService<IOptions<McpServerOptions>>().Value;
         return [.. options.ToolCollection?.PrimitiveNames ?? []];
@@ -60,11 +65,55 @@ public sealed class McpToolMenuTests
 
         // Positive precondition first — an empty collection would make every check below vacuous,
         // and an empty ToolCollection is precisely the wiring break Program.cs logs an error for.
-        Assert.Equal(ToolMethodNames().Count, registered.Count);
-        Assert.Equal(22, registered.Count);   // G2.1 folded 24 -> 21; G3.1 added `seam`
+        Assert.Equal(McpToolMenu.CoreMethods().Count, registered.Count);
+        // G2.1 folded 24 -> 21; G3.1 added `seam`; T1.2 curated 22 -> 14 advertised + 8 unlisted
+        // specialists. This number is the PRODUCT decision, so it is pinned: a tool joining the
+        // menu an agent reads at connect should cost a deliberate edit here.
+        Assert.Equal(14, registered.Count);
+        Assert.Equal(8, McpToolMenu.SpecialistMethods().Count);
+        Assert.Equal(22, ToolMethodNames().Count);   // nothing was deleted, only demoted
 
         foreach (var retired in UnknownToolHandler.Folded.Select(f => f.Retired))
             Assert.DoesNotContain(retired, registered);
+    }
+
+    /// <summary>
+    /// T1.2 — curation must not be a capability cut. Every specialist is still BUILT, from the same
+    /// method with the same schema, and carries a line saying what it answers; and no name is on
+    /// both halves. Without this, "demoted" quietly becomes "deleted" one refactor later.
+    /// </summary>
+    [Fact]
+    public void Every_unlisted_specialist_is_built_reasoned_and_off_the_menu()
+    {
+        var tools = Tools();
+        var (core, specialists) = McpToolMenu.Build(tools);
+        var reasons = McpToolMenu.SpecialistReasons(tools);
+        var advertised = core.Select(t => t.ProtocolTool.Name).ToArray();
+
+        Assert.NotEmpty(specialists);
+        Assert.Equal(specialists.Count, reasons.Count);
+
+        foreach (var s in specialists)
+        {
+            var name = s.ProtocolTool.Name;
+            Assert.DoesNotContain(name, advertised);            // unlisted
+            Assert.True(reasons.TryGetValue(name, out var why));// and explained
+            Assert.False(string.IsNullOrWhiteSpace(why));
+            // Same carrier as the advertised half: a specialist an agent reaches for by name gets
+            // the same described schema it would have got from tools/list.
+            Assert.False(string.IsNullOrWhiteSpace(s.ProtocolTool.Description));
+        }
+    }
+
+    /// <summary>Every advertised tool describes itself. BUG-BACKLOG #5 shipped 22 empty strings for
+    /// a year; the wire gate catches it end-to-end, this catches it in the unit suite.</summary>
+    [Fact]
+    public void Every_advertised_tool_has_a_description()
+    {
+        var (core, _) = McpToolMenu.Build(Tools());
+        var undescribed = core.Where(t => string.IsNullOrWhiteSpace(t.ProtocolTool.Description))
+            .Select(t => t.ProtocolTool.Name).ToArray();
+        Assert.Empty(undescribed);
     }
 
     [Fact]

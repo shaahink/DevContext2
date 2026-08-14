@@ -85,7 +85,6 @@ public sealed class AwsLambdaExtractor : IDiscoveryExtractor
                     ExtractorName = Name,
                     SourceFile = filePath,
                     LineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                    Confidence = 0.85f,
                 });
             }
         }

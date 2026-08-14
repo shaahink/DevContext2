@@ -577,22 +577,44 @@ public static class SemanticLitePopulator
         try
         {
             var root = tree.GetRoot();
-            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
-            var node = root.FindNode(span);
-
-            // Prefer the invocation whose called method matches the op's method name (there can be several
-            // on one line in a fluent chain); fall back to the nearest enclosing invocation.
-            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>()
-                    .FirstOrDefault(x => MethodNameOf(x) == inv.MethodName)
-                ?? node?.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
-                    .FirstOrDefault(x => MethodNameOf(x) == inv.MethodName)
-                ?? node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            var invocation = RelocateInvocation(root, tree, inv);
             if (invocation is null || argIndex >= invocation.ArgumentList.Arguments.Count) return null;
 
             return BindExpressionType(invocation.ArgumentList.Arguments[argIndex].Expression, model);
         }
         catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
+    }
+
+    /// <summary>E1.2 (backlog #12) — relocates the syntax node an op was built from. Ops carry their OWN
+    /// <see cref="BodyOp.Span"/>, so the node is found exactly, including when several ops share a line.
+    /// The old line-span relocation stays as the fallback for any op produced without a span (or against a
+    /// tree the span does not fit): it returns the innermost node containing the WHOLE line, which is the
+    /// enclosing statement whenever the statement fits on one line — the defect itself.</summary>
+    private static SyntaxNode? Relocate(SyntaxNode root, SyntaxTree tree, BodyOp op)
+    {
+        if (op.Span is { } span && root.FullSpan.Contains(span))
+            return root.FindNode(span, getInnermostNodeForTie: true);
+
+        var lines = tree.GetText().Lines;
+        if (lines.Count == 0) return null;
+        return root.FindNode(lines[Math.Clamp(op.Line - 1, 0, lines.Count - 1)].Span);
+    }
+
+    /// <summary>Relocates the invocation an <see cref="InvocationOp"/> was built from. With an exact span
+    /// the relocated node IS the invocation; the method-name checks below only matter on the line-span
+    /// fallback, where the node is a statement that may contain several calls.</summary>
+    private static InvocationExpressionSyntax? RelocateInvocation(SyntaxNode root, SyntaxTree tree, InvocationOp op)
+    {
+        var node = Relocate(root, tree, op);
+        if (node is null) return null;
+        if (node is InvocationExpressionSyntax exact && MethodNameOf(exact) == op.MethodName) return exact;
+
+        return node.AncestorsAndSelf().OfType<InvocationExpressionSyntax>()
+                   .FirstOrDefault(x => MethodNameOf(x) == op.MethodName)
+            ?? node.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+                   .FirstOrDefault(x => MethodNameOf(x) == op.MethodName)
+            ?? node.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
     }
 
     /// <summary>The simple (unqualified) method name of an invocation expression.</summary>
@@ -611,8 +633,7 @@ public static class SemanticLitePopulator
         try
         {
             var root = tree.GetRoot();
-            var span = tree.GetText().Lines[Math.Max(0, creation.Line - 1)].Span;
-            var node = root.FindNode(span);
+            var node = Relocate(root, tree, creation);
 
             var expr = node?.AncestorsAndSelf()
                            .FirstOrDefault(n => n is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax)
@@ -632,10 +653,7 @@ public static class SemanticLitePopulator
         try
         {
             var root = tree.GetRoot();
-            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
-            var node = root.FindNode(span);
-
-            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            var invocation = RelocateInvocation(root, tree, inv);
             if (invocation is null) return null;
 
             var name = invocation.Expression switch
@@ -707,8 +725,7 @@ public static class SemanticLitePopulator
         try
         {
             var root = tree.GetRoot();
-            var span = tree.GetText().Lines[Math.Max(0, local.Line - 1)].Span;
-            var node = root.FindNode(span);
+            var node = Relocate(root, tree, local);
 
             var decl = node?.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
             if (decl is null) return null;
@@ -779,10 +796,7 @@ public static class SemanticLitePopulator
         try
         {
             var root = tree.GetRoot();
-            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
-            var node = root.FindNode(span);
-
-            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            var invocation = RelocateInvocation(root, tree, inv);
             if (invocation is null) return null;
 
             var receiver = GetReceiverSyntax(invocation);

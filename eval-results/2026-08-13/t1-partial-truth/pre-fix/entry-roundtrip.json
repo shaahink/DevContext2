@@ -1,0 +1,82 @@
+[
+  {
+    "kind": "UiEntry",
+    "title": "GET /",
+    "nodeId": "EntryPoint:GET /",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 5,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /todos/",
+    "nodeId": "EntryPoint:POST /todos/",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 3,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /todos/",
+    "nodeId": "EntryPoint:GET /todos/",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 2,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /todos/{id}",
+    "nodeId": "EntryPoint:GET /todos/{id}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 2,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "PUT /todos/{id}",
+    "nodeId": "EntryPoint:PUT /todos/{id}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 2,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "DELETE /todos/{id}",
+    "nodeId": "EntryPoint:DELETE /todos/{id}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 2,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /auth/register",
+    "nodeId": "EntryPoint:POST /auth/register",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 3,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /auth/login",
+    "nodeId": "EntryPoint:POST /auth/login",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 3,
+    "traceError": null
+  }
+]

@@ -1,0 +1,57 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  DevContext.Core -> C:\Code\DevContext2-engine\src\DevContext.Core\bin\Debug\net10.0\DevContext.Core.dll
+  DevContext.Core.Tests -> C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.92]   Discovering: DevContext.Core.Tests
+[xUnit.net 00:00:01.39]   Discovered:  DevContext.Core.Tests
+[xUnit.net 00:00:01.49]   Starting:    DevContext.Core.Tests
+[xUnit.net 00:00:03.00]     DevContext.Core.Tests.ServiceVocabularyTests.The_style_evidence_count_is_a_subset_of_the_drawn_services [FAIL]
+[xUnit.net 00:00:03.00]       Assert.Contains() Failure: Sub-string not found
+[xUnit.net 00:00:03.00]       String:    "4 runnable web services with message bus "···
+[xUnit.net 00:00:03.00]       Not found: "3 runnable web services"
+[xUnit.net 00:00:03.01]       Stack Trace:
+[xUnit.net 00:00:03.02]         C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\ServiceVocabularyTests.cs(158,0): at DevContext.Core.Tests.ServiceVocabularyTests.The_style_evidence_count_is_a_subset_of_the_drawn_services()
+[xUnit.net 00:00:03.02]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.02]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.Per_service_rows_are_exactly_the_runnable_production_set [408 ms]
+  Failed DevContext.Core.Tests.ServiceVocabularyTests.The_style_evidence_count_is_a_subset_of_the_drawn_services [590 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "4 runnable web services with message bus "···
+Not found: "3 runnable web services"
+  Stack Trace:
+     at DevContext.Core.Tests.ServiceVocabularyTests.The_style_evidence_count_is_a_subset_of_the_drawn_services() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\ServiceVocabularyTests.cs:line 158
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.A_repo_whose_solution_holds_everything_reports_no_outside_apps [11 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.Samples_are_the_product_moves_both_surfaces_together [1 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.The_two_populations_never_overlap_and_share_one_production_rule [8 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.A_runnable_app_outside_the_analysed_solution_is_named_but_never_called_a_service [4 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.Non_production_runnables_are_absent_from_both_surfaces [1 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.The_apphost_is_a_service_with_the_orchestrator_style [< 1 ms]
+  Passed DevContext.Core.Tests.ServiceVocabularyTests.A_real_apps_services_survive_the_auxiliary_executable_rule [1 ms]
+[xUnit.net 00:00:03.04]     DevContext.Core.Tests.ServiceVocabularyTests.An_auxiliary_demo_executable_is_not_a_service_on_either_surface [FAIL]
+[xUnit.net 00:00:03.04]       Assert.Empty() Failure: Collection was not empty
+[xUnit.net 00:00:03.04]       Collection: ["TestApp"]
+[xUnit.net 00:00:03.04]       Stack Trace:
+[xUnit.net 00:00:03.04]         C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\ServiceVocabularyTests.cs(106,0): at DevContext.Core.Tests.ServiceVocabularyTests.An_auxiliary_demo_executable_is_not_a_service_on_either_surface()
+[xUnit.net 00:00:03.04]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.04]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.05]   Finished:    DevContext.Core.Tests
+  Failed DevContext.Core.Tests.ServiceVocabularyTests.An_auxiliary_demo_executable_is_not_a_service_on_either_surface [4 ms]
+  Error Message:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["TestApp"]
+  Stack Trace:
+     at DevContext.Core.Tests.ServiceVocabularyTests.An_auxiliary_demo_executable_is_not_a_service_on_either_surface() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\ServiceVocabularyTests.cs:line 106
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Test Run Failed.
+Total tests: 10
+     Passed: 8
+     Failed: 2
+ Total time: 5.1470 Seconds

@@ -1,0 +1,402 @@
+[
+  {
+    "kind": "HttpEndpoint",
+    "title": "PUT /api/catalog/items",
+    "nodeId": "EntryPoint:PUT /api/catalog/items",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 63,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "PUT /api/catalog/items/{id:int}",
+    "nodeId": "EntryPoint:PUT /api/catalog/items/{id:int}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 63,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /api/orders/",
+    "nodeId": "EntryPoint:POST /api/orders/",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 59,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+    "nodeId": "EntryPoint:GET /api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 47,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/withsemanticrelevance",
+    "nodeId": "EntryPoint:GET /api/catalog/items/withsemanticrelevance",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 47,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "PUT /api/orders/cancel",
+    "nodeId": "EntryPoint:PUT /api/orders/cancel",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 48,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "PUT /api/orders/ship",
+    "nodeId": "EntryPoint:PUT /api/orders/ship",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 48,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /api/orders/draft",
+    "nodeId": "EntryPoint:POST /api/orders/draft",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 45,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /api/catalog/items",
+    "nodeId": "EntryPoint:POST /api/catalog/items",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 42,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/orders/",
+    "nodeId": "EntryPoint:GET /api/orders/",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 51,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] CheckoutViewModel.CheckoutAsync",
+    "nodeId": "EntryPoint:ui:CheckoutViewModel.CheckoutAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 17,
+    "traceError": null
+  },
+  {
+    "kind": "GrpcService",
+    "title": "Basket.UpdateBasket",
+    "nodeId": "EntryPoint:grpc:Basket.UpdateBasket",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 40,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items",
+    "nodeId": "EntryPoint:GET /api/catalog/items",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 26,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/{id:int}",
+    "nodeId": "EntryPoint:GET /api/catalog/items/{id:int}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 31,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/by/{name:minlength(1)}",
+    "nodeId": "EntryPoint:GET /api/catalog/items/by/{name:minlength(1)}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 26,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/type/{typeId}/brand/{brandId?}",
+    "nodeId": "EntryPoint:GET /api/catalog/items/type/{typeId}/brand/{brandId?}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 26,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/type/all/brand/{brandId:int?}",
+    "nodeId": "EntryPoint:GET /api/catalog/items/type/all/brand/{brandId:int?}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 26,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items [GetAllItems]",
+    "nodeId": "EntryPoint:GET /api/catalog/items [GetAllItems]",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 26,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /Device [Callback]",
+    "nodeId": "EntryPoint:POST /Device [Callback]",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 42,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "GET /item/{itemId:int} [ItemPage]",
+    "nodeId": "EntryPoint:GET /item/{itemId:int} [ItemPage]",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 39,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/orders/{orderId:int}",
+    "nodeId": "EntryPoint:GET /api/orders/{orderId:int}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 48,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/orders/cardtypes",
+    "nodeId": "EntryPoint:GET /api/orders/cardtypes",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 48,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "GET /cart",
+    "nodeId": "EntryPoint:GET /cart",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 38,
+    "traceError": null
+  },
+  {
+    "kind": "GrpcService",
+    "title": "Basket.GetBasket",
+    "nodeId": "EntryPoint:grpc:Basket.GetBasket",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 32,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /Device",
+    "nodeId": "EntryPoint:GET /Device",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 33,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /Device",
+    "nodeId": "EntryPoint:POST /Device",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 33,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] BasketViewModel.DeleteAsync",
+    "nodeId": "EntryPoint:ui:BasketViewModel.DeleteAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 7,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] CatalogItemViewModel.AddCatalogItemAsync",
+    "nodeId": "EntryPoint:ui:CatalogItemViewModel.AddCatalogItemAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 5,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] CatalogViewModel.ClearFilterAsync",
+    "nodeId": "EntryPoint:ui:CatalogViewModel.ClearFilterAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 7,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "DELETE /api/catalog/items/{id:int}",
+    "nodeId": "EntryPoint:DELETE /api/catalog/items/{id:int}",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 32,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /Consent",
+    "nodeId": "EntryPoint:GET /Consent",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 7,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "POST /Consent",
+    "nodeId": "EntryPoint:POST /Consent",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 7,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] BasketViewModel.AddAsync",
+    "nodeId": "EntryPoint:ui:BasketViewModel.AddAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 6,
+    "traceError": null
+  },
+  {
+    "kind": "GrpcService",
+    "title": "Basket.DeleteBasket",
+    "nodeId": "EntryPoint:grpc:Basket.DeleteBasket",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 30,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/{id:int}/pic",
+    "nodeId": "EntryPoint:GET /api/catalog/items/{id:int}/pic",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 29,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] CatalogViewModel.ApplyFilterAsync",
+    "nodeId": "EntryPoint:ui:CatalogViewModel.ApplyFilterAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 5,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] OrderDetailViewModel.ToggleCancelOrderAsync",
+    "nodeId": "EntryPoint:ui:OrderDetailViewModel.ToggleCancelOrderAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 5,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "[RelayCommand] ProfileViewModel.RefreshAsync",
+    "nodeId": "EntryPoint:ui:ProfileViewModel.RefreshAsync",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 5,
+    "traceError": null
+  },
+  {
+    "kind": "HttpEndpoint",
+    "title": "GET /api/catalog/items/by",
+    "nodeId": "EntryPoint:GET /api/catalog/items/by",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 28,
+    "traceError": null
+  },
+  {
+    "kind": "UiEntry",
+    "title": "GET /",
+    "nodeId": "EntryPoint:GET /",
+    "getContextResolved": true,
+    "getContextError": null,
+    "traceResolved": true,
+    "traceSteps": 4,
+    "traceError": null
+  }
+]

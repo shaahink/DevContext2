@@ -1,0 +1,123 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 2c: Wire-truth gate (real MCP handshake) ---
+wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\server-identity.json
+  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 37460, started 2026-08-13T18:16:42.9344199Z)
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\tools-list.json
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+  tools: 14 | described: 14 | params: 52/52 described
+  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
+
+  PASS  every tool on the wire has a non-empty description - all described
+  PASS  every tool parameter on the wire has a description - all described
+  PASS  tools/list is non-empty - 14 tools
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
+  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\enum-dials.json
+  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+wire-truth: GREEN
+  PASS  wire truth: every tool + parameter described, menu curated, enum dials reject
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 52716, started 2026-08-13T18:16:47.1509068Z)
+  handle: a18cd3be074d459594739db396a6a583
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+partial-truth: GREEN
+  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
+
+--- Step 3: Eval expectation tests ---
+  split: A=21+other eval classes, B=24 repos, two test hosts
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.98]     DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [SKIP]
+[xUnit.net 00:00:01.01]     DevContext.Core.Tests.TruthExpectationTests.Library_archetype_has_public_surface [SKIP]
+[xUnit.net 00:00:01.01]     DevContext.Core.Tests.TruthExpectationTests.AspireSamples_style_is_sample_collection_not_microservices [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Library_archetype_has_public_surface [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.AspireSamples_style_is_sample_collection_not_microservices [1 ms]
+No test matches the given testcase filter `Category=Eval&(DisplayName~shamshir-pole|DisplayName~screentogif|DisplayName~newtonsoft-json|DisplayName~stackexchange-redis|DisplayName~dogfood-microservices|DisplayName~automapper|DisplayName~blazor-app|DisplayName~catalog|DisplayName~communitytoolkit|Di...` in C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:02:52.79]     DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [SKIP]
+[xUnit.net 00:02:52.79]     DevContext.Core.Tests.TruthExpectationTests.GrpcAggregator_rpc_entries_match_source [SKIP]
+[xUnit.net 00:02:52.80]     DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.GrpcAggregator_rpc_entries_match_source [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [1 ms]
+[xUnit.net 00:02:54.72]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+[xUnit.net 00:02:54.73]     DevContext.Core.Tests.TruthExpectationTests.AspireSamples_solution_pick_ignores_scaffolding [SKIP]
+[xUnit.net 00:02:54.74]     DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.AspireSamples_solution_pick_ignores_scaffolding [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [1 ms]
+
+Passed!  - Failed:     0, Passed:    50, Skipped:     9, Total:    59, Duration: 3 m 54 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~bitwarden-server|DisplayName~dntsite|DisplayName~wolverine|DisplayName~dotnet-podcasts|DisplayName~eshop|DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~blazor-surface|DisplayName~cli-app|DisplayName~company-fun...` in C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:02:46.30]     DevContext.Core.Tests.TruthExpectationTests.GrpcAggregator_rpc_entries_match_source [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.GrpcAggregator_rpc_entries_match_source [1 ms]
+
+Passed!  - Failed:     0, Passed:    27, Skipped:     1, Total:    28, Duration: 2 m 45 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=0 B=0
+  PASS  Eval tests passed (stamp written)
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 16 nodes, 2 entries, 9 waterfall stages
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check (pnpm check) ---
+ > devcontext-app@0.0.0 check C:\Code\DevContext2-engine\src\DevContext.App > pnpm lint && pnpm test && pnpm build   > devcontext-app@0.0.0 lint C:\Code\DevContext2-engine\src\DevContext.App > ng lint  Node packages may not be installed. Try installing with 'pnpm install'. Error: Could not find the '@angular-eslint/builder:lint' builder's node package.  ELIFECYCLE  Command failed with exit code 1.  WARN   Local package.json exists, but node_modules missing, did you mean to install?  ELIFECYCLE  Command failed with exit code 1.  WARN   Local package.json exists, but node_modules missing, did you mean to install?
+  FAIL  pnpm check failed
+
+GATE: FAIL (step 5 - app check)
+EXITCODE=5

@@ -87,7 +87,7 @@ public static class CallGraphBinder
                 {
                     if (op is not InvocationOp inv) continue;
 
-                    var callee = ResolveCallee(inv, callerType, symbols, diImpl, soleImpl);
+                    var callee = ResolveCallee(inv, callerType, body.File, symbols, diImpl, soleImpl);
                     if (callee is not { } c) continue;
 
                     allEdges.Add(new CallEdge(callerType, callerMethod, c.Type, inv.MethodName,
@@ -190,7 +190,7 @@ public static class CallGraphBinder
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
         sw.Stop();
-        var semanticCount = includedEdges.Count(e => e.Resolution == Graph.Resolution.Semantic);
+        var semanticCount = includedEdges.Count(e => Graph.EdgeConfidence.IsVerified(e.Resolution)); // V1.1 (#25)
         model.AddDiagnostic(DiagnosticLevel.Info, "CallGraphBinder",
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth} "
             + $"({semanticCount} semantic) from BodyFacts through SymbolTable in {sw.ElapsedMilliseconds}ms.");
@@ -198,7 +198,7 @@ public static class CallGraphBinder
 
     /// <summary>Resolves one invocation to its callee type, honestly or not at all.</summary>
     private static (string Type, Graph.Resolution Resolution)? ResolveCallee(
-        InvocationOp inv, string callerType, SymbolTable symbols,
+        InvocationOp inv, string callerType, string file, SymbolTable symbols,
         Dictionary<string, string?> diImpl, Dictionary<string, string> soleImpl)
     {
         if (inv.ReceiverType is { } recv)
@@ -209,6 +209,13 @@ public static class CallGraphBinder
             if (resolved.Resolved is not { Kind: SymbolKind.Type } sym)
                 return null;                                   // member-canonical collision — not a type
 
+            // E1.2 (#12) rider — same gate as PlainCallDetector, one rule for both producers. The exact
+            // span relocation lets the semantic upgrade name framework receivers, and Law R2 keeps an
+            // out-of-solution bound id rather than discarding it. A callee type this solution does not
+            // declare has no member nodes to land on: skip, never invent.
+            if (!symbols.IsKnownFqn(sym.Canonical))
+                return null;
+
             var calleeType = sym.Canonical;
 
             // Batch C (DC4) — receiver CHAIN hop. `a.B.C()` was bound to a's type, so an aggregator that
@@ -218,7 +225,12 @@ public static class CallGraphBinder
             // segment names a PROPERTY of the resolved receiver type, the call lands on that property's
             // type. Same honesty rule as everywhere else: the hop happens only when the property's declared
             // type resolves unambiguously, otherwise the receiver type stands.
-            if (symbols.HopThroughProperty(calleeType, inv.ReceiverMember, recv.Site) is { } hopped)
+            // E1.2: a type-name receiver's trailing segment IS the type's own name (`Utilities.Foo.Bar()`),
+            // not a property of it — the semantic upgrade now fills ReceiverType for those too.
+            var hopMember = inv.ReceiverMember;
+            if (hopMember is not null && string.Equals(hopMember, SymbolCanon.ShortNameOf(calleeType), StringComparison.Ordinal))
+                hopMember = null;
+            if (symbols.HopThroughProperty(calleeType, hopMember, recv.Site) is { } hopped)
                 calleeType = hopped;
             if (symbols.IsInterface(calleeType))
             {
@@ -253,6 +265,13 @@ public static class CallGraphBinder
                 ? (callerType, Graph.Resolution.Syntactic)
                 : null;
         }
+
+        // E1.1 (#11) — STATIC call through a TYPE-NAME receiver: `BodyFactExtractor.Extract(root, …)`
+        // resolves from no local scope, so it used to fall off the end here with no edge at all and the
+        // whole static-utility layer of a repo had no in-edges. One shared rule with the seam producer
+        // (SymbolTable.ResolveStaticReceiverType) — unambiguous, in-solution, declares-the-method.
+        if (symbols.ResolveStaticReceiverType(inv, file) is { } staticType)
+            return (staticType, Graph.Resolution.Syntactic);
 
         return null; // receiver exists but its type never resolved from scope — unknown, skip
     }

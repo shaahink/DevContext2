@@ -1,0 +1,28 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:03.31]     DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "hangfire-recurring-job") [FAIL]
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "hangfire-recurring-job") [1 s]
+  Error Message:
+   Consumer-app shape 'hangfire-recurring-job' does not reach its surface (repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-shapes\hangfire-recurring-job):
+  signal hangfire: fired
+  kind   ScheduledJob: MISSING
+  entries produced: (none)
+Close the path, or add shape:hangfire-recurring-job to eval/expectations/catalog-reachability-allow.txt with
+the MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(String id) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 967
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:06.61]     DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "quartz-ijob") [FAIL]
+  Failed DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(id: "quartz-ijob") [334 ms]
+  Error Message:
+   Consumer-app shape 'quartz-ijob' does not reach its surface (repo: C:\Users\shahi\AppData\Local\Temp\dc2-catalog-shapes\quartz-ijob):
+  signal quartz: fired
+  kind   ScheduledJob: MISSING
+  entries produced: (none)
+Close the path, or add shape:quartz-ijob to eval/expectations/catalog-reachability-allow.txt with
+the MEASURED reason.
+  Stack Trace:
+     at DevContext.Core.Tests.CatalogReachabilityTests.Consumer_app_shape_reaches_its_surface(String id) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\CatalogReachabilityTests.cs:line 967
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     2, Passed:     7, Skipped:     0, Total:     9, Duration: 11 s - DevContext.Core.Tests.dll (net10.0)

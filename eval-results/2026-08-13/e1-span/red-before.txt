@@ -1,0 +1,66 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:02.60]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_same_named_calls_on_one_line_bind_their_own_arguments [FAIL]
+[xUnit.net 00:00:02.61]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_local_declarations_on_one_line_both_bind [FAIL]
+[xUnit.net 00:00:02.62]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_object_creations_on_one_line_both_bind [FAIL]
+[xUnit.net 00:00:02.62]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_calls_on_one_line_bind_their_own_receivers [FAIL]
+[xUnit.net 00:00:02.63]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_static_call_binds_its_type_name_receiver_semantically [FAIL]
+[xUnit.net 00:00:02.63]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_instance_call_binds_its_receiver_semantically [FAIL]
+[xUnit.net 00:00:02.65]     DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_generic_call_binds_its_type_argument_semantically [FAIL]
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_same_named_calls_on_one_line_bind_their_own_arguments [230 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+Expected: "Demo.BCommand"
+Actual:   null
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_same_named_calls_on_one_line_bind_their_own_arguments() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 120
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_local_declarations_on_one_line_both_bind [12 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+Expected: "Demo.Alpha"
+Actual:   null
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_local_declarations_on_one_line_both_bind() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 169
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_object_creations_on_one_line_both_bind [11 ms]
+  Error Message:
+   Assert.Contains() Failure: Filter not matched in collection
+Collection: [CreationOp { Line = 9, Type = SymbolRef { Text = Alpha, Site = RefSite { File = repo\App\C.cs, Line = 9, Project = App }, Resolved = , Tier = Unresolved, Candidates = System.Collections.Immutable.ImmutableArray`1[DevContext.Core.Graph2.SymbolId], Arity = 0 } }, CreationOp { Line = 9, Type = SymbolRef { Text = Beta, Site = RefSite { File = repo\App\C.cs, Line = 9, Project = App }, Resolved = , Tier = Unresolved, Candidates = System.Collections.Immutable.ImmutableArray`1[DevContext.Core.Graph2.SymbolId], Arity = 0 } }]
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_object_creations_on_one_line_both_bind() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 196
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_calls_on_one_line_bind_their_own_receivers [3 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+Expected: "Demo.IAlpha"
+Actual:   null
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.Two_calls_on_one_line_bind_their_own_receivers() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 143
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_static_call_binds_its_type_name_receiver_semantically [4 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Semantic
+Actual:   null
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_static_call_binds_its_type_name_receiver_semantically() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 65
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_instance_call_binds_its_receiver_semantically [4 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Semantic
+Actual:   Unresolved
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_instance_call_binds_its_receiver_semantically() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 41
+--- End of stack trace from previous location ---
+  Failed DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_generic_call_binds_its_type_argument_semantically [16 ms]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Semantic
+Actual:   Unresolved
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.OpSpanRelocationTests.One_line_generic_call_binds_its_type_argument_semantically() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\OpSpanRelocationTests.cs:line 89
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     7, Passed:     1, Skipped:     0, Total:     8, Duration: 1 s - DevContext.Core.Tests.dll (net10.0)

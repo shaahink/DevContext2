@@ -346,7 +346,12 @@ internal static class ProtoMapper
         };
 
         foreach (var s in seams)
-            resp.Seams.Add(new Proto.SeamStat { Seam = s.Seam, Count = s.Count, Approx = s.Approx });
+            resp.Seams.Add(new Proto.SeamStat
+            {
+                Seam = s.Seam, Count = s.Count, Approx = s.Approx,
+                // V1.1 (#25) — carried, not inferred; see DevContext.Core.Graph.EdgeConfidence.
+                Verified = s.Verified, Joined = s.Joined,
+            });
 
         foreach (var i in insights)
         {

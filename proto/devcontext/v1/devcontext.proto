@@ -600,10 +600,17 @@ message ExtractorStat {
   string tier = 7;
 }
 
+// V1.1 (backlog #25) — the tier split is CARRIED, not inferred. `verified` + `joined` + `approx`
+// partition `count` exactly. The MCP used to compute `verified = count - approx`, which counts every
+// Join edge — Join being the Resolution enum's default, i.e. every edge nobody labelled — as
+// Roslyn-verified, while the desktop explorer rendered those same edges "approx". One definition
+// now: DevContext.Core.Graph.EdgeConfidence.
 message SeamStat {
   string seam = 1;
   int32 count = 2;
   int32 approx = 3;
+  int32 verified = 4;
+  int32 joined = 5;
 }
 
 message CorpusStat {

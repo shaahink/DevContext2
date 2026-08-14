@@ -83,6 +83,14 @@ WHY IT MATTERS FOR R4 §3 ("what does it lack, how does it become a proper tool"
 
 ### #6 · G4 · trace() handed a nodeId returns found:true with an EMPTY tree titled "Type: Type" — and its own error envelope tells the agent to pass a nodeId
 
+> **FIXED 2026-08-13 (T1.3, commit cdb152c).** `EntryPointResolver` gained a nodeId tier. Re-measured
+> on a real MCP session: `eval-results/2026-08-13/t1-partial-truth/{pre-fix,post-fix}/trace-by-nodeid.json`
+> — 10 of 12 nodeIds RED before (found:false while the bare title traced), 12/12 agreeing after. The
+> "Type: Type" phantom needs a graph carrying a node titled `Type`, which TodoApi has not, so that half
+> is pinned by `EntryPointResolverTests.Resolve_of_a_nodeId_never_lands_on_a_node_titled_like_its_kind`
+> (proven red with only the resolver stashed to HEAD). The vacuous `found:true, steps:0` shape now
+> carries a `note` naming the `neighbors(direction:"in")` call, which is what the bar below asked for.
+
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive, real MCP calls on eval-repos/Hangfire. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{007,008,009,010,011,012}-*.json. This is a SILENT WRONG ANSWER, the worst class — nothing in the reply says anything went wrong.
 
@@ -115,6 +123,23 @@ WHAT THE BAR SHOULD BE. `found:true` with `steps:0` is the vacuous shape. Either
 
 ### #7 · G4 · A METHOD is registered as a Type node and 26 BCL System.Type references bind to it — the mis-bound node is stats' #5 "wiring hub" on Hangfire
 
+> **FIXED — re-measured closed 2026-08-13 (E1.3, commit f686e25 + the V1.3/E1.2 fixes it verifies).**
+> Measured at both ends on the bug's OWN repo, not argued: at `0fd1cbe` (pre-V1.3) Hangfire ships
+> `Type:Hangfire.StackTraceHtmlFragments::Type(1)` with **inDegree 26**, verbatim as filed — plus a
+> SECOND instance of the same class never reported before, `Type:ConsoleSample.Services::Random(1)`
+> (inDegree 1). At HEAD both are gone: zero nodes carry kind Type with a `::` id, and the only edge
+> left touching the fragment type is the legitimate `IStackTraceFormatter\`1 → StackTraceHtmlFragments`
+> Resolves. Nothing collapsed with them — the same repo went 928→994 nodes and 599→877 edges.
+> Three fixes did it: V1.3's producer-level refusal (a member answer is not a type answer), V1.3's
+> INV-A refusal at `AddNode`, and E1.2's `afee44b` out-of-solution gate.
+> **What E1.3 added:** the refusal is no longer SILENT (it dropped the node *and every edge that
+> wanted it*, invisibly). `CodeGraphBuilder.RefusedNodes` counts distinct refused keys and
+> `GraphBuilder` reports the tally as a `GraphInvariants` diagnostic, with a positive-control test so
+> a measured zero cannot be a dead instrument. **Swept at HEAD: 0 refusals on all 7 poles** — no
+> producer even attempts the shape (`eval-results/2026-08-13/e1-typenode/refusal-sweep.txt`).
+> Standing guard: `BclNameCollisionEdgeTests` (labelled in its own doc comment as a guard, NOT a
+> reproduction — it passes at 0fd1cbe too). Evidence: `eval-results/2026-08-13/e1-typenode/`.
+
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive on eval-repos/Hangfire, then verified against the repo source. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{016-stats,019-resolve,020-node,023-usages}.json.
 
@@ -144,6 +169,26 @@ WHAT TO MEASURE FIRST (do not fix from this text): (a) why an explicit interface
 
 ### #8 · G4 · Calls inside a lambda argument produce NO edge — the actual storage write of Hangfire's enqueue path is invisible, and the trace of the writing type looks complete without it
 
+> **FIXED by E1.2, and the FILED MECHANISM BELOW IS REFUTED — re-measured 2026-08-13 (E1.3, f686e25).**
+> "Whether the extractor walks lambda/anonymous-function bodies at all" is answered: it always did.
+> `BodyFactExtractor.WalkMember` walks `body.DescendantNodes()`, so a lambda-body call whose receiver
+> is a FIELD, or a TYPED lambda parameter (`GetEnclosingParamType`), has always produced an edge on the
+> syntax tier alone — both pinned green in `LambdaArgumentEdgeTests`.
+> **The true mechanism is one token narrower: a receiver rooted at an UNTYPED lambda parameter is in no
+> syntactic scope, so only Tier B (SemanticLite) can type it.** Hangfire's own site is worse than any
+> delegate-signature lookup could fix — `RetryOnException<TContext>(ref int, Action<int,TContext>,
+> TContext)` infers the parameter's type from a LATER argument.
+> **RED FIRST, and it dates the fix:** at `795b71b` (post-#11, pre-#12) the two semantic fixtures FAIL
+> and the three syntactic ones pass; at HEAD all five pass. E1.2's TextSpan-on-op is what closed it —
+> not #11, and not a lambda walk (`eval-results/2026-08-13/e1-typenode/bug8-redfirst-at-795b71b.txt`).
+> **Both halves measured closed on Hangfire at HEAD:** `CoreBackgroundJobFactory::CreateBackgroundJob`
+> `TwoSteps → IStorageConnection [Calls/Semantic]` now exists (that member is lines 76–142 and every
+> storage call in it is inside a lambda; the type went from 3 out-edges to 7), and `InvocationData` —
+> filed with ONE in-caller where source had at least four — now has 7, including all three the bug
+> named by file:line. **Residual, named not hidden:** on a project that degrades to Tier A (missing
+> assets.json) the untyped-lambda-parameter receiver still yields no edge; pinned as
+> `Tier_A_alone_cannot_type_an_untyped_lambda_parameter` and re-filed at MEDIUM below.
+
 ```text
 MEASURED 2026-07-29 in the G4.1 dogfood drive (eval-repos/Hangfire), then verified in source. Raw dumps: eval-results/2026-07-29/mcp-dogfood/raw/{027-trace,043-neighbors}.json.
 
@@ -171,6 +216,15 @@ MINIMUM HONEST FALLBACK IF THE WALK IS OUT OF SCOPE: a member whose body contain
 <a id="9"></a>
 
 ### #9 · G4 · get_context's fillNote says the pack "already contains everything reachable from this focus" while it is eliding the body the agent asked for — measured false at two budgets on the same focus
+
+> **FIXED 2026-08-13 (T1.3, commit cdb152c).** The "what to measure first" question below is answered:
+> the composer had NO knowledge of an elision — `BuildBodiesToFill` counted only bodies dropped whole,
+> so a body truncated to `… (+N lines)` was recorded nowhere. Reproduced on TodoApi, not Hangfire:
+> `get_context("Extensions", 1500)` rendered `… (+64 lines)` and claimed completeness; at 20000 the
+> elision was gone and the content doubled. The pack now declares every cut on an `elided ` line naming
+> `budgetTokens` (`ContextPackBuilder.ElidedPrefix` / `DeclaresElision` — one definition), and `fillNote`
+> reads that declaration instead of inferring completeness from the fill ratio. Evidence:
+> `eval-results/2026-08-13/t1-partial-truth/{pre-fix,post-fix}/elision-honesty.json`.
 
 ```text
 MEASURED 2026-07-29 in the G4.2 dogfood drive (Task 2, real development work on eval-repos/Hangfire). Raw dumps: eval-results/2026-07-29/mcp-dogfood/task2/raw/{012,015}-get_context.json. Same focus, same session, same handle, two budgets.
@@ -357,6 +411,14 @@ FIX (not applied — outside G1.1's scope, and this is a gate, so it wants its o
 
 ### #2 · G1 · `entrypoints` names an entry one way and `get_context`/`trace` cannot resolve that name (TodoApi: "GET /todos" vs "&lt;lambda&gt; GET /todos/")
 
+> **RE-MEASURED 2026-08-13 (T1.3) — DOES NOT REPRODUCE.** At HEAD the entry Title IS the nodeId key
+> (`"POST /todos/"` / `EntryPoint:POST /todos/`); the minimal-API lambda titles are gone. 12/12 titles
+> on TodoApi and 40/40 on eShop round-trip into BOTH `get_context` and `trace` —
+> `eval-results/2026-08-13/t1-partial-truth/*/entry-roundtrip.json`. Closed by re-measurement, not by a
+> new fix; the round-trip is now a standing check in `eval/mcp-qa/partial-truth.js` so it cannot
+> silently regress. The detection half (#2 in D1.3, addressable entry names single-sourced) is separate
+> and still open.
+
 ```text
 MEASURED 2026-07-29 during G1.2, real MCP calls on eval-repos/TodoApi.
 
@@ -476,6 +538,8 @@ WORKAROUND USED IN G5.1: analyse a fresh copy under a new directory name.
 <a id="14"></a>
 
 ### #14 · G5 · A GENERIC command attribute is not recognised — `[Command&lt;ConfigCommand&gt;("init", ...)]` makes GitVersion's four SUB-commands invisible, so the command surface shows 5 verbs where the tool ships 9
+
+> **FIXED 2026-08-14 (D1.3, commit 796843f).** The filed mechanism is confirmed verbatim; the leaf is now read off the name SYNTAX and the type argument rides out as `CliCommandDetection.ParentCommandType`, which `CliCommandEntryPointBuilder.VerbPath` turns into the two-level title `config init (ConfigInitCommand)`. Red-first log: `eval-results/2026-08-14/d1-filed/bug14-red-run.txt`.
 
 ```text
 MEASURED 2026-07-29 during G5.1 on eval-repos/GitVersion (analyze --sln new-cli/GitVersion.slnx). Artifact: eval-results/2026-07-29/G5.1/raw/entries.json (5 entries) vs the repo source (9 [Command...] declarations).
@@ -609,9 +673,13 @@ NOT FIXED IN G6.2 (bar is arity). Related to the two-member-vocabularies bug fil
 
 ### #19 · — · Atlas/map states a FOURTH service count: STYLE evidence says "6 runnable web services" where the per-service breakdown lists 5 and the canvas draws 5 — same page, same scope, two counters
 
+> **FIXED 2026-08-14 (D1.3, commit 1122d02).** `CountRunnableWebProjects` was a third population with no production filter; it now iterates `ServiceBoundaryInference.RunnableProjects`, so the quoted count is a subset of the drawn services by construction. Red-first log: `eval-results/2026-08-14/d1-filed/bug19-bug20-red-run.txt` ("4 runnable web services" above a breakdown of 3).
+
 <a id="20"></a>
 
 ### #20 · G7 · A library's Atlas counts an auxiliary demo executable as a SERVICE: AutoMapper reads '1 services (1 drawn)' and the per-service breakdown names TestApp
+
+> **FIXED 2026-08-14 (D1.3, commit 1122d02).** `ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary` exposes the auxiliary-exe verdict the archetype ladder already made, and `RunnableProjects` reads it. Repo-level by construction, never the per-project half. Red-first log shows the exact symptom: `Collection: ["TestApp"]`.
 
 _Found in session #23._
 
@@ -621,17 +689,40 @@ _Found in session #23._
 
 _Found in session #28._
 
+**RESOLVED 2026-08-14 (R1.1) — RETIRED, and the premise above inverted first.** E1 lifted the
+Semantic share 8x (eShop 0.057 → 0.438) and the floor became reachable: the insight fired on 2 of 12
+poles and every claim was false — 5/5 on eshop-microservices (four `: ICarterModule` HTTP endpoints
+and a `Decorate<>`d repository), 3/5 outright on VerticalSlice with 2 unresolvable. Measured
+precision 0/10. No floor value fixes it: the types are live by *registration*, which a call-edge
+share cannot observe. Source deleted; `eval/lens-audit.ps1` now fails if the id ever re-emits.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md`.
+
 <a id="23"></a>
 
 ### #23 · G10 · L3.4 hub-scope broadening never fires: sparseGraph=false + hubScopeNodes=0 on 11/11 poles including its own trigger population (Dapper/Serilog/MahApps/MediatR); identity-strip's sparse line has never rendered (G10.1)
 
 _Found in session #28._
 
+**REFUTED 2026-08-14 (R1.1) — it fires.** Hangfire reports `sparseGraph=true`, `hubScopeNodes=34`;
+the 11-pole G10 set simply never contained a repo that clears both gates. The broadening is kept
+unchanged with the new measurement at the call site. The residual — 3 of the 4 gate-passing poles
+still exit at `k < 5` because `model.CallEdges` spans <10 types on them while the graph carries
+hundreds of Calls edges from the BodyFacts path — is **conductor bug #18**.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md` §4.
+
 <a id="24"></a>
 
 ### #24 · G10 · Deep-spine ratio is saturated (1.000 on 5/11 poles, 0.96-0.98 on the rest): the report prints it as coverage but it separates no repo (G10.1)
 
 _Found in session #28._
+
+**RESOLVED 2026-08-14 (R1.1) — RETIRED.** Re-measured on 12 poles post-E1: 1.000 on eight, 0.982
+(eShop) and 0.994 (FastEndpoints) on the two others, 0 only where entries == 0 (a divide artifact).
+Every before/after pole reads exactly what it read on 2026-08-02, so E1's 8x Semantic lift moved it
+not at all. The bar was NOT raised — that is a question about the step distribution, which no
+surface exposes. Removed from `GraphStats`/`GraphQuery`, the report's "Deep spine (>=2)" row, and the
+CLI `query stats` payload. No proto field and no golden pinned it.
+Evidence: `eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md` §5.
 
 <a id="25"></a>
 

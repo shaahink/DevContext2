@@ -1,0 +1,6 @@
+R1.1 GREEN RUN - the two poles that were emitting graph.orphans, re-measured on the retired build
+core-dll=2026-08-14T03:28:55
+VerticalSlice : orphansCards=0 | insightIds=auth.anonymous config.missing-defaults wiring.multi-impl coverage.honesty di.lifetimes msg.produce-consume shape.entry-mix topology.chokepoint web.data-map
+VerticalSlice : statsKeys=edgeCount,entriesByKind,entriesWithTarget,entryCount,extractionFailures,hubScopeNodes,insights,nodeCount,seams,snapshotCache,sparseGraph,stages,totalWallMs
+eshop-microservices : orphansCards=0 | insightIds=auth.anonymous wiring.event-flow wiring.multi-impl web.middleware-pipeline coverage.honesty di.lifetimes shape.entry-mix topology.chokepoint web.data-map
+eshop-microservices : statsKeys=edgeCount,entriesByKind,entriesWithTarget,entryCount,extractionFailures,hubScopeNodes,insights,nodeCount,seams,snapshotCache,sparseGraph,stages,totalWallMs

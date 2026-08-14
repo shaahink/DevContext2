@@ -126,6 +126,72 @@ public sealed class CliCommandExtractorTests
     }
 
     [Fact]
+    public async Task GenericCommandAttribute_IsDetected_AndCarriesTheParentCommandType()
+    {
+        // D1.3 (#14) — THE discriminating fixture: the only declaration in it is generic, so it passes
+        // on nothing the non-generic arm already covers. GitVersion declares its four sub-commands this
+        // way ([Command<ConfigCommand>("init", ...)]) and the old leaf comparison read the attribute's
+        // syntax TEXT — "Command<ConfigCommand>" — so all four were invisible and the tool's surface
+        // showed 5 verbs where 9 ship.
+        var result = await RunExtractorOnSourceAsync(
+            "ConfigInitCommand.cs",
+            """
+            namespace GitVersion.Configuration.Init;
+
+            [Command<ConfigCommand>("init", "Sets up a config file.")]
+            public class ConfigInitCommand(ILogger<ConfigInitCommand> logger) : ICommand<ConfigInitSettings>
+            {
+                public Task<int> InvokeAsync(ConfigInitSettings settings, CancellationToken ct = default)
+                    => Task.FromResult(0);
+            }
+            """);
+
+        var detection = Assert.Single(result.Detections.OfType<CliCommandDetection>());
+        Assert.Equal("ConfigInitCommand", detection.CommandType);
+        Assert.Equal("init", detection.CommandName);
+        Assert.Equal("ConfigCommand", detection.ParentCommandType);
+        Assert.Equal("ConfigInitSettings", detection.SettingsType);
+    }
+
+    [Fact]
+    public async Task NonGenericCommandAttribute_CarriesNoParent()
+    {
+        // The other half: a top-level verb has no parent, and reading the type argument must not
+        // invent one. GitVersion's `config` itself is declared exactly like this.
+        var result = await RunExtractorOnSourceAsync(
+            "ConfigCommand.cs",
+            """
+            [Command("config", "Manages the configuration.")]
+            public class ConfigCommand : ICommand<ConfigSettings>
+            {
+                public Task<int> InvokeAsync(ConfigSettings settings) => Task.FromResult(0);
+            }
+            """);
+
+        var detection = Assert.Single(result.Detections.OfType<CliCommandDetection>());
+        Assert.Equal("config", detection.CommandName);
+        Assert.Null(detection.ParentCommandType);
+    }
+
+    [Fact]
+    public async Task GenericCommandAttribute_WithoutVerbString_IsStillNotDetected()
+    {
+        // Reading the generic spelling widens WHICH attributes are considered, never the evidence bar:
+        // the non-empty verb string is still what separates a CLI command from a UI action.
+        var result = await RunExtractorOnSourceAsync(
+            "PaletteAction.cs",
+            """
+            [Command<PaletteHost>]
+            public sealed class PaletteAction : ICommand
+            {
+                public void Execute(object parameter) { }
+            }
+            """);
+
+        Assert.Empty(result.Detections.OfType<CliCommandDetection>());
+    }
+
+    [Fact]
     public async Task CommandAttribute_WithoutVerbString_IsNotDetected()
     {
         // The verb string is what makes the attribute unambiguous. A bare [Command] on an

@@ -1,0 +1,122 @@
+[
+  {
+    "nodeId": "EntryPoint:GET /",
+    "title": "GET /",
+    "found": true,
+    "steps": 5,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: GET /\r",
+    "bareFound": true,
+    "bareSteps": 5
+  },
+  {
+    "nodeId": "EntryPoint:POST /todos/",
+    "title": "POST /todos/",
+    "found": true,
+    "steps": 3,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: POST /todos/\r",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "EntryPoint:GET /todos/",
+    "title": "GET /todos/",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: GET /todos/\r",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:GET /todos/{id}",
+    "title": "GET /todos/{id}",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: GET /todos/{id}\r",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:PUT /todos/{id}",
+    "title": "PUT /todos/{id}",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: PUT /todos/{id}\r",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:DELETE /todos/{id}",
+    "title": "DELETE /todos/{id}",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: DELETE /todos/{id}\r",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "EntryPoint:POST /auth/register",
+    "title": "POST /auth/register",
+    "found": true,
+    "steps": 3,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: POST /auth/register\r",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "EntryPoint:POST /auth/login",
+    "title": "POST /auth/login",
+    "found": true,
+    "steps": 3,
+    "note": null,
+    "entryLine": "Entry: EntryPoint: POST /auth/login\r",
+    "bareFound": true,
+    "bareSteps": 3
+  },
+  {
+    "nodeId": "Type:Todo.Web.Server.ExternalProviders",
+    "title": "ExternalProviders",
+    "found": true,
+    "steps": 2,
+    "note": null,
+    "entryLine": "Entry: Type: ExternalProviders\r",
+    "bareFound": true,
+    "bareSteps": 2
+  },
+  {
+    "nodeId": "Type:EphemeralDataProtectionProvider",
+    "title": "EphemeralDataProtectionProvider",
+    "found": true,
+    "steps": 0,
+    "note": "0 steps: nothing outbound was resolved from 'EphemeralDataProtectionProvider' — it calls, sends or handles nothing the graph could bind. Its callers are the other direction: neighbors(nodeId:\"Type:EphemeralDataProtectionProvider\", direction:\"in\"), or usages(nodeId:\"Type:EphemeralDataProtectionProvider\").",
+    "entryLine": "Entry: Type: EphemeralDataProtectionProvider\r",
+    "bareFound": true,
+    "bareSteps": 0
+  },
+  {
+    "nodeId": "Type:Microsoft.Extensions.Hosting.Extensions",
+    "title": "Extensions",
+    "found": true,
+    "steps": 4,
+    "note": null,
+    "entryLine": "Entry: Type: Extensions\r",
+    "bareFound": true,
+    "bareSteps": 4
+  },
+  {
+    "nodeId": "Type:TodoApi.ExternalUserInfo",
+    "title": "ExternalUserInfo",
+    "found": true,
+    "steps": 0,
+    "note": "0 steps: nothing outbound was resolved from 'ExternalUserInfo' — it calls, sends or handles nothing the graph could bind. Its callers are the other direction: neighbors(nodeId:\"Type:TodoApi.ExternalUserInfo\", direction:\"in\"), or usages(nodeId:\"Type:TodoApi.ExternalUserInfo\").",
+    "entryLine": "Entry: Type: ExternalUserInfo\r",
+    "bareFound": true,
+    "bareSteps": 0
+  }
+]

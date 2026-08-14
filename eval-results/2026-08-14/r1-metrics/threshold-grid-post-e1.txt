@@ -1,0 +1,41 @@
+POST-E1 GRID (this build). semShare = Calls edges with Resolution.Semantic / Calls  -- the
+number GraphOrphansSource reads through EdgeConfidence.IsVerified. orphansFired = how many
+types the graph.orphans insight actually named on this pole (0 = the source emitted nothing).
+
+| pole                | arch    | nodes | edges | ratio | entries | wired | wiredRatio | calls | semShare | joinShare | handles | sends | deepSpine | spineRatio | sparseGraph | hubScope | orphansFired |
+|---------------------|---------|-------|-------|-------|---------|-------|------------|-------|----------|-----------|---------|-------|-----------|------------|-------------|----------|--------------|
+| TodoApi             | MAP     | 114   | 67    | 0.588 | 12      | 12    | 1          | 48    | 0.125    | 0.25      | 0       | 0     | 12        | 1          | false       | 0        | 0            |
+| VerticalSlice       | MAP     | 132   | 74    | 0.561 | 7       | 5     | 0.714      | 42    | 0.69     | 0.167     | 7       | 6     | 7         | 1          | false       | 0        | 5            |
+| CleanArchitecture   | MAP     | 163   | 142   | 0.871 | 16      | 15    | 0.938      | 62    | 0.452    | 0.258     | 10      | 9     | 16        | 1          | false       | 0        | 0            |
+| MediatR             | LIBRARY | 163   | 55    | 0.337 | 1       | 0     | 0          | 26    | 0.846    | 0.038     | 6       | 0     | 1         | 1          | false       | 0        | 0            |
+| FluentValidation    | LIBRARY | 336   | 295   | 0.878 | 0       | 0     | 0          | 265   | 0.879    | 0         | 0       | 0     | 0         | 0          | false       | 0        | 0            |
+| dotnet-podcasts     | MAP     | 339   | 271   | 0.799 | 25      | 21    | 0.84       | 219   | 0.219    | 0.155     | 6       | 0     | 25        | 1          | false       | 0        | 0            |
+| eshop-microservices | MAP     | 415   | 340   | 0.819 | 34      | 30    | 0.882      | 199   | 0.578    | 0.171     | 18      | 33    | 34        | 1          | false       | 0        | 5            |
+| AutoMapper          | LIBRARY | 478   | 279   | 0.584 | 0       | 0     | 0          | 259   | 0.602    | 0         | 0       | 0     | 0         | 0          | false       | 0        | 0            |
+| eShop               | MAP     | 1136  | 1167  | 1.027 | 110     | 73    | 0.664      | 804   | 0.438    | 0.134     | 34      | 9     | 108       | 0.982      | false       | 0        | 0            |
+| Hangfire            | LIBRARY | 1189  | 1184  | 0.996 | 2       | 0     | 0          | 1166  | 0.806    | 0.002     | 0       | 0     | 2         | 1          | true        | 34       | 0            |
+| self                | MAP     | 1634  | 2476  | 1.515 | 30      | 28    | 0.933      | 2466  | 0.457    | 0.012     | 0       | 0     | 30        | 1          | false       | 0        | 0            |
+| FastEndpoints       | LIBRARY | 2746  | 1759  | 0.641 | 160     | 142   | 0.887      | 1674  | 0.603    | 0.095     | 17      | 0     | 159       | 0.994      | false       | 0        | 0            |
+
+BEFORE/AFTER vs the 2026-08-02 G10 grid (same pole, same quantity)
+| pole | calls 08-02 -> now | semShare 08-02 -> now | spineRatio 08-02 -> now | sparse 08-02 -> now |
+|---|---|---|---|---|
+| CleanArchitecture | 27 -> 62 | 0.259 -> 0.452 | 1 -> 1 | false -> false |
+| MediatR | 26 -> 26 | 0.731 -> 0.846 | 1 -> 1 | false -> false |
+| dotnet-podcasts | 208 -> 219 | 0.01 -> 0.219 | 1 -> 1 | false -> false |
+| eShop | 699 -> 804 | 0.057 -> 0.438 | 0.982 -> 0.982 | false -> false |
+| self | 1377 -> 2466 | 0.173 -> 0.457 | 1 -> 1 | false -> false |
+
+G10 POLES NOT ON THIS MACHINE (not measured, not dropped silently): Dapper, Serilog, MahApps.Metro, GitVersion, DntSite, wolverine
+
+THRESHOLD OUTCOMES ON POST-E1 DATA
+#22 GraphOrphansSource full gate (non-Library, handles>=5||sends>=10, calls>=30, sem>=.5, wired>=.5):
+      PASSES : VerticalSlice, eshop-microservices
+      sem>=.5 alone (the clause that shut it in 08-02): VerticalSlice, MediatR, FluentValidation, eshop-microservices, AutoMapper, Hangfire, FastEndpoints
+      sem in [.4,.5) - within one E1-sized step of the floor: CleanArchitecture, eShop, self
+      insight ACTUALLY emitted: VerticalSlice, eshop-microservices
+#23 L3.4 gate says sparse (entries<5 || ratio<0.1): MediatR, FluentValidation, AutoMapper, Hangfire
+      engine-reported sparseGraph=true (broadening RAN): Hangfire
+#24 deepSpineRatio == 1.000 (saturated): TodoApi, VerticalSlice, CleanArchitecture, MediatR, dotnet-podcasts, eshop-microservices, Hangfire, self
+      deepSpineRatio in (0,1) - the metric separating anything: eShop, FastEndpoints
+      deepSpineRatio == 0 with entries > 0 (a real zero): (none)

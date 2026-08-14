@@ -139,6 +139,25 @@ export function nodeIdLabel(nodeId: string): string {
   return humanizeArity(key);
 }
 
+/** The three tiers an edge/step can be resolved at, mirroring `DevContext.Core.Graph.EdgeTier`. */
+export type EdgeTier = 'verified' | 'joined' | 'approx';
+
+/**
+ * The app's ONE reading of a wire `resolution` string (V1.1, backlog #25). Mirror of the engine's
+ * `EdgeConfidence`: Semantic = verified, Syntactic = approx, everything else (Join — which is also
+ * the engine enum's DEFAULT, so it covers every edge no producer labelled) = joined.
+ *
+ * Before this the app had two readings of its own: the trace node badges tested `=== 'Syntactic'`
+ * for approx (right) while the explorer's neighbour list and the canvas tested `!== 'Semantic'`
+ * (wrong), so one Join edge was drawn "approx" on one page and unlabelled on another — while the
+ * CLI called that same edge "verified". Never test a resolution string inline; call this.
+ */
+export function edgeTier(resolution: string | null | undefined): EdgeTier {
+  if (resolution === 'Semantic') return 'verified';
+  if (resolution === 'Syntactic') return 'approx';
+  return 'joined';
+}
+
 /** Metadata arity marker → C# unbound-generic spelling, everywhere it occurs (a nested chain carries
  * one per generic segment: Outer of 2 . Inner of 1). Arity 0 or a malformed marker is left alone. */
 export function humanizeArity(text: string): string {

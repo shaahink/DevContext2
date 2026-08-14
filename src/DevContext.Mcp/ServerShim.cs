@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Http.Json;
 
 namespace DevContext.Mcp;
 

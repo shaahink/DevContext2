@@ -387,4 +387,92 @@ public sealed class DependencyExtractorTests
 
         Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis));
     }
+
+    /// <summary>
+    /// D1.2 — the seal on giving the Orleans descriptor its packages. Orleans' own repo must keep
+    /// self-sourcing the signal from its project NAMES (confidence 0.7, DetectedVia "ProjectName"),
+    /// because that is what <c>ArchetypeDetector.IsSelfSourcedFrameworkSignal</c> reads to call the
+    /// repo a Library. Its satellites reference Microsoft.Orleans.* as real NuGet packages, so
+    /// without the self-source guard the new descriptor packages would re-register the signal at
+    /// confidence 1.0 via "PackageReference" and flip the framework's own repo toward App.
+    /// </summary>
+    [Fact]
+    public async Task Orleans_own_repo_still_self_sources_despite_the_new_descriptor_packages()
+    {
+        var fs = new FakeFileSystem();
+        var core = @"C:/repo/src/Orleans.Core/Orleans.Core.csproj";
+        var satellite = @"C:/repo/src/Orleans.Persistence.AzureStorage/Orleans.Persistence.AzureStorage.csproj";
+        fs.AddFile(core, """
+            <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>
+            """);
+        fs.AddFile(satellite, """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+              <ItemGroup><PackageReference Include="Microsoft.Orleans.Core" Version="9.0.0" /></ItemGroup>
+            </Project>
+            """);
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:/repo");
+        var (ctx, _) = builder.BuildWithRecording();
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [core, satellite];
+        ctx.Cache.RegisterPath(core);
+        ctx.Cache.RegisterPath(satellite);
+
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Orleans.Core", core, "C#", ["net10.0"], [], []),
+                new ProjectInfo("Orleans.Persistence.AzureStorage", satellite, "C#", ["net10.0"], [],
+                    [new PackageReferenceInfo("Microsoft.Orleans.Core", "9.0.0")]),
+            ],
+        };
+        await new DependencyExtractor().ExtractAsync(ctx, model, default);
+
+        var signal = model.Architecture.Get(ArchitectureSignals.Keys.Orleans);
+        Assert.NotNull(signal);
+        Assert.True(signal.Detected);
+        Assert.Equal("ProjectName", signal.DetectedVia);
+        Assert.Equal(0.7f, signal.Confidence);
+    }
+
+    /// <summary>
+    /// D1.2 — a consumer app referencing Orleans fires the signal. Before the descriptor carried
+    /// packages this was impossible: SelfNamePatterns is a self-source map, so only Orleans' own
+    /// repo could ever produce the signal and no consumer app could reach GrainMethod entries.
+    /// </summary>
+    [Theory]
+    [InlineData("Microsoft.Orleans.Server")]
+    [InlineData("Microsoft.Orleans.Client")]
+    [InlineData("Microsoft.Orleans.Sdk")]
+    [InlineData("Microsoft.Orleans.Core.Abstractions")]   // covered by prefix matching
+    [InlineData("Microsoft.Orleans.Persistence.AzureStorage")]
+    public async Task Consumer_app_fires_the_orleans_signal_from_its_package(string package)
+    {
+        var fs = new FakeFileSystem();
+        var csproj = @"C:/repo/src/SiloHost/SiloHost.csproj";
+        fs.AddFile(csproj, $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+              <ItemGroup><PackageReference Include="{package}" Version="9.0.0" /></ItemGroup>
+            </Project>
+            """);
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:/repo");
+        var (ctx, _) = builder.BuildWithRecording();
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [csproj];
+        ctx.Cache.RegisterPath(csproj);
+
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("SiloHost", csproj, "C#", ["net10.0"], [],
+                [new PackageReferenceInfo(package, "9.0.0")], "Exe")],
+        };
+        await new DependencyExtractor().ExtractAsync(ctx, model, default);
+
+        var signal = model.Architecture.Get(ArchitectureSignals.Keys.Orleans);
+        Assert.NotNull(signal);
+        Assert.True(signal.Detected);
+        Assert.Equal("PackageReference", signal.DetectedVia);
+    }
 }

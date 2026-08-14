@@ -35,9 +35,16 @@ import { armArgs, spawnRun, claudeBin, ISOLATION, MAX_BUDGET_USD } from "./run-p
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_DIR = join(HERE, "..", "..", "eval-repos", "eShop");
-const OUT_DIR = join(HERE, "results", "raw-tax");
-const OUT_MD = join(HERE, "results", "p1.2-tool-schema-tax.md");
-const OUT_JSON = join(HERE, "results", "p1.2-tool-schema-tax.json");
+// T1.1 - `--label <slug>` sends the outputs to a suffixed set instead of overwriting the P1.2
+// baseline. Re-measuring the tax after a surface change is a COMPARISON, and a comparison needs
+// both readings on disk; the un-labelled paths stay exactly what they were.
+const LABEL_ARG = process.argv.indexOf("--label");
+const LABEL = LABEL_ARG > -1 ? String(process.argv[LABEL_ARG + 1] || "").replace(/[^A-Za-z0-9._-]/g, "") : "";
+if (LABEL_ARG > -1 && !LABEL) { console.error("REFUSED: --label needs a non-empty slug"); process.exit(2); }
+const SUFFIX = LABEL ? `-${LABEL}` : "";
+const OUT_DIR = join(HERE, "results", `raw-tax${SUFFIX}`);
+const OUT_MD = join(HERE, "results", `p1.2-tool-schema-tax${SUFFIX}.md`);
+const OUT_JSON = join(HERE, "results", `p1.2-tool-schema-tax${SUFFIX}.json`);
 
 const TRIVIAL_PROMPT = "reply with the word ok";   // DESIGN 4.4, verbatim
 const ARMS = ["G", "B"];

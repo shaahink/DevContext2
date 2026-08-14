@@ -13,6 +13,17 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
     private static readonly ImmutableArray<string> RequestMarkers =
         ["IRequest", "ICommand", "IQuery"];
 
+    /// <summary>The <c>RequestType</c> a REQUEST-MARKER implementation reports: the declaring type IS
+    /// the request, so there is no second type to name and no handler edge to draw. Consumers that
+    /// draw or render a handler must skip a detection carrying it.</summary>
+    public const string SelfRequest = "<self>";
+
+    private static MediatRKind MarkerKind(string marker) => marker switch
+    {
+        "IQuery" => MediatRKind.Query,
+        _ => MediatRKind.Command,
+    };
+
     private static readonly ImmutableArray<string> HandlerBaseInterfaces =
         ["IRequestHandler", "INotificationHandler", "IStreamRequestHandler"];
 
@@ -133,34 +144,26 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
             }
         }
 
+        // E1.4 — a REQUEST MARKER is not a handler declaration, and its type argument is the RESPONSE.
+        // `CreateOrderCommand : IRequest<bool>` says "I am the request and I answer with bool"; read as
+        // a request TYPE, the `bool` was minted as a graph node — tagged `command`, belonging to no
+        // project — and `bool --Handles--> CreateOrderCommand` was drawn, which put a boolean into the
+        // answer to "what depends on CreateOrderCommandHandler". The same path turned
+        // `IdentifiedCommand<T, R> : IRequest<R>` into the node `Type:R`: a generic PARAMETER.
+        // <see cref="SelfRequest"/> says the subject IS the request, so the join tags it and draws no
+        // edge. The response is the LAST type argument at every arity these markers are written with.
         if (typeName is "IRequest" or "ICommand" or "IQuery")
         {
-            return ("<self>", "Unit", MediatRKind.Command);
+            return (SelfRequest, "Unit", MarkerKind(typeName));
         }
 
         var baseName = ExtractGenericBaseName(typeName);
         if (baseName != null && RequestMarkers.Contains(baseName))
         {
             var args = ExtractGenericArguments(typeName);
-            if (args.Length == 1)
+            if (args.Length >= 1)
             {
-                var kind = baseName switch
-                {
-                    "ICommand" => MediatRKind.Command,
-                    "IQuery" => MediatRKind.Query,
-                    _ => MediatRKind.Command,
-                };
-                return (args[0], "Unit", kind);
-            }
-            if (args.Length == 2)
-            {
-                var kind = baseName switch
-                {
-                    "ICommand" => MediatRKind.Command,
-                    "IQuery" => MediatRKind.Query,
-                    _ => MediatRKind.Command,
-                };
-                return (args[0], args[1], kind);
+                return (SelfRequest, args[^1], MarkerKind(baseName));
             }
         }
 

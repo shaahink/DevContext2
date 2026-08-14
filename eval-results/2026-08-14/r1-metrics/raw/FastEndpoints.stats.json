@@ -1,0 +1,213 @@
+{
+  "snapshotCache": "miss \u00B7 saved 232c926",
+  "nodeCount": 2746,
+  "edgeCount": 1759,
+  "entryCount": 160,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 142,
+  "entriesWithDeepSpine": 159,
+  "deepSpineRatio": 0.99375,
+  "entriesByKind": {
+    "HttpEndpoint": 158,
+    "HostedService": 1,
+    "CliCommand": 1
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 1674,
+      "verified": 1009,
+      "joined": 159,
+      "approx": 506
+    },
+    {
+      "kind": "Handles",
+      "total": 17,
+      "verified": 0,
+      "joined": 17,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 16,
+      "verified": 4,
+      "joined": 0,
+      "approx": 12
+    },
+    {
+      "kind": "Resolves",
+      "total": 52,
+      "verified": 0,
+      "joined": 26,
+      "approx": 26
+    }
+  ],
+  "totalWallMs": 37235,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 1986
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 7762
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 5588
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 16648
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 1324
+    },
+    {
+      "stage": "Insights",
+      "ms": 1680
+    },
+    {
+      "stage": "Compression",
+      "ms": 294
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 577
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "risk.unvalidated-endpoints",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Missing validation: 65/66 write endpoints have no FluentValidation validator",
+      "evidence": [
+        "POST \u003Cdynamic\u003E \u2192 RefreshTokenService",
+        "POST /inventory/manage/create \u2192 Endpoint",
+        "DELETE inventory/manage/delete/{itemID} \u2192 Endpoint",
+        "POST /sales/orders/create/{guidTest} \u2192 Endpoint",
+        "POST /test-cases/custom-request-binder \u2192 Endpoint"
+      ],
+      "confidence": 0.65,
+      "confidenceBasis": "Validator detection from AbstractValidator\u003CT\u003E subclasses; target resolution from graph dispatch edges"
+    },
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "157/158 endpoints anonymous, incl. 65 POST/PUT/DELETE",
+      "evidence": [
+        "GET /",
+        "GET /",
+        "GET /",
+        "GET /_test_url_cache_",
+        "OPTIONS \u003Cdynamic\u003E"
+      ],
+      "confidence": 0.01,
+      "confidenceBasis": "1/158 endpoints have known auth"
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 2 protected, 156 unannotated of 158 API endpoints",
+      "evidence": [
+        "2 protected",
+        "GET /non-fe-auth",
+        "GET /non-fe-auth-anon",
+        "1 explicitly public",
+        "156 no auth annotation"
+      ],
+      "confidence": 0.012658227848101266,
+      "confidenceBasis": "3/158 API endpoints have auth annotations"
+    },
+    {
+      "id": "lib.internal-hubs",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Internal hubs: 2 heavily-referenced internal types",
+      "evidence": [
+        "CommandHandlerRegistry (5 refs)",
+        "RoutePrefixHelper (3 refs)"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Reference counting is body-scan approximate \u2014 hubs are likely correct, counts approximate"
+    },
+    {
+      "id": "lib.seat-implementors",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Extension seats: IX402FacilitatorClient (2 impls) \u00B7 SubscriberExceptionReceiver (2 impls)",
+      "evidence": [
+        "IX402FacilitatorClient (2 impls)",
+        "SubscriberExceptionReceiver (2 impls)"
+      ],
+      "confidence": 0.7,
+      "confidenceBasis": "DI registration detection is established \u2014 counts are reliable for collected registrations"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: FastEndpoints (5 dependents) \u00B7 FastEndpoints (4 dependents) \u00B7 FastEndpoints (4 dependents)",
+      "evidence": [
+        "FastEndpoints (5 dependents)",
+        "FastEndpoints (4 dependents)",
+        "FastEndpoints (4 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.external-events",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "External event contracts: 11 consumed but never produced internally",
+      "evidence": [
+        "DerivedSubscriberIdEvent",
+        "EventHasBeenPublished",
+        "ExplicitSubscriberIdEvent",
+        "InMemFetchLimitEvent",
+        "MyEvent"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IX402FacilitatorClient (2 impls)",
+      "evidence": [
+        "IX402FacilitatorClient (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 80 interfaces, 1064 classes (1194 total public types)",
+      "evidence": [
+        "80 interfaces",
+        "1064 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 142/160 (88%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    }
+  ]
+}

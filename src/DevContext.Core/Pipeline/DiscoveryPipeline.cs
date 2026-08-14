@@ -535,7 +535,7 @@ public sealed class DiscoveryPipeline
 
             // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
             // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
-            var (seams, withTarget, _, _) = query.Stats();
+            var (seams, withTarget) = query.Stats();
 
             if (!string.IsNullOrEmpty(request.Entry))
             {
@@ -1055,7 +1055,12 @@ public sealed class DiscoveryPipeline
             new DiLifetimesSource(),
             new CoverageHonestySource(),
             new WiringHubsSource(),
-            new GraphOrphansSource(),
+            // R1.1 (#22, 2026-08-14): GraphOrphansSource is RETIRED, not disabled — file deleted.
+            // Its dead-code claim was dormant when the graph was starved and inverted the moment
+            // E1 fixed call-edge binding: measured precision 0/10 on the two poles it now fires on
+            // (eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md). Reviving it needs a liveness
+            // model that reads REGISTRATION (DI impl types, assembly-scan framework interfaces,
+            // decorators), not graph in-degree; the lens-audit ratchet fails if the id reappears.
             new ExternalEventsSource(),
             new BusiestAggregateSource(),
             new TopologyChokepointSource(),

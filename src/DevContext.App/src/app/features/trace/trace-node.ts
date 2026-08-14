@@ -1,5 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 
+import { edgeTier } from '../../core/format';
 import { groupServiceHops, isServiceHopGroup, type TraceNodeVm } from '../../models/view-models';
 import { Badge } from '../../ui/badge/badge';
 import { NodeLink } from '../../ui/node-link/node-link';
@@ -16,8 +17,8 @@ import { SeamChip } from '../../ui/seam-chip/seam-chip';
           <app-node-link [nodeId]="node().id" [label]="node().title" />
           @if (node().salient) { <p class="mt-0.5 text-3xs text-ink-muted line-clamp-2">{{ node().salient }}</p> }
           <div class="mt-0.5 flex items-center gap-1.5 text-2xs">
-            @if (node().resolution === 'Syntactic') { <app-badge variant="warn">approx</app-badge> }
-            @if (node().resolution === 'Semantic') { <app-badge variant="success">verified</app-badge> }
+            @if (tier() === 'approx') { <app-badge variant="warn">approx</app-badge> }
+            @if (tier() === 'verified') { <app-badge variant="success">verified</app-badge> }
             @if (node().truncated) { <app-badge variant="default">truncated</app-badge> }
             @if (node().omitted > 0) { <span class="text-ink-subtle">{{ omittedLabel() }}</span> }
             <!-- M1.1 - the three DI honesty annotations the CLI has rendered since I1.6/C5/T2.1.
@@ -87,6 +88,9 @@ export class TraceNodeComponent {
   /** Groups the caller has expanded. Local, deliberately: the collapse is a reading aid,
    * not navigation state worth surviving a re-trace. */
   private readonly expanded = signal<ReadonlySet<string>>(new Set());
+
+  /** V1.1 (#25) — the app's one reading of a wire resolution; a Join step wears no badge. */
+  protected readonly tier = computed(() => edgeTier(this.node().resolution));
 
   protected readonly displayedChildren = computed(() => groupServiceHops(this.node().children));
 
