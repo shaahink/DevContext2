@@ -26,6 +26,27 @@ import type {
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
+/**
+ * N4.1 — what the server MEASURED about the MCP side of the world. Nothing here is inferred
+ * from the fact that the gRPC server answered, which is all the old status dot ever proved.
+ */
+export interface McpStatus {
+  /** Clients attached to the tool-call stream right now (this page is one while it is open). */
+  readonly observerCount: number;
+  /** A devcontext-mcp executable exists where a host would find it. */
+  readonly binaryFound: boolean;
+  /** Its absolute path — the one a host config must name; empty when not found. */
+  readonly binaryPath: string;
+  /** "bundle" | "path" | "dev-build" | "" — where it was found. */
+  readonly binarySource: string;
+  /** Unix ms of the last agent-origin tool call; 0 when no agent has ever called. */
+  readonly lastAgentCallAtUtcMs: number;
+  /** The tool that call asked for; empty when none. */
+  readonly lastAgentTool: string;
+  /** Agent-origin calls served since the server started. */
+  readonly agentCallCount: number;
+}
+
 export interface AnalyzeSpec {
   readonly path: string;
   readonly focus?: string;
@@ -226,11 +247,23 @@ export class DevContextApi {
    *
    * N0.2 (audit §3.F.14) — the `_mcpRunning` mirror signal that lived here went with it: it was
    * written by the MCP page on every toggle and read by nobody.
+   *
+   * N4.1 (audit §4 Room 2) — and what comes back is now three MEASUREMENTS: where the server
+   * found a devcontext-mcp executable, how many watchers are attached, and when an agent last
+   * called. `telemetryStreaming` is gone with the global mute it reported.
    */
-  async getMcpStatus(): Promise<{ telemetryStreaming: boolean; observerCount: number } | null> {
+  async getMcpStatus(): Promise<McpStatus | null> {
     try {
       const resp = await this.client.getMcpStatus({});
-      return { telemetryStreaming: resp.telemetryStreaming, observerCount: resp.observerCount };
+      return {
+        observerCount: resp.observerCount,
+        binaryFound: resp.mcpBinaryFound,
+        binaryPath: resp.mcpBinaryPath,
+        binarySource: resp.mcpBinarySource,
+        lastAgentCallAtUtcMs: Number(resp.lastAgentCallAtUtcMs),
+        lastAgentTool: resp.lastAgentTool,
+        agentCallCount: Number(resp.agentCallCount),
+      };
     } catch {
       return null;
     }

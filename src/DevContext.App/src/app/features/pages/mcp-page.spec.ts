@@ -16,7 +16,26 @@ describe('McpPage', () => {
   let listSessions: Mock;
   let startMcp: Mock;
   let stopMcp: Mock;
+  let mcpHandshake: Mock;
   let observeToolCalls: Mock;
+
+  /**
+   * N4.1 — the status the server MEASURED. The old page's whole status was one boolean that a
+   * mutating read had just made true; these fields are a disk probe, a subscriber count and
+   * real agent traffic.
+   */
+  function status(overrides: Record<string, unknown> = {}) {
+    return {
+      observerCount: 0,
+      binaryFound: true,
+      binaryPath: 'C:/app/resources/server/devcontext-mcp.exe',
+      binarySource: 'bundle',
+      lastAgentCallAtUtcMs: 0,
+      lastAgentTool: '',
+      agentCallCount: 0,
+      ...overrides,
+    };
+  }
 
   function session(overrides: Record<string, unknown> = {}) {
     return {
@@ -49,17 +68,24 @@ describe('McpPage', () => {
   }
 
   beforeEach(() => {
-    getMcpStatus = vi.fn().mockResolvedValue({ telemetryStreaming: false, observerCount: 0 });
+    getMcpStatus = vi.fn().mockResolvedValue(status());
     listSessions = vi.fn().mockResolvedValue({ sessions: [] });
+    // N4.1 — StartMcp/StopMcp no longer exist on the wire. They stay in this stub on purpose:
+    // if the page ever grows a mutating call again, "never called" has to keep failing.
     startMcp = vi.fn().mockResolvedValue({ running: true });
     stopMcp = vi.fn().mockResolvedValue({ stopped: true });
+    mcpHandshake = vi.fn().mockResolvedValue({
+      ok: true, command: 'C:/app/resources/server/devcontext-mcp.exe',
+      serverName: 'devcontext', serverVersion: '1.0.0', protocolVersion: '2024-11-05',
+      toolCount: 3, toolNames: ['analyze', 'map', 'get_context'], elapsedMs: 812n, error: '',
+    });
     observeToolCalls = vi.fn().mockReturnValue({
       async *[Symbol.asyncIterator]() { /* silent stream */ },
     });
     TestBed.configureTestingModule({
       providers: [
         { provide: DevContextApi, useValue: { getMcpStatus } },
-        { provide: DEVCONTEXT_CLIENT, useValue: { listSessions, startMcp, stopMcp, observeToolCalls } },
+        { provide: DEVCONTEXT_CLIENT, useValue: { listSessions, startMcp, stopMcp, mcpHandshake, observeToolCalls } },
       ],
     });
   });
@@ -77,12 +103,11 @@ describe('McpPage', () => {
   }
 
   it('reads status WITHOUT starting anything (§3.F.9)', async () => {
-    getMcpStatus.mockResolvedValue({ telemetryStreaming: true, observerCount: 2 });
+    getMcpStatus.mockResolvedValue(status({ observerCount: 2 }));
     const { el } = await createPage();
 
     expect(getMcpStatus).toHaveBeenCalledTimes(1);
     expect(startMcp).not.toHaveBeenCalled(); // the whole defect: reading used to start it
-    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry streaming');
     expect(text(el, 'mcp-status-text')).toContain('2 watcher(s) attached');
   });
 
@@ -91,7 +116,8 @@ describe('McpPage', () => {
     const { el } = await createPage();
 
     expect(text(el, 'mcp-status-error')).toContain('Could not reach');
-    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry off');
+    // and it must not claim the binary is there — nothing was measured at all
+    expect(text(el, 'mcp-status-label')).toContain('not found');
   });
 
   it('Copy marks the card that was clicked (§3.F.11)', async () => {
@@ -121,7 +147,7 @@ describe('McpPage', () => {
   });
 
   it('the feed total counts the rows on screen, and rows carry the WIRE time (§3.F.12)', async () => {
-    getMcpStatus.mockResolvedValue({ telemetryStreaming: true, observerCount: 1 });
+    getMcpStatus.mockResolvedValue(status({ observerCount: 1 }));
     observeToolCalls.mockReturnValue({
       async *[Symbol.asyncIterator]() {
         yield evt({ estTokens: 500n, origin: 'agent' });
@@ -204,25 +230,86 @@ describe('McpPage', () => {
     expect(text(el, 'session-handle-copy')).not.toBe('Copied!');
   });
 
-  it('the toggle is the ONLY thing that mutates, and a refused start stays off (§3.F.9)', async () => {
+  /**
+   * N4.1 (audit §3.D, §4 Room 2) — the page used to PERFORM status: a dot that went green
+   * because the gRPC server answered a mutating call, and a Start/Stop button that flipped a
+   * global telemetry mute while its label claimed to control an MCP endpoint it never touched.
+   * Both are gone. These pin what replaced them: three checks that are only as green as what
+   * the server actually found.
+   */
+  it('the binary probe is rendered as a verdict WITH the path a host must name', async () => {
+    const { el } = await createPage();
+
+    expect(text(el, 'mcp-status-label')).toContain('devcontext-mcp found');
+    expect(text(el, 'mcp-binary-path')).toBe('C:/app/resources/server/devcontext-mcp.exe');
+    expect(text(el, 'mcp-binary-check')).toContain('bundle');
+  });
+
+  it('a missing binary says no host config can work — it does not render as idle', async () => {
+    getMcpStatus.mockResolvedValue(status({ binaryFound: false, binaryPath: '', binarySource: '' }));
+    const { el } = await createPage();
+
+    expect(text(el, 'mcp-status-label')).toContain('not found');
+    expect(el.querySelector('[data-testid="mcp-binary-path"]')).toBeNull();
+  });
+
+  it('renders whether an AGENT has actually called, not just that the server is up', async () => {
+    getMcpStatus.mockResolvedValue(status({
+      lastAgentCallAtUtcMs: Date.now() - 120_000, lastAgentTool: 'get_context', agentCallCount: 7,
+    }));
+    const { el } = await createPage();
+
+    expect(text(el, 'mcp-last-agent-call')).toContain('get_context');
+    expect(text(el, 'mcp-last-agent-call')).toContain('2m ago');
+    expect(text(el, 'mcp-last-agent-call')).toContain('7 agent call(s)');
+  });
+
+  it('says plainly when no agent has ever called', async () => {
+    const { el } = await createPage();
+    expect(text(el, 'mcp-last-agent-call')).toContain('No agent has called this server yet');
+  });
+
+  it('the handshake reports the REAL tool menu the process answered with', async () => {
     const { fixture, el } = await createPage();
+    expect(el.querySelector('[data-testid="mcp-handshake-result"]')).toBeNull();
+
+    (el.querySelector('[data-testid="mcp-handshake-run"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(mcpHandshake).toHaveBeenCalledTimes(1);
+    expect(text(el, 'mcp-handshake-result')).toContain('tools/list answered');
+    expect(text(el, 'mcp-handshake-result')).toContain('protocol 2024-11-05');
+    expect(text(el, 'mcp-handshake-tools')).toBe('analyze · map · get_context');
+  });
+
+  it('a failed handshake shows the failure instead of a green light', async () => {
+    mcpHandshake.mockResolvedValue({
+      ok: false, command: 'C:/app/devcontext-mcp.exe', serverName: '', serverVersion: '',
+      protocolVersion: '', toolCount: 0, toolNames: [], elapsedMs: 30_000n,
+      error: 'devcontext-mcp.exe did not answer within 30s.',
+    });
+    const { fixture, el } = await createPage();
+
+    (el.querySelector('[data-testid="mcp-handshake-run"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'mcp-handshake-error')).toContain('did not answer within 30s');
+    expect(text(el, 'mcp-handshake-result')).not.toContain('tools/list answered');
+  });
+
+  it('nothing on the page mutates MCP state — not opening it, not re-checking it', async () => {
+    const { fixture, el } = await createPage();
+
+    (el.querySelector('[data-testid="mcp-status-refresh"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(getMcpStatus).toHaveBeenCalledTimes(2);
     expect(startMcp).not.toHaveBeenCalled();
-
-    startMcp.mockRejectedValueOnce(new Error('refused'));
-    (el.querySelector('[data-testid="mcp-toggle"]') as HTMLButtonElement).click();
-    await new Promise((r) => setTimeout(r, 5));
-    fixture.detectChanges();
-
-    expect(startMcp).toHaveBeenCalledTimes(1);
-    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry off'); // a refusal is not "streaming"
-    expect(text(el, 'mcp-toggle')).toBe('Start');
-
-    (el.querySelector('[data-testid="mcp-toggle"]') as HTMLButtonElement).click();
-    await new Promise((r) => setTimeout(r, 5));
-    fixture.detectChanges();
-
-    expect(text(el, 'mcp-status-label')).toBe('Tool-call telemetry streaming');
-    expect(text(el, 'mcp-toggle')).toBe('Stop');
+    expect(stopMcp).not.toHaveBeenCalled();
+    expect(el.querySelector('[data-testid="mcp-toggle"]')).toBeNull(); // the mute is gone
   });
 
   it('"use" prefills Try-a-Tool with the live handle and enables Run', async () => {

@@ -702,27 +702,52 @@ public sealed class DevContextGrpcService(
         catch (Exception ex) { throw MapException(ex); }
     }
 
-    public override Task<Proto.StartMcpResponse> StartMcp(Proto.StartMcpRequest request, ServerCallContext context)
-    {
-        mcpObs.Start();
-        return Task.FromResult(new Proto.StartMcpResponse { Running = mcpObs.IsRunning });
-    }
-
-    public override Task<Proto.StopMcpResponse> StopMcp(Proto.StopMcpRequest request, ServerCallContext context)
-    {
-        mcpObs.Stop();
-        return Task.FromResult(new Proto.StopMcpResponse { Stopped = true });
-    }
-
     /// <summary>N0.2 (audit §3.F.9) — the READ half. StartMcp is a mutation and the app used it
     /// as its status probe, so opening the MCP page switched telemetry on and then reported the
-    /// state it had just caused. This observes; it never writes.</summary>
+    /// state it had just caused. This observes; it never writes.
+    ///
+    /// N4.1 (audit §4 Room 2) — and it now MEASURES: the binary probe looks on disk, the
+    /// last-agent-call figures come from traffic the server actually served. StartMcp/StopMcp
+    /// are gone with the global mute they flipped.</summary>
     public override Task<Proto.GetMcpStatusResponse> GetMcpStatus(Proto.GetMcpStatusRequest request, ServerCallContext context)
-        => Task.FromResult(new Proto.GetMcpStatusResponse
+    {
+        var binary = McpBinaryLocator.Probe();
+        return Task.FromResult(new Proto.GetMcpStatusResponse
         {
-            TelemetryStreaming = mcpObs.IsRunning,
             ObserverCount = mcpObs.ObserverCount,
+            McpBinaryFound = binary.Found,
+            McpBinaryPath = binary.Path,
+            McpBinarySource = binary.Source,
+            LastAgentCallAtUtcMs = mcpObs.LastAgentCallAtUtcMs,
+            LastAgentTool = mcpObs.LastAgentTool,
+            AgentCallCount = mcpObs.AgentCallCount,
         });
+    }
+
+    /// <summary>N4.1 — spawn the resolved devcontext-mcp binary and run one real
+    /// initialize + tools/list round trip over stdio. The only check on this page that proves a
+    /// host config would work.</summary>
+    public override async Task<Proto.McpHandshakeResponse> McpHandshake(
+        Proto.McpHandshakeRequest request, ServerCallContext context)
+    {
+        var result = await McpHandshakeProbe
+            .RunAsync(McpBinaryLocator.Probe(), TimeSpan.FromSeconds(30), context.CancellationToken)
+            .ConfigureAwait(false);
+
+        var response = new Proto.McpHandshakeResponse
+        {
+            Ok = result.Ok,
+            Command = result.Command,
+            ServerName = result.ServerName,
+            ServerVersion = result.ServerVersion,
+            ProtocolVersion = result.ProtocolVersion,
+            ToolCount = result.ToolNames.Count,
+            ElapsedMs = result.ElapsedMs,
+            Error = result.Error,
+        };
+        response.ToolNames.AddRange(result.ToolNames);
+        return response;
+    }
 
     public override async Task ObserveToolCalls(
         Proto.ObserveToolCallsRequest request,
@@ -735,9 +760,8 @@ public sealed class DevContextGrpcService(
         var observerId = Guid.NewGuid().ToString("N");
         using var _ = mcpObs.Subscribe(observerId, channel.Writer);
 
-        // Start MCP if not already running
-        mcpObs.Start();
-
+        // N4.1 — subscribing IS the start. This used to also flip the global mute on, which is
+        // why the page could report "active" the moment anyone watched.
         try
         {
             await foreach (var evt in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))

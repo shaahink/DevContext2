@@ -25,6 +25,19 @@ interface ToolCallEntry {
   origin: string;
 }
 
+/** N4.1 — one handshake result, flattened for the template (the wire's bigint becomes a number). */
+interface HandshakeView {
+  ok: boolean;
+  command: string;
+  serverName: string;
+  serverVersion: string;
+  protocolVersion: string;
+  toolCount: number;
+  toolNames: string[];
+  elapsedMs: number;
+  error: string;
+}
+
 interface SessionItem {
   handle: string;
   repo: string;
@@ -86,46 +99,80 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
   imports: [FormsModule],
   template: `
     <div class="mx-auto max-w-5xl px-5 pb-10 pt-6 space-y-6">
-      <!-- Status card -->
-      <div class="rounded-lg border border-line bg-surface p-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <!-- N0.2 (audit §3.F.9) — the dot reports TELEMETRY FORWARDING, which is the only
-                 thing Start/Stop actually toggles and the only thing this server can observe.
-                 It was labelled "MCP Endpoint Active/Stopped" while being read by calling the
-                 mutating StartMcp, i.e. it reported a state the read had just created. The real
-                 endpoint probe (is the binary there, has an agent called) is N4.1. -->
-            <span
-              class="flex h-3 w-3 rounded-full shrink-0"
-              [class.bg-green]="telemetryStreaming()"
-              [class.bg-ink-subtle]="!telemetryStreaming()"
-              data-testid="mcp-status-dot"
-            ></span>
-            <span class="text-sm font-medium" data-testid="mcp-status-label">
-              {{ telemetryStreaming() ? 'Tool-call telemetry streaming' : 'Tool-call telemetry off' }}
-            </span>
+      <!-- Status card — N4.1 (audit §4, Room 2: "status that measures").
+           What stood here was theater: one dot fed by a MUTATING StartMcp call, so it went
+           green whenever the gRPC server was reachable, and a Start/Stop button that flipped a
+           global telemetry mute while claiming to control an "MCP endpoint" it never touched.
+           Three checks replaced it, and each one is something the server went and looked at:
+           is the binary a host would spawn actually on disk, is anyone watching the stream,
+           and has an agent ever called. The handshake below proves the rest. -->
+      <div class="rounded-lg border border-line bg-surface p-4 space-y-3" data-testid="mcp-status-card">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 space-y-2">
+            <!-- Check 1 — the binary a host config has to name. -->
+            <div class="flex items-center gap-2 flex-wrap" data-testid="mcp-binary-check">
+              <span
+                class="flex h-3 w-3 rounded-full shrink-0"
+                [class.bg-green]="binaryFound()"
+                [class.bg-warn]="!binaryFound()"
+                data-testid="mcp-status-dot"
+              ></span>
+              <span class="text-sm font-medium" data-testid="mcp-status-label">{{ binaryLabel() }}</span>
+              @if (binarySource(); as src) {
+                <span class="chip text-2xs" [title]="binarySourceHint()">{{ src }}</span>
+              }
+            </div>
+            @if (binaryPath(); as path) {
+              <div class="pl-5 font-mono text-2xs text-ink-subtle break-all" data-testid="mcp-binary-path">{{ path }}</div>
+            }
+
+            <!-- Check 2 + 3 — watchers, and whether an agent has actually been here. -->
+            <div class="pl-5 text-xs text-ink-subtle" data-testid="mcp-status-text">{{ statusText() }}</div>
+            <div class="pl-5 text-xs text-ink-subtle" data-testid="mcp-last-agent-call">{{ lastAgentCallText() }}</div>
           </div>
-          <button
-            class="rounded px-3 py-1.5 text-xs font-medium border transition-colors"
-            [class.border-warn/30]="telemetryStreaming()"
-            [class.text-warn]="telemetryStreaming()"
-            [class.hover:bg-warn/10]="telemetryStreaming()"
-            [class.border-line]="!telemetryStreaming()"
-            [class.text-ink]="!telemetryStreaming()"
-            [class.hover:bg-surface-raised]="!telemetryStreaming()"
-            data-testid="mcp-toggle"
-            (click)="toggleMcp()"
-          >
-            {{ telemetryStreaming() ? 'Stop' : 'Start' }}
-          </button>
+
+          <div class="flex flex-col items-end gap-1.5 shrink-0">
+            <button
+              class="rounded border border-line px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-raised transition-colors"
+              [class.opacity-50]="handshakeRunning()"
+              [disabled]="handshakeRunning()"
+              title="Spawn the executable above and run one real MCP initialize + tools/list round trip"
+              data-testid="mcp-handshake-run"
+              (click)="runHandshake()"
+            >{{ handshakeRunning() ? 'Handshaking…' : 'Test handshake' }}</button>
+            <button
+              class="text-2xs text-ink-subtle hover:text-ink transition-colors"
+              data-testid="mcp-status-refresh"
+              (click)="refreshStatus()"
+            >Re-check</button>
+          </div>
         </div>
-        <div class="mt-2 text-xs text-ink-subtle" data-testid="mcp-status-text">
-          {{ statusText() }}
-        </div>
+
         @if (statusError(); as err) {
           <!-- N0.2 (audit §3.F.14) — the status read used to swallow its failure and render a
                grey dot, which is also what a healthy-but-off endpoint looks like. -->
-          <div class="mt-1 text-xs text-danger" data-testid="mcp-status-error">{{ err }}</div>
+          <div class="text-xs text-danger" data-testid="mcp-status-error">{{ err }}</div>
+        }
+
+        @if (handshake(); as hs) {
+          <!-- The handshake is the only check here that proves a host config would WORK: it
+               spawns the same executable over the same transport and reads the same menu. -->
+          <div class="rounded border border-line bg-base p-3 text-xs space-y-1" data-testid="mcp-handshake-result">
+            @if (hs.ok) {
+              <div class="text-ink">
+                <span class="text-green">tools/list answered</span> — {{ hs.serverName }} v{{ hs.serverVersion }},
+                protocol {{ hs.protocolVersion }}, {{ hs.toolCount }} tools in {{ hs.elapsedMs }}ms
+              </div>
+              <div class="font-mono text-2xs text-ink-subtle break-words" data-testid="mcp-handshake-tools">
+                {{ hs.toolNames.join(' · ') }}
+              </div>
+            } @else {
+              <div class="text-danger" data-testid="mcp-handshake-error">{{ hs.error }}</div>
+              @if (hs.command) {
+                <div class="font-mono text-2xs text-ink-subtle break-all">{{ hs.command }}</div>
+              }
+            }
+          </div>
         }
       </div>
 
@@ -275,7 +322,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
             @if (events().length > 0 && !showUiCalls()) {
               No agent calls yet — {{ events().length }} UI-origin calls hidden.
             } @else {
-              No tool calls yet. Start MCP and trigger a tool call.
+              No tool calls yet — this page is watching; ask an agent to call a DevContext tool.
             }
           </p>
         } @else {
@@ -351,10 +398,20 @@ export class McpPage implements OnInit, OnDestroy {
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
 
-  /** N0.2 (audit §3.F.9) — telemetry forwarding, which is what Start/Stop toggles. Not a claim
-   * about the devcontext-mcp process: the agent host spawns that over stdio, not this app. */
-  protected readonly telemetryStreaming = signal(false);
+  /** N4.1 — the three measurements behind the status card (see the template's header comment).
+   * There is no "telemetry streaming" flag any more: forwarding is unconditional server-side,
+   * so the honest numbers are who is watching and what an agent actually did. */
   protected readonly observerCount = signal(0);
+  protected readonly binaryFound = signal(false);
+  protected readonly binaryPath = signal('');
+  protected readonly binarySource = signal('');
+  protected readonly lastAgentCallAtUtcMs = signal(0);
+  protected readonly lastAgentTool = signal('');
+  protected readonly agentCallCount = signal(0);
+  /** Ticked by the same poll that refreshes status, so "3m ago" keeps meaning it. */
+  private readonly nowMs = signal(Date.now());
+  protected readonly handshake = signal<HandshakeView | null>(null);
+  protected readonly handshakeRunning = signal(false);
   protected readonly copied = signal<string | null>(null);
   protected readonly copiedHandle = signal<string | null>(null);
   protected readonly events: WritableSignal<ToolCallEntry[]> = signal([]);
@@ -388,37 +445,55 @@ export class McpPage implements OnInit, OnDestroy {
   private streamAbort: AbortController | null = null;
   private sessionTimer: ReturnType<typeof setInterval> | null = null;
 
+  /** N4.1 — what the binary probe found, named as a check with a verdict. */
+  protected readonly binaryLabel = computed(() =>
+    this.binaryFound()
+      ? 'devcontext-mcp found — a host can spawn it'
+      : 'devcontext-mcp not found — no host config here can work yet');
+
+  protected readonly binarySourceHint = computed(() => {
+    switch (this.binarySource()) {
+      case 'bundle': return 'Found beside the DevContext server — the copy the desktop ships';
+      case 'path': return 'Found on PATH — an installed tool or a manual copy';
+      case 'dev-build': return 'Found in this repo’s build output (dotnet build src/DevContext.Mcp)';
+      default: return '';
+    }
+  });
+
   /** L6.6: Status text reflects live state instead of static toggle label.
    * N0.2 (audit §3.F.9) — and it now describes what was measured. The old copy ("Accepting
    * connections", "Endpoint stopped") described an MCP endpoint this server neither owns nor
-   * observes; what it can see is whether it is forwarding tool-call events and to how many
-   * watchers. Whether an agent host has actually spawned devcontext-mcp is N4.1's probe. */
+   * observes. N4.1 — with the mute gone, the watcher count is the whole story: every tool call
+   * this server serves is forwarded to whoever is subscribed. */
   protected readonly statusText = computed(() => {
-    const watchers = `${this.observerCount()} watcher(s) attached`;
+    const watchers = this.observerCount();
     const live = this.sessions().length;
     const sessions = live > 0 ? `${live} analysis session(s) open.` : 'No analysis sessions open.';
-    return this.telemetryStreaming()
-      ? `Forwarding every tool call this server serves — ${watchers}. ${sessions}`
-      : `Tool calls are still served; this server is not forwarding them to watchers. ${sessions}`;
+    return `Every tool call this server serves is forwarded — ${watchers} watcher(s) attached. ${sessions}`;
+  });
+
+  /** N4.1 — the check the old page could not make at all: has an agent ever actually been here. */
+  protected readonly lastAgentCallText = computed(() => {
+    const at = this.lastAgentCallAtUtcMs();
+    if (at <= 0) return 'No agent has called this server yet — the calls below are the app’s own.';
+    const age = this.fmtAge(Math.max(0, Math.round((this.nowMs() - at) / 1000)));
+    const tool = this.lastAgentTool() || 'a tool';
+    return `Last agent call: ${tool}, ${age} ago — ${this.agentCallCount()} agent call(s) served.`;
   });
 
   async ngOnInit(): Promise<void> {
     this.refreshSessions();
     this.sessionTimer = setInterval(() => {
       this.refreshSessions();
+      // N4.1 — the status numbers age (last agent call, watcher count), so they are polled with
+      // the sessions rather than read once at open and left to rot on screen.
+      void this.refreshStatus();
     }, 30_000);
 
-    // N0.2 (audit §3.F.9) — a READ. This used to be `startMcp`, so opening the page turned
-    // telemetry on for every observer and then reported "active" because of its own call.
-    const status = await this.api.getMcpStatus();
-    if (status === null) {
-      this.statusError.set('Could not reach the DevContext server to read MCP status.');
-      return;
-    }
-    this.statusError.set(null);
-    this.telemetryStreaming.set(status.telemetryStreaming);
-    this.observerCount.set(status.observerCount);
-    if (status.telemetryStreaming) this.startStream();
+    // N4.1 — subscribe first, THEN read: this page is itself a watcher, and a count read before
+    // subscribing renders one lower than the truth it is describing.
+    this.startStream();
+    await this.refreshStatus();
   }
 
   ngOnDestroy(): void {
@@ -426,18 +501,54 @@ export class McpPage implements OnInit, OnDestroy {
     this.stopStream();
   }
 
-  protected toggleMcp() {
-    if (this.telemetryStreaming()) {
-      this.client.stopMcp({}).then(() => {
-        this.telemetryStreaming.set(false);
-        this.stopStream();
-      }).catch((err) => { this.telemetryStreaming.set(false); this.toast.show('Failed to stop MCP telemetry: ' + errorText(err), 'error'); });
-    } else {
-      this.client.startMcp({}).then((resp) => {
-        this.telemetryStreaming.set(resp.running);
-        if (resp.running) this.startStream();
-      }).catch((err) => { this.toast.show('Failed to start MCP telemetry: ' + errorText(err), 'error'); });
+  /** N0.2 (audit §3.F.9) — a READ. This used to be `startMcp`, so opening the page turned
+   * telemetry on for every observer and then reported "active" because of its own call. */
+  protected async refreshStatus(): Promise<void> {
+    const status = await this.api.getMcpStatus();
+    this.nowMs.set(Date.now());
+    if (status === null) {
+      this.statusError.set('Could not reach the DevContext server to read MCP status.');
+      return;
     }
+    this.statusError.set(null);
+    this.observerCount.set(status.observerCount);
+    this.binaryFound.set(status.binaryFound);
+    this.binaryPath.set(status.binaryPath);
+    this.binarySource.set(status.binarySource);
+    this.lastAgentCallAtUtcMs.set(status.lastAgentCallAtUtcMs);
+    this.lastAgentTool.set(status.lastAgentTool);
+    this.agentCallCount.set(status.agentCallCount);
+  }
+
+  /**
+   * N4.1 — the handshake. Spawns the resolved executable server-side and runs one real
+   * initialize + tools/list round trip, so a green result means a host config naming that path
+   * would work. Nothing else on this page can claim that.
+   */
+  protected runHandshake(): void {
+    if (this.handshakeRunning()) return;
+    this.handshakeRunning.set(true);
+    this.client.mcpHandshake({}).then((resp) => {
+      this.handshake.set({
+        ok: resp.ok,
+        command: resp.command,
+        serverName: resp.serverName,
+        serverVersion: resp.serverVersion,
+        protocolVersion: resp.protocolVersion,
+        toolCount: resp.toolCount,
+        toolNames: resp.toolNames,
+        elapsedMs: Number(resp.elapsedMs),
+        error: resp.error,
+      });
+      // A handshake that ran is also a fresh look at the binary — re-read the probe.
+      void this.refreshStatus();
+    }).catch((err) => {
+      this.handshake.set({
+        ok: false, command: '', serverName: '', serverVersion: '', protocolVersion: '',
+        toolCount: 0, toolNames: [], elapsedMs: 0,
+        error: `The server could not run the handshake: ${errorText(err)}`,
+      });
+    }).finally(() => this.handshakeRunning.set(false));
   }
 
   /** N0.2 (audit §3.F.11) — the card names itself; the old version sniffed the snippet TEXT for

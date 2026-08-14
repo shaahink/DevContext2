@@ -109,13 +109,22 @@ service DevContextService {
   // dev:web AND in the shipped shell. The server already holds the repo root for the session.
   rpc SavePackFile(SavePackFileRequest) returns (SavePackFileResponse);
 
-  // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
-  rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
-  rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
+  // M3.3 — MCP observability: stream tool-call events to the UI.
+  //
+  // N4.1 (audit §4 Room 2) — StartMcp/StopMcp are GONE. They never touched the devcontext-mcp
+  // process (the agent host spawns that over stdio); they flipped one volatile bool that muted
+  // the event stream for EVERY observer, and the page rendered that mute as "MCP endpoint
+  // stopped". A global mute behind a per-page button is a trap, so forwarding is now
+  // unconditional and scoped to whoever is subscribed.
+  //
   // N0.2 (audit §3.F.9) — READ the observability state. The app used to read status by
   // calling StartMcp, a mutating RPC: merely opening the MCP page turned telemetry on and
   // then reported "active" because it had just made that true.
   rpc GetMcpStatus(GetMcpStatusRequest) returns (GetMcpStatusResponse);
+  // N4.1 — the handshake: spawn the resolved devcontext-mcp binary and run one REAL
+  // initialize + tools/list JSON-RPC round trip over stdio. This is the only check that
+  // proves the thing a host will spawn actually answers; everything else is inference.
+  rpc McpHandshake(McpHandshakeRequest) returns (McpHandshakeResponse);
   rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
@@ -956,28 +965,58 @@ message SessionInfo {
 // M3.3 — MCP observability (tool-call event stream + start/stop)
 // ---------------------------------------------------------------------------
 
-message StartMcpRequest {}
-
-message StartMcpResponse {
-  bool running = 1;
-}
-
-message StopMcpRequest {}
-
-message StopMcpResponse {
-  bool stopped = 1;
-}
-
 message GetMcpStatusRequest {}
 
 // N0.2 (audit §3.F.9) — what this server can honestly say about MCP observability. It is NOT
 // a statement about the `devcontext-mcp` process: the agent host spawns that over stdio,
-// outside this server's control. N4.1 adds the binary probe and last-agent-call-at.
+// outside this server's control.
+//
+// N4.1 (audit §4 Room 2, "status that measures") — three real checks replace the theater:
+// is the binary there, is anyone watching, has an agent actually called. Every field here is
+// something the server MEASURED, not something a read caused.
 message GetMcpStatusResponse {
-  // Whether tool-call telemetry is being forwarded — exactly what Start/Stop toggles.
-  bool telemetry_streaming = 1;
+  // N4.1 — was `telemetry_streaming`, the global mute Start/Stop flipped. Forwarding is now
+  // unconditional, so there is no such state to report; watcher count is the honest number.
+  reserved 1;
+  reserved "telemetry_streaming";
   // How many clients are attached to ObserveToolCalls right now.
   int32 observer_count = 2;
+  // N4.1 — binary probe: does a `devcontext-mcp` executable exist where a host would find it?
+  bool mcp_binary_found = 3;
+  // Absolute path of the executable that was found; empty when none was.
+  string mcp_binary_path = 4;
+  // Where it was found: "bundle" (beside this server), "path" (a PATH entry), "dev-build"
+  // (the repo's build output). Empty when not found — the page says what to do per source.
+  string mcp_binary_source = 5;
+  // N4.1 — the last AGENT-origin tool call this server served: unix ms, 0 when none ever.
+  // Recorded independently of who is watching, so opening the page cannot fake it.
+  int64 last_agent_call_at_utc_ms = 6;
+  // The tool name of that call; empty when none ever.
+  string last_agent_tool = 7;
+  // How many agent-origin tool calls this server has served since it started.
+  int64 agent_call_count = 8;
+}
+
+message McpHandshakeRequest {}
+
+// N4.1 — the result of one real stdio round trip with the devcontext-mcp process.
+message McpHandshakeResponse {
+  // True only when tools/list came back with a parsed tool list.
+  bool ok = 1;
+  // The executable that was spawned (the same path the status probe resolved).
+  string command = 2;
+  // serverInfo from the MCP initialize result — the process's own claim about itself.
+  string server_name = 3;
+  string server_version = 4;
+  // The MCP protocol version the process negotiated.
+  string protocol_version = 5;
+  // How many tools tools/list returned, and their names in the order returned.
+  int32 tool_count = 6;
+  repeated string tool_names = 7;
+  // Wall-clock of the whole round trip, spawn included.
+  int64 elapsed_ms = 8;
+  // Empty when ok; otherwise what went wrong, in a form a human can act on.
+  string error = 9;
 }
 
 message ObserveToolCallsRequest {}

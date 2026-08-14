@@ -13,6 +13,12 @@ public static class OriginTag
 {
     public const string ItemKey = "DevContext.Origin";
 
+    /// <summary>The desktop app's own gRPC-web traffic.</summary>
+    public const string Ui = "ui";
+
+    /// <summary>Native gRPC — the MCP sidecar, i.e. an agent. N4.1's status card counts these.</summary>
+    public const string Agent = "agent";
+
     public static string FromContentType(string? contentType)
-        => contentType?.Contains("grpc-web", StringComparison.OrdinalIgnoreCase) == true ? "ui" : "agent";
+        => contentType?.Contains("grpc-web", StringComparison.OrdinalIgnoreCase) == true ? Ui : Agent;
 }
