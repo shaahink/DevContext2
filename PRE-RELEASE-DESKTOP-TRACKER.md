@@ -4,21 +4,20 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N4.1 LANDED + CLAIMED (7c6b6be code, 7f78edc fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
-Status card now MEASURES: server-side binary probe (bundle -> PATH -> dev-build, path rendered),
-watcher count, last-agent-call, and a McpHandshake RPC that spawns devcontext-mcp and does a real
-initialize+tools/list over stdio (live: 22 tools, protocol 2024-11-05, ~6s). StartMcp/StopMcp RPCs +
-the global mute are DELETED (telemetry_streaming reserved). Live probe with a REAL mcp process:
-src/DevContext.App/scripts/n41-verify-status.mts - 8/8 PASS, re-run it after any N4.2/N4.3 edit.
-DO NOT RE-DERIVE: (1) the MCP sidecar speaks gRPC-WEB, not native gRPC, so the old content-type
-origin tag called every agent call "ui" and the agents-only feed showed nothing - now OriginTag.FromRequest
-(Origin / x-user-agent connect-es / Mozilla => ui, else agent). (2) The feed + status still name gRPC
-methods (GetStats), not MCP tool names - that is N4.3's wrap. (3) conductor note with a PS here-string
-fails; use one quoted line. git commit needs -F <file>, -m can hit a lock. PNGs under eval-results
-are gitignored - git add -f. NEXT: N4.2 (ship devcontext-mcp in the Tauri bundle via publish:server's
-sibling, resolved absolute path in snippets, write-config-per-host) - that also flips the probe source
-from dev-build to bundle. N4.3 still needs Run A's T1 merged in (T1.1-T1.4 ARE on origin/feat/pre-release-engine,
-NOT merged here yet - merge it before N4.3 and record the merge).
+N4.2 LANDED + CLAIMED (d48a122 server/bundle, 7486a73 page, evidence eval-results/2026-08-14/N4.2-setup-that-works.md).
+devcontext-mcp now ships in the bundle (pnpm publish:sidecars = server + mcp into src-tauri/resources/server,
+beforeBuildCommand runs it); snippets are composed SERVER-side on GetMcpStatusResponse.hosts around the probed
+path (the page owns no snippet template any more); new RPC WriteMcpConfig(handle,host) writes+MERGES
+.mcp.json / .cursor/mcp.json / .vscode/mcp.json into the ANALYZED repo, refusing an unparseable file and
+reporting "unchanged" honestly. Gates: slnx 0w/0e, 14/14 McpConfigWriteTests, pnpm lint 0, pnpm test 267/267
+(was 256), n42-verify-setup.mts 11/11, n42-verify-bundle.mts 5/5, n41-verify-status.mts 8/8.
+DO NOT RE-DERIVE: (1) src-tauri/resources/server is a THIRD binary copy - re-run pnpm publish:sidecars after any
+proto/server edit or the bundle probe measures a stale server (it caught exactly that). (2) n42-verify-bundle.mts
+needs node --experimental-transform-types (generated devcontext_pb.ts has a TS enum). (3) NEVER run two Playwright
+probes at once - the first n41 re-run went red purely from that. (4) System.Text.Json's default encoder escapes
+angle brackets + non-ASCII paths; McpConfigWriter pins UnsafeRelaxedJsonEscaping.
+NEXT: N4.3 (ListTools RPC + curated catalog + feed keyed by MCP tool names, replay-in-Studio deep links).
+It REQUIRES Run A's T1 merged in - T1.1-T1.4 are on origin/feat/pre-release-engine, still NOT merged here.
 
 
 ## Baseline numbers (from run.db)
@@ -26,8 +25,8 @@ NOT merged here yet - merge it before N4.3 and record the merge).
 | Metric | Value |
 |---|---|
 | Total checkpoints | 16 |
-| Done | 9 |
-| Claimed (unconfirmed) | 2 |
+| Done | 11 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -67,14 +66,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | DONE | f427027 | eval-results/2026-08-14/N3.1-loop-joints.md |
-| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | DONE | 6efcef6 | eval-results/2026-08-14/N3.2-repo-file-handoff.md |
+| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | DONE ✓ | f427027 | eval-results/2026-08-14/N3.1-loop-joints.md |
+| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | DONE ✓ | 6efcef6 | eval-results/2026-08-14/N3.2-repo-file-handoff.md |
 
 ### N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | TODO | - | - |
+| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | DONE | 55d256a | eval-results/2026-08-14/N4.1-status-that-measures.md |
 | N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | TODO | - | - |
 | N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | TODO | - | - |
 

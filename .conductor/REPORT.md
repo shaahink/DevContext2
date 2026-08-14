@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-desktop` · HEAD `55d256a`_
+_Updated 2026-08-14 02:10 UTC · branch `feat/pre-release-desktop` · HEAD `63039a4`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 39m ago, 20:36:43Z]
-**Stage:** N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) · attempts used 0
-**Checkpoints:** 11/16 done · **Sessions run:** 18 · **Cost:** $123.7019 (agent $123.5303 + gates $0.1716) · **Tokens:** 1,940,131 in / 767,635 out
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 34m ago, 20:36:43Z]
+**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0 · working ▸ N4.2
+**Checkpoints:** 12/16 done · **Sessions run:** 19 · **Cost:** $136.8128 (agent $136.6413 + gates $0.1716) · **Tokens:** 2,123,178 in / 859,820 out
 **Confirmed phases:** N0, N1, N2, M1, N3
 
 ## Stage progress
@@ -16,7 +16,7 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-desktop` · HEAD `55d2
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | confirmed ✓ |
-| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
+| N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ███░░░░░░░ 1/3 | **← active** |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (3/3)</summary>
@@ -65,11 +65,11 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-desktop` · HEAD `55d2
 
 </details>
 
-<details><summary>N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) (0/3)</summary>
+<details><summary>N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) (1/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | ⬜ TODO | - |
+| N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | ✅ DONE | - |
 | N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | ⬜ TODO | - |
 | N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | ⬜ TODO | - |
 
@@ -106,6 +106,7 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-desktop` · HEAD `55d2
 | 16 | M1 | Fix | 2 | 08-13 23:05 | 0:10 | Progress |  | 2 | gates green (none configured) | $2.6342 |  | 59,350/23,915 |
 | 17 | N3 | Deliver | 1 | 08-13 23:50 | 0:34 | Advanced | N3.1 | 3 | gates green (none configured) | $12.3222 |  | 191,578/77,214 |
 | 18 | N3 | Deliver | 1 | 08-14 00:25 | 0:33 | Advanced | N3.2 | 3 | gates green (none configured) | $11.5801 |  | 158,207/57,297 |
+| 19 | N4 | Deliver | 1 | 08-14 01:16 | 0:54 | Advanced | N4.1 | 6 | gates green (none configured) | $13.1109 |  | 183,047/92,185 |
 
 ## Money
 
@@ -128,9 +129,6 @@ _Where the money goes: agent $123.53 (100%) · gate $0.17 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:36:31  ■ needs human — advisor: human intervention required
-08-13 21:36:37  • session #12 N2 → AgentError  (19.6s)
-08-13 21:36:43  ■ needs human — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 08-13 21:44:15  • session #13 N2 Deliver started (attempt 1/6)
 08-13 22:07:39  • session #13 N2 → Advanced · done N2.2 · 3 commit(s)  (23m24s)
 08-13 22:48:23  ▪ gate fast-app pass [phase]  (14m03s)
@@ -168,6 +166,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 02:16:11  ▪ gate battery pass [phase]  (8m02s)
 08-14 02:16:11  ✓ checkpoint N3.1 confirmed
 08-14 02:16:11  ✓ checkpoint N3.2 confirmed
+08-14 02:16:11  ▸ stage N3 confirmed  (1h25m35s)
+08-14 02:16:16  ▸ stage N4 entered — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary)
+08-14 02:16:16  • session #19 N4 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -175,7 +176,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 18 · retries 7 (39 %) · overall Alert
+sessions 19 · retries 7 (37 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
@@ -187,16 +188,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, ?? eval-results/2026-08-14/mcp-qa.md
+working tree: clean
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s5 (N1 Deliver)** — 3 commit(s):
-  - [`4d24d85`](https://github.com/shaahink/DevContext2/commit/4d24d85) docs(tracker): N1.2 handoff - pins are real, N1 closed, next is N2.1
-  - [`366cc3a`](https://github.com/shaahink/DevContext2/commit/366cc3a) test(explore): p reports what it pinned + N1.2 evidence and backlog close
-  - [`e448d64`](https://github.com/shaahink/DevContext2/commit/e448d64) feat(studio): pins seed the pack for real - TrailStore.pins() gains its reader (N1.2)
 - **s6 (N2 Deliver)** — 3 commit(s):
   - [`108301a`](https://github.com/shaahink/DevContext2/commit/108301a) docs(tracker): N2.1 closed - pack convergence evidence + handoff to N2.2
   - [`8c38e0b`](https://github.com/shaahink/DevContext2/commit/8c38e0b) feat(studio): the picker gets a Types tab, and rows that are different rows (N2.1)
@@ -232,31 +229,34 @@ vs upstream: up to date
   - [`5295ca3`](https://github.com/shaahink/DevContext2/commit/5295ca3) docs(eval): N3.2 evidence - repo-file hand-off verified live, gates green
   - [`032c9b8`](https://github.com/shaahink/DevContext2/commit/032c9b8) feat(app): N3.2 - Save writes the pack into the repo and hands over the line
   - [`6efcef6`](https://github.com/shaahink/DevContext2/commit/6efcef6) feat(server): N3.2 - SavePackFile RPC writes .devcontext/packs/<slug>.md
-
-## Last gate run
-
-fast-app:OK · guards:OK · battery:OK
+- **s19 (N4 Deliver)** — 6 commit(s):
+  - [`63039a4`](https://github.com/shaahink/DevContext2/commit/63039a4) docs(n4): N4.1 evidence cites the post-rebase shas
+  - [`ff06216`](https://github.com/shaahink/DevContext2/commit/ff06216) docs(n4): N4.1 evidence - status measured live against a real MCP process, plus the handoff
+  - [`7f78edc`](https://github.com/shaahink/DevContext2/commit/7f78edc) fix(server): N4.1 - the ui/agent origin tag was wrong, so no agent call was ever counted
+  - [`7c6b6be`](https://github.com/shaahink/DevContext2/commit/7c6b6be) feat(mcp-page): N4.1 - the status card measures instead of performing
+  - [`e5fd0cd`](https://github.com/shaahink/DevContext2/commit/e5fd0cd) chore(conductor): s18 N3 Advanced — Idle
+  - [`55d256a`](https://github.com/shaahink/DevContext2/commit/55d256a) chore(conductor): s18 N3 Advanced — Idle
 
 ## Last session result
 
-> SESSION-RESULT: N3.2 — the repo-file hand-off — is delivered and claimed (`conductor task --done N3.2 --evidence eval-results/2026-08-14/N3.2-repo-file-handoff.md`), which closes stage N3. Three commits are pushed on `feat/pre-release-desktop`: `6efcef6` adds the `SavePackFile` RPC plus `PackFileWriter` (writes `.devcontext/packs/<slug>.md` into the analyzed repo, creates `.devcontext/.gitignore` holding `packs/` when the repo has none, never edits one it already has, sanitizes the slug so a path separator cannot survive, and composes the point-your-agent-here line server-side) with 10 tests asserting the result **on disk** against a temp copy of the ControllerApp fixture; `032c9b8` turns St…
+> SESSION-RESULT: **N4.1 (status that measures) is landed and claimed** — commits `7c6b6be` (proto + server + app + tests), `7f78edc` (origin-tag fix + watcher race + live probe), evidence `eval-results/2026-08-14/N4.1-status-that-measures.md`, branch pushed. The MCP page's status card no longer performs: a server-side `McpBinaryLocator` probes for `devcontext-mcp` (beside the server → PATH → this repo's build output) and the card renders the verdict with the absolute path a host config must name; `ObserverCount`, `last_agent_call_at_utc_ms`, `last_agent_tool` and `agent_call_count` ride the wire and are rendered; a new `McpHandshake` RPC spawns the resolved binary and runs a real `initialize`…
 
 ## Tracker handoff
 
 ```
-N3 IS CLOSED. N3.2 landed and claimed (6efcef6 server + 032c9b8 app, evidence
-eval-results/2026-08-14/N3.2-repo-file-handoff.md). New RPC SavePackFile writes
-.devcontext/packs/<slug>.md into the analyzed repo + .devcontext/.gitignore holding packs/; Studio
-Save is no longer a download and its strip shows the SERVER's path, the gitignore state, the
-copyable CLAUDE.md line, and admits drift; Home's tile routes to /context. VERIFIED LIVE end to end
-in the browser against a temp fixture copy, file read back off disk, preview and file both 1326
-chars. Gates: lint 0, 256/256 tests (28 files), ng build 0, dotnet 0w/0e, contract-sweep PASS.
-NEXT: N4.1 — but N4.3 needs Run A's T1 merged in; check that before sequencing N4.
-TRAPS worth having (all measured this session): `conductor bg start -- pnpm ...` CANNOT spawn pnpm
-here (MODULE_NOT_FOUND, exits 0s) — use pnpm.cmd, or run pnpm test / pnpm build separately in the
-foreground (~40s/~90s). A SINGLE spec runs as `pnpm ng test --watch=false --include=<path>` —
-`pnpm vitest run <file>` dies with "Need to call TestBed.initTestEnvironment() first". A git commit
-whose message came from a PowerShell here-string failed twice with a lock error; -m and -F worked.
-Still standing: lint any NEWLY ADDED spec; ContextStudio seeds itself on open (createStudio() clears
-the proposal unless you pass {keepProposal:true}).
+N4.1 LANDED + CLAIMED (7c6b6be code, 7f78edc fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
+Status card now MEASURES: server-side binary probe (bundle -> PATH -> dev-build, path rendered),
+watcher count, last-agent-call, and a McpHandshake RPC that spawns devcontext-mcp and does a real
+initialize+tools/list over stdio (live: 22 tools, protocol 2024-11-05, ~6s). StartMcp/StopMcp RPCs +
+the global mute are DELETED (telemetry_streaming reserved). Live probe with a REAL mcp process:
+src/DevContext.App/scripts/n41-verify-status.mts - 8/8 PASS, re-run it after any N4.2/N4.3 edit.
+DO NOT RE-DERIVE: (1) the MCP sidecar speaks gRPC-WEB, not native gRPC, so the old content-type
+origin tag called every agent call "ui" and the agents-only feed showed nothing - now OriginTag.FromRequest
+(Origin / x-user-agent connect-es / Mozilla => ui, else agent). (2) The feed + status still name gRPC
+methods (GetStats), not MCP tool names - that is N4.3's wrap. (3) conductor note with a PS here-string
+fails; use one quoted line. git commit needs -F <file>, -m can hit a lock. PNGs under eval-results
+are gitignored - git add -f. NEXT: N4.2 (ship devcontext-mcp in the Tauri bundle via publish:server's
+sibling, resolved absolute path in snippets, write-config-per-host) - that also flips the probe source
+from dev-build to bundle. N4.3 still needs Run A's T1 merged in (T1.1-T1.4 ARE on origin/feat/pre-release-engine,
+NOT merged here yet - merge it before N4.3 and record the merge).
 ```
