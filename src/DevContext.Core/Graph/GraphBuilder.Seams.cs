@@ -196,7 +196,7 @@ public sealed partial class GraphBuilder
         var edgeCount = g.EdgeCount;
         var ratio = nodeCount > 0 ? (double)edgeCount / nodeCount : 0;
 
-        // R1.1 RE-MEASURED 2026-08-14, 12 poles, post-E1, calibration commit HEAD of this change
+        // R1.1 RE-MEASURED 2026-08-14, 12 poles, post-E1, CALIBRATION COMMIT 557537c
         // (eval-results/2026-08-14/r1-metrics/threshold-grid-post-e1.txt):
         // IT FIRES. The 2026-08-02 comment here said "THIS BROADENING NEVER FIRES" on the strength
         // of 11 poles that all read sparseGraph=false — but that set simply never contained a repo
