@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-13 23:57 UTC · branch `feat/pre-release-engine` · HEAD `20c2287`_
+_Updated 2026-08-14 00:38 UTC · branch `feat/pre-release-engine` · HEAD `00fe9ca`_
 
-**Status:** Aborted — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 20m ago, 20:37:17Z]
-**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0 · working ▸ D1.1
-**Checkpoints:** 11/20 done · **Sessions run:** 20 · **Cost:** $138.2125 (agent $138.0249 + gates $0.1876) · **Tokens:** 2,099,808 in / 882,699 out
+**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 01m ago, 20:37:17Z]
+**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0 · working ▸ D1.3
+**Checkpoints:** 13/20 done · **Sessions run:** 21 · **Cost:** $151.0239 (agent $150.8363 + gates $0.1876) · **Tokens:** 2,321,351 in / 995,587 out
 **Confirmed phases:** T1, V1, E1
 
 ## Stage progress
@@ -14,7 +14,7 @@ _Updated 2026-08-13 23:57 UTC · branch `feat/pre-release-engine` · HEAD `20c22
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
-| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ░░░░░░░░░░ 0/4 | **← active** |
+| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | █████░░░░░ 2/4 | **← active** |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
@@ -51,12 +51,12 @@ _Updated 2026-08-13 23:57 UTC · branch `feat/pre-release-engine` · HEAD `20c22
 
 </details>
 
-<details><summary>D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) (0/4)</summary>
+<details><summary>D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) (2/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | 🔄 IN PROGRESS | - |
-| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ⬜ TODO | - |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | ✅ DONE | - |
+| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ✅ DONE | - |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ⬜ TODO | - |
 | D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ⬜ TODO | - |
 
@@ -112,6 +112,7 @@ _Updated 2026-08-13 23:57 UTC · branch `feat/pre-release-engine` · HEAD `20c22
 | 18 | E1 | Deliver | 1 | 08-13 22:11 | 0:49 | Advanced | E1.3 | 3 | gates green (none configured) | $11.5717 |  | 165,321/83,648 |
 | 19 | E1 | Deliver | 1 | 08-13 23:01 | 0:33 | Advanced | E1.4 | 2 | gates green (none configured) | $13.3545 |  | 204,970/89,424 |
 | 20 | D1 | Deliver | 1 | 08-13 23:55 | 0:02 | KilledByUser |  | 0 |  |  |  | 36,301/40 |
+| 21 | D1 | Deliver | 1 | 08-14 00:01 | 0:37 | Advanced | D1.1 D1.2 | 6 | gates green (none configured) | $12.8113 |  | 221,543/112,888 |
 
 ## Money
 
@@ -133,8 +134,6 @@ _Where the money goes: agent $138.02 (100%) · gate $0.19 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:35:18  ■ needs human — advisor: human intervention required
-08-13 21:35:22  • session #9 E1 → AgentError  (18.5s)
 08-13 21:35:23  • session #10 E1 Deliver started (attempt 3/8)
 08-13 21:35:37  ■ needs human — advisor: human intervention required
 08-13 21:35:42  • session #10 E1 → AgentError  (19.2s)
@@ -173,6 +172,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:55:02  ▸ stage D1 entered — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs)
 08-14 00:55:03  • session #20 D1 Deliver started (attempt 1/6)
 08-14 00:57:54  • session #20 D1 → KilledByUser  (2m51s)
+08-14 01:00:57  ◆ run resumed · DevContext pre-release - engine and agent face
+08-14 01:01:01  • session #21 D1 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -180,7 +181,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 20 · retries 8 (40 %) · overall Alert
+sessions 21 · retries 8 (38 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -193,18 +194,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md
+working tree: clean
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s4 (T1 Fix)** — 5 commit(s):
-  - [`8e17904`](https://github.com/shaahink/DevContext2/commit/8e17904) evidence(t1): second full battery - steps 0-4b green again after the node_modules install
-  - [`44184cd`](https://github.com/shaahink/DevContext2/commit/44184cd) docs(t1): handoff - two faults behind the phase-gate RED, the second hidden by the first
-  - [`5360be2`](https://github.com/shaahink/DevContext2/commit/5360be2) fix(gates): step 5 names a missing node_modules instead of forty lines of resolver noise
-  - [`62622d5`](https://github.com/shaahink/DevContext2/commit/62622d5) docs(t1): handoff + evidence for the phase-gate RED (battery, not T1's bars)
-  - [`fa7d4b6`](https://github.com/shaahink/DevContext2/commit/fa7d4b6) fix(gates): the battery's Step 3 stamp no longer depends on which shell launched it
 - **s5 (V1 Deliver)** — 4 commit(s):
   - [`e5d825b`](https://github.com/shaahink/DevContext2/commit/e5d825b) docs(v1): handoff for V1.2 + session-4 evidence leftovers
   - [`131265c`](https://github.com/shaahink/DevContext2/commit/131265c) fix(graph): one definition of a verified edge, and every surface reads it (V1.1, #25)
@@ -243,29 +238,34 @@ vs upstream: up to date
 - **s19 (E1 Deliver)** — 2 commit(s):
   - [`1fbadde`](https://github.com/shaahink/DevContext2/commit/1fbadde) fix(graph): a REQUEST MARKER is not a handler, and its type arg is the RESPONSE (E1.4)
   - [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) eval(e1): the class-C impact question, asked of the engine over a real MCP session (E1.4)
-
-## Last gate run
-
-fast-engine:OK · guards:OK · battery:OK
+- **s21 (D1 Deliver)** — 6 commit(s):
+  - [`00fe9ca`](https://github.com/shaahink/DevContext2/commit/00fe9ca) chore(eval): MCP QA run artifact from the truth gate (D1.2)
+  - [`6e026d2`](https://github.com/shaahink/DevContext2/commit/6e026d2) docs(d1): D1.2 evidence, the TimedJob measurement, and the handoff (D1.2)
+  - [`7aa80ee`](https://github.com/shaahink/DevContext2/commit/7aa80ee) fix(detection): a BackgroundService is a hosted service even when nothing names it (D1.2)
+  - [`fa1d57f`](https://github.com/shaahink/DevContext2/commit/fa1d57f) fix(detection): a WinForms Exe and a cross-platform Avalonia head are desktop apps (D1.2)
+  - [`a6360e4`](https://github.com/shaahink/DevContext2/commit/a6360e4) fix(detection): give the Orleans descriptor its packages - a consumer app can now reach a grain (D1.2)
+  - [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) feat(detection): the catalog-reachability instrument, red-first on Orleans and TimedJob (D1.1)
 
 ## Last session result
 
-> SESSION-RESULT: E1.4 is claimed DONE with an amend rather than a green, because I ran its acceptance and one half of it fails — honestly and with the reason attributed. **Half B (the batch matrix) passes on every cell declared before E1.1/E1.2 were coded**: `verified` rises on 7 of 7 poles, the engine's own approx share falls 82.7% → 54.4% against the pre-#11 baseline, `phantomT` is 0 on all seven, dogfood in-edges held, and the two `calls` falls were already attributed edge-by-edge in E1.2. **Half A (the probe's class-C impact question on eShop) fails 3 of 6 key items**, measured over a real MCP session with server identity verified: `impact(up)` on `CreateOrderCommandHandler` returns **two…
+> SESSION-RESULT:** Two checkpoints landed with proof. **D1.1** built the catalog-reachability instrument (`tests/DevContext.Core.Tests/CatalogReachabilityTests.cs`) — it generates a 42-project consumer-app repo from the catalog's *own* declarations (packages/SDK come from `EntrySurfaceCatalog`, projects are neutrally named so `SelfNamePatterns` cannot mask a hole), analyses it once, and asserts per descriptor that the signal fires and the declared Kind is produced; the whole sweep costs 6 seconds and rides the truth gate. It was RED on its first run on the two finds the checkpoint named (Orleans, TimedJob) plus three new ones — `signal:testing`, the blazor descriptor declaring `HttpEndpoint` …
 
 ## Tracker handoff
 
 ```
-E1.4 CLAIMED with an AMEND, not a green: half B (batch matrix) passes on every declared cell across
-all 7 poles; half A (class-C impact set on eShop) FAILS 3/6 key items and cannot be met inside E1.
-Evidence eval-results/2026-08-14/e1-batch/E1.4-EVIDENCE.md; commits 6d0dbac measurement, then the fix.
-THE NUMBER TO CARRY: impact(up) on CreateOrderCommandHandler = 2 nodes (the command, and Type:bool).
-impact(both) is an undirected 207/1137-node flood, so every "resolved" key item was a dragnet hit.
-Five mechanisms attributed and FILED as bugs #7-#13. The blocker is #7 = backlog #14: Sends stops at
-IdentifiedCommand`2 and never names CreateOrderCommand -- that is D1.3's own filed item, so E1.4
-should be RE-OPENED AFTER D1.3, not re-attempted here. Bugs #8 (inherited-interface Handles join) and
-#12 (no cross-service event join) are the other two blockers.
-LANDED THIS SESSION: eval/mcp-qa/classc-impact.js (repeatable, scores against the sealed key), and the
-one E1-scoped defect FIXED red-first -- a request marker (`X : IRequest<bool>`) was read as a HANDLER,
-minting Type:bool and Type:R (a generic parameter) and 8 false edges. Renderers updated with it (R-T1).
-NEXT: R1.1 (recalibrate #22/#23/#24 against the post-E1 graph). Bugs #5 and #6 still open.
+D1.1 + D1.2 both CLOSED (D1.2 with an AMEND: 3 of its 4 items). The instrument is
+tests/DevContext.Core.Tests/CatalogReachabilityTests.cs and it is TWO harnesses: (a) a 42-project
+SWEEP from the catalog's OWN declarations, neutrally named so SelfNamePatterns cannot mask a hole,
+6 seconds; (b) NAMED SHAPE CASES, each in its OWN one-project repo -- isolation is load-bearing,
+because signals are repo-wide and a shape in the big sweep gets its gate satisfied by a sibling.
+Adding a case = one table row. eval/expectations/catalog-reachability-allow.txt is a RATCHET both
+ways: closing a hole FAILS the sweep until you delete its line (that is how the Orleans closure
+proved itself). 5 lines left, and they ARE the work list: signal:testing (#14), kind:ScheduledJob@-
+(-> D1.4, bugs #17), kind:PublicApi@-, kind:HttpEndpoint@blazor (#15, -> D1.3),
+kind:FunctionEntry@aws-lambda (#16). NEXT = D1.3 (filed set; #14 generic command verbs is also E1.4's
+blocker, so E1.4 re-opens after it). D1.4 should write Hangfire/Quartz as SHAPE CASES and set
+BackgroundWorkerKind.TimedJob there -- that is the honest ScheduledJob producer.
+WATCH: the new <UseWPF>/<UseWindowsForms> probe is the only change that can move a real repo's
+signals; eval-repos has only eShop/TodoApi/VerticalSlice locally, so the battery's eval step is the
+first place a pole-level move would show.
 ```
