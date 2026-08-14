@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 11050,
+  "num_turns": 3,
+  "stop_reason": "end_turn",
+  "session_id": "83a826b8-1880-44ab-8c7f-3ef0310581a6",
+  "total_cost_usd": 0.041382,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 1157,
+    "cache_read_input_tokens": 17732,
+    "output_tokens": 811,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 1157,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 515,
+        "cache_read_input_tokens": 9008,
+        "cache_creation_input_tokens": 873,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 873
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 561,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000651,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 4,
+      "outputTokens": 811,
+      "cacheReadInputTokens": 17732,
+      "cacheCreationInputTokens": 1157,
+      "webSearchRequests": 0,
+      "costUSD": 0.040731,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Three files in the repository contain the literal string `GracePeriodTime`:\n\n1. **`src/OrderProcessor/BackgroundTaskOptions.cs`** — declares the option property: `public int GracePeriodTime { get; set; }` (src/OrderProcessor/BackgroundTaskOptions.cs:5).\n2. **`src/OrderProcessor/Services/GracePeriodManagerService.cs`** — two occurrences: the SQL parameter in the query `WHERE CURRENT_TIMESTAMP - \"OrderDate\" >= @GracePeriodTime AND \"OrderStatus\" = 'Submitted'` (src/OrderProcessor/Services/GracePeriodManagerService.cs:72) and the parameter binding `command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime))` (src/OrderProcessor/Services/GracePeriodManagerService.cs:74).\n3. **`src/OrderProcessor/appsettings.json`** — the configuration value `\"GracePeriodTime\": \"1\",` (src/OrderProcessor/appsettings.json:15).\n\nNote: the file `src/OrderProcessor/Services/GracePeriodManagerService.cs` has \"GracePeriod\" in its *name* but the full literal `GracePeriodTime` appears only on the two lines listed. I established the list with a case-sensitive recursive search across the whole repository root (including hidden/untracked directories); no other matches exist.",
+  "ttft_ms": 2240,
+  "ttft_stream_ms": 1404,
+  "time_to_request_ms": 157,
+  "type": "result",
+  "duration_ms": 23860,
+  "uuid": "e2490c46-9474-4931-827c-dd7b95750656"
+}

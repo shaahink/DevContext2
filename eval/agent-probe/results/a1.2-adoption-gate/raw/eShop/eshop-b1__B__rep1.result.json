@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 54741,
+  "num_turns": 14,
+  "stop_reason": "end_turn",
+  "session_id": "0e175360-ede4-4cbe-ac22-741047ca6663",
+  "total_cost_usd": 0.4215415,
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 23448,
+    "cache_read_input_tokens": 165981,
+    "output_tokens": 4133,
+    "output_tokens_details": {
+      "thinking_tokens": 569
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 23448,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1887,
+        "cache_read_input_tokens": 31055,
+        "cache_creation_input_tokens": 1117,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1117
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 576,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000656,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 18,
+      "outputTokens": 4133,
+      "cacheReadInputTokens": 165981,
+      "cacheCreationInputTokens": 23448,
+      "webSearchRequests": 0,
+      "costUSD": 0.4208855,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Answer: the checkout form posts to `POST api/orders/`, and the write to the database happens at `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:49` (`_orderRepository.Add(order)` → `_context.Orders.Add(order)`) which is committed by `SaveChangesAsync` inside `OrderingContext.SaveEntitiesAsync` at `src/Ordering.Infrastructure/OrderingContext.cs:59`.**\n\nHandlers in order:\n\n1. **`Checkout.HandleSubmitAsync` → `Checkout.HandleValidSubmitAsync`** (Blazor form handler in WebApp). The `EditForm` binds `OnSubmit=\"@HandleSubmitAsync\"` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:12`), which validates and calls `HandleValidSubmitAsync` (`Checkout.razor:101`, `Checkout.razor:107`, `Checkout.razor:111`), which calls `Basket.CheckoutAsync(Info)` (`Checkout.razor:114`).\n2. **`BasketState.CheckoutAsync`** (`src/WebApp/Services/BasketState.cs:78`) — resolves buyer id/user name, fetches basket items, builds a `CreateOrderRequest` and calls `orderingService.CreateOrder(request, checkoutInfo.RequestId)` (`BasketState.cs:106`), then deletes the basket.\n3. **`OrderingService.CreateOrder`** (`src/WebApp/Services/OrderingService.cs:12`) — HTTP POST to `/api/Orders/` with the `x-requestid` header (`OrderingService.cs:14-15`).\n4. **`OrdersApi.CreateOrderAsync`** (Ordering.API minimal-API handler, routed at `src/Ordering.API/Apis/OrdersApi.cs:17`, body at `src/Ordering.API/Apis/OrdersApi.cs:118`) — masks the card number, builds a `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` and sends it via MediatR (`OrdersApi.cs:141-155`).\n5. **MediatR pipeline behaviors** run around the command: `LoggingBehavior`, `ValidatorBehavior`, and **`TransactionBehavior.Handle`** (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20`), which opens the DB transaction (`TransactionBehavior.cs:38`), commits it after the inner handler returns (`TransactionBehavior.cs:47`) and then publishes integration events (`TransactionBehavior.cs:52`).\n6. **`CreateOrderIdentifiedCommandHandler`** (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`), inheriting **`IdentifiedCommandHandler<T,R>.Handle`** (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:40`) — idempotency check via `IRequestManager.ExistAsync` / `CreateRequestForCommandAsync` (`IdentifiedCommandHandler.cs:41-48`, backed by `src/Ordering.Infrastructure/Idempotency/RequestManager.cs`), then re-sends the inner command to MediatR (`IdentifiedCommandHandler.cs:87`).\n7. **`CreateOrderCommandHandler.Handle`** (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`) — queues the `OrderStartedIntegrationEvent` (`:33`), builds the `Order` aggregate and its items (`:39-45`), then **`_orderRepository.Add(order)`** (`:49`) → `OrderRepository.Add` → `_context.Orders.Add(order)` (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:17`), and finally `_orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`:51`).\n8. **`OrderingContext.SaveEntitiesAsync`** (`src/Ordering.Infrastructure/OrderingContext.cs:47`) — first dispatches domain events (`:55`), which runs **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`, itself calling `SaveEntitiesAsync` for the Buyer at `:48`), then executes `base.SaveChangesAsync(cancellationToken)` (`OrderingContext.cs:59`) — this is the line that actually writes the order rows to the database (committed by the `TransactionBehavior` in step 5).\n\nCaveats: the `ClientApp` (MAUI) has its own `CheckoutViewModel.CheckoutAsync` path; I traced the **web storefront** (`src/WebApp`, Blazor) as asked. Also, `HandleSubmitAsync` calls a custom validation step (`Checkout.PerformCustomValidationAsync`) before dispatching to `HandleValidSubmitAsync`, which I did not expand.",
+  "ttft_ms": 2393,
+  "ttft_stream_ms": 2028,
+  "time_to_request_ms": 467,
+  "type": "result",
+  "duration_ms": 75525,
+  "uuid": "ce7a1957-82e6-42ee-94d7-0fb2d557c45e"
+}

@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 21132,
+  "num_turns": 7,
+  "stop_reason": "end_turn",
+  "session_id": "dcaa7eed-20f9-42ac-b110-582b0c3bff92",
+  "total_cost_usd": 0.10474549999999999,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 3946,
+    "cache_read_input_tokens": 49661,
+    "output_tokens": 1590,
+    "output_tokens_details": {
+      "thinking_tokens": 27
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3946,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 990,
+        "cache_read_input_tokens": 11493,
+        "cache_creation_input_tokens": 1486,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1486
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 570,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000655,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 10,
+      "outputTokens": 1590,
+      "cacheReadInputTokens": 49661,
+      "cacheCreationInputTokens": 3946,
+      "webSearchRequests": 0,
+      "costUSD": 0.1040905,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No** — `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent`, nor any integration event at all.\n\n**What CreateItem actually does** (`src/Catalog.API/Apis/CatalogApi.cs:366-388`):\n\n1. Takes `[AsParameters] CatalogServices services` and a `CatalogItem product` from the request body (`src/Catalog.API/Apis/CatalogApi.cs:366-368`).\n2. Constructs a **new** `CatalogItem` from the posted product, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold` and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`).\n3. Computes an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` and assigns it to `item.Embedding` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n4. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` — a plain EF Core insert, with no event-bus involvement and no `EventService` call (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n5. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`). It is declared to return `Task<Created>`, and is annotated with a 400 `ProblemDetails` response type (`src/Catalog.API/Apis/CatalogApi.cs:365-366`).\n\n**How I established this:** a usage search for the type `eShop.Catalog.API.IntegrationEvents.Events.ProductPriceChangedIntegrationEvent` (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`) returns exactly **one** construction site in the Catalog service, and it is in `CatalogApi.UpdateItem`, not `CreateItem` — `src/Catalog.API/Apis/CatalogApi.cs:350`.\n\nFor contrast, the method that *does* publish it is `UpdateItem`: it only raises the event when the EF `Price` property is actually modified (`src/Catalog.API/Apis/CatalogApi.cs:345-347`), saving it transactionally via `services.EventService.SaveEventAndCatalogContextChangesAsync` and then dispatching with `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:353-356`); otherwise it just calls `SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:360`).",
+  "ttft_ms": 1660,
+  "ttft_stream_ms": 909,
+  "time_to_request_ms": 116,
+  "type": "result",
+  "duration_ms": 22297,
+  "uuid": "122c07ee-3939-4a23-a95c-f529c9ff4220"
+}

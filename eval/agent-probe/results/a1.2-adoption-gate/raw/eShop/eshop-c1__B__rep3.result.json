@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 145405,
+  "num_turns": 33,
+  "stop_reason": "end_turn",
+  "session_id": "07934ead-307e-4c2b-87e7-16dcb3d3288f",
+  "total_cost_usd": 0.8970590000000002,
+  "usage": {
+    "input_tokens": 36,
+    "cache_creation_input_tokens": 41505,
+    "cache_read_input_tokens": 481326,
+    "output_tokens": 9620,
+    "output_tokens_details": {
+      "thinking_tokens": 2054
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 41505,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 4103,
+        "cache_read_input_tokens": 48945,
+        "cache_creation_input_tokens": 1599,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1599
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 581,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000666,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 36,
+      "outputTokens": 9620,
+      "cacheReadInputTokens": 481326,
+      "cacheCreationInputTokens": 41505,
+      "webSearchRequests": 0,
+      "costUSD": 0.8963930000000001,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\n**Nothing calls `CreateOrderCommandHandler` directly except MediatR and one unit test** — it is reached only as the MediatR `IRequestHandler<CreateOrderCommand, bool>` for `CreateOrderCommand` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:6-7`, registered by assembly scan at `src/Ordering.API/Extensions/Extensions.cs:35-41`). But a large fan-in and fan-out hangs off that one seam, including three other services.\n\n### Upstream — what reaches it (callers)\n\n| Layer | Evidence |\n|---|---|\n| MediatR dispatch of the inner command | `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:87` (`_mediator.Send(command)`), with `CreateOrderCommand` special-cased for logging at `:58-61` |\n| Idempotency wrapper handler | `CreateOrderIdentifiedCommandHandler : IdentifiedCommandHandler<CreateOrderCommand, bool>` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57-62` |\n| HTTP endpoint `POST /api/orders` | `src/Ordering.API/Apis/OrdersApi.cs:118-168`; builds the command at `:141-146`, sends at `:155`, route group at `src/Ordering.API/Apis/OrdersApi.cs:9` |\n| **WebApp** (Blazor storefront) | `src/WebApp/Services/BasketState.cs:92-108` builds `CreateOrderRequest` and calls `orderingService.CreateOrder(...)`; HTTP call + `x-requestid` header at `src/WebApp/Services/OrderingService.cs:12-15`; triggered from the checkout page `src/WebApp/Components/Pages/Checkout/Checkout.razor:114` |\n| **ClientApp** (MAUI mobile) | `src/ClientApp/Services/Order/OrderService.cs:28-40` POSTs to `api/orders` (`:13`) with `x-requestid` (`:39`); called from `src/ClientApp/ViewModels/CheckoutViewModel.cs:112` |\n| **eShop.AppHost** gateway route | `src/eShop.AppHost/Extensions.cs:243` — YARP route `/api/orders/{*any}` → Ordering.API |\n| MediatR pipeline that wraps every invocation | `LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior` (`src/Ordering.API/Extensions/Extensions.cs:39-41`); the transaction/commit and the event-bus flush happen *outside* the handler in `src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:34-53` |\n| Validators that gate the command | `src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2-4` and `src/Ordering.API/Application/Validations/IdentifiedCommandValidator.cs:3` |\n\n### Downstream — what it affects\n\n- **Basket.API (cross-service, bus):** the handler's first act is `new OrderStartedIntegrationEvent(message.UserId)` + `AddAndSaveEventAsync` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:32-33`); Basket.API subscribes (`src/Basket.API/Extensions/Extensions.cs:19`) and **deletes the user's basket** (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10-15`).\n- **Domain event chain inside Ordering.API:** `new Order(...)` raises `OrderStartedDomainEvent` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63,170-173`), dispatched by `SaveEntitiesAsync` (`.../CreateOrderCommandHandler.cs:52`) to `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-52`), which creates/updates the **Buyer** aggregate and payment method and emits `OrderStatusChangedToSubmittedIntegrationEvent` (`:50-51`).\n- **WebApp (cross-service, bus):** subscribes to `OrderStatusChangedToSubmittedIntegrationEvent` (`src/WebApp/Extensions/Extensions.cs:50`, handler `src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:10`).\n- **OrderProcessor (cross-service, database coupling):** polls `ordering.orders` for rows with `\"OrderStatus\" = 'Submitted'` past the grace period and publishes `GracePeriodConfirmedIntegrationEvent` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:69-73,55-59`). It depends on the row shape and the *initial status* this handler writes — it does not call any code in Ordering.API.\n- **The rest of the saga, indirectly:** `GracePeriodConfirmedIntegrationEvent` comes back into Ordering.API (`src/Ordering.API/Extensions/Extensions.cs:55`), which drives `OrderStatusChangedToAwaitingValidation` → Catalog.API stock check (`src/Catalog.API/Extensions/Extensions.cs:32`) → `OrderStockConfirmed/Rejected` back to Ordering.API (`src/Ordering.API/Extensions/Extensions.cs:56-57`) → PaymentProcessor (`src/PaymentProcessor/Program.cs:6`) → `OrderPaymentSucceeded/Failed` back to Ordering.API (`:58-59`) → Webhooks.API for paid/shipped (`src/Webhooks.API/Extensions/Extensions.cs:22-23`). All of this only starts if an order is created in `Submitted` state.\n\n### Tests that would break\n\n- `tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs:41-46` — constructs the handler directly with the exact 5-arg constructor `(_mediator, _orderingIntegrationEventService, _orderRepositoryMock, _identityServiceMock, LoggerMock)` and asserts `Handle` returns false.\n- `tests/Ordering.UnitTests/Application/IdentifiedCommandHandlerTest.cs:22,44,60-62` — builds `IdentifiedCommand<CreateOrderCommand, bool>` and a fake `CreateOrderCommand`.\n- `tests/Ordering.UnitTests/Application/OrdersWebApiTest.cs:74` — mocks `IdentifiedCommand<CreateOrderCommand, bool>`.\n- `tests/Ordering.FunctionalTests/OrderingApiTests.cs:120-160` — end-to-end `POST api/orders` expecting `BadRequest` for empty request id and `OK` for a valid order.\n\n### What could break — specific risks\n\n1. **Constructor signature changes** break the direct `new CreateOrderCommandHandler(...)` in `tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs:41`, and any new dependency must be DI-registered in Ordering.API.\n2. **Removing/renaming `OrderStartedIntegrationEvent` or its `UserId`** silently orphans Basket.API's subscription (`src/Basket.API/Extensions/Extensions.cs:19`) — carts would never be cleared. Note WebApp *also* deletes the basket itself at `src/WebApp/Services/BasketState.cs:108`, but ClientApp does not.\n3. **Changing the initial order status or the `OrderDate`/`OrderStatus` column semantics** breaks OrderProcessor's raw SQL poll (`src/OrderProcessor/Services/GracePeriodManagerService.cs:69-73`) and stalls the whole saga — this is a cross-service coupling with no compile-time check.\n4. **Not creating the `Order` aggregate via its constructor** (e.g. bypassing it) suppresses `OrderStartedDomainEvent`, so the Buyer/payment-method creation and `OrderStatusChangedToSubmittedIntegrationEvent` never fire (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63`; `.../ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:50`).\n5. **Throwing new exceptions is swallowed:** `IdentifiedCommandHandler.Handle` catches everything and returns `default` (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:99-102`), and `OrdersApi.CreateOrderAsync` returns `TypedResults.Ok()` regardless of the boolean result (`src/Ordering.API/Apis/OrdersApi.cs:157-166`). A failure becomes a silent 200 for WebApp and ClientApp, and the request-id row is already written so **retries are rejected as duplicates** (`IdentifiedCommandHandler.cs:41-48`).\n6. **Transaction/ordering assumptions:** the commit and the actual event-bus publish happen in `TransactionBehavior` after the handler returns (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:38-52`). Adding an explicit `SaveChanges`, a new transaction, or an early `await` that yields can break the already-fragile Buyer-Id ordering flagged in the source comment at `.../ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:31-32`.\n7. **Changing the command's shape** ripples to `CreateOrderCommandValidator` (`src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2`), the `CreateOrderRequest` contract in `src/Ordering.API/Apis/OrdersApi.cs:171+`, and the two independently-defined client-side request records in `src/WebApp/Services/BasketState.cs:158` and `src/ClientApp/Services/Order/OrderService.cs` — these are hand-copied contracts, so they will not fail to compile; they will fail at runtime.\n\n**Uncertainty:** the static graph only records one in-edge (`CreateOrderCommand → CreateOrderCommandHandler`, `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:6`); everything above the MediatR `Send` and everything across the event bus I established by text search rather than by call graph, so the runtime chain is inferred from subscription registrations rather than proven. I found no other project referencing `CreateOrderCommandHandler` by name outside `src/Ordering.API` and `tests/Ordering.UnitTests`, and HybridApp contains no ordering code at all.",
+  "ttft_ms": 2529,
+  "ttft_stream_ms": 2083,
+  "time_to_request_ms": 736,
+  "type": "result",
+  "duration_ms": 178493,
+  "uuid": "3ad0c054-c4fb-46e1-bc5d-5c5e290fd32e"
+}
