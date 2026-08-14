@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-engine` · HEAD `b480065`_
+_Updated 2026-08-14 01:45 UTC · branch `feat/pre-release-engine` · HEAD `ded5493`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 39m ago, 20:37:17Z]
-**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0 · working ▸ D1.4
-**Checkpoints:** 14/20 done · **Sessions run:** 22 · **Cost:** $164.4648 (agent $164.2772 + gates $0.1876) · **Tokens:** 2,527,268 in / 1,067,713 out
+**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 08m ago, 20:37:17Z]
+**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0
+**Checkpoints:** 15/20 done · **Sessions run:** 23 · **Cost:** $176.5386 (agent $176.3510 + gates $0.1876) · **Tokens:** 2,713,558 in / 1,150,064 out
 **Confirmed phases:** T1, V1, E1
+**Pending:** full-battery phase gate for D1
 
 ## Stage progress
 
@@ -14,7 +15,7 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-engine` · HEAD `b4800
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
-| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ████████░░ 3/4 | **← active** |
+| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | gating… |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
@@ -51,14 +52,14 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-engine` · HEAD `b4800
 
 </details>
 
-<details><summary>D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) (3/4)</summary>
+<details> ✅<summary>D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
 | D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
-| D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ✅ DONE | - |
-| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ⬜ TODO | - |
+| D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ✅ DONE | [`796843f`](https://github.com/shaahink/DevContext2/commit/796843f) |
+| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ✅ DONE | - |
 
 </details>
 
@@ -114,6 +115,7 @@ _Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-engine` · HEAD `b4800
 | 20 | D1 | Deliver | 1 | 08-13 23:55 | 0:02 | KilledByUser |  | 0 |  |  |  | 36,301/40 |
 | 21 | D1 | Deliver | 1 | 08-14 00:01 | 0:37 | Advanced | D1.1 D1.2 | 6 | gates green (none configured) | $12.8113 |  | 221,543/112,888 |
 | 22 | D1 | Deliver | 1 | 08-14 00:38 | 0:37 | Advanced | D1.3 | 4 | gates green (none configured) | $13.4409 |  | 205,917/72,126 |
+| 23 | D1 | Deliver | 1 | 08-14 01:16 | 0:28 | Advanced | D1.4 | 3 | gates green (none configured) | $12.0738 |  | 186,290/82,351 |
 
 ## Money
 
@@ -121,22 +123,20 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 21 | 209.4M | 98.4% | $151.05 | 13 | 16.1M | $11.62 |
+| **run total** | 22 | 228.8M | 98.4% | $164.49 | 14 | 16.3M | $11.75 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
-| stage D1 | 2 | 15.9M | 97.9% | $12.81 | 2 | 7.94M | $6.41 |
-| 2026-08 | 21 | 209.4M | 98.4% | $151.05 | 13 | 16.1M | $11.62 |
+| stage D1 | 3 | 35.3M | 98.3% | $26.25 | 3 | 11.8M | $8.75 |
+| 2026-08 | 22 | 228.8M | 98.4% | $164.49 | 14 | 16.3M | $11.75 |
 
-_Where the money goes: agent $150.84 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $164.28 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:35:42  • session #10 E1 → AgentError  (19.2s)
-08-13 21:35:42  • session #11 E1 Deliver started (attempt 4/8)
 08-13 21:35:56  ■ needs human — advisor: human intervention required
 08-13 21:36:01  • session #11 E1 → AgentError  (19.1s)
 08-13 21:36:01  • session #12 E1 Deliver started (attempt 5/8)
@@ -175,6 +175,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 01:01:01  • session #21 D1 Deliver started (attempt 1/6)
 08-14 01:38:53  • session #21 D1 → Advanced · done D1.1,D1.2 · 6 commit(s)  (37m52s)
 08-14 01:38:54  • session #22 D1 Deliver started (attempt 1/6)
+08-14 02:16:40  • session #22 D1 → Advanced · done D1.3 · 4 commit(s)  (37m46s)
+08-14 02:16:41  • session #23 D1 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -182,7 +184,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 22 · retries 8 (36 %) · overall Alert
+sessions 23 · retries 8 (35 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -201,9 +203,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s6 (V1 Deliver)** — 2 commit(s):
-  - [`e1f40e3`](https://github.com/shaahink/DevContext2/commit/e1f40e3) docs(v1): V1.2 evidence gates + handoff for V1.3
-  - [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) fix(graph): one Member-title vocabulary, derived from the key (V1.2, #17)
 - **s7 (V1 Deliver)** — 3 commit(s):
   - [`44e5319`](https://github.com/shaahink/DevContext2/commit/44e5319) docs(v1): V1.3 gate results — Core 766/0, Server 108/0; matrix + guards left to the battery
   - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
@@ -246,27 +245,31 @@ vs upstream: up to date
   - [`1122d02`](https://github.com/shaahink/DevContext2/commit/1122d02) fix(detection): one verdict decides what is a service, and the counts stop disagreeing (D1.3)
   - [`0a614cc`](https://github.com/shaahink/DevContext2/commit/0a614cc) fix(detection): a Blazor @page is a UI entry in the catalog too, not an HTTP endpoint (D1.3)
   - [`796843f`](https://github.com/shaahink/DevContext2/commit/796843f) fix(detection): read the generic command attribute, and let its type argument build the second level of the tree (D1.3)
+- **s23 (D1 Deliver)** — 3 commit(s):
+  - [`ded5493`](https://github.com/shaahink/DevContext2/commit/ded5493) docs(d1): D1.4 evidence and the handoff for the next session (D1.4)
+  - [`cbae476`](https://github.com/shaahink/DevContext2/commit/cbae476) refactor(detection): Confidence moves to the one detection that is read, 27 writes go (D1.3 leftover)
+  - [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) feat(detection): a Hangfire or Quartz consumer app finally has entry points (D1.4)
 
 ## Last session result
 
-> SESSION-RESULT: D1.3 is claimed DONE with an amendment covering 3 of its 5 filed items, each closed red-first with the failing log kept as evidence (`eval-results/2026-08-14/d1-filed/`, `D1.3-EVIDENCE.md`). **#14** — the generic command attribute is now read off the name syntax instead of `ToString()`, and its type argument is carried as `CliCommandDetection.ParentCommandType` so `CliCommandEntryPointBuilder` titles a sub-command `config init (ConfigInitCommand)` and `cli.command-tree` prints one group of three instead of three flat groups (796843f; red run: 1 FAIL / 9 PASS on the pre-fix engine). **Blazor UI-vs-HTTP** — the catalog was the stale side, so the descriptor now declares `UiEntry…
+> SESSION-RESULT:** D1.4 (rung 4) landed and is claimed with evidence at `eval-results/2026-08-14/d1-rung4/D1.4-EVIDENCE.md` — commit `a221296`. The measured hole was not a missing descriptor: `EntrySurfaceCatalog` already carried `quartz` and `hangfire` descriptors with `Kind: null`, so both signals fired and a real scheduler consumer app produced *zero* entries of any kind (red log: signal FIRED, kind MISSING, "entries produced: (none)", 2 FAIL/7 PASS). Both descriptors now declare `Kind: ScheduledJob`; `ProgramCsFlowExtractor` reads Hangfire and Quartz registration syntax and emits `BackgroundWorkerKind.TimedJob` — the first producer that kind has ever had — and `WorkerEntryPointBuilder` mi…
 
 ## Tracker handoff
 
 ```
-D1.3 CLAIMED WITH AN AMEND: 3 of its 5 filed items closed (796843f #14, 0a614cc blazor, 1122d02
-#20+#19), each RED-FIRST with the log kept in eval-results/2026-08-14/d1-filed/. STILL OPEN and
-inside D1.3's own text: (a) #2's detection half - addressable entry names single-sourced; (b)
-per-detection Confidence read-or-deleted - I measured that no reader exists in Core (every
-.Confidence read belongs to Insight/GraphEdge/FeatureSignal/DispatchSeamDescriptor), but the honest
-verdict is the compile-based sweep: delete Detection.Confidence, build, classify each error as a
-read or a write. E1.4 CAN NOW RE-OPEN - #14 was its stated blocker.
-THE TRAP THAT COST ME MOST: `git stash` to get a red run echoes every restored file back into
-context. Do the red run BEFORE you write the fix, or accept the cost knowingly.
-WATCH, and it is the only real risk in 1122d02: RunnableProjects now drops EXE projects when
-ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model) is true. That verdict needs an EXPLICIT
-IsPackable, so eShop/TodoApi/VerticalSlice are untouched (unit suite green, 816 tests) - but no
-LIBRARY pole exists locally, so the battery's eval step is the first place AutoMapper-shaped repos
-would show a move. McpQaGateTests failed once mid-session and passed alone on re-run: bug #1's known
-first-run-after-a-Core-change flake, not a regression.
+D1.4 CLAIMED (a221296): rung 4 lands. The hole was NOT a missing descriptor - quartz and hangfire
+were already in the catalog with Kind:null, so both signals fired and a real scheduler app produced
+ZERO entries. Red log then green: eval-results/2026-08-14/d1-rung4/. TimedJob has its first producer.
+ALSO CLOSED, D1.3 leftover (b) (cbae476): the compile sweep REFUTED s22 prediction - Confidence has
+exactly ONE reader (GraphEdge on the Raises edge), so it moved to EventFlowDetection and 27 unread
+writes went. D1.3 amended with this. ALL D1 CHECKPOINTS ARE NOW DONE.
+ONLY D1 ITEM LEFT: #2 addressable entry names. Located, not started - HttpEntryPointBuilder sets
+EntryPoint.Title = "GET /todos" while the handler member node is "<lambda> GET /todos/"
+(HttpEntryPointBuilder.cs:165). It reaches MCP, so it wants a session that can touch the agent face.
+CHEAP INSTRUMENT WIN NOBODY HAS TAKEN: D1.1 P2 only polices descriptors that DECLARE a Kind, so a
+Kind:null descriptor is invisible to it - which is exactly how D1.4 hole survived. ~15 Kind:null
+descriptors remain. A third property (Kind:null is justified in the allow-list or gets a Kind) closes
+that blind spot.
+WATCH: McpQaGateTests orphans a DevContext.Server.exe that locks Core.dll and fails the NEXT build
+with MSB3027. Identify the pid from the build error and stop that one - do not kill by name.
 ```
