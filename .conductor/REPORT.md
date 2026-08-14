@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 11:11 UTC · branch `feat/pre-release-engine` · HEAD `a7aeca0`_
+_Updated 2026-08-14 11:34 UTC · branch `feat/pre-release-engine` · HEAD `26d9a15`_
 
-**Status:** Idle
-**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0
+**Status:** Completed
+**Stage:** Z1 — Close-out: README honesty pass, release-gate statuses, backlog reconciliation · attempts used 0
 **Checkpoints:** 20/20 done · **Sessions run:** 30 · **Cost:** $219.8282 (agent $219.6406 + gates $0.1876) · **Tokens:** 3,713,464 in / 1,462,348 out
-**Confirmed phases:** T1, V1, E1, D1, R1, A1
+**Confirmed phases:** T1, V1, E1, D1, R1, A1, Z1
 
 ## Stage progress
 
@@ -17,7 +17,7 @@ _Updated 2026-08-14 11:11 UTC · branch `feat/pre-release-engine` · HEAD `a7aec
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ██████████ 2/2 | confirmed ✓ |
-| Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ██████████ 2/2 | gating… |
+| Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ██████████ 2/2 | confirmed ✓ |
 
 <details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
 
@@ -145,11 +145,6 @@ _Where the money goes: agent $219.64 (100%) · gate $0.19 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 03:07:14  ▪ gate guards pass [phase]  (3m49s)
-08-14 03:07:15  ▪ gate battery pass [phase]  (14m19s)
-08-14 03:07:15  ✓ checkpoint D1.1 confirmed
-08-14 03:07:15  ✓ checkpoint D1.2 confirmed
-08-14 03:07:15  ✓ checkpoint D1.3 confirmed
 08-14 03:07:15  ✓ checkpoint D1.4 confirmed
 08-14 03:07:15  ▸ stage D1 confirmed  (2h12m12s)
 08-14 03:07:21  ▸ stage R1 entered — W6 metric recalibration (22, 23, 24) against the post-E1 graph
@@ -185,6 +180,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 12:11:27  ✓ checkpoint Z1.1 confirmed
 08-14 12:11:27  ✓ checkpoint Z1.2 confirmed
 08-14 12:11:27  ▸ stage A1 confirmed  (8h06m43s)
+08-14 12:11:37  ▸ stage Z1 entered — Close-out: README honesty pass, release-gate statuses, backlog reconciliation
+08-14 12:33:56  ▪ gate fast-engine pass [phase]  (2m53s)
+08-14 12:33:56  ▪ gate guards pass [phase]  (1m55s)
+08-14 12:33:57  ▪ gate battery pass [phase]  (11m25s)
+08-14 12:33:57  ▸ stage Z1 confirmed  (22m19s)
 ```
 
 ## Health
@@ -206,8 +206,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
-vs upstream: up to date
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
+vs upstream: 19 ahead, 22 behind
 ```
 
 ### Commits by session
@@ -246,7 +246,7 @@ vs upstream: up to date
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK · battery:OK-retry
 
 ## Last session result
 
