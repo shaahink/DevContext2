@@ -34,6 +34,11 @@ const RUNS_JSONL = join(RESULTS, "runs.jsonl");
 const INFRA_DIR = join(RESULTS, "infra");
 const INFRA_JSONL = join(RESULTS, "infra-failures.jsonl");
 const SYSTEM_PROMPT_FILE = join(HERE, "system.txt");
+// Arm BI (DESIGN 3.1, amended 2026-08-14). The deployed configuration is arm B plus the one
+// CLAUDE.md line every real install ships. It cannot ride in a repo file: DESIGN 6.3 runs every
+// arm with --bare, which skips CLAUDE.md discovery, so the instruction would be read by nobody.
+// It rides in the system prompt instead, appended to the byte-identical shared text.
+const SYSTEM_INSTRUCTED_FILE = join(HERE, "system-instructed.txt");
 const MCP_CONFIG = join(HERE, "mcp.json");
 const MCP_EXE = join(REPO_ROOT, "src", "DevContext.Mcp", "bin", "Debug", "net10.0", "devcontext-mcp.exe");
 
@@ -66,7 +71,7 @@ const INFRA_OUTAGE_STOP = 3;
 // eShop legitimately runs minutes - but finite, so one wedged child cannot eat a session.
 const RUN_TIMEOUT_MS = 20 * 60 * 1000;
 
-const VALID_ARMS = ["G", "M", "B"];
+const VALID_ARMS = ["G", "M", "B", "BI"];
 const DEFAULT_MODEL = "claude-opus-5";
 
 // ---- args -------------------------------------------------------------------
@@ -282,12 +287,13 @@ const ARM_KEEP = {
   G: ["Read", "Grep", "Glob", "Bash"],
   M: [],
   B: ["Read", "Grep", "Glob", "Bash"],
+  BI: ["Read", "Grep", "Glob", "Bash"],
 };
 
 // The predicate every offered and every called tool is checked against, per arm.
 function permittedInArm(arm, toolName) {
   const n = String(toolName);
-  if (n.startsWith("mcp__devcontext__") || n === "mcp__devcontext") return arm === "M" || arm === "B";
+  if (n.startsWith("mcp__devcontext__") || n === "mcp__devcontext") return arm === "M" || arm === "B" || arm === "BI";
   if (n.startsWith("mcp__")) return false;
   return ARM_KEEP[arm].includes(n);
 }
@@ -297,6 +303,16 @@ function denyListFor(arm) {
 }
 
 export function armArgs(arm, repoDir) {
+  // BI is DEFINED as B, so it cannot drift from B: it delegates, then substitutes exactly one
+  // value. Anything that changes about arm B changes about arm BI in the same commit, and the
+  // only difference the experiment can attribute to BI is the instruction text.
+  if (arm === "BI") {
+    const a = armArgs("B", repoDir);
+    const i = a.indexOf("--system-prompt");
+    if (i < 0) die("armArgs('B') no longer passes --system-prompt; arm BI cannot be derived from it");
+    a[i + 1] = `${a[i + 1]}\n\n${readFileSync(SYSTEM_INSTRUCTED_FILE, "utf8").trim()}\n`;
+    return a;
+  }
   const shared = [
     "-p",
     "--output-format", "stream-json",

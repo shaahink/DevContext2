@@ -139,6 +139,59 @@ function mcnemarExact(b, c) {
   return { b, c, p: Math.min(1, 2 * p) };
 }
 
+// ---- --ni-power: the arithmetic DESIGN 4.2's amendment stands on --------------------------
+// Reads no data. Prints the two surfaces that decide (a) whether a non-inferiority margin is
+// reachable at a given number of pairs and (b) what the amended, question-level endpoint returns
+// under scenarios stated as scenarios rather than as hopes. Placed here so it can reuse
+// newcombePaired verbatim - a re-implementation would be a different function wearing its name.
+if (argv.includes("--ni-power")) {
+  const z = 1.644854; // 90% one-sided-equivalent, as DESIGN 4.2 uses
+  const f4 = (x) => (x >= 0 ? " " : "") + x.toFixed(3);
+  console.log("A. RUN-LEVEL PAIRS, Newcombe method 10 at a PERFECT TIE (b = c = 0).");
+  console.log("   The bound is the asymmetry of the Wilson interval, so it depends entirely on");
+  console.log("   the common accuracy. RESULTS 10.4 tabulated the acc=1.00 column and called it");
+  console.log("   'the best each n can produce'; it is the worst, and at acc=0.50 the interval");
+  console.log("   has zero width at every n.");
+  console.log("   pairs |   1.00    0.90    0.80    0.70    0.50");
+  for (const n of [18, 24, 30, 72, 120, 144]) {
+    const row = [1, 0.9, 0.8, 0.7, 0.5].map((p) => { const a = Math.round(p * n); return f4(newcombePaired(a, 0, 0, n - a, z).lower); });
+    console.log(`   ${String(n).padStart(5)} | ${row.join("  ")}`);
+  }
+  console.log("\nB. QUESTION-LEVEL PAIRS, the amended endpoint: reps aggregated to a per-question");
+  console.log("   accuracy, 10,000 bootstrap resamples over questions, 5th percentile of mean Delta.");
+  const mulberry = (a) => () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const lower90 = (deltas, seed) => {
+    const r = mulberry(seed), n = deltas.length, ms = [];
+    for (let b = 0; b < 10000; b++) { let s = 0; for (let i = 0; i < n; i++) s += deltas[Math.floor(r() * n)]; ms.push(s / n); }
+    ms.sort((x, y) => x - y); return ms[Math.floor(0.05 * 10000)];
+  };
+  const REPS = 5, step = 2 / REPS; // "loses 2 of 5 reps" = a 0.4 swing on that question
+  const scen = (nq, losses, wins, total = 0) => {
+    const d = [];
+    for (let i = 0; i < losses; i++) d.push(-step);
+    for (let i = 0; i < wins; i++) d.push(+step);
+    for (let i = 0; i < total; i++) d.push(-1);
+    while (d.length < nq) d.push(0);
+    return d.slice(0, Math.max(nq, d.length));
+  };
+  const rows = [
+    ["perfect tie, every Delta = 0", 0, 0, 0],
+    ["B loses 2 of 5 reps on 1 question", 1, 0, 0],
+    ["B loses 2 of 5 reps on 2 questions", 2, 0, 0],
+    ["1 question -2/5, 1 question +2/5", 1, 1, 0],
+    ["2 questions -2/5, 2 questions +2/5", 2, 2, 0],
+    ["B wrong on all 5 reps of 1 question", 0, 0, 1],
+  ];
+  console.log("   scenario                              24 questions   6 questions (one repo)");
+  for (const [label, L, W, T] of rows) {
+    console.log(`   ${label.padEnd(38)}${f4(lower90(scen(24, L, W, T), 20260814)).padStart(9)}${f4(lower90(scen(6, L, W, T), 20260814)).padStart(15)}`);
+  }
+  console.log("\n   Margin -0.05 is failed by rep noise (row 2). Margin -0.10 absorbs it and still");
+  console.log("   fails the last row, which is the case the bar exists to catch. Per repo, no");
+  console.log("   margin worth stating survives row 2 at all - hence one pooled endpoint.");
+  process.exit(0);
+}
+
 // ---- load ---------------------------------------------------------------------------------
 
 function readJsonl(p) {
