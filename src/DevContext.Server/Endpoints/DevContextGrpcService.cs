@@ -776,11 +776,11 @@ public sealed class DevContextGrpcService(
     // M3.3 — emit tool-call events on every session access
     private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
     {
-        // T6.10/F5 — ui vs agent from the PRE-UseGrpcWeb content-type (stashed in Items by
-        // Program.cs: the middleware rewrites grpc-web requests to plain application/grpc,
-        // so reading Request.ContentType here mislabeled every app RPC as "agent").
+        // T6.10/F5 — ui vs agent, stashed in Items by Program.cs's middleware. N4.1: from the
+        // client's own headers, because both the app and the MCP sidecar arrive as gRPC-web.
+        var request = httpContext.HttpContext?.Request;
         var origin = httpContext.HttpContext?.Items[OriginTag.ItemKey] as string
-            ?? OriginTag.FromContentType(httpContext.HttpContext?.Request.ContentType);
+            ?? OriginTag.FromRequest(request?.Headers.UserAgent, request?.Headers["x-user-agent"], request?.Headers.Origin);
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,

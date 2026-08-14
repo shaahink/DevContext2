@@ -36,12 +36,16 @@ if (string.IsNullOrEmpty(builder.Configuration["urls"]))
 
 var app = builder.Build();
 
-// F5 (Prism D4.5) — tag the ui/agent origin BEFORE UseGrpcWeb rewrites the content-type
-// to plain application/grpc (post-rewrite sniffing labeled the app's own RPCs "agent").
+// F5 (Prism D4.5) — tag the ui/agent origin for this request. N4.1: the tag is read off the
+// CLIENT's headers now, not the framing — both the app and the MCP sidecar speak gRPC-web, so
+// the old content-type sniff called every agent call "ui" (see OriginTag).
 app.Use((context, next) =>
 {
     context.Items[DevContext.Server.Endpoints.OriginTag.ItemKey] =
-        DevContext.Server.Endpoints.OriginTag.FromContentType(context.Request.ContentType);
+        DevContext.Server.Endpoints.OriginTag.FromRequest(
+            context.Request.Headers.UserAgent,
+            context.Request.Headers["x-user-agent"],
+            context.Request.Headers.Origin);
     return next(context);
 });
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });

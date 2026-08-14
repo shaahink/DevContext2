@@ -444,6 +444,8 @@ export class McpPage implements OnInit, OnDestroy {
 
   private streamAbort: AbortController | null = null;
   private sessionTimer: ReturnType<typeof setInterval> | null = null;
+  /** N4.1 — the one-shot re-read that lets the subscription land before the count is believed. */
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** N4.1 — what the binary probe found, named as a check with a verdict. */
   protected readonly binaryLabel = computed(() =>
@@ -494,10 +496,15 @@ export class McpPage implements OnInit, OnDestroy {
     // subscribing renders one lower than the truth it is describing.
     this.startStream();
     await this.refreshStatus();
+    // MEASURED: subscribing is a network round trip, so the read above still beats it and the
+    // card opened saying "0 watcher(s) attached" while this very page was watching. One
+    // follow-up read settles it without pretending to know the count locally.
+    this.settleTimer = setTimeout(() => { void this.refreshStatus(); }, 1_000);
   }
 
   ngOnDestroy(): void {
     if (this.sessionTimer) clearInterval(this.sessionTimer);
+    if (this.settleTimer) clearTimeout(this.settleTimer);
     this.stopStream();
   }
 
