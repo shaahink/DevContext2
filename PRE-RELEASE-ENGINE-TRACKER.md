@@ -4,21 +4,23 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-D1.4 CLAIMED (a221296): rung 4 lands. The hole was NOT a missing descriptor - quartz and hangfire
-were already in the catalog with Kind:null, so both signals fired and a real scheduler app produced
-ZERO entries. Red log then green: eval-results/2026-08-14/d1-rung4/. TimedJob has its first producer.
-ALSO CLOSED, D1.3 leftover (b) (cbae476): the compile sweep REFUTED s22 prediction - Confidence has
-exactly ONE reader (GraphEdge on the Raises edge), so it moved to EventFlowDetection and 27 unread
-writes went. D1.3 amended with this. ALL D1 CHECKPOINTS ARE NOW DONE.
-ONLY D1 ITEM LEFT: #2 addressable entry names. Located, not started - HttpEntryPointBuilder sets
-EntryPoint.Title = "GET /todos" while the handler member node is "<lambda> GET /todos/"
-(HttpEntryPointBuilder.cs:165). It reaches MCP, so it wants a session that can touch the agent face.
-CHEAP INSTRUMENT WIN NOBODY HAS TAKEN: D1.1 P2 only polices descriptors that DECLARE a Kind, so a
-Kind:null descriptor is invisible to it - which is exactly how D1.4 hole survived. ~15 Kind:null
-descriptors remain. A third property (Kind:null is justified in the allow-list or gets a Kind) closes
-that blind spot.
-WATCH: McpQaGateTests orphans a DevContext.Server.exe that locks Core.dll and fails the NEXT build
-with MSB3027. Identify the pid from the build error and stop that one - do not kill by name.
+R1.1 CLAIMED (557537c + 372f77c). The G10 lesson arrived on schedule and worse than predicted:
+#22 graph.orphans did not stay dormant, it INVERTED. E1 lifted the Semantic share 8x (eShop
+0.057 -> 0.438), the 0.5 floor is now cleared on 7/12 poles, and on the 2 where the full gate passes
+it emitted 10 dead-code claims of which I hand-verified 0 true - it named four `: ICarterModule`
+HTTP endpoints and a `Decorate<>`d repository as dead. RETIRED (source+tests deleted, lens-audit's
+P7 grep is now a ratchet on the id). #24 deep-spine RETIRED (saturated on 12 poles, unchanged from
+2026-08-02). #23 HELD and its premise REFUTED: the broadening DOES fire - Hangfire sparseGraph=true,
+hubScopeNodes=34 - the old 11-pole set just never held a repo that clears its gates.
+HUMAN: retiring graph.orphans reverses "keep-or-retire is yours" in OWNER-TODO.md §4. Reversible;
+a revival needs REGISTRATION-aware liveness (DI impl types, assembly-scan interfaces, decorators),
+not in-degree, and lens-audit will fail until it brings its own probe.
+NEXT: A1.1/A1.2 are the only TODOs left on the board. Bug #18 (hub-scope sizes hubs off
+model.CallEdges, a channel post-E1 left behind) is the cheapest live follow-up.
+REUSE, DO NOT REBUILD: eval-results/2026-08-14/r1-metrics/r1-metric-sweep.ps1 + r1-aggregate.mjs -
+12 poles, private cache root, one `query stats` per pole answers every graph threshold and reports
+which insights actually emitted. Six G10 poles (Dapper/Serilog/MahApps/GitVersion/DntSite/wolverine)
+are gone from this machine - do not assume that grid is reproducible.
 
 
 ## Baseline numbers (from run.db)
