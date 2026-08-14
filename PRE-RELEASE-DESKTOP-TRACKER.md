@@ -16,8 +16,10 @@ c1661b8 (Z1.2) - 12 shots re-captured + new 13-mcp-feed.png. TRAP: the feed has 
 agents-only, so /mcp can only shoot empty unless real traffic arrives while the page is subscribed -
 scripts/seed-agent-calls.mjs drives a real sidecar at the running server; and fullPage on /mcp yields
 the VIEWPORT (the shell scrolls internally), hence the second shot. README captions follow the UI.
-NEXT: nothing is open. The full battery I launched (bg full-battery, log .conductor/bg-logs/) is the
-last verdict; then merge to develop is OWNER-SIGNED, and the engine run's Z1 owns the 22-tools claim.
+FULL BATTERY: **GATE: PASS** (log .conductor/bg-logs/full-battery-20260814-113613721.log) - first full
+run since the gate lock landed; step 0a held it, step 0 killed nothing outside this checkout, no
+fratricide. NEXT: nothing is open in this plan. Merge to develop is OWNER-SIGNED; the engine run's Z1
+owns the README's "22 tools" line, which now sits beside a shot reading "14 advertised, 8 unlisted".
 
 
 ## Baseline numbers (from run.db)
