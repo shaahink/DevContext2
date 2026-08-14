@@ -1,7 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
 import { RouterLink } from '@angular/router';
+import { symbolCardSeeds } from '../context-studio/pack-proposal';
 import { StageTimeline } from '../shared/stage-timeline';
+import { ToastService } from '../../ui/toast/toast';
 import { Withheld } from '../../ui/withheld/withheld';
 
 const SEVERITY_CLASS: Record<string, string> = {
@@ -109,13 +112,29 @@ interface InsightGroup {
                           }
                         </div>
                       }
-                      @if (paRoute(insight.action, insight.actionTarget); as route) {
-                        <a class="mt-1.5 inline-block text-2xs text-accent hover:underline"
-                           [routerLink]="[route.route]"
-                           [queryParams]="route.params">
-                          {{ actionLabel(insight.action) }}
-                        </a>
-                      }
+                      <div class="mt-1.5 flex items-center gap-3">
+                        @if (paRoute(insight.action, insight.actionTarget); as route) {
+                          <a class="inline-block text-2xs text-accent hover:underline"
+                             [routerLink]="[route.route]"
+                             [queryParams]="route.params">
+                            {{ actionLabel(insight.action) }}
+                          </a>
+                        }
+                        <!-- N3.1 (audit §4 Room 1) — an insight names a symbol worth reading; until
+                             now the only thing you could do with it was go and look. This hands the
+                             same symbol to the agent as a pack. Absent when the insight has no
+                             resolvable target, because a button that cannot name a focus would be
+                             the empty-affordance defect this stage exists to remove. -->
+                        @if (studioTarget(insight.action, insight.actionTarget); as target) {
+                          <button type="button"
+                                  class="text-2xs text-ink-subtle hover:text-accent hover:underline"
+                                  data-testid="insight-send-to-studio"
+                                  [title]="'Compose a context pack rooted at ' + target"
+                                  (click)="sendToStudio(target)">
+                            Compose context →
+                          </button>
+                        }
+                      </div>
                     </div>
                   </div>
                 }
@@ -170,6 +189,8 @@ interface InsightGroup {
 })
 export class InsightsView {
   readonly store = inject(SessionStore);
+  private readonly studio = inject(StudioHandoffStore);
+  private readonly toast = inject(ToastService);
 
   readonly groups = computed(() => {
     const list = this.store.insights();
@@ -252,6 +273,23 @@ export class InsightsView {
       case 'Filter': return { route: '/explore', params: { kind: target } };
       default: return null;
     }
+  }
+
+  /** N3.1 — the focus an insight can hand to Studio, or null. `Filter` targets an entry KIND, not a
+   * symbol, so it has nothing a pack can be rooted at; only `Focus` and `Node` do. Same test the
+   * routed action uses, so the two affordances can never disagree about whether a target exists. */
+  studioTarget(action: string, target?: string): string | null {
+    if (!target) return null;
+    return action === 'Focus' || action === 'Node' ? target : null;
+  }
+
+  /** The target goes over verbatim as the card's entry id — `ContextPackBuilder` resolves it through
+   * the same path `get_context` uses (MEASURED 2026-08-14, see pack-proposal.ts). */
+  sendToStudio(target: string): void {
+    void this.studio.open({ seeds: symbolCardSeeds(target, target), source: `the insight target ${target}` })
+      .then((ok) => {
+        if (!ok) this.toast.show('Could not open Context Studio', 'error');
+      });
   }
 
   retryStats(): void {

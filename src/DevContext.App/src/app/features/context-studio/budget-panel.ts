@@ -4,7 +4,7 @@ import { DEFAULT_STUDIO_BUDGET } from '../../state/prefs.store';
 import { Icon } from '../../ui/icon/icon';
 import { allCardsPriced, cardTokens as cardTokensOf, totalCardTokens } from './card-tokens';
 import { BODY_CAPABLE_CARD_TYPES, type ContextCard } from './composition-view';
-import type { ContextIntent, OutputFormat } from './scope-picker';
+import type { ContextIntent, OutputFormat } from '../../models/context-card';
 
 const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
 

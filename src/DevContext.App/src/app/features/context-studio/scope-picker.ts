@@ -2,6 +2,7 @@ import { Component, computed, inject, input, model, output, signal } from '@angu
 
 import { middleEllipsis } from '../../core/format';
 import { filterGroups, type LibrarySurfaceVm, type SurfaceGroupVm } from '../library/library-surface.vm';
+import type { ContextCardSeed } from '../../models/context-card';
 import type { EntryGroupVm, EntryVm } from '../../models/view-models';
 import { KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
@@ -13,20 +14,6 @@ export interface ServiceGroup {
   readonly entries: readonly EntryVm[];
 }
 
-/** N2.1 (audit §3.C / owner decision 2) — `usage` is the inbound direction of a symbol-rooted
- * pack ("who calls this"). The engine has built the section for every symbol root since G1.2;
- * no card type could pick it until now (audit §3.F.15). */
-export type ContextCardType = 'flow' | 'signatures' | 'bodies' | 'di_wiring' | 'config' | 'entities' | 'contracts' | 'tests' | 'identity' | 'usage';
-export type ContextIntent = 'trace' | 'explain' | 'review';
-/** T5.3 (audit R8) — json is the structured export: cards/sections/provenance/verification. */
-export type OutputFormat = 'markdown' | 'plain' | 'json';
-
-export interface ContextCardSeed {
-  readonly type: ContextCardType;
-  readonly title: string;
-  readonly entryIds: string[];
-  readonly estimatedLines: number;
-}
 
 /** T5.4 — "I'm changing this entry" seeds cards matched to the entry KIND: a hub method
  * wants its orchestrator spine + consumer wiring, a worker wants its loop + the config it

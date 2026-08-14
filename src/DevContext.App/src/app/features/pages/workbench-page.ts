@@ -6,8 +6,10 @@ import { AtlasStore } from '../../state/atlas.store';
 import { NodePeekStore } from '../../state/node-peek.store';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
 import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
+import { seedsFromSteps } from '../context-studio/pack-proposal';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { EntryBrowser } from '../entry-browser/entry-browser';
@@ -54,7 +56,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
     '(window:keydown)': 'onGlobalKey($event)',
   },
   template: `
-    <app-trail-bar (restore)="onRestore($event)" />
+    <app-trail-bar (restore)="onRestore($event)" (sendToStudio)="onSendToStudio('pins-or-trail')" />
 
     @if (session.ready() && isLibrary()) {
       <!-- D4.4 (F1): archetype Library routes Explore to the public-surface browser —
@@ -164,6 +166,8 @@ export class WorkbenchPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  /** N3.1 — the joint into Room 1 (audit §4). */
+  private readonly studio = inject(StudioHandoffStore);
 
   protected readonly dockLevel = signal(this.prefs.dockLevel());
   /** W4 remainder (M1.2) — a width the user dragged to, in % of the workbench. Null means "use the
@@ -290,6 +294,59 @@ export class WorkbenchPage implements OnDestroy {
     );
   }
 
+  /**
+   * N3.1 (audit §3.A / §4 Room 1) — SEND TO STUDIO, the joint Explore never had. Before this,
+   * Ctrl+E navigated to an empty Studio: everything the reader had just learned stayed on this page.
+   *
+   * Three sources, one path. `selection` sends what is selected right now (Ctrl+E — the reader is
+   * looking at it, that is what they mean); `pins-or-trail` sends the pins if there are any and the
+   * whole trail otherwise (the trail bar's button, which says in its label which one it will do).
+   * Both resolve through `seedsFromSteps`, the same builder Studio's own default state and its
+   * seed button use — so a step is worth the same card wherever it is sent from.
+   */
+  protected onSendToStudio(mode: 'selection' | 'pins-or-trail'): void {
+    const current = this.trail.current();
+    const pins = this.trail.pins();
+    const useSelection = mode === 'selection' && current !== null;
+    const steps = useSelection ? [current!] : pins.length > 0 ? pins : this.trail.steps();
+    const sourceName = useSelection
+      ? `“${current!.title}”`
+      : pins.length > 0
+        ? `${pins.length} pinned step${pins.length === 1 ? '' : 's'}`
+        : `your trail (${steps.length} step${steps.length === 1 ? '' : 's'})`;
+
+    // Ctrl+E has always OPENED Studio, and it still does even with nothing to carry: Studio's own
+    // default state (N3.1) proposes from the archetype in that case, so the reader lands somewhere
+    // usable instead of being told to go back and explore first.
+    if (steps.length === 0) {
+      void this.router.navigateByUrl('/context');
+      this.toast.show('Opened Context Studio — nothing explored yet, so it proposes a starting pack', 'info');
+      return;
+    }
+
+    const { seeds, unresolved } = seedsFromSteps(steps, this.session.entryGroups());
+    if (seeds.length === 0) {
+      void this.router.navigateByUrl('/context');
+      this.toast.show(
+        `Nothing in ${sourceName} resolves to an entry in this graph (${unresolved} of ${steps.length} unresolved)`,
+        'error',
+      );
+      return;
+    }
+
+    void this.studio.open({ seeds, source: sourceName }).then((ok) => {
+      if (!ok) {
+        this.toast.show('Could not open Context Studio', 'error');
+        return;
+      }
+      const tail = unresolved > 0 ? ` — ${unresolved} did not resolve in this graph` : '';
+      this.toast.show(
+        `Sent ${seeds.length} card${seeds.length === 1 ? '' : 's'} from ${sourceName} to Context Studio${tail}`,
+        unresolved > 0 ? 'info' : 'success',
+      );
+    });
+  }
+
   /** Deck scrub — debounced so j/k sweeps commit once, then trace + trail push. */
   protected onEntry(entry: EntryVm): void {
     if (this.pendingTrace !== null) clearTimeout(this.pendingTrace);
@@ -366,7 +423,9 @@ export class WorkbenchPage implements OnDestroy {
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
       if (isTypingTarget(event.target)) return;
       event.preventDefault();
-      void this.router.navigateByUrl('/context');
+      // N3.1 — Ctrl+E used to be a bare `navigateByUrl('/context')`, landing on empty panes. It
+      // still opens Studio; it just takes the current selection with it now.
+      this.onSendToStudio('selection');
       return;
     }
     if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'e') {

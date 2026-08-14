@@ -4,17 +4,20 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { copyToClipboard } from '../../core/clipboard';
 import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import type { ContextCardSeed, ContextIntent, OutputFormat, PackProposal } from '../../models/context-card';
 import { type EntryVm } from '../../models/view-models';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
 import { TrailStore } from '../../state/trail.store';
 import { Icon } from '../../ui/icon/icon';
 import { ToastService } from '../../ui/toast/toast';
 import { BudgetPanel, type SuggestedFocusVm } from './budget-panel';
 import { totalCardTokens } from './card-tokens';
 import { type ContextCard, CompositionView } from './composition-view';
+import { archetypeProposal, proposeFromTrail, seedsFromSteps } from './pack-proposal';
 import { packPreviewHtml } from './pack-preview';
-import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
+import { ScopePicker } from './scope-picker';
 import { type PackVerification, type SectionVerificationVm, VerificationPanel } from './verification-panel';
 
 // N2.1 — `usage` (the inbound direction of a symbol-rooted pack) takes a different seat per
@@ -54,6 +57,22 @@ function errorText(err: unknown): string {
       />
 
       <div class="flex min-w-0 flex-1 flex-col bg-base">
+        <!-- N3.1 (audit §4 Room 1) — Studio never opens empty after exploration, so it must say when
+             the cards on screen are a SUGGESTION rather than a composition. Without this line a
+             proposed pack is indistinguishable from one the reader built, which is the same
+             fabricated-confidence failure §3.D found on the MCP page. It disappears the moment the
+             reader edits anything: from then on the pack is theirs. -->
+        @if (proposalSource(); as src) {
+          <div
+            class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-3 py-1.5 text-2xs"
+            data-testid="studio-proposal-banner"
+          >
+            <app-icon name="zap" [size]="11" class="text-accent" />
+            <span class="text-ink-muted">Proposed from <span class="text-ink">{{ src }}</span> — edit it, or start over.</span>
+            <button type="button" class="ml-auto text-ink-subtle hover:text-ink" (click)="onClearProposal()">Clear</button>
+          </div>
+        }
+
         <app-composition-view
           class="min-h-0 flex-1"
           [cards]="cards()"
@@ -138,6 +157,8 @@ export class ContextStudio {
   protected readonly session = inject(SessionStore);
   private readonly api = inject(DevContextApi);
   private readonly trailStore = inject(TrailStore);
+  /** N3.1 — what a sender left on the way in. Taken once, in the effect below. */
+  private readonly handoff = inject(StudioHandoffStore);
   private readonly toast = inject(ToastService);
   private readonly prefs = inject(PrefsStore);
 
@@ -183,6 +204,59 @@ export class ContextStudio {
       const format = this.selectedFormat();
       untracked(() => this.prefs.setStudioFormat(format));
     });
+
+    // N3.1 (audit §4 Room 1 / owner decision 3) — THE DEFAULT STATE. Studio's panes used to open
+    // empty every time, which is why the audit called the loop severed: the user had just explored a
+    // flow and the hand-off desk knew nothing about it. Now, per graph:
+    //   1. a proposal a sender left on the way in (Explore / Insights / NodeCard) wins;
+    //   2. else pins, else the trail, become a proposed pack;
+    //   3. else — a fresh session with no exploration — the archetype preset.
+    // Everything it reads outside the trigger is read UNTRACKED on purpose: this fires once per
+    // handle, not every time the trail moves. `proposedHandle` is what makes it once — otherwise
+    // clearing the proposal would be undone by the proposer on the next change detection.
+    effect(() => {
+      const ready = this.session.ready();
+      const groups = this.session.entryGroups();
+      const handoff = this.handoff.pending();
+      untracked(() => {
+        const handle = this.session.handle();
+        if (!ready || !handle) return;
+        if (handoff) {
+          const taken = this.handoff.take();
+          this.proposedHandle = handle;
+          if (taken) this.applyProposal(taken);
+          return;
+        }
+        if (this.proposedHandle === handle) return;
+        this.proposedHandle = handle;
+        if (this.cards().length > 0) return;
+        const proposal =
+          proposeFromTrail(this.trailStore.pins(), this.trailStore.steps(), groups)
+          ?? archetypeProposal(groups, this.session.mapResponse()?.surface, this.session.mapResponse()?.isLibrary ?? false);
+        if (proposal) this.applyProposal(proposal);
+      });
+    });
+  }
+
+  /** N3.1 — the source sentence for cards that were PROPOSED rather than picked; null the moment
+   * the reader touches them. Drives the banner above the composition view. */
+  protected readonly proposalSource = signal<string | null>(null);
+
+  /** The handle a proposal has already been made for. One proposal per graph. */
+  private proposedHandle: string | null = null;
+
+  private applyProposal(proposal: PackProposal): void {
+    this.onCardsChange(proposal.seeds);
+    // AFTER onCardsChange, which clears the flag for the user-driven case.
+    this.proposalSource.set(proposal.source);
+  }
+
+  /** N3.1 — "this is not what I wanted": drop the proposal and its cards in one click, rather than
+   * removing five cards one at a time to get back to the empty desk. */
+  protected onClearProposal(): void {
+    this.proposalSource.set(null);
+    this.cards.set([]);
+    this.schedulePack();
   }
 
   /** N1.1 — the handle the current cards were addressed in. Seeded from the live handle so the
@@ -194,6 +268,7 @@ export class ContextStudio {
     this.packTimer = null;
     this.packSeq++;                 // orphan any repack still in flight for the old handle
     this.cards.set([]);
+    this.proposalSource.set(null);  // N3.1 — a proposal belongs to the graph it was proposed from
     this.serverPack.set(null);
     this.packOmitted.set([]);
     this.clearPackHonesty();
@@ -313,6 +388,8 @@ export class ContextStudio {
   protected onCardsChange(seeds: readonly ContextCardSeed[]): void {
     const handle = this.session.handle();
     if (!handle) return;
+    // N3.1 — an edit makes the pack the reader's; only applyProposal re-raises the flag afterwards.
+    this.proposalSource.set(null);
 
     const entryMap = new Map<string, EntryVm>();
     for (const group of this.session.entryGroups()) {
@@ -486,6 +563,7 @@ export class ContextStudio {
   /** N1.1 — a body toggle is now pack-relevant, so it takes the one re-pack path like every
    * other shaping change. Before, it repainted an icon and left the bytes alone. */
   protected onToggleBody(id: string): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) =>
       prev.map((c) => (c.id === id ? { ...c, bodyEnabled: !c.bodyEnabled } : c)),
     );
@@ -501,6 +579,7 @@ export class ContextStudio {
   }
 
   protected onRemove(id: string): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) => prev.filter((c) => c.id !== id));
     this.schedulePack();
   }
@@ -529,26 +608,10 @@ export class ContextStudio {
       return;
     }
 
-    const seeds: ContextCardSeed[] = [];
-    const seen = new Set<string>();
-    let unresolved = 0;
-    for (const step of steps) {
-      const found = step.focus ? this.findEntryByFocus(step.focus) : null;
-      if (!found) {
-        unresolved++;
-        continue;
-      }
-      if (seen.has(found.nodeId)) continue;
-      seen.add(found.nodeId);
-      seeds.push({
-        type: 'flow',
-        // The LIVE entry's title, not the step's: the step's was captured at push time and a
-        // re-analyze can have renamed it. Same reason the id comes from the resolved entry.
-        title: `Flow: ${found.title}`,
-        entryIds: [found.nodeId],
-        estimatedLines: 15,
-      });
-    }
+    // N3.1 — the seed rule moved to pack-proposal.ts because Explore's send-to-Studio and Studio's
+    // own default state now build from the same steps. Three copies of "a step becomes a flow card"
+    // is how the three surfaces would start disagreeing about what a pin is worth.
+    const { seeds, unresolved } = seedsFromSteps(steps, this.session.entryGroups());
 
     if (seeds.length === 0) {
       this.toast.show(
@@ -565,16 +628,8 @@ export class ContextStudio {
     );
   }
 
-  private findEntryByFocus(focus: string) {
-    for (const group of this.session.entryGroups()) {
-      for (const e of group.entries) {
-        if (e.focus === focus) return e;
-      }
-    }
-    return null;
-  }
-
   protected onReorder(event: { fromIndex: number; toIndex: number }): void {
+    this.proposalSource.set(null);
     this.cards.update((prev) => {
       const arr = [...prev];
       const [item] = arr.splice(event.fromIndex, 1);

@@ -8,6 +8,7 @@ import { NodePeekStore } from '../../state/node-peek.store';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
+import { StudioHandoffStore, STUDIO_ROUTE } from '../../state/studio-handoff.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { ToastService } from '../../ui/toast/toast';
 import { WorkbenchPage } from './workbench-page';
@@ -233,5 +234,119 @@ describe('WorkbenchPage — dock resizer (M1.2)', () => {
     const page = createPage();
     arrow(page, 'ArrowUp');
     expect(page.dockWidthOverride()).toBeNull();
+  });
+});
+
+/**
+ * N3.1 (audit §3.A / §4 Room 1) — send-to-Studio. The page is what resolves a trail step's focus
+ * against the live entry inventory, so it is what turns "where I have been" into cards; the store
+ * only carries them across. Same construction trick as the pin specs: no template.
+ */
+interface SendTestSurface {
+  onGlobalKey(event: KeyboardEvent): void;
+  onSendToStudio(mode: 'selection' | 'pins-or-trail'): void;
+}
+
+describe('WorkbenchPage — send to Studio (N3.1)', () => {
+  let current: ReturnType<typeof signal<TrailStep | null>>;
+  let pins: ReturnType<typeof signal<readonly TrailStep[]>>;
+  let steps: ReturnType<typeof signal<readonly TrailStep[]>>;
+  let navigateByUrl: Mock;
+
+  function entry(nodeId: string, title: string, focus: string) {
+    return { kind: 'http', title, nodeId, focus, project: 'Web' };
+  }
+
+  beforeEach(() => {
+    current = signal<TrailStep | null>(null);
+    pins = signal<readonly TrailStep[]>([]);
+    steps = signal<readonly TrailStep[]>([]);
+    navigateByUrl = vi.fn().mockResolvedValue(true);
+
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: SessionStore,
+          useValue: {
+            handle: signal('h1'),
+            ready: signal(true),
+            mapResponse: signal(null),
+            entryGroups: signal([{
+              kind: 'http',
+              label: 'HTTP',
+              entries: [
+                entry('node-checkout', 'POST /checkout', 'node-checkout.Focus'),
+                entry('node-orders', 'GET /orders', 'node-orders.Focus'),
+              ],
+            }]),
+          },
+        },
+        { provide: TraceStore, useValue: { focus: signal(''), tree: signal(null), selectedNode: signal(null) } },
+        {
+          provide: TrailStore,
+          useValue: { current, pins, steps, pinCount: () => pins().length, isPinned: () => false, togglePin: vi.fn() },
+        },
+        { provide: AtlasStore, useValue: {} },
+        { provide: NodePeekStore, useValue: { dismiss: vi.fn(), nodeId: signal(null) } },
+        { provide: PrefsStore, useValue: { dockLevel: () => 2, setDockLevel: vi.fn(), dockWidth: () => null, setDockWidth: vi.fn() } },
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => null } } } },
+        { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true), navigateByUrl } },
+      ],
+    });
+  });
+
+  function createPage(): SendTestSurface {
+    return TestBed.runInInjectionContext(() => new WorkbenchPage()) as unknown as SendTestSurface;
+  }
+
+  it('Ctrl+E sends the CURRENT SELECTION into Studio, not an empty desk', async () => {
+    current.set(step('node-checkout', 'POST /checkout'));
+    steps.set([step('node-checkout', 'POST /checkout'), step('node-orders', 'GET /orders')]);
+    const page = createPage();
+
+    page.onGlobalKey(new KeyboardEvent('keydown', { key: 'e', ctrlKey: true }));
+    await Promise.resolve();
+
+    const pending = TestBed.inject(StudioHandoffStore).pending();
+    expect(pending?.seeds.map((s) => s.entryIds)).toEqual([['node-checkout']]);
+    expect(pending?.source).toBe('“POST /checkout”');
+    expect(navigateByUrl).toHaveBeenCalledWith(STUDIO_ROUTE);
+  });
+
+  it('the trail bar sends PINS when there are any, and the whole trail otherwise', async () => {
+    steps.set([step('node-checkout', 'POST /checkout'), step('node-orders', 'GET /orders')]);
+    const page = createPage();
+
+    page.onSendToStudio('pins-or-trail');
+    await Promise.resolve();
+    expect(TestBed.inject(StudioHandoffStore).pending()?.seeds).toHaveLength(2);
+
+    pins.set([step('node-orders', 'GET /orders')]);
+    page.onSendToStudio('pins-or-trail');
+    await Promise.resolve();
+    const pending = TestBed.inject(StudioHandoffStore).pending();
+    expect(pending?.seeds.map((s) => s.entryIds)).toEqual([['node-orders']]);
+    expect(pending?.source).toBe('1 pinned step');
+  });
+
+  it('reports steps that no longer resolve instead of sending a pack built from nothing', () => {
+    current.set(step('node-gone', 'DELETE /legacy'));
+    const page = createPage();
+
+    page.onSendToStudio('selection');
+
+    expect(TestBed.inject(StudioHandoffStore).pending()).toBeNull();
+    expect(navigateByUrl).toHaveBeenCalledWith('/context');
+    expect(TestBed.inject(ToastService).messages().map((m) => m.kind)).toEqual(['error']);
+  });
+
+  it('still OPENS Studio with nothing explored — the archetype preset is the landing (N3.1)', () => {
+    const page = createPage();
+
+    page.onGlobalKey(new KeyboardEvent('keydown', { key: 'e', ctrlKey: true }));
+
+    expect(navigateByUrl).toHaveBeenCalledWith('/context');
+    expect(TestBed.inject(StudioHandoffStore).pending()).toBeNull();
+    expect(TestBed.inject(ToastService).messages().map((m) => m.kind)).toEqual(['info']);
   });
 });

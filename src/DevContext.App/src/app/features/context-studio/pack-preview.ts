@@ -1,5 +1,5 @@
 import { highlightCSharp } from '../../core/code-highlight';
-import type { OutputFormat } from './scope-picker';
+import type { OutputFormat } from '../../models/context-card';
 
 /**
  * D4.5 (L4) — the live pack preview's renderer. The preview shows EXACTLY the string

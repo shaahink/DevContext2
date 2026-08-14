@@ -68,6 +68,21 @@ import { TrailStore, type TrailStep } from '../state/trail.store';
             ◈ {{ trail.pinCount() }}
           </span>
         }
+
+        <!-- N3.1 (audit §3.A "nothing routes in") — the hand-off, one click from where the reading
+             happened. The label names its SOURCE because pins win over the raw trail, and a button
+             that silently picks between two things is the defect N1.2 fixed on the other end. -->
+        <button
+          type="button"
+          class="shrink-0 rounded px-1.5 py-px text-2xs text-ink-subtle transition-colors hover:bg-surface-2 hover:text-accent"
+          data-testid="trail-send-to-studio"
+          [title]="trail.pinCount() > 0
+            ? 'Compose a context pack from your ' + trail.pinCount() + ' pinned step(s) in Context Studio'
+            : 'Compose a context pack from these ' + trail.steps().length + ' trail step(s) in Context Studio'"
+          (click)="sendToStudio.emit()"
+        >
+          → Studio{{ trail.pinCount() > 0 ? ' (' + trail.pinCount() + ' pinned)' : '' }}
+        </button>
       </div>
     }
   `,
@@ -77,6 +92,10 @@ export class TrailBar {
 
   /** The step the trail moved to — parent re-traces it. */
   readonly restore = output<TrailStep>();
+
+  /** N3.1 — "take this into Context Studio". The page owns it, because only it can resolve a step's
+   * focus against the live entry inventory. */
+  readonly sendToStudio = output<void>();
 
   protected undo(): void {
     const step = this.trail.undo();

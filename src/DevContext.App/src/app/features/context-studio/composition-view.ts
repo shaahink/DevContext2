@@ -3,7 +3,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { copyToClipboard } from '../../core/clipboard';
 import { Icon } from '../../ui/icon/icon';
 import { ToastService } from '../../ui/toast/toast';
-import type { ContextCardType } from './scope-picker';
+import type { ContextCardType } from '../../models/context-card';
 
 /** T5.3 — a card's server section with its real content and provenance (T4.4 fields). */
 export interface CardSection {

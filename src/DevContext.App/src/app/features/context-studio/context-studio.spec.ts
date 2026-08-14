@@ -6,12 +6,13 @@ import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devc
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import type { EntryGroupVm } from '../../models/view-models';
 import { ToastService } from '../../ui/toast/toast';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
-import type { ContextCardSeed, ContextIntent, OutputFormat } from './scope-picker';
+import type { ContextCardSeed, ContextIntent, OutputFormat } from '../../models/context-card';
 import type { PackVerification } from './verification-panel';
 
 /** The protected surface the specs drive — kept in sync with ContextStudio by the cast site. */
@@ -28,6 +29,9 @@ interface StudioTestSurface {
   packSuggestedFocuses(): readonly { focus: string; kind: string; depth: number }[];
   onSuggestedFocus(s: { focus: string; kind: string; depth: number }): void;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
+  // N3.1 — the proposed-pack default state.
+  proposalSource(): string | null;
+  onClearProposal(): void;
   onBudgetChange(value: number): void;
   onIntentChange(intent: ContextIntent): void;
   onToggleBody(id: string): void;
@@ -164,11 +168,23 @@ describe('ContextStudio', () => {
     });
   });
 
-  function createStudio() {
+  /**
+   * N3.1 — Studio no longer opens empty: it proposes a pack from pins, else the trail, else the
+   * archetype preset. Every spec written before N3.1 is about something else (the seed button, the
+   * Types tab, the preview), so the default here clears the proposal and the RPC it scheduled —
+   * otherwise those specs would be measuring the proposal's cards on top of their own. No assertion
+   * below was changed; only the component's OPENING state was. `keepProposal: true` is how the N3.1
+   * specs opt into it.
+   */
+  function createStudio(opts: { keepProposal?: boolean } = {}) {
     const fixture = TestBed.createComponent(ContextStudio);
     fixture.detectChanges();
     const studio = fixture.componentInstance as unknown as StudioTestSurface;
     studio.packDebounceMs = 0;
+    if (!opts.keepProposal) {
+      studio.onClearProposal();
+      getContextPack.mockClear();
+    }
     return { fixture, studio };
   }
 
@@ -995,5 +1011,110 @@ describe('ContextStudio', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[data-testid="picker-tab-entries"]')?.getAttribute('aria-selected')).toBe('true');
     expect(el.querySelectorAll('[data-testid="picker-type-row"]')).toHaveLength(0);
+  });
+
+  // ── N3.1 — the default state (audit §4 Room 1: "never opens empty after exploration") ──
+
+  function banner(fixture: { nativeElement: HTMLElement }): HTMLElement | null {
+    return fixture.nativeElement.querySelector('[data-testid="studio-proposal-banner"]');
+  }
+
+  it('opens with the PINS proposed as a pack, and says so (N3.1)', () => {
+    seedGraph(
+      entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      entry('node-orders', 'GET /orders', 'OrdersController.Get'),
+    );
+    trailSteps.set([
+      step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post'),
+      step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get'),
+    ]);
+    pins.set([step('entry', 'node-orders', 'GET /orders', 'OrdersController.Get')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-orders']]);
+    expect(studio.proposalSource()).toBe('1 pinned step');
+    expect(banner(fixture)?.textContent).toContain('Proposed from');
+  });
+
+  it('falls back to the trail when nothing is pinned (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['node-checkout']]);
+    expect(studio.proposalSource()).toBe('your trail (1 step)');
+  });
+
+  it('a fresh session with no trail gets the archetype preset — top flows for an app (N3.1)', () => {
+    seedGraph(
+      entry('node-a', 'GET /orders', 'OrdersController.Get'),
+      entry('node-b', 'POST /checkout', 'CheckoutController.Post'),
+    );
+    mapResponse.set({ isLibrary: false, surface: undefined });
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    // Two entries, both HTTP, so both are proposed — the preset caps at three.
+    expect(studio.cards().map((c) => c.type)).toEqual(['flow', 'flow']);
+    expect(studio.proposalSource()).toBe("this repo's top 2 flows");
+  });
+
+  it('a fresh LIBRARY session gets its widest public types instead (N3.1)', () => {
+    mapResponse.set(librarySurface());
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    // AbstractValidator has two members to IValidator's one, so it leads; typeCardSeeds is the
+    // same card set the Types tab emits, usage included.
+    expect(studio.cards().every((c) => c.entryIds[0] === 'FluentValidation.AbstractValidator')).toBe(true);
+    expect(studio.cards().map((c) => c.type)).toContain('usage');
+    expect(studio.proposalSource()).toBe("this library's 2 widest public types");
+  });
+
+  it('adopts a proposal a sender left on the way in, over the trail (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    trailSteps.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+    TestBed.inject(StudioHandoffStore).send({
+      seeds: [{ type: 'usage', title: 'Who uses OrderService', entryIds: ['Type:Acme.OrderService'], estimatedLines: 15 }],
+      source: 'the node “OrderService”',
+    });
+
+    const { studio } = createStudio({ keepProposal: true });
+
+    expect(studio.cards().map((c) => c.entryIds)).toEqual([['Type:Acme.OrderService']]);
+    expect(studio.proposalSource()).toBe('the node “OrderService”');
+    // Taken exactly once — a second walk into the room must not re-seed it.
+    expect(TestBed.inject(StudioHandoffStore).pending()).toBeNull();
+  });
+
+  it('an edit makes the pack the reader\'s — the banner goes away (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+    expect(studio.proposalSource()).not.toBeNull();
+
+    studio.onRemove(studio.cards()[0].id);
+    fixture.detectChanges();
+
+    expect(studio.proposalSource()).toBeNull();
+    expect(banner(fixture)).toBeNull();
+  });
+
+  it('clearing a proposal stays cleared — the proposer does not re-seed it (N3.1)', () => {
+    seedGraph(entry('node-checkout', 'POST /checkout', 'CheckoutController.Post'));
+    pins.set([step('entry', 'node-checkout', 'POST /checkout', 'CheckoutController.Post')]);
+
+    const { fixture, studio } = createStudio({ keepProposal: true });
+    studio.onClearProposal();
+    fixture.detectChanges();
+    // Something unrelated changes and re-runs the effect.
+    entryGroups.set([...entryGroups()]);
+    fixture.detectChanges();
+
+    expect(studio.cards()).toEqual([]);
+    expect(studio.proposalSource()).toBeNull();
   });
 });
