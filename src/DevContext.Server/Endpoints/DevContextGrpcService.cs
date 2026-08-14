@@ -328,6 +328,26 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToContextPackResponse(pack);
         });
 
+    // N3.2 (STUDIO-MCP §8.3, decision 3) — the repo-file hand-off. The Studio's Save used to hand
+    // the pack to the browser's download path, which is why its toast could only name a FILE and
+    // never a location: it did not choose one. The pack belongs in the repo it describes, and the
+    // repo root is a fact this side holds — the client knows a handle, not a path.
+    public override Task<Proto.SavePackFileResponse> SavePackFile(Proto.SavePackFileRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            // The ANALYZED root, not the requested path: it is the root every file:line in the
+            // pack is relative to, so a pack that sits beside it addresses the same tree.
+            var root = session.Snapshot.RootPath is { Length: > 0 } r ? r : session.RepoRoot;
+            var written = PackFileWriter.Write(root, request.Slug, request.Content, request.Format);
+            return new Proto.SavePackFileResponse
+            {
+                Path = written.Path,
+                RelativePath = written.RelativePath,
+                Gitignored = written.Gitignored,
+                AgentLine = written.AgentLine,
+            };
+        });
+
     // T4.5 (audit R6) — staleness verification: rebuild the focus's sections (cheap — the graph
     // is immutable since analyze, so the file sets are stable) and compare each section's
     // analyze-time file fingerprints against disk now.

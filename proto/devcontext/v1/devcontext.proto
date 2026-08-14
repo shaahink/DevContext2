@@ -101,6 +101,14 @@ service DevContextService {
   // M3.1 — list all active sessions (MCP page session list).
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
 
+  // N3.2 (STUDIO-MCP §8.3, decision 3) — the repo-file hand-off. Save stops being a browser
+  // download and writes the pack INTO the analyzed repo, where an agent can be pointed at it.
+  // This is a server RPC and not a client-side file write because the client has no file
+  // system it can reach: the Tauri capabilities scope fs to LOCALDATA with no write/mkdir
+  // permission, and a repo lives anywhere, so a browser-only path could never be verified in
+  // dev:web AND in the shipped shell. The server already holds the repo root for the session.
+  rpc SavePackFile(SavePackFileRequest) returns (SavePackFileResponse);
+
   // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
   rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
   rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
@@ -835,6 +843,33 @@ message ContextCardItem {
   string title = 2;
   int32 tokens = 3;
   repeated SectionAllocation sections = 4;
+}
+
+// ---------------------------------------------------------------------------
+// N3.2 (STUDIO-MCP §8.3) — the repo-file hand-off
+// ---------------------------------------------------------------------------
+
+message SavePackFileRequest {
+  string handle = 1;
+  string slug = 2;       // file stem the caller proposes; the SERVER sanitizes it (see below)
+  string content = 3;    // the pack text, byte-for-byte what the composer is looking at
+  string format = 4;     // "markdown" (default) | "plain" | "json" -> the extension
+}
+
+// The written artifact, described by the side that wrote it. Paths are reported, never
+// predicted: the client cannot know the repo root, the sanitized slug, or whether the
+// gitignore already existed, so every one of these is a fact only the server holds.
+message SavePackFileResponse {
+  string path = 1;            // absolute path written, for the "where did it go" tooltip
+  string relative_path = 2;   // .devcontext/packs/<slug>.md — what the toast and the agent line say
+  // True when packs/ is covered by .devcontext/.gitignore. Decision 3 says gitignored BY
+  // DEFAULT, so the server writes that file when it is absent — but it never edits one the
+  // repo already has, and this flag is how the UI can stop promising a default it did not set.
+  bool gitignored = 3;
+  // The copyable "point your agent here" line for CLAUDE.md/AGENTS.md. Composed server-side
+  // like every other pack string (the app is a thin client — one buildContext path); it names
+  // the relative path so it stays true wherever the repo is checked out.
+  string agent_line = 4;
 }
 
 message SectionAllocation {
