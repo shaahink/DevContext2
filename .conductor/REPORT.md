@@ -1,9 +1,9 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `1d30e02`_
+_Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `3392c0f`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [6h 27m ago, 20:37:17Z]
-**Stage:** R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph · attempts used 0
+**Status:** NeedsHuman — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume` [8s ago, 03:04:44Z]
+**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0 · working ▸ A1.1
 **Checkpoints:** 16/20 done · **Sessions run:** 24 · **Cost:** $187.1078 (agent $186.9202 + gates $0.1876) · **Tokens:** 2,881,123 in / 1,221,534 out
 **Confirmed phases:** T1, V1, E1, D1, R1
 
@@ -16,7 +16,7 @@ _Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `1d30e
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
-| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
+| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | **← active** |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
@@ -138,8 +138,6 @@ _Where the money goes: agent $186.92 (100%) · gate $0.19 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 22:45:02  • session #16 E1 → Advanced · done E1.1 · 16 commit(s)  (1h00m53s)
-08-13 22:45:06  • session #17 E1 Deliver started (attempt 1/8)
 08-13 23:11:18  • session #17 E1 → Advanced · done E1.2 · 5 commit(s)  (26m12s)
 08-13 23:11:18  • session #18 E1 Deliver started (attempt 1/8)
 08-14 00:01:23  • session #18 E1 → Advanced · done E1.3 · 3 commit(s)  (50m05s)
@@ -178,6 +176,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 04:04:17  ▪ gate guards pass [phase]  (2m03s)
 08-14 04:04:18  ▪ gate battery pass [phase]  (19m03s)
 08-14 04:04:18  ✓ checkpoint R1.1 confirmed
+08-14 04:04:18  ▸ stage R1 confirmed  (56m56s)
+08-14 04:04:43  ▸ stage A1 entered — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
 ```
 
 ## Health
@@ -199,7 +199,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/pre-release-engine
 working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
-vs upstream: up to date
+vs upstream: 1 ahead, 2 behind
 ```
 
 ### Commits by session

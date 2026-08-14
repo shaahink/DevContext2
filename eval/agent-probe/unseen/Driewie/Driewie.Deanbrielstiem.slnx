@@ -1,0 +1,33 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".template.config/template.json" />
+    <File Path="DriewieDeanbrielstiem.nuspec" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Driewie.Deanbrielstiem.Core/Driewie.Deanbrielstiem.Core.csproj" />
+    <Project Path="src/Driewie.Deanbrielstiem.Infrastructure/Driewie.Deanbrielstiem.Infrastructure.csproj" />
+    <Project Path="src/Driewie.Deanbrielstiem.UseCases/Driewie.Deanbrielstiem.UseCases.csproj" />
+    <Project Path="src/Driewie.Deanbrielstiem.Web/Driewie.Deanbrielstiem.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/_aspire/">
+    <Project Path="src/Driewie.Deanbrielstiem.AspireHost/Driewie.Deanbrielstiem.AspireHost.csproj" />
+    <Project Path="src/Driewie.Deanbrielstiem.ServiceDefaults/Driewie.Deanbrielstiem.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Driewie.Deanbrielstiem.FunctionalTests/Driewie.Deanbrielstiem.FunctionalTests.csproj">
+      <BuildDependency Project="src/Driewie.Deanbrielstiem.Web/Driewie.Deanbrielstiem.Web.csproj" />
+    </Project>
+    <Project Path="tests/Driewie.Deanbrielstiem.IntegrationTests/Driewie.Deanbrielstiem.IntegrationTests.csproj">
+      <BuildDependency Project="src/Driewie.Deanbrielstiem.Infrastructure/Driewie.Deanbrielstiem.Infrastructure.csproj" />
+    </Project>
+    <Project Path="tests/Driewie.Deanbrielstiem.UnitTests/Driewie.Deanbrielstiem.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -4,23 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-R1.1 CLAIMED (557537c + 372f77c). The G10 lesson arrived on schedule and worse than predicted:
-#22 graph.orphans did not stay dormant, it INVERTED. E1 lifted the Semantic share 8x (eShop
-0.057 -> 0.438), the 0.5 floor is now cleared on 7/12 poles, and on the 2 where the full gate passes
-it emitted 10 dead-code claims of which I hand-verified 0 true - it named four `: ICarterModule`
-HTTP endpoints and a `Decorate<>`d repository as dead. RETIRED (source+tests deleted, lens-audit's
-P7 grep is now a ratchet on the id). #24 deep-spine RETIRED (saturated on 12 poles, unchanged from
-2026-08-02). #23 HELD and its premise REFUTED: the broadening DOES fire - Hangfire sparseGraph=true,
-hubScopeNodes=34 - the old 11-pole set just never held a repo that clears its gates.
-HUMAN: retiring graph.orphans reverses "keep-or-retire is yours" in OWNER-TODO.md §4. Reversible;
-a revival needs REGISTRATION-aware liveness (DI impl types, assembly-scan interfaces, decorators),
-not in-degree, and lens-audit will fail until it brings its own probe.
-NEXT: A1.1/A1.2 are the only TODOs left on the board. Bug #18 (hub-scope sizes hubs off
-model.CallEdges, a channel post-E1 left behind) is the cheapest live follow-up.
-REUSE, DO NOT REBUILD: eval-results/2026-08-14/r1-metrics/r1-metric-sweep.ps1 + r1-aggregate.mjs -
-12 poles, private cache root, one `query stats` per pole answers every graph threshold and reports
-which insights actually emitted. Six G10 poles (Dapper/Serilog/MahApps/GitVersion/DntSite/wolverine)
-are gone from this machine - do not assume that grid is reproducible.
+A1.1 CLAIMED (b0de331 + this commit). Evidence eval-results/2026-08-14/a1-preregistration/.
+DESIGN.md now carries §0 an amendment log and five dated amendments: unseen repo, question mix
+pinned per repo, the non-inferiority endpoint replaced, κ made applicable, arm BI added. Two
+RESULTS §10.4 figures did NOT survive re-derivation - its reachability table is the acc=1.00
+column called "the best each n can produce" (it is the worst; at acc=0.50 the interval is
+zero-width at every n), and the pairs were pseudo-replicated 5× which makes non-inferiority
+EASIER to declare. New endpoint: question-level, bootstrap over questions, ONE pooled test,
+margin −0.10 (`analyse.mjs --ni-power` prints both surfaces). Unseen repo BUILT and pinned:
+eval/agent-probe/unseen/Driewie/, 132 files, treeSha 9857e03c, `rename-repo.mjs --verify` PASSES,
+build 0 errors/4 warnings matching the unmodified control exactly. Building it found 3 defects
+reading could not - read the ledger note before touching rename-repo.mjs.
+NEXT: A1.2, the $10 adoption gate, now unblocked - pre-registration is committed and DESIGN §3.1
+names the branch to report either way. Run arm B alone on eShop, 18 runs, UNCHANGED prompt, via
+`conductor bg start --purpose probe`. A share <0.2 is a REAL product finding, not a failure.
+NOT DONE, and NOT A1.1's: questions/Driewie.json + the 2nd class-B question per repo (full-run
+W3.8 inputs, must be hand-authored before any full run).
 
 
 ## Baseline numbers (from run.db)
@@ -28,8 +27,8 @@ are gone from this machine - do not assume that grid is reproducible.
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
-| Done | 11 |
-| Claimed (unconfirmed) | 4 |
+| Done | 15 |
+| Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
 
@@ -66,16 +65,16 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.1-EVIDENCE.md |
-| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | DONE | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.2-EVIDENCE.md |
-| D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | DONE | 796843f | eval-results/2026-08-14/d1-filed/D1.3-EVIDENCE.md |
-| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | DONE | a221296 | eval-results/2026-08-14/d1-rung4/D1.4-EVIDENCE.md |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | DONE ✓ | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.1-EVIDENCE.md |
+| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | DONE ✓ | 78e8998 | eval-results/2026-08-14/d1-coverage/D1.2-EVIDENCE.md |
+| D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | DONE ✓ | 796843f | eval-results/2026-08-14/d1-filed/D1.3-EVIDENCE.md |
+| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | DONE ✓ | a221296 | eval-results/2026-08-14/d1-rung4/D1.4-EVIDENCE.md |
 
 ### R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | TODO | - | - |
+| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | DONE | 557537c | eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md |
 
 ### A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
 
