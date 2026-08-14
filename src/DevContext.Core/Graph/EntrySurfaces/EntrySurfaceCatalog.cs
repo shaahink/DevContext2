@@ -83,9 +83,17 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["FastEndpoints"]),
 
+        // D1.3 (#15) — a Blazor @page is a UI entry, and the CATALOG was the stale side of that:
+        // HttpEntryPointBuilder has emitted UiEntry for a .razor @page since T1.7 (which is what
+        // stopped Blazor pages counting as anonymous HTTP endpoints in the security insight), while
+        // this descriptor still declared HttpEndpoint/"HTTP". CatalogReachabilityTests measured the
+        // disagreement — the blazor consumer project produces UiEntry, not the declared kind.
+        // RenderLabel stays "UI": MapRenderer.KindLabels groups by Kind and takes the FIRST
+        // descriptor, and this is the first UiEntry one in file order, so any other string here would
+        // silently relabel every desktop entry too.
         new(SignalKey: ArchitectureSignals.Keys.Blazor,
-            Kind:       EntryPointKind.HttpEndpoint,
-            RenderLabel:"HTTP",
+            Kind:       EntryPointKind.UiEntry,
+            RenderLabel:"UI",
             Role:       SurfaceRole.AppEntry,
             Packages:   ["Microsoft.AspNetCore.Components"],
             SdkHints:   [],
