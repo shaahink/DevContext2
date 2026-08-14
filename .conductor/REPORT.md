@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 01:45 UTC · branch `feat/pre-release-engine` · HEAD `ded5493`_
+_Updated 2026-08-14 02:07 UTC · branch `feat/pre-release-engine` · HEAD `cb2760a`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 08m ago, 20:37:17Z]
+**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 29m ago, 20:37:17Z]
 **Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0
 **Checkpoints:** 15/20 done · **Sessions run:** 23 · **Cost:** $176.5386 (agent $176.3510 + gates $0.1876) · **Tokens:** 2,713,558 in / 1,150,064 out
-**Confirmed phases:** T1, V1, E1
-**Pending:** full-battery phase gate for D1
+**Confirmed phases:** T1, V1, E1, D1
 
 ## Stage progress
 
@@ -15,7 +14,7 @@ _Updated 2026-08-14 01:45 UTC · branch `feat/pre-release-engine` · HEAD `ded54
 | T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
-| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | gating… |
+| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
@@ -59,7 +58,7 @@ _Updated 2026-08-14 01:45 UTC · branch `feat/pre-release-engine` · HEAD `ded54
 | D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
 | D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
 | D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ✅ DONE | [`796843f`](https://github.com/shaahink/DevContext2/commit/796843f) |
-| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ✅ DONE | - |
+| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ✅ DONE | [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) |
 
 </details>
 
@@ -123,29 +122,20 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 22 | 228.8M | 98.4% | $164.49 | 14 | 16.3M | $11.75 |
+| **run total** | 23 | 245.4M | 98.4% | $176.56 | 15 | 16.4M | $11.77 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
-| stage D1 | 3 | 35.3M | 98.3% | $26.25 | 3 | 11.8M | $8.75 |
-| 2026-08 | 22 | 228.8M | 98.4% | $164.49 | 14 | 16.3M | $11.75 |
+| stage D1 | 4 | 51.9M | 98.3% | $38.33 | 4 | 13M | $9.58 |
+| 2026-08 | 23 | 245.4M | 98.4% | $176.56 | 15 | 16.4M | $11.77 |
 
-_Where the money goes: agent $164.28 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $176.35 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:35:56  ■ needs human — advisor: human intervention required
-08-13 21:36:01  • session #11 E1 → AgentError  (19.1s)
-08-13 21:36:01  • session #12 E1 Deliver started (attempt 5/8)
-08-13 21:36:16  ■ needs human — advisor: human intervention required
-08-13 21:36:20  • session #12 E1 → AgentError  (18.8s)
-08-13 21:36:20  • session #13 E1 Deliver started (attempt 6/8)
-08-13 21:36:35  ■ needs human — advisor: human intervention required
-08-13 21:36:40  • session #13 E1 → AgentError  (19.4s)
-08-13 21:36:40  • session #14 E1 Deliver started (attempt 7/8)
 08-13 21:36:52  ■ needs human — advisor: human intervention required
 08-13 21:36:55  • session #14 E1 → AgentError  (15.4s)
 08-13 21:36:55  • session #15 E1 Deliver started (attempt 8/8)
@@ -177,6 +167,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 01:38:54  • session #22 D1 Deliver started (attempt 1/6)
 08-14 02:16:40  • session #22 D1 → Advanced · done D1.3 · 4 commit(s)  (37m46s)
 08-14 02:16:41  • session #23 D1 Deliver started (attempt 1/6)
+08-14 02:45:53  • session #23 D1 → Advanced · done D1.4 · 3 commit(s)  (29m11s)
+08-14 03:07:14  ▪ gate fast-engine pass [phase]  (3m05s)
+08-14 03:07:14  ▪ gate guards pass [phase]  (3m49s)
+08-14 03:07:15  ▪ gate battery pass [phase]  (14m19s)
+08-14 03:07:15  ✓ checkpoint D1.1 confirmed
+08-14 03:07:15  ✓ checkpoint D1.2 confirmed
+08-14 03:07:15  ✓ checkpoint D1.3 confirmed
+08-14 03:07:15  ✓ checkpoint D1.4 confirmed
+08-14 03:07:15  ▸ stage D1 confirmed  (2h12m12s)
 ```
 
 ## Health
@@ -197,7 +196,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: clean
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -249,6 +248,10 @@ vs upstream: up to date
   - [`ded5493`](https://github.com/shaahink/DevContext2/commit/ded5493) docs(d1): D1.4 evidence and the handoff for the next session (D1.4)
   - [`cbae476`](https://github.com/shaahink/DevContext2/commit/cbae476) refactor(detection): Confidence moves to the one detection that is read, 27 writes go (D1.3 leftover)
   - [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) feat(detection): a Hangfire or Quartz consumer app finally has entry points (D1.4)
+
+## Last gate run
+
+fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
