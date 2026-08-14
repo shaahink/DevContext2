@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 02:07 UTC · branch `feat/pre-release-engine` · HEAD `cb2760a`_
+_Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `1d30e02`_
 
-**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [5h 29m ago, 20:37:17Z]
-**Stage:** D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) · attempts used 0
-**Checkpoints:** 15/20 done · **Sessions run:** 23 · **Cost:** $176.5386 (agent $176.3510 + gates $0.1876) · **Tokens:** 2,713,558 in / 1,150,064 out
-**Confirmed phases:** T1, V1, E1, D1
+**Status:** Idle — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [6h 27m ago, 20:37:17Z]
+**Stage:** R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph · attempts used 0
+**Checkpoints:** 16/20 done · **Sessions run:** 24 · **Cost:** $187.1078 (agent $186.9202 + gates $0.1876) · **Tokens:** 2,881,123 in / 1,221,534 out
+**Confirmed phases:** T1, V1, E1, D1, R1
 
 ## Stage progress
 
@@ -15,7 +15,7 @@ _Updated 2026-08-14 02:07 UTC · branch `feat/pre-release-engine` · HEAD `cb276
 | V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
-| R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ░░░░░░░░░░ 0/1 | todo |
+| R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
 | A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | todo |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
 
@@ -62,11 +62,11 @@ _Updated 2026-08-14 02:07 UTC · branch `feat/pre-release-engine` · HEAD `cb276
 
 </details>
 
-<details><summary>R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph (0/1)</summary>
+<details> ✅<summary>R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph (1/1)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | ⬜ TODO | - |
+| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | ✅ DONE | [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) |
 
 </details>
 
@@ -115,6 +115,7 @@ _Updated 2026-08-14 02:07 UTC · branch `feat/pre-release-engine` · HEAD `cb276
 | 21 | D1 | Deliver | 1 | 08-14 00:01 | 0:37 | Advanced | D1.1 D1.2 | 6 | gates green (none configured) | $12.8113 |  | 221,543/112,888 |
 | 22 | D1 | Deliver | 1 | 08-14 00:38 | 0:37 | Advanced | D1.3 | 4 | gates green (none configured) | $13.4409 |  | 205,917/72,126 |
 | 23 | D1 | Deliver | 1 | 08-14 01:16 | 0:28 | Advanced | D1.4 | 3 | gates green (none configured) | $12.0738 |  | 186,290/82,351 |
+| 24 | R1 | Deliver | 1 | 08-14 02:07 | 0:31 | Advanced | R1.1 | 3 | gates green (none configured) | $10.5692 |  | 167,565/71,470 |
 
 ## Money
 
@@ -122,27 +123,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 23 | 245.4M | 98.4% | $176.56 | 15 | 16.4M | $11.77 |
+| **run total** | 24 | 259.9M | 98.4% | $187.13 | 16 | 16.2M | $11.70 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
 | stage D1 | 4 | 51.9M | 98.3% | $38.33 | 4 | 13M | $9.58 |
-| 2026-08 | 23 | 245.4M | 98.4% | $176.56 | 15 | 16.4M | $11.77 |
+| stage R1 | 1 | 14.5M | 98.3% | $10.57 | 1 | 14.5M | $10.57 |
+| 2026-08 | 24 | 259.9M | 98.4% | $187.13 | 16 | 16.2M | $11.70 |
 
-_Where the money goes: agent $176.35 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $186.92 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:36:52  ■ needs human — advisor: human intervention required
-08-13 21:36:55  • session #14 E1 → AgentError  (15.4s)
-08-13 21:36:55  • session #15 E1 Deliver started (attempt 8/8)
-08-13 21:37:08  ■ needs human — advisor: human intervention required
-08-13 21:37:12  • session #15 E1 → AgentError  (16.1s)
-08-13 21:37:17  ■ needs human — stage E1 used all 8 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
-08-13 21:44:09  • session #16 E1 Deliver started (attempt 1/8)
 08-13 22:45:02  • session #16 E1 → Advanced · done E1.1 · 16 commit(s)  (1h00m53s)
 08-13 22:45:06  • session #17 E1 Deliver started (attempt 1/8)
 08-13 23:11:18  • session #17 E1 → Advanced · done E1.2 · 5 commit(s)  (26m12s)
@@ -176,6 +171,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 03:07:15  ✓ checkpoint D1.3 confirmed
 08-14 03:07:15  ✓ checkpoint D1.4 confirmed
 08-14 03:07:15  ▸ stage D1 confirmed  (2h12m12s)
+08-14 03:07:21  ▸ stage R1 entered — W6 metric recalibration (22, 23, 24) against the post-E1 graph
+08-14 03:07:21  • session #24 R1 Deliver started (attempt 1/2)
+08-14 03:39:05  • session #24 R1 → Advanced · done R1.1 · 3 commit(s)  (31m43s)
+08-14 04:04:17  ▪ gate fast-engine pass [phase]  (4m02s)
+08-14 04:04:17  ▪ gate guards pass [phase]  (2m03s)
+08-14 04:04:18  ▪ gate battery pass [phase]  (19m03s)
+08-14 04:04:18  ✓ checkpoint R1.1 confirmed
 ```
 
 ## Health
@@ -183,7 +185,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 23 · retries 8 (35 %) · overall Alert
+sessions 24 · retries 8 (33 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -202,10 +204,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s7 (V1 Deliver)** — 3 commit(s):
-  - [`44e5319`](https://github.com/shaahink/DevContext2/commit/44e5319) docs(v1): V1.3 gate results — Core 766/0, Server 108/0; matrix + guards left to the battery
-  - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
-  - [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) fix(graph): two standing invariants, enforced where a node is made (V1.3, #7 rider + #18)
 - **s16 (E1 Deliver)** — 16 commit(s):
   - [`795ad1b`](https://github.com/shaahink/DevContext2/commit/795ad1b) Merge remote-tracking branch 'origin/feat/pre-release-engine' into feat/pre-release-engine
   - [`82f0e0f`](https://github.com/shaahink/DevContext2/commit/82f0e0f) fix(graph): static type-name-receiver calls produce edges, in BOTH producers (E1.1, #11)
@@ -248,6 +246,10 @@ vs upstream: up to date
   - [`ded5493`](https://github.com/shaahink/DevContext2/commit/ded5493) docs(d1): D1.4 evidence and the handoff for the next session (D1.4)
   - [`cbae476`](https://github.com/shaahink/DevContext2/commit/cbae476) refactor(detection): Confidence moves to the one detection that is read, 27 writes go (D1.3 leftover)
   - [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) feat(detection): a Hangfire or Quartz consumer app finally has entry points (D1.4)
+- **s24 (R1 Deliver)** — 3 commit(s):
+  - [`b72cb7d`](https://github.com/shaahink/DevContext2/commit/b72cb7d) chore(tracker): R1.1 handoff for the next session (R1.1)
+  - [`372f77c`](https://github.com/shaahink/DevContext2/commit/372f77c) docs(metrics): the surviving threshold names its calibration commit (R1.1)
+  - [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) refactor(metrics): two metrics retire on measurement, one has its premise refuted (R1.1)
 
 ## Last gate run
 
@@ -255,24 +257,26 @@ fast-engine:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> SESSION-RESULT:** D1.4 (rung 4) landed and is claimed with evidence at `eval-results/2026-08-14/d1-rung4/D1.4-EVIDENCE.md` — commit `a221296`. The measured hole was not a missing descriptor: `EntrySurfaceCatalog` already carried `quartz` and `hangfire` descriptors with `Kind: null`, so both signals fired and a real scheduler consumer app produced *zero* entries of any kind (red log: signal FIRED, kind MISSING, "entries produced: (none)", 2 FAIL/7 PASS). Both descriptors now declare `Kind: ScheduledJob`; `ProgramCsFlowExtractor` reads Hangfire and Quartz registration syntax and emits `BackgroundWorkerKind.TimedJob` — the first producer that kind has ever had — and `WorkerEntryPointBuilder` mi…
+> SESSION-RESULT:** R1.1 landed with all three metrics resolved against a fresh 12-pole post-E1 measurement (`eval-results/2026-08-14/r1-metrics/`, commits `557537c` + `372f77c` + handoff `b72cb7d`, build 0w/0e, units 922 passed / 0 failed). The G10 lesson arrived exactly as predicted and worse than filed: **#22 `graph.orphans` did not stay dormant — it inverted.** E1's 8× lift in Semantic share (eShop 0.057 → 0.438) cleared its 0.5 floor on 7 of 12 poles, the full gate now passes on 2, and both emit a `Notable` dead-code card — 10 claims, hand-verified in the target repos, **0 true**: it named four `: ICarterModule` HTTP endpoints and a `Decorate<IBasketRepository, CachedBasketRepository>`d r…
 
 ## Tracker handoff
 
 ```
-D1.4 CLAIMED (a221296): rung 4 lands. The hole was NOT a missing descriptor - quartz and hangfire
-were already in the catalog with Kind:null, so both signals fired and a real scheduler app produced
-ZERO entries. Red log then green: eval-results/2026-08-14/d1-rung4/. TimedJob has its first producer.
-ALSO CLOSED, D1.3 leftover (b) (cbae476): the compile sweep REFUTED s22 prediction - Confidence has
-exactly ONE reader (GraphEdge on the Raises edge), so it moved to EventFlowDetection and 27 unread
-writes went. D1.3 amended with this. ALL D1 CHECKPOINTS ARE NOW DONE.
-ONLY D1 ITEM LEFT: #2 addressable entry names. Located, not started - HttpEntryPointBuilder sets
-EntryPoint.Title = "GET /todos" while the handler member node is "<lambda> GET /todos/"
-(HttpEntryPointBuilder.cs:165). It reaches MCP, so it wants a session that can touch the agent face.
-CHEAP INSTRUMENT WIN NOBODY HAS TAKEN: D1.1 P2 only polices descriptors that DECLARE a Kind, so a
-Kind:null descriptor is invisible to it - which is exactly how D1.4 hole survived. ~15 Kind:null
-descriptors remain. A third property (Kind:null is justified in the allow-list or gets a Kind) closes
-that blind spot.
-WATCH: McpQaGateTests orphans a DevContext.Server.exe that locks Core.dll and fails the NEXT build
-with MSB3027. Identify the pid from the build error and stop that one - do not kill by name.
+R1.1 CLAIMED (557537c + 372f77c). The G10 lesson arrived on schedule and worse than predicted:
+#22 graph.orphans did not stay dormant, it INVERTED. E1 lifted the Semantic share 8x (eShop
+0.057 -> 0.438), the 0.5 floor is now cleared on 7/12 poles, and on the 2 where the full gate passes
+it emitted 10 dead-code claims of which I hand-verified 0 true - it named four `: ICarterModule`
+HTTP endpoints and a `Decorate<>`d repository as dead. RETIRED (source+tests deleted, lens-audit's
+P7 grep is now a ratchet on the id). #24 deep-spine RETIRED (saturated on 12 poles, unchanged from
+2026-08-02). #23 HELD and its premise REFUTED: the broadening DOES fire - Hangfire sparseGraph=true,
+hubScopeNodes=34 - the old 11-pole set just never held a repo that clears its gates.
+HUMAN: retiring graph.orphans reverses "keep-or-retire is yours" in OWNER-TODO.md §4. Reversible;
+a revival needs REGISTRATION-aware liveness (DI impl types, assembly-scan interfaces, decorators),
+not in-degree, and lens-audit will fail until it brings its own probe.
+NEXT: A1.1/A1.2 are the only TODOs left on the board. Bug #18 (hub-scope sizes hubs off
+model.CallEdges, a channel post-E1 left behind) is the cheapest live follow-up.
+REUSE, DO NOT REBUILD: eval-results/2026-08-14/r1-metrics/r1-metric-sweep.ps1 + r1-aggregate.mjs -
+12 poles, private cache root, one `query stats` per pole answers every graph threshold and reports
+which insights actually emitted. Six G10 poles (Dapper/Serilog/MahApps/GitVersion/DntSite/wolverine)
+are gone from this machine - do not assume that grid is reproducible.
 ```
