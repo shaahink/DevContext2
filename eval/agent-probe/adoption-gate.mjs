@@ -120,7 +120,11 @@ gateRows.forEach((r, i) => {
   P(`| ${i + 1} | ${r.questionId} | ${r.rep} | ${p.executed} | ${p.mcp} | ${p.share == null ? "n/a" : f(p.share, 2)} | $${f(r.costUsd, 2)} | ${r.censored ? "yes" : "no"} |`);
 });
 P();
-P(`## Pre-flight (DESIGN section 8; assertion 3 is arm-M only and does not apply)`);
+P(`## Pre-flight (DESIGN section 8)`);
+P();
+P(`Assertions **2 and 3 do not apply to a B-only batch**: 2 bounds arm G's transcript and 3 bounds`);
+P(`arm M's, and neither arm ran. Assertion 1 (\`analyze\` warm, \`cached: true\`) is a property of the`);
+P(`batch's warm pass, not of a row - it is quoted from the batch log in the evidence file.`);
 P();
 P(`- repo pin: ${gate.repoShas.map((s) => String(s).slice(0, 8)).join(", ")} (assertion 5)`);
 P(`- DevContext build under test: ${gate.devcontextShas.map((s) => String(s).slice(0, 8)).join(", ")} (assertion 5)`);
