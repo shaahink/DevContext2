@@ -14,6 +14,7 @@ import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { seedAgentCalls } from './seed-agent-calls.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..', '..', '..');
@@ -23,6 +24,10 @@ const TARGET_REPO =
   'C:\\Users\\shahi\\source\\repos\\run-aspnetcore-microservices\\src\\eshop-microservices.sln';
 const SHOT_DIR = join(ROOT, 'docs', 'screenshots');
 const SHOT_TIMEOUT = 90_000; // per-shot hard limit
+// Z1.2 — the MCP shot drives a real sidecar first (see seed-agent-calls.mjs), so it needs more
+// room than a navigate-and-wait shot. Still bounded: one slow shot must not eat the sequence.
+const MCP_SHOT_TIMEOUT = 360_000;
+const SERVER_URL = 'http://127.0.0.1:5179'; // start-dev-bg.ps1's $ServerUrl
 const SETTLE_MS = 1200;
 const ANALYZE_TIMEOUT = 300_000; // first analysis can be slow
 
@@ -122,11 +127,16 @@ async function clickIfExists(page: any, locator: any, label: string, afterMs = 1
 
 const results: Array<{ name: string; ok: boolean; error?: string }> = [];
 
-async function capture(page: any, name: string, fn: () => Promise<void>): Promise<void> {
+async function capture(
+  page: any,
+  name: string,
+  fn: () => Promise<void>,
+  timeoutMs = SHOT_TIMEOUT,
+): Promise<void> {
   shotsTotal++;
   console.log(`\n  ── ${name} ──`);
   try {
-    await withTimeout(fn(), SHOT_TIMEOUT, `capture ${name}`);
+    await withTimeout(fn(), timeoutMs, `capture ${name}`);
     await page.screenshot({ path: join(SHOT_DIR, `${name}.png`), fullPage: true });
     results.push({ name, ok: true });
     shotsOk++;
@@ -302,12 +312,37 @@ async function main() {
     });
 
     // ── 10. MCP ─────────────────────────────────────────
-    await capture(page, '10-mcp', async () => {
-      // Use load event instead of networkidle — MCP page has live connections
-      await page.goto(`${APP_URL}/mcp`, { waitUntil: 'load', timeout: 15_000 }).catch(() => {});
-      await sleep(3000);
-      await waitVisible(page, 'app-mcp-page', 10_000);
-    });
+    // Z1.2 — the page is subscribed BEFORE the traffic, because the feed is live-only: the server
+    // streams to current observers and replays no history. So the order matters — open the page,
+    // then drive a real sidecar against the same server, then shoot. What that buys the README is
+    // the thing N4.3 built: rows in the agent's vocabulary, each with the affordance that follows
+    // it (open ↗ for a trace, replay ↗ for a get_context).
+    await capture(
+      page,
+      '10-mcp',
+      async () => {
+        // Use load event instead of networkidle — MCP page has live connections
+        await page.goto(`${APP_URL}/mcp`, { waitUntil: 'load', timeout: 15_000 }).catch(() => {});
+        await sleep(3000);
+        await waitVisible(page, 'app-mcp-page', 10_000);
+
+        const seeded = await seedAgentCalls({
+          repoRoot: ROOT,
+          endpoint: SERVER_URL,
+          repoPath: TARGET_REPO,
+          log: console.log,
+        });
+        console.log(`    ${seeded.ok ? '✓' : '⚠'} feed seed: ${seeded.detail}`);
+        if (seeded.ok) {
+          // The rows arrive over the open stream; give the page a beat to render them.
+          await page.waitForSelector('[data-testid="feed-open"]', { timeout: 20_000 }).catch(() => {
+            console.log('    ⚠ no row affordance rendered — capturing whatever the feed shows');
+          });
+          await sleep(1200);
+        }
+      },
+      MCP_SHOT_TIMEOUT,
+    );
 
     // ── 11. Settings ────────────────────────────────────
     await capture(page, '11-settings', async () => {
@@ -325,6 +360,43 @@ async function main() {
       }
       await sleep(SETTLE_MS);
     });
+
+    // ── 13. MCP live feed ───────────────────────────────
+    // Z1.2 — the page is taller than the viewport, and 10-mcp shows its top half (status, host
+    // config, served catalog). The feed is the other half, and it is the half N4.3 changed, so it
+    // gets its own shot: the same seeded agent session, scrolled to the rows. The seed runs again
+    // because leaving the route tore the stream down and there is no backlog to re-read.
+    await capture(
+      page,
+      '13-mcp-feed',
+      async () => {
+        await page.goto(`${APP_URL}/mcp`, { waitUntil: 'load', timeout: 15_000 }).catch(() => {});
+        await sleep(2000);
+        await waitVisible(page, 'app-mcp-page', 10_000);
+
+        const seeded = await seedAgentCalls({
+          repoRoot: ROOT,
+          endpoint: SERVER_URL,
+          repoPath: TARGET_REPO,
+          log: console.log,
+        });
+        console.log(`    ${seeded.ok ? '✓' : '⚠'} feed seed: ${seeded.detail}`);
+
+        const row = page.locator('[data-testid="feed-open"]').first();
+        if ((await row.count().catch(() => 0)) > 0) {
+          await row.scrollIntoViewIfNeeded({ timeout: 10_000 }).catch(() => {});
+        } else {
+          console.log('    ⚠ no row affordance to scroll to — capturing the feed as it stands');
+          await page
+            .locator('text=Live Feed')
+            .first()
+            .scrollIntoViewIfNeeded({ timeout: 10_000 })
+            .catch(() => {});
+        }
+        await sleep(1200);
+      },
+      MCP_SHOT_TIMEOUT,
+    );
 
     // ── Report ──────────────────────────────────────────
     const allOk = results.filter((r) => r.ok).length;

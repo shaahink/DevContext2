@@ -79,12 +79,19 @@ The **Table Lens** gives you a CDK-virtualized spreadsheet of every entry point 
 ### 🧠 Context Studio
 
 Assemble LLM-ready context packs with the **Context Studio** — a three-pane tool:
-- **Scope picker** (left): browse services → entries as a tree, search with omnibox, use presets like *"I'm changing this endpoint"*
-- **Composition view** (center): ordered cards for flows, signatures, bodies, DI wiring, config, entities, contracts, tests — drag to reorder, toggle body on/off
+- **Scope picker** (left): two tabs over one source — **Entries** (services → routes, with each row
+  naming what it dispatches to) and **Types** (the public surface, so a library is scopeable too) —
+  plus presets like *"I'm changing this endpoint"* and *From current trail* / pins
+- **Composition view** (center): ordered cards for flows, signatures, bodies, **usage** ("who calls
+  this"), DI wiring, config, entities, contracts, tests — drag to reorder, hide bodies per card
 - **Budget panel** (right): token budget slider with per-card meter, intent selector (trace / explain / review), format (markdown / plain), Copy / **Save to repo** with toast feedback
 
-Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD) and carries
-**per-section provenance** — which files each section came from and how it was resolved.
+Studio does not open empty after you have explored: its default state is a **proposed pack** built
+from the current trail and pins. Every pack opens with an identity header (repo, archetype,
+analyzed-at, git HEAD) and carries **per-section provenance** — which files each section came from,
+how many items resolved semantically versus by heuristic, and a **verification ledger** for the
+pack that was actually built (fresh / stale per cited file), beside an honest note about what the
+budget cut.
 
 **Hand it to your agent.** *Save to repo* writes the pack into the repo it describes —
 `.devcontext/packs/<name>.md`, gitignored by default — and hands back a one-line instruction to
@@ -95,17 +102,30 @@ agent reads, as a file in the tree rather than a paste that goes stale.
   <a href="docs/screenshots/08-context-studio.png"><img src="docs/screenshots/08-context-studio.png" alt="Context Studio" width="45%"></a>
   <a href="docs/screenshots/09-export.png"><img src="docs/screenshots/09-export.png" alt="Export" width="45%"></a>
   <br>
-  <em>Context Studio with scope picker + composition (left) and export/copy with token budget (right)</em>
+  <em>Context Studio — Entries/Types picker + composed cards with per-card provenance (left); the same pack with its budget meter, verification ledger and omitted list (right)</em>
 </p>
 
 ### 🔌 MCP Integration
 
-DevContext ships a built-in **MCP server** exposing **22 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides an MCP observability page — telemetry status, configuration snippets, sessions table, live tool-**call** feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
+DevContext ships a built-in **MCP server** exposing **22 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
+
+The desktop's **MCP page** is the room where you set that up and then watch it work. Its status
+card *measures* rather than asserts: it probes for the `devcontext-mcp` binary and names the path
+it found, reports how many watchers are attached and when an agent last called, and **Test
+handshake** runs one real `initialize` + `tools/list` round trip against that exe. Each host card
+carries a snippet with the resolved absolute path and a button that **writes the config file for
+you** (`.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`) into the repo you have analyzed,
+merging with servers already registered there. The **tool catalog is served by the MCP itself** —
+the 14 advertised tools an agent actually sees, the 8 unlisted specialists, and the folded-away
+names — so the page cannot drift from the menu.
 
 <p align="center">
-  <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP" width="85%"></a>
+  <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP page — status, host config, served catalog" width="45%"></a>
+  <a href="docs/screenshots/13-mcp-feed.png"><img src="docs/screenshots/13-mcp-feed.png" alt="MCP page — sessions and the live agent feed" width="45%"></a>
   <br>
-  <em>MCP management page — status, config, sessions, live feed, try-a-tool sandbox</em>
+  <em>MCP page — measured status, write-the-config-for-me host cards and the served catalog (left);
+  sessions and the live feed in the agent's own vocabulary (right), where a <code>trace</code> row
+  opens its subject in Explore and a <code>get_context</code> row replays that pack in Studio</em>
 </p>
 
 ---
