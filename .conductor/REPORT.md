@@ -1,11 +1,12 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 00:25 UTC · branch `feat/pre-release-desktop` · HEAD `55b6756`_
+_Updated 2026-08-14 00:58 UTC · branch `feat/pre-release-desktop` · HEAD `5295ca3`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [3h 48m ago, 20:36:43Z]
-**Stage:** N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) · attempts used 0 · working ▸ N3.2
-**Checkpoints:** 10/16 done · **Sessions run:** 17 · **Cost:** $112.1218 (agent $111.9503 + gates $0.1716) · **Tokens:** 1,781,924 in / 710,338 out
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 22m ago, 20:36:43Z]
+**Stage:** N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) · attempts used 0
+**Checkpoints:** 11/16 done · **Sessions run:** 18 · **Cost:** $123.7019 (agent $123.5303 + gates $0.1716) · **Tokens:** 1,940,131 in / 767,635 out
 **Confirmed phases:** N0, N1, N2, M1
+**Pending:** full-battery phase gate for N3
 
 ## Stage progress
 
@@ -15,7 +16,7 @@ _Updated 2026-08-14 00:25 UTC · branch `feat/pre-release-desktop` · HEAD `55b6
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
-| N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | █████░░░░░ 1/2 | **← active** |
+| N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | gating… |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
@@ -56,12 +57,12 @@ _Updated 2026-08-14 00:25 UTC · branch `feat/pre-release-desktop` · HEAD `55b6
 
 </details>
 
-<details><summary>N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) (1/2)</summary>
+<details> ✅<summary>N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | ✅ DONE | - |
-| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | ⬜ TODO | - |
+| N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | ✅ DONE | [`f427027`](https://github.com/shaahink/DevContext2/commit/f427027) |
+| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | ✅ DONE | - |
 
 </details>
 
@@ -105,6 +106,7 @@ _Updated 2026-08-14 00:25 UTC · branch `feat/pre-release-desktop` · HEAD `55b6
 | 15 | M1 | Deliver | 1 | 08-13 22:23 | 0:35 | Advanced | M1.2 | 2 | gates green (none configured) | $13.2104 |  | 181,392/72,474 |
 | 16 | M1 | Fix | 2 | 08-13 23:05 | 0:10 | Progress |  | 2 | gates green (none configured) | $2.6342 |  | 59,350/23,915 |
 | 17 | N3 | Deliver | 1 | 08-13 23:50 | 0:34 | Advanced | N3.1 | 3 | gates green (none configured) | $12.3222 |  | 191,578/77,214 |
+| 18 | N3 | Deliver | 1 | 08-14 00:25 | 0:33 | Advanced | N3.2 | 3 | gates green (none configured) | $11.5801 |  | 158,207/57,297 |
 
 ## Money
 
@@ -112,22 +114,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 16 | 138M | 98.4% | $99.82 | 9 | 15.3M | $11.09 |
+| **run total** | 17 | 155.2M | 98.4% | $112.14 | 10 | 15.5M | $11.21 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
-| 2026-08 | 16 | 138M | 98.4% | $99.82 | 9 | 15.3M | $11.09 |
+| stage N3 | 1 | 17.2M | 98.4% | $12.32 | 1 | 17.2M | $12.32 |
+| 2026-08 | 17 | 155.2M | 98.4% | $112.14 | 10 | 15.5M | $11.21 |
 
-_Where the money goes: agent $99.63 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $111.95 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:35:37  • session #9 N2 → AgentError  (19.6s)
-08-13 21:35:38  • session #10 N2 Deliver started (attempt 4/6)
 08-13 21:35:51  ■ needs human — advisor: human intervention required
 08-13 21:35:57  • session #10 N2 → AgentError  (19.5s)
 08-13 21:35:57  • session #11 N2 Deliver started (attempt 5/6)
@@ -166,6 +167,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:50:31  ▸ stage M1 confirmed  (2h01m57s)
 08-14 00:50:36  ▸ stage N3 entered — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)
 08-14 00:50:36  • session #17 N3 Deliver started (attempt 1/4)
+08-14 01:25:11  • session #17 N3 → Advanced · done N3.1 · 3 commit(s)  (34m35s)
+08-14 01:25:12  • session #18 N3 Deliver started (attempt 1/4)
 ```
 
 ## Health
@@ -173,7 +176,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 17 · retries 7 (41 %) · overall Alert
+sessions 18 · retries 7 (39 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
@@ -191,18 +194,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s4 (N1 Deliver)** — 11 commit(s):
-  - [`a6ab4e2`](https://github.com/shaahink/DevContext2/commit/a6ab4e2) Merge remote-tracking branch 'origin/feat/pre-release-desktop' into feat/pre-release-desktop
-  - [`b89df90`](https://github.com/shaahink/DevContext2/commit/b89df90) docs(tracker): N1.1 handoff - wire item 4 is decided and shipped, next is N1.2 (pins)
-  - [`e3a9bc2`](https://github.com/shaahink/DevContext2/commit/e3a9bc2) feat(studio): per-card verified/approx, the pack's own ledger, handle-keyed cards, real body toggles (N1.1, app half)
-  - [`56ebc25`](https://github.com/shaahink/DevContext2/commit/56ebc25) feat(pack): GetContextPack returns the ledger for the pack it built + wires exclude_bodies (N1.1, engine half)
-  - [`7599e70`](https://github.com/shaahink/DevContext2/commit/7599e70) chore(conductor): s3 N0 Progress — Idle
-  - [`15ffaa5`](https://github.com/shaahink/DevContext2/commit/15ffaa5) chore(conductor): s3 N0 Progress — Idle
-  - [`c1da823`](https://github.com/shaahink/DevContext2/commit/c1da823) docs(tracker): N0 phase gate is GREEN - both reds were pre-existing, neither was N0's
-  - [`32639c6`](https://github.com/shaahink/DevContext2/commit/32639c6) fix(app-tests): pay the elkjs bootstrap in a hook, not in the first assertion
-  - [`5fd9911`](https://github.com/shaahink/DevContext2/commit/5fd9911) fix(gates): Step 3 no longer dies on Get-FileHash under a pwsh-7 parent
-  - [`ff9789e`](https://github.com/shaahink/DevContext2/commit/ff9789e) chore(conductor): s2 N0 Advanced — Idle
-  - [`d57b59d`](https://github.com/shaahink/DevContext2/commit/d57b59d) chore(conductor): s2 N0 Advanced — Idle
 - **s5 (N1 Deliver)** — 3 commit(s):
   - [`4d24d85`](https://github.com/shaahink/DevContext2/commit/4d24d85) docs(tracker): N1.2 handoff - pins are real, N1 closed, next is N2.1
   - [`366cc3a`](https://github.com/shaahink/DevContext2/commit/366cc3a) test(explore): p reports what it pinned + N1.2 evidence and backlog close
@@ -238,27 +229,31 @@ vs upstream: up to date
   - [`55b6756`](https://github.com/shaahink/DevContext2/commit/55b6756) docs(tracker): handoff for N3.2 - N3.1 landed, save-mechanism decision recorded
   - [`4a347e2`](https://github.com/shaahink/DevContext2/commit/4a347e2) docs(eval): N3.1 evidence - loop joints, gates green (lint 0 / 248 tests / build 0)
   - [`f427027`](https://github.com/shaahink/DevContext2/commit/f427027) feat(app): N3.1 - the loop joints, Explore/Insights/NodeCard route into Studio
+- **s18 (N3 Deliver)** — 3 commit(s):
+  - [`5295ca3`](https://github.com/shaahink/DevContext2/commit/5295ca3) docs(eval): N3.2 evidence - repo-file hand-off verified live, gates green
+  - [`032c9b8`](https://github.com/shaahink/DevContext2/commit/032c9b8) feat(app): N3.2 - Save writes the pack into the repo and hands over the line
+  - [`6efcef6`](https://github.com/shaahink/DevContext2/commit/6efcef6) feat(server): N3.2 - SavePackFile RPC writes .devcontext/packs/<slug>.md
 
 ## Last session result
 
-> SESSION-RESULT: **N3.1 landed, claimed and pushed** (`f427027` implementation, `4a347e2` evidence, `55b6756` handoff) — the loop joints from the Studio/MCP audit §4 Room 1. Explore now sends into Studio from all three sources (trail-bar `→ Studio` button whose label names whether it will send pins or the trail; `Ctrl+E`, previously a bare navigate to empty panes, sends the current selection), Insights cards send their `Focus`/`Node` target, and NodeCard sends the node itself — all through one `StudioHandoffStore` one-shot channel, with seeds built by one shared `pack-proposal.ts` rather than four copies of "a step becomes a card". Studio never opens empty after exploration: it proposes hando…
+> SESSION-RESULT: N3.2 — the repo-file hand-off — is delivered and claimed (`conductor task --done N3.2 --evidence eval-results/2026-08-14/N3.2-repo-file-handoff.md`), which closes stage N3. Three commits are pushed on `feat/pre-release-desktop`: `6efcef6` adds the `SavePackFile` RPC plus `PackFileWriter` (writes `.devcontext/packs/<slug>.md` into the analyzed repo, creates `.devcontext/.gitignore` holding `packs/` when the repo has none, never edits one it already has, sanitizes the slug so a path separator cannot survive, and composes the point-your-agent-here line server-side) with 10 tests asserting the result **on disk** against a temp copy of the ControllerApp fixture; `032c9b8` turns St…
 
 ## Tracker handoff
 
 ```
-N3.1 LANDED and claimed (f427027, evidence eval-results/2026-08-14/N3.1-loop-joints.md): lint exit 0,
-248/248 tests (27 files, was 224/25), ng build exit 0. Explore (trail-bar button + Ctrl+E), Insights
-cards and NodeCard all route into Studio through StudioHandoffStore; Studio proposes on open —
-handoff, else pins, else trail, else the archetype preset — behind a banner that says it is a
-PROPOSAL and vanishes on the first edit. NEXT: N3.2, back on TODO, untouched.
-READ THE LEDGER BEFORE STARTING N3.2 — the mechanism question is already settled there: the Tauri fs
-route is blocked (capabilities scope fs to $LOCALDATA only, no write/mkdir perms; a repo is anywhere,
-so it needs a blanket `**` scope or Rust), so a NEW SERVER RPC is the recommendation — the only
-channel that works in dev:web AND Tauri, hence the only one you can verify live. Budget trap #4 for
-it (proto → rebuild Contracts AND pnpm gen:proto, server+app in lockstep, contract-sweep needs a
-reader per new field). Gitignore-by-default = write `.devcontext/.gitignore` holding `packs/`.
-TRAP that now applies to every Studio spec: ContextStudio SEEDS ITSELF on open, so a spec asserting
-on cards must clear the proposal first — context-studio.spec.ts `createStudio()` does it by default
-and takes `{keepProposal:true}`. Still standing: lint any NEWLY ADDED spec (tsc can't catch
-prefer-function-type; ng build never compiles specs); pnpm check SHORT-CIRCUITS on a lint red.
+N3 IS CLOSED. N3.2 landed and claimed (6efcef6 server + 032c9b8 app, evidence
+eval-results/2026-08-14/N3.2-repo-file-handoff.md). New RPC SavePackFile writes
+.devcontext/packs/<slug>.md into the analyzed repo + .devcontext/.gitignore holding packs/; Studio
+Save is no longer a download and its strip shows the SERVER's path, the gitignore state, the
+copyable CLAUDE.md line, and admits drift; Home's tile routes to /context. VERIFIED LIVE end to end
+in the browser against a temp fixture copy, file read back off disk, preview and file both 1326
+chars. Gates: lint 0, 256/256 tests (28 files), ng build 0, dotnet 0w/0e, contract-sweep PASS.
+NEXT: N4.1 — but N4.3 needs Run A's T1 merged in; check that before sequencing N4.
+TRAPS worth having (all measured this session): `conductor bg start -- pnpm ...` CANNOT spawn pnpm
+here (MODULE_NOT_FOUND, exits 0s) — use pnpm.cmd, or run pnpm test / pnpm build separately in the
+foreground (~40s/~90s). A SINGLE spec runs as `pnpm ng test --watch=false --include=<path>` —
+`pnpm vitest run <file>` dies with "Need to call TestBed.initTestEnvironment() first". A git commit
+whose message came from a PowerShell here-string failed twice with a lock error; -m and -F worked.
+Still standing: lint any NEWLY ADDED spec; ContextStudio seeds itself on open (createStudio() clears
+the proposal unless you pass {keepProposal:true}).
 ```
