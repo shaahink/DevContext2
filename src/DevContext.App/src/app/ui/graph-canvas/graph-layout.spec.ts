@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutEdgeIn, type LayoutNodeIn } from './graph-layout';
 
@@ -38,6 +38,16 @@ function shuffled<T>(arr: readonly T[]): T[] {
 }
 
 describe('graph-layout (D4.1 determinism + no-clip contract)', () => {
+  // `getElk()` lazily `await import('elkjs/lib/elk.bundled.js')` on the FIRST layout only — a
+  // ~1.5MB bundle plus one ELK construction. Whichever `it` ran first paid that once-per-module
+  // cost inside its own 5000ms budget, so on a loaded machine the first test (and only the first)
+  // timed out at 6211ms while every later test in this file — doing the same two layouts — passed
+  // in ~200ms. That is a warm-up cost billed to the wrong stopwatch, not a layout regression.
+  // Pay it here, in a hook with its own budget, so each test times only what it asserts.
+  beforeAll(async () => {
+    await layoutGraph([{ id: 'warm', label: 'warm' }], []);
+  }, 60_000);
+
   it('same input twice → identical geometry', async () => {
     const { nodes, edges } = bigFixture();
     const a = await layoutGraph(nodes, edges);
