@@ -4,7 +4,7 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N4.1 LANDED + CLAIMED (db9987e code, 55e8727 fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
+N4.1 LANDED + CLAIMED (7c6b6be code, 7f78edc fix, evidence eval-results/2026-08-14/N4.1-status-that-measures.md).
 Status card now MEASURES: server-side binary probe (bundle -> PATH -> dev-build, path rendered),
 watcher count, last-agent-call, and a McpHandshake RPC that spawns devcontext-mcp and does a real
 initialize+tools/list over stdio (live: 22 tools, protocol 2024-11-05, ~6s). StartMcp/StopMcp RPCs +
