@@ -179,6 +179,87 @@ public sealed class ContextPackBuilderTests
         Assert.NotEqual(signatures, contracts);
     }
 
+    // ── T1.3 (BUG-BACKLOG #9) — a cut pack must declare its cuts ─────────────
+    // MEASURED on eval-repos/TodoApi 2026-08-13 via a real MCP session:
+    // get_context(focus:"Extensions", budgetTokens:1500) rendered "… (+64 lines)" in its own content,
+    // declared NOTHING in omitted[] but five "empty — omitted" lines, and its fillNote said "the pack
+    // already contains everything reachable from this focus". At budgetTokens:20000 the elision was
+    // gone and the content doubled — so the lever worked and the reply denied there was one.
+    // BuildBodiesToFill counted only bodies dropped WHOLE; a body cut in half was recorded nowhere.
+
+    /// <summary>Entry → member whose declaration is long enough that its full text cannot fit a small
+    /// budget but its salient opening lines can — the discriminating shape, per the backlog: a focus
+    /// with NO body proves nothing because the assertion passes trivially.</summary>
+    private static (GraphQuery Query, AnalysisSnapshot Snapshot) ArrangeLongBody()
+    {
+        var g = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /orders");
+        var calleeId = NodeId.ForMember("App.OrderService", "CreateOrder");
+        var serviceTypeId = NodeId.ForType("App.OrderService");
+
+        var longMethod = string.Join("\n",
+            Enumerable.Range(1, 90).Select(i => $"        var step{i} = Compute({i}); // work {i}"));
+        g.AddNode(new GraphNode(entryId, "POST /orders", NodeKind.EntryPoint));
+        g.AddNode(new GraphNode(serviceTypeId, "OrderService", NodeKind.Type)
+        {
+            SourceBody = "public class OrderService\n{\n    public void CreateOrder(Order o)\n    {\n"
+                + longMethod + "\n    }\n}",
+        });
+        g.AddNode(new GraphNode(calleeId, "OrderService.CreateOrder", NodeKind.Member)
+        {
+            FilePath = @"C:\repo\src\App\OrderService.cs",
+            LineNumber = 3,
+        });
+        g.AddEdge(new GraphEdge(entryId, calleeId, EdgeKind.Calls));
+
+        var graph = g.Build();
+        var entries = ImmutableArray.Create(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "POST /orders", entryId));
+        return (new GraphQuery(graph, entries), MakeSnapshot(graph, entries));
+    }
+
+    [Fact]
+    public void A_truncated_body_is_declared_in_omitted_with_the_budgetTokens_lever()
+    {
+        var (query, snapshot) = ArrangeLongBody();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 400);
+
+        // Guard the discriminator itself: if nothing elided, the assertions below are vacuous.
+        Assert.Contains("… (+", pack.Content, StringComparison.Ordinal);
+        Assert.True(ContextPackBuilder.DeclaresElision(pack.Omitted),
+            "pack elided in its content but declared no cut: " + string.Join(" | ", pack.Omitted));
+        Assert.Contains(pack.Omitted, o =>
+            o.StartsWith(ContextPackBuilder.ElidedPrefix, StringComparison.Ordinal)
+            && o.Contains("raise budgetTokens", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void The_same_focus_at_a_wide_budget_declares_no_elision()
+    {
+        // The ratchet in the other direction: "declares an elision" must not become an always-on
+        // disclaimer, or it stops carrying information. Same graph, budget that fits everything.
+        var (query, snapshot) = ArrangeLongBody();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 20000);
+
+        Assert.DoesNotContain("… (+", pack.Content, StringComparison.Ordinal);
+        Assert.False(ContextPackBuilder.DeclaresElision(pack.Omitted),
+            "nothing was cut but the pack declared a cut: " + string.Join(" | ", pack.Omitted));
+    }
+
+    [Fact]
+    public void An_empty_section_is_not_reported_as_an_elision()
+    {
+        // "we looked and found nothing" and "we cut this" are opposite claims that read alike.
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders", budgetTokens: 20000);
+
+        Assert.Contains("entities: empty — omitted", pack.Omitted);
+        Assert.False(ContextPackBuilder.DeclaresElision(pack.Omitted));
+    }
+
     [Fact]
     public void Empty_sections_are_dropped_and_recorded_in_omitted()
     {
@@ -366,8 +447,14 @@ public sealed class ContextPackBuilderTests
     public void Sections_carry_provenance_footer_and_structured_tiers()
     {
         // T4.4 (R10) — each section says where it came from (repo-relative file:line set) and
-        // how sure it is (verified = Semantic/Join, approx = Syntactic), both in the markdown
-        // footer and as structured fields for the UI's provenance chips (T5.3).
+        // how sure it is, both in the markdown footer and as structured fields for the UI's
+        // provenance chips (T5.3).
+        //
+        // V1.1 (backlog #25): the tier mix is three buckets, not two. It used to be "verified =
+        // Semantic OR Join, approx = Syntactic" — and this very fixture is the demonstration: every
+        // step it walks is Join-resolved, so the section this test looks at was reported to the
+        // agent as fully Roslyn-verified when NOTHING in it was semantically resolved. Those steps
+        // are now `Joined`, which is why the assertion below counts all three.
         var (query, snapshot) = Arrange();
 
         var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders");
@@ -377,7 +464,11 @@ public sealed class ContextPackBuilderTests
         Assert.Contains("verified", signatures.Content, StringComparison.Ordinal);
         Assert.NotEmpty(signatures.SourceLocations);
         Assert.Contains("src/App/OrdersController.cs:11", signatures.SourceLocations);
-        Assert.True(signatures.Verified + signatures.Approx > 0, "tier mix is empty");
+        Assert.True(signatures.Verified + signatures.Joined + signatures.Approx > 0, "tier mix is empty");
+        // The honest reading of THIS fixture, pinned so a regression to the old two-bucket tally
+        // (which reported these same steps as verified) fails here.
+        Assert.Equal(0, signatures.Verified);
+        Assert.True(signatures.Joined > 0, "join-resolved steps must land in the joined tier");
         // Structured locations are repo-relative like everything else in the pack.
         Assert.DoesNotContain(signatures.SourceLocations, l => l.Contains(":\\") || l.StartsWith("C:/"));
     }

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 151495,
+  "num_turns": 32,
+  "stop_reason": "end_turn",
+  "session_id": "6b780724-2117-4b2b-8edb-de10bcbe3dc8",
+  "total_cost_usd": 0.9531795000000001,
+  "usage": {
+    "input_tokens": 36,
+    "cache_creation_input_tokens": 44473,
+    "cache_read_input_tokens": 470861,
+    "output_tokens": 10887,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 44473,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3895,
+        "cache_read_input_tokens": 47927,
+        "cache_creation_input_tokens": 723,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 723
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 579,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000664,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 36,
+      "outputTokens": 10887,
+      "cacheReadInputTokens": 470861,
+      "cacheCreationInputTokens": 44473,
+      "webSearchRequests": 0,
+      "costUSD": 0.9525155000000001,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\n`CreateOrderCommandHandler` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:6`) has **no direct C# callers anywhere** — it is only ever invoked through MediatR — but a long chain of in‑process and cross‑service consumers depends on its behaviour. Below is the full dependency surface.\n\n### 1. How it gets invoked (direct, in Ordering.API)\n- It is discovered by MediatR assembly scanning, not by explicit DI registration: `src/Ordering.API/Extensions/Extensions.cs:35-42` (`RegisterServicesFromAssemblyContaining(typeof(Program))` plus the three open behaviors).\n- `CreateOrderIdentifiedCommandHandler` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`) wraps it for idempotency; the base class re-sends the inner `CreateOrderCommand` via mediator at `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:87`, and has a `CreateOrderCommand`-specific logging branch at `IdentifiedCommandHandler.cs:58-61`. Duplicate request IDs silently return `true` without ever running the handler (`CreateOrderCommandHandler.cs:67-70`).\n- The HTTP entry point is `OrdersApi.CreateOrderAsync` — `POST api/orders` (`src/Ordering.API/Apis/OrdersApi.cs:17`, `:118-168`). It masks the card number (`OrdersApi.cs:140`), builds the command (`:141`), wraps it in `IdentifiedCommand` (`:146`), and **always returns `Ok` regardless of the handler's `bool` result** (`:157-166`) — only logging differs. So a caller cannot detect handler failure over HTTP.\n- Pipeline behaviors that wrap every execution: `LoggingBehavior`, `ValidatorBehavior` (`src/Ordering.API/Application/Behaviors/ValidatorBehavior.cs:14-34`, throws `OrderingDomainException` on failure), and `TransactionBehavior` (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-56`) which owns the DB transaction and calls `PublishEventsThroughEventBusAsync` **after commit** (`TransactionBehavior.cs:52`).\n- Validators bound to the command: `src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:2` (requires non-empty address fields, card number length 12–19, CVV length 3, future expiry, ≥1 order item) and `src/Ordering.API/Application/Validations/IdentifiedCommandValidator.cs:3`.\n\n### 2. In-process side effects the handler produces\n- `OrderStartedIntegrationEvent` is enqueued to the outbox before any persistence (`CreateOrderCommandHandler.cs:32-33`, event defined `src/Ordering.API/Application/IntegrationEvents/Events/OrderStartedIntegrationEvent.cs:6`), written to the integration-event log inside the current transaction (`src/Ordering.API/Application/IntegrationEvents/OrderingIntegrationEventService.cs:36-40`).\n- Constructing `Order` (`CreateOrderCommandHandler.cs:40`) sets `OrderStatus = Submitted` and raises `OrderStartedDomainEvent` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:52-64`, `:170-175`).\n- That domain event is handled by `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-53`), which creates/updates the `Buyer`, adds the payment method, saves again, and emits `OrderStatusChangedToSubmittedIntegrationEvent`. It carries an explicit fragility warning: it relies on `SaveChanges` having propagated the buyer id and \"only works by coincidence… if anything decides to yield earlier, it will break\" (`:31-32`). Any reordering of save/dispatch in the command handler is a real hazard here.\n- Domain events are dispatched by `SaveEntitiesAsync` (`CreateOrderCommandHandler.cs:51`), whose `bool` return is what the endpoint logs.\n\n### 3. Cross-service consumers (outside Ordering.API)\n- **Basket.API** subscribes to `OrderStartedIntegrationEvent` and deletes the user's basket (`src/Basket.API/Extensions/Extensions.cs:19`, `src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:10-15`). Its local event record only has `UserId` (`src/Basket.API/IntegrationEvents/Events/OrderStartedIntegrationEvent.cs:6`) and is source-gen serialized (`src/Basket.API/Extensions/Extensions.cs:24`) — changing the event's shape/name breaks basket clearing.\n- **WebApp** subscribes to `OrderStatusChangedToSubmittedIntegrationEvent` (`src/WebApp/Extensions/Extensions.cs:50`) and pushes a live order-status notification keyed on `BuyerIdentityGuid` (`src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:10-14`).\n- **OrderProcessor** polls the ordering DB directly with raw SQL for rows where `\"OrderStatus\" = 'Submitted'` and `CURRENT_TIMESTAMP - \"OrderDate\" >= @GracePeriodTime` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:69-74`) and publishes `GracePeriodConfirmedIntegrationEvent`. It depends on the handler writing status `Submitted` and a sane `OrderDate` — no code reference, so a compiler will not catch a break here.\n- That grace-period event flows back into Ordering.API (`src/Ordering.API/Extensions/Extensions.cs:55`) → `AwaitingValidation` → **Catalog.API** stock check (`src/Catalog.API/Extensions/Extensions.cs:32-33`) → **PaymentProcessor** (`src/PaymentProcessor/Program.cs:6`) → **Webhooks.API** for paid/shipped (`src/Webhooks.API/Extensions/Extensions.cs:22-23`). The whole saga is downstream of order creation.\n\n### 4. HTTP clients of the endpoint\n- **WebApp checkout**: `BasketState.CheckoutAsync` builds `CreateOrderRequest` and calls `OrderingService.CreateOrder` (`src/WebApp/Services/BasketState.cs:78-108`, `src/WebApp/Services/OrderingService.cs:12-18`), reached from `src/WebApp/Components/Pages/Checkout/Checkout.razor:114`. Note it also deletes the basket locally (`BasketState.cs:108`), duplicating the Basket.API side effect.\n- **ClientApp (MAUI)**: `OrderService.CreateOrderAsync` posts a `Models.Orders.Order` — a *different* payload shape than `CreateOrderRequest` — to `api/orders` (`src/ClientApp/Services/Order/OrderService.cs:13`, `:28-39`; model at `src/ClientApp/Models/Orders/Order.cs:5-50`), driven from `src/ClientApp/ViewModels/CheckoutViewModel.cs:105-122`. This binding is fragile already; changing the request contract will break the mobile app silently.\n- **AppHost/YARP** routes `/api/orders/{*any}` (api-version 1.0/1) to Ordering.API (`src/eShop.AppHost/Extensions.cs:243-244`).\n- HybridApp does **not** call ordering — its basket code is commented out (`src/HybridApp/Components/Pages/Item/ItemPage.razor:4`, `:77`).\n\n### 5. Tests that will break\n- `tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs:41` constructs the handler directly with the exact 5-arg constructor and asserts `Handle` returns `false` when persistence fails (`:39-46`).\n- `tests/Ordering.UnitTests/Application/IdentifiedCommandHandlerTest.cs:31`, `:53` exercise `CreateOrderIdentifiedCommandHandler` (duplicate → `true`).\n- `tests/Ordering.UnitTests/Application/OrdersWebApiTest.cs:74` mocks `IdentifiedCommand<CreateOrderCommand, bool>`.\n- `tests/Ordering.FunctionalTests/OrderingApiTests.cs:128` (empty order → `BadRequest`) and `:150-157` (`AddNewOrder` → `OK`) hit the real endpoint end-to-end.\n\n### 6. Specific things likely to break\n- **Constructor signature**: `IMediator` and `IIdentityService` are injected but unused in `Handle` (`CreateOrderCommandHandler.cs:16-27` vs `:29-52`); removing them is safe for production DI but breaks `NewOrderCommandHandlerTest.cs:41`.\n- **Return value**: only logged, never surfaced to HTTP callers (`OrdersApi.cs:157-166`); changing `bool` semantics silently changes nothing for clients but breaks the unit test's `Assert.IsFalse`.\n- **Ordering of outbox-add vs. save**: `OrderStartedIntegrationEvent` is saved with `GetCurrentTransaction()` (`OrderingIntegrationEventService.cs:39`) and published only after commit by `TransactionBehavior.cs:52`; moving it outside the transaction would either lose or prematurely publish the basket-clear event.\n- **Throwing instead of returning false**: exceptions are swallowed by `IdentifiedCommandHandler.cs:99-102` (`return default`) after the request-id has already been recorded (`:48`), so a retry with the same `x-requestid` will be treated as a duplicate and never re-run.\n- **Status/OrderDate semantics**: changing them breaks OrderProcessor's SQL-based grace period detection with no compile-time signal.\n- **Idempotency**: skipping/altering the `IdentifiedCommand` wrapper would allow duplicate orders from retried checkouts.\n\nUncertainties: I found no reflection-based or configuration-based reference to `CreateOrderCommandHandler` (searched the whole repo for `CreateOrderCommand`/`CreateOrderIdentifiedCommandHandler`), but MediatR's assembly scanning means registration is implicit, and the OrderProcessor/mobile-client couplings above are by database/HTTP contract rather than code references, so a compiler cannot verify them.",
+  "ttft_ms": 3140,
+  "ttft_stream_ms": 2173,
+  "time_to_request_ms": 37,
+  "type": "result",
+  "duration_ms": 236953,
+  "uuid": "5eac7458-5af1-4b8b-82b9-0a3068727f7c"
+}

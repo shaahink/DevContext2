@@ -1,0 +1,37 @@
+## QUESTION PUT TO THE ENGINEER
+Which files in this repository contain the literal string GracePeriodTime? List every one, with its path.
+
+## ANSWER KEY (verified ground truth)
+Exactly three, all under src/OrderProcessor: src/OrderProcessor/BackgroundTaskOptions.cs (the int GracePeriodTime property), src/OrderProcessor/Services/GracePeriodManagerService.cs (twice - once inside the raw SQL WHERE clause as @GracePeriodTime and once as the AddWithValue parameter name) and src/OrderProcessor/appsettings.json ("GracePeriodTime": "1" under BackgroundTaskOptions). Nothing else in the tree contains the string. This is deliberately a question ripgrep answers in one call and a code graph cannot: two of the three occurrences are a JSON configuration key and a token inside a SQL string literal, neither of which is a symbol.
+
+Elements a complete answer names: `src/OrderProcessor/BackgroundTaskOptions.cs`, `src/OrderProcessor/Services/GracePeriodManagerService.cs`, `src/OrderProcessor/appsettings.json`
+Terms a correct answer must NOT put forward as part of its answer (naming one in order to
+rule it out is correct behaviour, not an error): `src/Ordering.API/appsettings.json`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+**Two C# files in this repository contain the literal string `GracePeriodTime`** (based on what my code-index tools can search — see the caveat below):
+
+1. `src/OrderProcessor/BackgroundTaskOptions.cs` — declares the property: `public int GracePeriodTime { get; set; }` (`src/OrderProcessor/BackgroundTaskOptions.cs:5`).
+2. `src/OrderProcessor/Services/GracePeriodManagerService.cs` — uses the string three times inside `GetConfirmedGracePeriodOrders()`: as the SQL parameter placeholder `@GracePeriodTime` in the query text, as the parameter name in `command.Parameters.AddWithValue("GracePeriodTime", TimeSpan.FromMinutes(_options.GracePeriodTime))`, and as the options property read (`src/OrderProcessor/Services/GracePeriodManagerService.cs:44-95`, method body shown at the file's tail; the class itself starts at `src/OrderProcessor/Services/GracePeriodManagerService.cs:8`).
+
+The only other `GracePeriod*` code files — `src/OrderProcessor/Events/GracePeriodConfirmedIntegrationEvent.cs`, `src/Ordering.API/Application/IntegrationEvents/Events/GracePeriodConfirmedIntegrationEvent.cs` and `.../EventHandling/GracePeriodConfirmedIntegrationEventHandler.cs` — do not contain the literal `GracePeriodTime`, only `GracePeriodConfirmed*`.
+
+**Important caveat — I could not search non-C# files.** My tools only index C#/source symbols; a config-key scan ([REDACTED]) covers only literal keys used in C# via `IConfiguration` indexers/`GetValue`/`GetSection`, and it lists 16 keys, none of them `GracePeriodTime`. The options object is bound by section name via `builder.Services.AddOptions<BackgroundTaskOptions>().BindConfiguration(nameof(BackgroundTaskOptions))` (`src/OrderProcessor/Extensions/Extensions.cs:15-16`), which strongly implies a JSON settings file (e.g. `src/OrderProcessor/appsettings.json`) supplies a `BackgroundTaskOptions:GracePeriodTime` value — but I was unable to open or verify any `.json`/`.yaml`/`.env` file, so I cannot confirm or rule out additional occurrences outside C# source.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

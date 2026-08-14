@@ -26,7 +26,16 @@ public static class ServiceBoundaryInference
             || p.HasSdk(SdkIds.Web) || p.HasSdk(SdkIds.Worker) || p.HasSdk(SdkIds.AspireAppHost);
     }
 
-    public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope, bool samplesAreTheProduct = false)
+    /// <summary>The one runnable-and-production list: the Service nodes the canvas draws, the population
+    /// the per-service style breakdown describes, and the count every surface quotes.
+    /// <para>D1.3 (#20) — it now reads the archetype detector's auxiliary-executable verdict rather than
+    /// letting a second judgement about the same projects disagree with it. When a repo's exes are
+    /// merely auxiliary to a library it ships, they are not services: AutoMapper's Atlas said
+    /// "1 services (1 drawn)" and named <c>TestApp</c>, a demo console the archetype detector had
+    /// already discounted. The verdict is repo-level by construction (see
+    /// <see cref="ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary"/>), so a real app's services are
+    /// untouched — where it is true the archetype is Library, and a library has no services.</para></summary>
+    public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope, DiscoveryModel model)
     {
         // T1.9 — the service topology is production only. eShop's FunctionalTests reference the ASP.NET
         // Core shared framework (WebApplicationFactory), so IsRunnableService would render 5 test projects
@@ -34,10 +43,18 @@ public static class ServiceBoundaryInference
         // T8: in a samples-only repo the sample hosts ARE the services (tests/benchmarks still excluded).
         // D1.1b: the classifier instance adds holder + transitive build-tooling exclusion (audit A3/E2).
         var classifier = new ProjectClassifier(scope.Projects);
+        var auxiliaryExes = ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model);
         return scope.Projects
-            .Where(p => classifier.IsProduction(p, samplesAreTheProduct) && IsRunnableService(p))
+            .Where(p => classifier.IsProduction(p, model.SamplesAreTheProduct) && IsRunnableService(p))
+            .Where(p => !auxiliaryExes || !IsExecutable(p))
             .ToImmutableArray();
     }
+
+    /// <summary>An explicit <c>OutputType</c> of Exe/WinExe — the projects the archetype detector's
+    /// auxiliary-executable verdict is about. A Web-SDK host declares none, so it is never dropped by
+    /// that verdict even in the shape where the verdict fires.</summary>
+    private static bool IsExecutable(ProjectInfo p)
+        => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
 
     /// <summary>
     /// R3 D-4 (G6.3) — the runnable production projects the analysed solution does NOT contain.
@@ -61,9 +78,11 @@ public static class ServiceBoundaryInference
         // The classifier reads the WHOLE project set: build-tooling exclusion is transitive, so
         // handing it only the leftovers would classify a Cake bootstrapper as production.
         var classifier = new ProjectClassifier(model.Projects);
+        var auxiliaryExes = ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model);
         return model.Projects
             .Where(p => !inScope.Contains(p.FilePath))
             .Where(p => classifier.IsProduction(p, samplesAreTheProduct) && IsRunnableService(p))
+            .Where(p => !auxiliaryExes || !IsExecutable(p))
             .ToImmutableArray();
     }
 }

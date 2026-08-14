@@ -283,7 +283,10 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
-        var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
+        // E1.4 — a REQUEST-MARKER detection declares a request, not a handler; it has no row here.
+        var handlers = model.Detections.OfType<MediatRHandlerDetection>()
+            .Where(h => !string.Equals(h.RequestType, Extractors.Specific.MediatRExtractor.SelfRequest, StringComparison.Ordinal))
+            .ToList();
         if (handlers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MediatRHandlers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Request</th><th>Response</th><th>Handler</th></tr></thead><tbody>");

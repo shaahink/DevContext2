@@ -136,7 +136,7 @@ public static class ReportRenderer
 
         var graph = query.Graph;
         var entries = snapshot.Entries;
-        var (seams, withTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
+        var (seams, withTarget) = query.Stats();
         var report = snapshot.Report;
         var model = snapshot.Model;
 
@@ -152,13 +152,21 @@ public static class ReportRenderer
         sb.AppendLine($"| Entries | {entries.Length} |");
         sb.AppendLine($"| With target | {withTarget}/{entries.Length} |");
 
-        if (entries.Length > 0)
-            sb.AppendLine($"| Deep spine (>=2) | {entriesWithDeepSpine}/{entries.Length} ({(int)Math.Round(deepSpineRatio * 100)}%) |");
+        // R1.1 (#24): the "Deep spine (>=2)" row is GONE. It printed 100% on eight of twelve poles
+        // and 98%/99% on the two others — a coverage number that read the same everywhere.
 
+        // V1.1 (#25): "Verified edges %" was (total - approx)/total, i.e. every Join edge counted as
+        // verified — Join being the Resolution default, that included every edge nobody labelled. The
+        // row now prints the whole partition, so the number cannot be read as more than it is.
         var totalEdges = seams.Length > 0 ? seams.Sum(s => s.Count) : graph.EdgeCount;
-        var approx = seams.Length > 0 ? seams.Sum(s => s.Approx) : 0;
-        var verifiedPct = totalEdges > 0 ? (totalEdges - approx) * 100.0 / totalEdges : 0;
-        sb.AppendLine($"| Verified edges | {verifiedPct:F0}% |");
+        if (seams.Length > 0 && totalEdges > 0)
+        {
+            var verified = seams.Sum(s => s.Verified);
+            var joined = seams.Sum(s => s.Joined);
+            var approx = seams.Sum(s => s.Approx);
+            sb.AppendLine($"| Edge resolution | {verified * 100.0 / totalEdges:F0}% verified · "
+                + $"{joined * 100.0 / totalEdges:F0}% joined · {approx * 100.0 / totalEdges:F0}% approx |");
+        }
 
         if (report is not null)
             sb.AppendLine($"| Analyzed in | {report.TotalWall.TotalSeconds:F1}s |");
@@ -298,15 +306,15 @@ public static class ReportRenderer
             sb.AppendLine();
         }
 
-        var (seams, withTarget, _, _) = query.Stats();
+        var (seams, withTarget) = query.Stats();
         if (seams.Length > 0)
         {
             sb.AppendLine("### Graph Seams");
             sb.AppendLine();
-            sb.AppendLine("| Seam | Edges | Approx |");
-            sb.AppendLine("|------|-------|--------|");
+            sb.AppendLine("| Seam | Edges | Verified | Joined | Approx |");
+            sb.AppendLine("|------|-------|----------|--------|--------|");
             foreach (var s in seams)
-                sb.AppendLine($"| {s.Seam} | {s.Count} | {s.Approx} |");
+                sb.AppendLine($"| {s.Seam} | {s.Count} | {s.Verified} | {s.Joined} | {s.Approx} |");
             sb.AppendLine();
         }
 

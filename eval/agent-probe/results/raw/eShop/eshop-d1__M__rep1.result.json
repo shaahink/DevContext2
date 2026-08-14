@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 28832,
+  "num_turns": 8,
+  "stop_reason": "end_turn",
+  "session_id": "daa26392-942f-4fe1-ab2c-fd4474ddddb1",
+  "total_cost_usd": 0.10790050000000001,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 4363,
+    "cache_read_input_tokens": 20465,
+    "output_tokens": 2131,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 4363,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1433,
+        "cache_read_input_tokens": 5474,
+        "cache_creation_input_tokens": 2213,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2213
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 568,
+      "outputTokens": 29,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0007130000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 10,
+      "outputTokens": 2131,
+      "cacheReadInputTokens": 20465,
+      "cacheCreationInputTokens": 4363,
+      "webSearchRequests": 0,
+      "costUSD": 0.1071875,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it publishes no integration event at all.\n\n**What `CreateItem` actually does** (`src/Catalog.API/Apis/CatalogApi.cs:365-387`):\n\n1. Takes `[AsParameters] CatalogServices services` and a `CatalogItem product` from the request body (`src/Catalog.API/Apis/CatalogApi.cs:366-368`).\n2. Constructs a **new** `CatalogItem` from the posted values — `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`). Note it copies the posted `Price` verbatim; there is no old-vs-new price comparison because there is no pre-existing entity.\n3. Computes an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` and assigns it to `item.Embedding` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n4. Adds the item to `services.Context.CatalogItems` and calls `services.Context.SaveChangesAsync()` directly — plain EF Core save, not the transactional `EventService.SaveEventAndCatalogContextChangesAsync` path (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n5. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`). Its declared return type is `Task<Created>`, and it is annotated `[ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, ...)]` (`src/Catalog.API/Apis/CatalogApi.cs:364`).\n\n**How I established the \"no publish\" claim:** I checked every outbound edge from `CreateItem`, and the complete set is `CatalogItem` (read/write), `ICatalogAI` / `CatalogAI.GetEmbeddingAsync`, `CatalogServices` / `CatalogServices.Add`, and `CatalogContext.SaveChangesAsync` — no event-service or event-bus call among them. I also queried all usages of `eShop.Catalog.API.IntegrationEvents.Events.ProductPriceChangedIntegrationEvent`, and there is exactly **one** raiser in the whole codebase: `CatalogApi.UpdateItem` at `src/Catalog.API/Apis/CatalogApi.cs:350`.\n\n**The contrast — `UpdateItem` is the method that does publish it** (`src/Catalog.API/Apis/CatalogApi.cs:350-362`): when the price actually changed it saves the event and entity changes atomically via `services.EventService.SaveEventAndCatalogContextChangesAsync(priceChangedEvent)` (`src/Catalog.API/Apis/CatalogApi.cs:353`) and then publishes it with `services.EventService.PublishThroughEventBusAsync(priceChangedEvent)` (`src/Catalog.API/Apis/CatalogApi.cs:356`); otherwise (\"the Product's Price hasn't changed\") it just calls `services.Context.SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:360`).\n\nOne caveat: the consumer side lives in a separate assembly with its own event type, `Webhooks.API.IntegrationEvents.ProductPriceChangedIntegrationEvent`, handled by `ProductPriceChangedIntegrationEventHandler` — so the Catalog-side type and the Webhooks-side type are distinct declarations correlated over the bus rather than a direct code reference.",
+  "ttft_ms": 2218,
+  "ttft_stream_ms": 1310,
+  "time_to_request_ms": 47,
+  "type": "result",
+  "duration_ms": 28192,
+  "uuid": "cfb41e7b-98a2-4f6d-888c-03356e71d73d"
+}

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 23972,
+  "num_turns": 8,
+  "stop_reason": "end_turn",
+  "session_id": "e16db8af-5911-4152-b556-732cc9799370",
+  "total_cost_usd": 0.13123500000000002,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 7714,
+    "cache_read_input_tokens": 22880,
+    "output_tokens": 1678,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 7714,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 840,
+        "cache_read_input_tokens": 10023,
+        "cache_creation_input_tokens": 1556,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1556
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 8,
+      "outputTokens": 1678,
+      "cacheReadInputTokens": 22880,
+      "cacheCreationInputTokens": 7714,
+      "webSearchRequests": 0,
+      "costUSD": 0.13057000000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**None.** Basket.API contains no integration event handler that updates prices of items in existing baskets.\n\nHow I established this:\n\n- Basket.API has exactly one integration event handler in the whole project: `OrderStartedIntegrationEventHandler` (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:6`). It does not touch prices — it deletes the user's basket (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:14`).\n- That is also the only subscription registered on the event bus for this service: `src/Basket.API/Extensions/Extensions.cs:19` registers `AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>()` and nothing else, and the JSON serializer context only knows `OrderStartedIntegrationEvent` (`src/Basket.API/Extensions/Extensions.cs:24`).\n- Searching the whole repository for `IIntegrationEventHandler` implementations and `AddSubscription` calls turned up only that one for Basket.API; searching for `PriceChanged` returns no hits anywhere under `src/Basket.API`.\n\nRelated context that may be what you were expecting (but is not in Basket.API):\n\n- `ProductPriceChangedIntegrationEvent` is published by Catalog.API when a price is modified (`src/Catalog.API/Apis/CatalogApi.cs:350`, `src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`).\n- Its only subscriber in this repo is in Webhooks.API: `ProductPriceChangedIntegrationEventHandler` (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`, registered at `src/Webhooks.API/Extensions/Extensions.cs:21`), which dispatches webhooks rather than updating baskets.\n- The `BasketItem.OldUnitPrice` field that such a handler would normally populate exists (`src/Basket.API/Model/BasketItem.cs:9`) and is displayed by the client app (`src/ClientApp/Views/Templates/BasketItemTemplate.xaml:121`), but nothing in Basket.API writes to it in response to an integration event — the feature appears to be unimplemented in this version of the codebase.",
+  "ttft_ms": 2182,
+  "ttft_stream_ms": 1204,
+  "time_to_request_ms": 178,
+  "type": "result",
+  "duration_ms": 23704,
+  "uuid": "78a7e598-cfdc-419a-b9f0-54d9255965eb"
+}

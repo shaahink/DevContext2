@@ -152,11 +152,18 @@ foreach ($Repo in $Selected) {
             $Probes += "FAIL mcp-drive: lens-drive.js exited $LASTEXITCODE (see mcp-transcript.txt)"
         }
     }
-    # -- P7 insight validity (I2, Prism D2) --
-    # Machine-checkable claims get checks: every graph.orphans evidence type is greped for liveness
-    # (constructed, implemented/extended, or EF-indexed in the repo source). A hit = the insight
-    # accused live code. All insights are RECORDED per repo (insights-recorded.json) so the
-    # non-machine-checkable ones can carry manual verdicts.
+    # -- P7 insight validity (I2, Prism D2; R1.1 2026-08-14) --
+    # All insights are RECORDED per repo (insights-recorded.json) so the non-machine-checkable ones
+    # can carry manual verdicts.
+    # The graph.orphans liveness grep that used to live here is now a RETIREMENT RATCHET. R1.1
+    # measured the claim at 0/10 precision once E1 lifted the Semantic share past its coverage floor
+    # (eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md) and deleted the source. The grep would
+    # not have caught it either: its liveness patterns are `new X(`, `: ... X` and `DbSet<X>`, and
+    # every false claim measured was live by REGISTRATION -- `class CheckoutBasketEndpoints :
+    # ICarterModule` picked up by an assembly scan, `Decorate<IBasketRepository,
+    # CachedBasketRepository>()`, `AddScoped<IListContributorsQueryService, Fake...>()`. So a
+    # revival must bring a registration-aware liveness model AND its own probe; re-emitting the id
+    # alone fails here on purpose.
     # --no-cache (D3.1): P7's claims-check must recompute insights independently, not validate the
     # very snapshot the analyze leg just cached.
     $StatsJson = & $CliExe query stats --path $RepoPath --no-cache 2>$null
@@ -167,24 +174,9 @@ foreach ($Repo in $Selected) {
                 $Stats.insights | ConvertTo-Json -Depth 6 |
                     Out-File (Join-Path $Out "insights-recorded.json") -Encoding utf8
                 $Orphans = @($Stats.insights | Where-Object { $_.id -eq "graph.orphans" })
-                foreach ($Card in $Orphans) {
-                    $Types = @($Card.evidence | Where-Object { $_ -match '^[A-Za-z_][A-Za-z0-9_]*$' })
-                    if ($Types.Count -eq 0) { continue }
-                    $Alt = ($Types -join "|")
-                    $LivePattern = "new\s+($Alt)\s*[({]|:\s*[^{;]*\b($Alt)\b|DbSet<($Alt)>"
-                    $Hits = Get-ChildItem -Path $RepoPath -Recurse -Filter *.cs -File -ErrorAction SilentlyContinue |
-                        Where-Object { $_.FullName -notmatch '\\\.git\\' } |
-                        Select-String -Pattern $LivePattern -List
-                    $LiveTypes = @()
-                    foreach ($T in $Types) {
-                        $TPattern = "new\s+$T\s*[({]|:\s*[^{;]*\b$T\b|DbSet<$T>"
-                        if ($Hits | Where-Object { $_.Line -match $TPattern } | Select-Object -First 1) {
-                            $LiveTypes += $T
-                        }
-                    }
-                    if ($LiveTypes.Count -gt 0) {
-                        $Probes += "FAIL orphans-validity: provably-live types in dead-code claim: $($LiveTypes -join ', ') (audit I1/I2)"
-                    }
+                if ($Orphans.Count -gt 0) {
+                    $Named = @($Orphans | ForEach-Object { $_.evidence }) -join ', '
+                    $Probes += "FAIL orphans-retired: the graph.orphans dead-code claim was RETIRED in R1.1 (0/10 measured precision) and is emitting again: $Named"
                 }
             }
         } catch { $Probes += "FAIL insight-validity-probe: $($_.Exception.Message)" }

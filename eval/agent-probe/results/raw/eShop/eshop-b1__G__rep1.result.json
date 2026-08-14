@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 64912,
+  "num_turns": 18,
+  "stop_reason": "end_turn",
+  "session_id": "9dca0e7b-c80f-4a05-801d-600078f87886",
+  "total_cost_usd": 0.41373849999999995,
+  "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 19878,
+    "cache_read_input_tokens": 186849,
+    "output_tokens": 4830,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 19878,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1967,
+        "cache_read_input_tokens": 23660,
+        "cache_creation_input_tokens": 379,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 379
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 26,
+      "outputTokens": 4830,
+      "cacheReadInputTokens": 186849,
+      "cacheCreationInputTokens": 19878,
+      "webSearchRequests": 0,
+      "costUSD": 0.4130845,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Here is the full path from checkout form submit to the database write.\n\n## The chain\n\n**1. Blazor form submit (WebApp)**\n- `EditForm ... OnSubmit=\"@HandleSubmitAsync\"` — `src/WebApp/Components/Pages/Checkout/Checkout.razor:12`\n- `HandleSubmitAsync` validates, then `HandleValidSubmitAsync` calls `Basket.CheckoutAsync(Info)` — `src/WebApp/Components/Pages/Checkout/Checkout.razor:101,111-116`\n- `BasketState.CheckoutAsync` builds a `CreateOrderRequest` and calls `orderingService.CreateOrder(request, checkoutInfo.RequestId)` — `src/WebApp/Services/BasketState.cs:78-108`\n- `OrderingService.CreateOrder` POSTs to `/api/Orders/` with an `x-requestid` header — `src/WebApp/Services/OrderingService.cs:13-20`; the client points at `https+http://ordering-api` — `src/WebApp/Extensions/Extensions.cs:38`\n\n**2. Ordering.API endpoint**\n- `api.MapPost(\"/\", CreateOrderAsync)` — `src/Ordering.API/Apis/OrdersApi.cs:17`\n- `OrdersApi.CreateOrderAsync` masks the card number, builds `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` and sends it via MediatR — `src/Ordering.API/Apis/OrdersApi.cs:118-155`\n\n**3. Handlers, in order**\n\n1. **MediatR pipeline behaviors** (registered as open behaviors, run around every request) — `src/Ordering.API/Extensions/Extensions.cs:35-42`\n   - `LoggingBehavior<,>` — `src/Ordering.API/Application/Behaviors/LoggingBehavior.cs`\n   - `ValidatorBehavior<,>` — `src/Ordering.API/Application/Behaviors/ValidatorBehavior.cs`\n   - `TransactionBehavior<,>` — opens the DB transaction and commits it — `src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-53`\n2. **`CreateOrderIdentifiedCommandHandler`** (derives from `IdentifiedCommandHandler<CreateOrderCommand, bool>`) — idempotency check on the request id, then re-sends the inner command through MediatR — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57-71`, base logic at `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39-87`\n3. **`CreateOrderCommandHandler.Handle`** — creates the `Order` aggregate, adds items, calls `_orderRepository.Add(order)` then `SaveEntitiesAsync` — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29-52`\n4. **`OrderRepository.Add`** — stages the entity in EF Core: `_context.Orders.Add(order).Entity` — `src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15-19`\n5. **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler`** — a domain-event handler (`OrderStartedDomainEvent`, raised in the `Order` constructor at `src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63,170-173`) dispatched from inside `SaveEntitiesAsync` before the save; it adds the buyer/payment method and itself calls `SaveEntitiesAsync` — `src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-52`, dispatch at `src/Ordering.Infrastructure/MediatorExtension.cs:5` and `src/Ordering.Infrastructure/OrderingContext.cs:55`\n\n**4. The line that writes the order to the database**\n- `_ = await base.SaveChangesAsync(cancellationToken);` in `OrderingContext.SaveEntitiesAsync` — **`src/Ordering.Infrastructure/OrderingContext.cs:59`**\n- The surrounding transaction is committed by `TransactionBehavior` at `src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:47`.\n\n## Caveats\n\n- The `CreateOrderCommandHandler` also writes an integration-event row (`OrderStartedIntegrationEvent`) via `_orderingIntegrationEventService.AddAndSaveEventAsync` before the order is built — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:32-33`. That is a database write, but to the integration event log, not the `Orders` table.\n- Because the buyer domain-event handler calls `SaveEntitiesAsync` first (`...WhenOrderStartedDomainEventHandler.cs:47-48`), the physical `SaveChangesAsync` that first flushes the pending `Order` insert is actually the *nested* invocation from that handler; the outer call at `OrderingContext.cs:59` then commits anything remaining. Both go through the same line 59.\n- The checkout page is server-rendered with `Enhance`d form posting, so the submit is an HTTP POST back to the same Blazor circuit/endpoint rather than a separate API controller — I found no separate MVC/minimal-API checkout endpoint in `WebApp`.",
+  "ttft_ms": 1518,
+  "ttft_stream_ms": 764,
+  "time_to_request_ms": 62,
+  "type": "result",
+  "duration_ms": 147598,
+  "uuid": "3d494baf-1eaf-4f98-aeab-85386731eb46"
+}

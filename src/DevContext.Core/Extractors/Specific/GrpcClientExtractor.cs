@@ -87,7 +87,6 @@ public sealed class GrpcClientExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = param.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
-                        Confidence = 0.85f,
                     });
                 }
             }

@@ -155,6 +155,21 @@ public static class ArchetypeDetector
             => !NoProductionProjects && !NoLibraryProjects && HasExecutables && AllExeAreAuxiliary && Packable;
     }
 
+    /// <summary>D1.3 (#20) — "are this repo's executables merely auxiliary to a library it ships?",
+    /// the verdict the rung at the top of <see cref="Detect"/> already makes, exposed so the SERVICE
+    /// population can obey it instead of re-deciding "what is a service" for itself.
+    /// <para>AutoMapper's Atlas read "1 services (1 drawn)" and named <c>TestApp</c>: the archetype
+    /// detector had already judged that exe auxiliary (that judgement is WHY the repo reads Library),
+    /// and <see cref="Graph2.ServiceBoundaryInference"/> never asked. Two judgements about the same
+    /// projects, and the page showed both.</para>
+    /// <para>This is deliberately the COMPOSITE, repo-level verdict, never the per-project half:
+    /// "a non-WinExe exe that transitively references a library" is true of every eShop service, so a
+    /// per-project reading of the same evidence would empty a real microservices canvas.</para></summary>
+    public static bool ExecutablesAreAuxiliaryToALibrary(DiscoveryModel model)
+        => !model.SamplesAreTheProduct
+            && DescribeLibraryShape(model, new ProjectClassifier(model.Projects))
+                .IsPackableLibraryWithOnlyAuxiliaryExes;
+
     private static LibraryShape DescribeLibraryShape(DiscoveryModel model, ProjectClassifier classifier)
     {
         // D1.1b: holder csproj (NoTargets/Traversal SDKs) and build-tooling exes (Cake/Nuke/Bullseye)

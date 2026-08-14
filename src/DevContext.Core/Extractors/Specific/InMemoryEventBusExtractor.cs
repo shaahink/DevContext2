@@ -199,4 +199,16 @@ public sealed record EventFlowDetection(
     string Target,
     string Kind,       // "Subscribe" | "Publish" | "Handler"
     string BusKind
-) : Detection;
+) : Detection
+{
+    /// <summary>
+    /// Confidence in this flow, 0.0–1.0, and the ONLY per-detection confidence anything reads:
+    /// <c>GraphBuilder.AddEventFlowNodes</c> copies it onto the <c>Raises</c> edge, which is what
+    /// makes a syntax-only channel join render <c>[approx]</c>. It used to live on
+    /// <see cref="Detection"/>, where 27 other extractors wrote a hand-picked constant that nothing
+    /// consumed — measured by deleting the base property and reading the compiler's answer: 28
+    /// writes, one read. Adding a number here without an edge or a renderer that shows it is how
+    /// that happened; don't put this back on the base.
+    /// </summary>
+    public float Confidence { get; init; } = 1.0f;
+}

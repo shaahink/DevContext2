@@ -25,7 +25,7 @@ query it from whichever surface fits your workflow.
 |---------|---------------|--------|
 | **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | Download the `.nupkg` from [Releases](https://github.com/shaahink/DevContext2/releases), then `dotnet tool install -g DevContext.Cli --add-source <download-folder>` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); CI-verified on Windows, Linux, and macOS — see [Platform support](#platform-support); not yet published to NuGet.org) |
 | **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
-| **MCP server** (22 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
+| **MCP server** (14 advertised tools + 8 unlisted specialists) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
 | **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
 
 ---
@@ -35,7 +35,7 @@ query it from whichever surface fits your workflow.
 DevContext turns any .NET solution into a **structured, queryable code graph** — not just syntax trees, but semantic understanding of architecture, wiring, entry points, data flow, and dependency injection. Use it to:
 
 - **Onboard to an unfamiliar repo** in under a minute
-- **Feed precise context to an LLM** — no token waste, no hallucinated code
+- **Feed precise context to an LLM** — budgeted, and every section says which files it came from
 - **Trace request flows** end-to-end, from HTTP endpoint through handlers, events, and database
 - **Export LLM-ready context packs** with scope picker, token budget, and intent presets
 
@@ -63,7 +63,7 @@ Analyze any .NET solution once, then query it a hundred ways. The Map shows **wh
 
 ### 🔬 Explore Workbench
 
-The Explore view is your central workbench: an **entry deck** showing all entry points (HTTP endpoints, bus consumers, background services), an interactive **trace/inspector** panel, and an **interactive graph** that renders the call graph as a Cytoscape dagre layout. Switch between Service, Layer, Feature, and Flow lenses to understand the codebase from different angles.
+The Explore view is your central workbench: an **entry deck** showing all entry points (HTTP endpoints, bus consumers, background services), an interactive **trace/inspector** panel, and an **interactive graph** that renders the call graph with Cytoscape over an ELK layered layout. Switch between Service, Layer, Feature, and Flow lenses to understand the codebase from different angles.
 
 ### 📊 Table Lens & Insights
 
@@ -95,13 +95,32 @@ Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD
 
 ### 🔌 MCP Integration
 
-DevContext ships a built-in **MCP server** exposing **22 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
+DevContext ships a built-in **MCP server**. `tools/list` advertises a curated menu of **14 tools** — from `overview` and `trace` to budget-priced `get_context` packs — and **8 more are callable but unlisted** (session plumbing plus `config`, `tests_for`, `verify_context`), so an agent weighs 14 verbs instead of 22 but loses no capability. Every tool and every parameter carries a description; out-of-range enum values are rejected rather than silently re-read. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
 
 <p align="center">
   <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP" width="85%"></a>
   <br>
   <em>MCP management page — status, config, sessions, live feed, try-a-tool sandbox</em>
 </p>
+
+#### What the agent story is, measured
+
+Two things are worth saying plainly, because both are measured and one of them is a limit.
+
+**Agents do reach for the tools — once the surface is legible.** In a pre-registered probe (18 headless
+runs, 6 questions × 3 reps on eShop, prompt and questions byte-identical between arms), the share of an
+agent's tool calls that went to DevContext rose from a median of **0.015** on the old 22-tool
+undescribed surface to **0.306** on today's 14-tool described-and-curated one — past the **0.20** floor
+that was written down before the runs. Adoption is not dominance: those runs still made 146 native
+calls (Read/Grep/Bash/Glob) against 80 DevContext calls, and 11 of the 14 advertised tools were used at
+least once. → [adoption gate evidence](eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md) ·
+[pre-registration](eval/agent-probe/DESIGN.md)
+
+**Whether it makes an agent cheaper or more correct is NOT established.** The pilot that tried to
+measure that was disqualified — adoption was near zero, so the contrast measured an unread tool menu,
+not the engine. The honest description today is a **primer, not an accelerator**: it gives an agent an
+oriented starting point. The unseen-repo study that would settle the accelerator claim has not been
+run. → [pilot results, incl. why it was disqualified](eval-results/agent-probe/RESULTS.md)
 
 ---
 
@@ -198,7 +217,7 @@ then register the built server with your MCP client:
 }
 ```
 
-The MCP server auto-spawns the gRPC backend. All 22 tools, session model, and per-client snippets: [docs/product/mcp-reference.md](docs/product/mcp-reference.md)
+The MCP server auto-spawns the gRPC backend. All 22 tools (14 advertised, 8 unlisted), session model, and per-client snippets: [docs/product/mcp-reference.md](docs/product/mcp-reference.md)
 
 ### Platform support
 
@@ -222,7 +241,7 @@ itself is portable .NET and CI-verified on all three OSes.
 |-----|--------------|
 | [docs/product/cli-reference.md](docs/product/cli-reference.md) | Every `devcontext analyze` flag, verified against source |
 | [docs/product/configuration.md](docs/product/configuration.md) | `devcontext.json` schema and precedence |
-| [docs/product/mcp-reference.md](docs/product/mcp-reference.md) | MCP setup + all 22 tools |
+| [docs/product/mcp-reference.md](docs/product/mcp-reference.md) | MCP setup + the tool catalog (14 advertised, 8 unlisted) |
 | [docs/product/desktop-ui.md](docs/product/desktop-ui.md) | Desktop app tour, page by page |
 | [docs/product/TRACE-ENGINE-DESIGN.md](docs/product/TRACE-ENGINE-DESIGN.md) | Trace engine internals: edges, priorities, caps |
 | [docs/product/DETECTION-GUIDE.md](docs/product/DETECTION-GUIDE.md) | What each detector finds and its provenance |
@@ -251,19 +270,25 @@ DevContext.Core (kernel)   —  analysis pipeline, Graph2 identity spine, BodyFa
 ├── DevContext.Cli          —  `devcontext` dotnet tool
 ├── DevContext.Contracts    —  proto → C# gRPC codegen
 ├── DevContext.Server       —  gRPC-Web backend (analyze once, query many)
-├── DevContext.Mcp          —  MCP server (22 tools, stdio → gRPC proxy)
+├── DevContext.Mcp          —  MCP server (14 advertised + 8 unlisted tools, stdio → gRPC proxy)
 DevContext.App (Angular 22) —  Tauri 2 desktop, zoneless, signals — talks gRPC-Web to Server
 ```
 
 ### Gate battery (green before every commit)
 
+The battery is one script — `eval/gates.ps1` — not a list of commands to remember. It runs build,
+contract sweep, fast tests, the MCP QA + wire-truth drives, eval expectations, the CLI matrix, and the
+app check, in that order, and stops at the first red naming the step.
+
 ```powershell
-dotnet build DevContext.slnx                              # 0 warnings / 0 errors
-dotnet test DevContext.slnx --filter "Category!=Eval"     # fast unit + integration
-dotnet test DevContext.slnx --filter "Category=Truth"     # truth gates
+powershell -File eval/gates.ps1                    # full battery (merge/push boundary)
+powershell -File eval/gates.ps1 -Scope engine -SkipEval   # fast engine loop
+powershell -File eval/gates.ps1 -Scope app                # app only (~90s)
 powershell -File scripts/loom-guards.ps1                  # banned patterns + truth gate
-cd src/DevContext.App; pnpm check                          # app: lint + test + build
 ```
+
+It takes a machine-wide lock first, so two checkouts on one box queue instead of killing each other's
+servers. Windows PowerShell 5.1 — see [Platform support](#platform-support).
 
 ---
 

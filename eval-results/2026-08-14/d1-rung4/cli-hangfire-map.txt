@@ -1,0 +1,40 @@
+Overview map (no focus).
+Analyzing project...
+
+WORKER  ConsumerApp     (1 project)
+
+STACK  net10.0
+
+STYLE  Unknown  (confidence low)
+       evidence: ArchitectureStyleDetector
+
+       per service:
+         ConsumerApp: Worker Service [Worker]
+
+WORKER VIEW
+   ConsumerApp (1)
+      NightlyReportJob
+
+TOPOLOGY (depends-on)
+   ConsumerApp
+
+ENTRY POINTS
+   Scheduled (1)
+      NightlyReportJob  (src/ConsumerApp/Program.cs:11)
+
+PACKAGES
+   Web/API:  Hangfire.AspNetCore 1.0.0
+   Other:  Hangfire 1.0.0
+
+→ drill in:  trace a focused entry   (e.g. trace "NightlyReportJob")
+
+analyzed 2 files · 4 nodes · 1 edges · 1 entries · ~136 tokens · 1.4s stage2 
+×2.9
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │     ConsumerApp      │
+│   Time   │        2201ms        │
+│  Tokens  │  ~136 (budget 8000)  │
+│ Version  │ v1.0.6-preview.0.104 │
+╰──────────┴──────────────────────╯

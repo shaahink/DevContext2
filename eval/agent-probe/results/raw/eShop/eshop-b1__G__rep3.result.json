@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 80111,
+  "num_turns": 20,
+  "stop_reason": "end_turn",
+  "session_id": "5294ed9d-80e0-4426-817f-bb0b69b1357f",
+  "total_cost_usd": 0.4507095,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 25004,
+    "cache_read_input_tokens": 155461,
+    "output_tokens": 4887,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 25004,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2133,
+        "cache_read_input_tokens": 28136,
+        "cache_creation_input_tokens": 733,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 733
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 22,
+      "outputTokens": 4887,
+      "cacheReadInputTokens": 155461,
+      "cacheCreationInputTokens": 25004,
+      "webSearchRequests": 0,
+      "costUSD": 0.45005549999999994,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\nThe checkout form submit flows from a Blazor `EditForm` handler in WebApp through an HTTP POST to Ordering.API, into a MediatR pipeline, and the row is finally written by `base.SaveChangesAsync(...)` in `OrderingContext.SaveEntitiesAsync` — `src/Ordering.Infrastructure/OrderingContext.cs:59`.\n\n### Handlers in order\n\n1. **`Checkout.HandleSubmitAsync` → `HandleValidSubmitAsync`** (Blazor `EditForm OnSubmit`) — `src/WebApp/Components/Pages/Checkout/Checkout.razor:12`, `:101`, `:111`. It validates and calls `Basket.CheckoutAsync(Info)` (`:114`).\n2. **`BasketState.CheckoutAsync`** — `src/WebApp/Services/BasketState.cs:78`. Builds a `CreateOrderRequest` (`:92`) and calls `orderingService.CreateOrder(request, checkoutInfo.RequestId)` (`:107`), then deletes the basket (`:108`).\n3. **`OrderingService.CreateOrder`** — `src/WebApp/Services/OrderingService.cs:13`. POSTs to `/api/Orders/` with the `x-requestid` header; the typed `HttpClient` points at `https+http://ordering-api` (`src/WebApp/Extensions/Extensions.cs:38`).\n4. **`OrdersApi.CreateOrderAsync`** (minimal-API endpoint for `POST api/orders`) — `src/Ordering.API/Apis/OrdersApi.cs:17` (mapping), `:118` (handler). Masks the card number, builds a `CreateOrderCommand` (`:141`), wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` (`:146`) and sends it via MediatR (`:155`).\n5. **MediatR pipeline behaviors**, registered in this order — `src/Ordering.API/Extensions/Extensions.cs:38-40`:\n   - `LoggingBehavior<,>` — `src/Ordering.API/Application/Behaviors/LoggingBehavior.cs`\n   - `ValidatorBehavior<,>` — `src/Ordering.API/Application/Behaviors/ValidatorBehavior.cs`\n   - `TransactionBehavior<,>` — `src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20`, which opens the DB transaction (`:38`), invokes the handler (`:43`), then commits (`:47`).\n6. **`CreateOrderIdentifiedCommandHandler`** (via base `IdentifiedCommandHandler<T,R>.Handle`) — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57` and `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39`. Does idempotency checks against the request id and re-sends the inner command through MediatR (`IdentifiedCommandHandler.cs:87`).\n7. **`CreateOrderCommandHandler.Handle`** — `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`. Creates the `Order` aggregate (`:40`), adds items (`:44`), calls `_orderRepository.Add(order)` (`:49`) and then `_orderRepository.UnitOfWork.SaveEntitiesAsync(...)` (`:51`).\n8. **`OrderRepository.Add`** — `src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15` (`_context.Orders.Add(order)`, EF tracking only, no SQL yet).\n9. **`OrderingContext.SaveEntitiesAsync`** — `src/Ordering.Infrastructure/OrderingContext.cs:47`. First dispatches domain events (`:55`, via `MediatorExtension.DispatchDomainEventsAsync`, `src/Ordering.Infrastructure/MediatorExtension.cs:5`), then **`await base.SaveChangesAsync(cancellationToken)` at `src/Ordering.Infrastructure/OrderingContext.cs:59` is the line that writes the order to the database.**\n\n### One wrinkle worth flagging\n\nBecause domain events are dispatched *before* `SaveChangesAsync` (`OrderingContext.cs:55`), the `Order` constructor's `OrderStartedDomainEvent` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:63`, `:170`) triggers **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`), which itself calls `SaveEntitiesAsync` (`:47`) on the same `OrderingContext`. So at runtime the *first* execution of `OrderingContext.cs:59` — the one that actually emits the `INSERT` for the order — is the nested call made from that buyer handler; the outer call at the same line then saves anything remaining. The insert is committed to the database when `TransactionBehavior` commits the transaction (`TransactionBehavior.cs:47` → `OrderingContext.CommitTransactionAsync`, `OrderingContext.cs:73-81`).\n\nI did not trace the downstream async saga (basket cleanup, grace period, stock/payment status updates) since those happen after the order row is written.",
+  "ttft_ms": 2871,
+  "ttft_stream_ms": 1962,
+  "time_to_request_ms": 77,
+  "type": "result",
+  "duration_ms": 96889,
+  "uuid": "79e09a42-5575-4971-a550-2df0d1680b81"
+}

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 147127,
+  "num_turns": 39,
+  "stop_reason": "end_turn",
+  "session_id": "5ed6a797-993c-4d72-8393-c39189e8509f",
+  "total_cost_usd": 1.016448,
+  "usage": {
+    "input_tokens": 44,
+    "cache_creation_input_tokens": 44955,
+    "cache_read_input_tokens": 573348,
+    "output_tokens": 11174,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 44955,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2262,
+        "cache_read_input_tokens": 47963,
+        "cache_creation_input_tokens": 766,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 766
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 44,
+      "outputTokens": 11174,
+      "cacheReadInputTokens": 573348,
+      "cacheCreationInputTokens": 44955,
+      "webSearchRequests": 0,
+      "costUSD": 1.0157939999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\nThe chain from the storefront checkout form to the actual database write is:\n\n**Blazor form submit → `BasketState` → HTTP POST to Ordering.API → MediatR idempotency handler → `CreateOrderCommandHandler` → `OrderingContext.SaveEntitiesAsync` → `base.SaveChangesAsync(...)`.**\n\nThe final line that writes the order to the database is `_ = await base.SaveChangesAsync(cancellationToken);` inside `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs`, in the `SaveEntitiesAsync` method that begins around line 47; the `SaveChangesAsync` call is ~line 59).\n\n### Handlers in order\n\n1. **`Checkout.HandleSubmitAsync` → `Checkout.HandleValidSubmitAsync`** (WebApp, Blazor) — the `EditForm` at `src/WebApp/Components/Pages/Checkout/Checkout.razor:12` is wired with `OnSubmit=\"@HandleSubmitAsync\"`; that method validates and calls `HandleValidSubmitAsync`, which does `await Basket.CheckoutAsync(Info)` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:111`).\n\n2. **`BasketState.CheckoutAsync`** (`src/WebApp/Services/BasketState.cs:78`) — generates a `RequestId` if missing, resolves buyer id/user name, fetches basket items (`:89`), builds a `CreateOrderRequest`, calls `orderingService.CreateOrder(...)` (`src/WebApp/Services/BasketState.cs:107`) and then deletes the basket (`:108`).\n\n3. **`OrderingService.CreateOrder`** (`src/WebApp/Services/OrderingService.cs:12`) — issues `POST /api/Orders/` with the `x-requestid` header (`src/WebApp/Services/OrderingService.cs:14-15`).\n\n4. **`OrdersApi.CreateOrderAsync`** (Ordering.API minimal-API handler, `src/Ordering.API/Apis/OrdersApi.cs:118`) — masks the card number, builds `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` (`src/Ordering.API/Apis/OrdersApi.cs:140`) and does `await services.Mediator.Send(requestCreateOrder)` (~`src/Ordering.API/Apis/OrdersApi.cs:154`).\n\n5. **MediatR pipeline behaviors** wrap the send: `LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior` (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20` opens the EF execution strategy/transaction around the handler). *Caveat: I read the behaviors themselves and the analyzer's pipeline metadata for this command, but I did not open the DI registration file, so the exact registration order is unverified.*\n\n6. **`CreateOrderIdentifiedCommandHandler`** (the idempotency handler, `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`), whose base **`IdentifiedCommandHandler<T,R>.Handle`** (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39`) checks `_requestManager.ExistAsync` / `CreateRequestForCommandAsync` and then re-dispatches the inner command via `await _mediator.Send(command, cancellationToken)` (~`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:86`).\n\n7. **`CreateOrderCommandHandler.Handle`** (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`) — enqueues the `OrderStartedIntegrationEvent` (`:33`), builds the `Order` aggregate and its items (`:40`, `:44`), then `_orderRepository.Add(order)` (`:49`) and `return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`:51`).\n\n8. **`OrderRepository.Add` / `OrderRepository.UnitOfWork`** — `Add` does `_context.Orders.Add(order)` (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15-17`); `UnitOfWork` is the `OrderingContext` itself (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:8`).\n\n9. **`OrderingContext.SaveEntitiesAsync`** — first dispatches domain events (`await _mediator.DispatchDomainEventsAsync(this)`), which runs **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`) in the same DbContext, and then performs the actual DB write with `base.SaveChangesAsync(cancellationToken)` (`src/Ordering.Infrastructure/OrderingContext.cs`, ~line 59). The surrounding `TransactionBehavior` afterwards commits the transaction via `OrderingContext.CommitTransactionAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:~73`).\n\n### Notes / uncertainty\n- There is a second, unrelated checkout path in the MAUI `ClientApp` (`CheckoutViewModel.CheckoutAsync`), which is **not** part of the web storefront flow; I excluded it because the question asks about the web storefront (`src/WebApp`).\n- Exact line numbers inside `src/Ordering.Infrastructure/OrderingContext.cs` for `SaveChangesAsync`/`CommitTransactionAsync` are approximate (derived from a 1–90 line source window), though the file and method are certain.",
+  "ttft_ms": 2371,
+  "ttft_stream_ms": 1401,
+  "time_to_request_ms": 95,
+  "type": "result",
+  "duration_ms": 147547,
+  "uuid": "a299d3ad-422e-4bf0-aac9-9a14edd9c457"
+}

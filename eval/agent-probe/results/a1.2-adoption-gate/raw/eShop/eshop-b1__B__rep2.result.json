@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 81310,
+  "num_turns": 22,
+  "stop_reason": "end_turn",
+  "session_id": "1936fd0f-d3eb-4442-83c2-1b5964addba3",
+  "total_cost_usd": 0.6291135000000001,
+  "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 31475,
+    "cache_read_input_tokens": 298905,
+    "output_tokens": 6565,
+    "output_tokens_details": {
+      "thinking_tokens": 2097
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 31475,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2683,
+        "cache_read_input_tokens": 39962,
+        "cache_creation_input_tokens": 536,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 536
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 576,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000656,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 26,
+      "outputTokens": 6565,
+      "cacheReadInputTokens": 298905,
+      "cacheCreationInputTokens": 31475,
+      "webSearchRequests": 0,
+      "costUSD": 0.6284575000000001,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## Answer\n\nThe write happens at `src/Ordering.Infrastructure/OrderingContext.cs:59` (`await base.SaveChangesAsync(cancellationToken)` inside `SaveEntitiesAsync`), which flushes the `Order` added at `src/Ordering.Infrastructure/Repositories/OrderRepository.cs:17` (`_context.Orders.Add(order).Entity`); the surrounding transaction is committed at `src/Ordering.Infrastructure/OrderingContext.cs:80-81`.\n\n### The chain, in order\n\n**WebApp (Blazor storefront)**\n1. `Checkout.razor` — `<EditForm ... OnSubmit=\"@HandleSubmitAsync\">` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:12`) → `Checkout.HandleSubmitAsync` validates (`:101`) → `Checkout.HandleValidSubmitAsync` (`:111`) calls `Basket.CheckoutAsync(Info)` (`:114`).\n2. `BasketState.CheckoutAsync` (`src/WebApp/Services/BasketState.cs:78`) builds a `CreateOrderRequest` and calls `orderingService.CreateOrder(request, checkoutInfo.RequestId)` (`:107`), then deletes the basket (`:108`).\n3. `OrderingService.CreateOrder` (`src/WebApp/Services/OrderingService.cs:12`) issues `POST /api/Orders/` with the `x-requestid` header (`:14-15`).\n\n**Ordering.API**\n4. Route `api.MapPost(\"/\", CreateOrderAsync)` (`src/Ordering.API/Apis/OrdersApi.cs:17`, group `api/orders` at `:9`) → **`OrdersApi.CreateOrderAsync`** (`src/Ordering.API/Apis/OrdersApi.cs:118`), which masks the card number, builds `CreateOrderCommand` and wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` (`:141-146`), then `services.Mediator.Send(requestCreateOrder)` (`:155`).\n5. MediatR pipeline behaviors run around that send, registered in this order: **`LoggingBehavior`**, **`ValidatorBehavior`**, **`TransactionBehavior`** (`src/Ordering.API/Extensions/Extensions.cs:39-41`). `TransactionBehavior.Handle` opens the DB transaction (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20,38`), calls `next()` (`:43`) and afterwards commits (`:47`) and publishes integration events (`:52`).\n6. **`CreateOrderIdentifiedCommandHandler`** (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`), whose base **`IdentifiedCommandHandler<T,R>.Handle`** (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39`) does the idempotency check via `IRequestManager` (`:41,48`) and then re-sends the inner command with `_mediator.Send(command, ...)` (`:87`).\n7. **`CreateOrderCommandHandler.Handle`** (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`) — queues the `OrderStartedIntegrationEvent` (`:32-33`), constructs the `Order` aggregate and its items (`:39-45`), calls `_orderRepository.Add(order)` (`:49`) and `_orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`:51`).\n8. `OrderRepository.Add` (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:17`) attaches it to the change tracker; `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:47`) first dispatches domain events (`:55`, implemented at `src/Ordering.Infrastructure/MediatorExtension.cs:5-19`) and then performs the actual DB write at `:59`.\n\n**Domain-event handler that runs inside the same save/transaction**\n9. **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20`) reacts to `OrderStartedDomainEvent` and adds the `Buyer`/payment method (`:44`) before the `SaveChangesAsync` at `OrderingContext.cs:59`.\n\n### Caveats\n- Two distinct \"commit\" points exist: the INSERT is emitted by `SaveChangesAsync` at `OrderingContext.cs:59`, but the enclosing transaction is only committed by `TransactionBehavior` → `CommitTransactionAsync` (`TransactionBehavior.cs:47`, `OrderingContext.cs:80-81`). If you mean \"the line that persists the order\", it is `OrderingContext.cs:59`.\n- There is a second, non-web client (`src/ClientApp`, MAUI, `CheckoutViewModel.CheckoutAsync`) that hits the same `POST /api/orders` endpoint; I traced the **WebApp** storefront path as asked.\n- MediatR/EF dispatch is runtime-resolved, so steps 5–7 are inferred from the registrations (`Extensions.cs:37-41`) and handler type parameters rather than from static call edges.",
+  "ttft_ms": 1597,
+  "ttft_stream_ms": 847,
+  "time_to_request_ms": 57,
+  "type": "result",
+  "duration_ms": 84364,
+  "uuid": "1ecfaf27-403c-44c6-9e00-2c26ade177cd"
+}

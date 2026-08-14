@@ -1,0 +1,107 @@
+[
+  {
+    "tool": "read_source",
+    "arguments": {
+      "query": "X",
+      "mode": "full"
+    },
+    "dial": "mode",
+    "expect": "reject mode",
+    "ok": false,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then read_source(query:\"OrderService\")"
+    }
+  },
+  {
+    "tool": "neighbors",
+    "arguments": {
+      "query": "X",
+      "direction": "sideways"
+    },
+    "dial": "direction",
+    "expect": "reject direction",
+    "ok": false,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then neighbors(query:\"OrderService\")"
+    }
+  },
+  {
+    "tool": "impact",
+    "arguments": {
+      "query": "X",
+      "direction": "sideways"
+    },
+    "dial": "direction",
+    "expect": "reject direction",
+    "ok": false,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then impact(query:\"OrderService\")"
+    }
+  },
+  {
+    "tool": "trace",
+    "arguments": {
+      "focus": "X",
+      "format": "verbose"
+    },
+    "dial": "format",
+    "expect": "reject format",
+    "ok": false,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then trace(focus:\"POST /basket/checkout\")"
+    }
+  },
+  {
+    "tool": "get_context",
+    "arguments": {
+      "focus": "X",
+      "intent": "summarise"
+    },
+    "dial": "intent",
+    "expect": "reject intent",
+    "ok": false,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then get_context(focus:\"POST /api/orders\")"
+    }
+  },
+  {
+    "tool": "read_source",
+    "arguments": {
+      "query": "X",
+      "mode": "member"
+    },
+    "dial": null,
+    "expect": "pass the guard",
+    "ok": true,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then read_source(query:\"OrderService\")"
+    }
+  },
+  {
+    "tool": "impact",
+    "arguments": {
+      "query": "X",
+      "direction": "both"
+    },
+    "dial": null,
+    "expect": "pass the guard",
+    "ok": true,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then impact(query:\"OrderService\")"
+    }
+  }
+]

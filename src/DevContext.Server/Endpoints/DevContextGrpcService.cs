@@ -68,7 +68,7 @@ public sealed class DevContextGrpcService(
         try
         {
             var (session, cached) = await work.ConfigureAwait(false);
-            var (_, entriesWithTarget, _, _) = session.Query.Stats();
+            var (_, entriesWithTarget) = session.Query.Stats();
             var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
             await responseStream.WriteAsync(new Proto.AnalyzeEvent
             {
@@ -230,6 +230,11 @@ public sealed class DevContextGrpcService(
                 "both" => ImpactDirection.Both,
                 _ => ImpactDirection.Up,
             };
+            // T1.3 (BUG-BACKLOG #10) — echo the direction we ACTUALLY walked. This used to send
+            // `request.Direction` straight back, so `direction:"sideways"` computed Up and then
+            // reported "sideways" to the caller: the one field that could have caught the
+            // misunderstanding was the one repeating it.
+            var directionUsed = direction.ToString().ToLowerInvariant();
 
             ImmutableArray<ImpactResult> results;
 
@@ -242,12 +247,12 @@ public sealed class DevContextGrpcService(
             {
                 var nodeId = ResolveNode(session, request.NodeId);
                 if (nodeId is null)
-                    return new Proto.ImpactResponse { Direction = request.Direction ?? "up" };
+                    return new Proto.ImpactResponse { Direction = directionUsed };
 
                 results = session.Query.Impact(nodeId.Value, direction, maxDepth);
             }
 
-            return ProtoMapper.ToImpactResponse(results, request.Direction ?? "up");
+            return ProtoMapper.ToImpactResponse(results, directionUsed);
         });
 
     // G3.1 (R4 item 8) — seam(from, to). Both ends resolve through the SAME ResolveNode every other
@@ -511,7 +516,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var snapshot = session.Snapshot;
-            var (seams, entriesWithTarget, _, _) = session.Query.Stats();
+            var (seams, entriesWithTarget) = session.Query.Stats();
             return ProtoMapper.ToStatsResponse(
                 snapshot.Report,
                 snapshot.Graph,

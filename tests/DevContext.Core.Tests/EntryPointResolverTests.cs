@@ -263,4 +263,105 @@ public sealed class EntryPointResolverTests
 
         Assert.Null(resolved);
     }
+
+    // ── T1.3 (BUG-BACKLOG #6) — the nodeId tier ──────────────────────────────
+    // Every other tool in the menu takes a nodeId, and trace's own did-you-mean envelope hands
+    // nodeIds back, so an agent reaches this resolver with a "Kind:Key" string on its first try.
+    // Before the tier, that string was split at the FIRST colon and the KIND PREFIX was read as a
+    // type name. Two measured consequences, both silent:
+    //   TodoApi 2026-08-13 — trace("EntryPoint:GET /") and trace("Type:Todo.Web.Server.ExternalProviders")
+    //     answered found:false while the same nodes' bare titles traced 5 and 2 steps.
+    //   Hangfire 2026-07-29 — on a graph carrying a node whose Title is literally "Type" (bug #7's
+    //     mis-bound node), it matched THAT node: found:true, 0 steps, rendered "Entry: Type: Type".
+
+    [Fact]
+    public void Resolve_accepts_a_Type_nodeId()
+    {
+        var g = new CodeGraphBuilder();
+        var id = NodeId.ForType("Todo.Web.Server.ExternalProviders");
+        g.AddNode(new GraphNode(id, "ExternalProviders", NodeKind.Type));
+
+        var resolved = EntryPointResolver.Resolve([], g.Build(), "Type:Todo.Web.Server.ExternalProviders");
+
+        Assert.NotNull(resolved);
+        Assert.Equal(id, resolved!.Node);
+    }
+
+    [Fact]
+    public void Resolve_accepts_a_Member_nodeId()
+    {
+        // MEASURED on Hangfire: trace("Member:Hangfire.BackgroundJobClient::Create") answered
+        // "No entry or node matched" and offered back candidates that routed into the phantom.
+        var g = new CodeGraphBuilder();
+        var id = NodeId.ForMember("Hangfire.BackgroundJobClient", "Create");
+        g.AddNode(new GraphNode(NodeId.ForType("Hangfire.BackgroundJobClient"), "BackgroundJobClient", NodeKind.Type));
+        g.AddNode(new GraphNode(id, "Create", NodeKind.Member));
+
+        var resolved = EntryPointResolver.Resolve([], g.Build(), "Member:Hangfire.BackgroundJobClient::Create");
+
+        Assert.NotNull(resolved);
+        Assert.Equal(id, resolved!.Node);
+    }
+
+    [Fact]
+    public void Resolve_of_a_nodeId_never_lands_on_a_node_titled_like_its_kind()
+    {
+        // The phantom, reproduced: a graph that carries a node titled "Type" (BUG-BACKLOG #7) plus
+        // the node the caller actually asked for. The wrong answer here is not an exception — it is
+        // a confident EntryPoint on the "Type" node, which traces to found:true with zero steps.
+        var g = new CodeGraphBuilder();
+        var phantom = NodeId.ForType("System.Type");
+        var wanted = NodeId.ForType("Hangfire.BackgroundJobClient");
+        g.AddNode(new GraphNode(phantom, "Type", NodeKind.Type));
+        g.AddNode(new GraphNode(wanted, "BackgroundJobClient", NodeKind.Type));
+        g.AddEdge(new GraphEdge(wanted, NodeId.ForType("Hangfire.JobStorage"), EdgeKind.Calls));
+
+        var resolved = EntryPointResolver.Resolve([], g.Build(), "Type:Hangfire.BackgroundJobClient");
+
+        Assert.NotNull(resolved);
+        Assert.Equal(wanted, resolved!.Node);
+        Assert.NotEqual("Type", resolved.Title);
+    }
+
+    [Fact]
+    public void Resolve_of_a_nodeId_returns_the_inventory_entry_when_the_node_is_one()
+    {
+        // A round-tripped nodeId must not downgrade an HTTP endpoint into a synthetic PublicApi:
+        // the entry carries the route, verb and provenance every downstream render reads.
+        var entry = HttpEntry("GET", "/todos/");
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(entry.Node, entry.Title, NodeKind.EntryPoint));
+
+        var resolved = EntryPointResolver.Resolve([entry], g.Build(), $"EntryPoint:{entry.Node.Key}");
+
+        Assert.Same(entry, resolved);
+    }
+
+    [Fact]
+    public void Resolve_of_a_nodeId_whose_key_is_unknown_returns_null()
+    {
+        // A miss is the honest answer — found:false plus candidates, not a confident empty tree.
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForType("App.Real"), "Real", NodeKind.Type));
+
+        var resolved = EntryPointResolver.Resolve([], g.Build(), "Type:App.NoSuchThing");
+
+        Assert.Null(resolved);
+    }
+
+    [Fact]
+    public void Resolve_still_reads_an_ordinary_Type_colon_Method_focus_as_a_member()
+    {
+        // The tier must not swallow the documented "Type:Method" form — only kind PREFIXES.
+        var g = new CodeGraphBuilder();
+        var typeId = NodeId.ForType("App.OrderService");
+        var memberId = NodeId.ForMember("App.OrderService", "Process");
+        g.AddNode(new GraphNode(typeId, "OrderService", NodeKind.Type));
+        g.AddNode(new GraphNode(memberId, "Process", NodeKind.Member));
+
+        var resolved = EntryPointResolver.Resolve([], g.Build(), "OrderService:Process");
+
+        Assert.NotNull(resolved);
+        Assert.Equal(memberId, resolved!.Node);
+    }
 }

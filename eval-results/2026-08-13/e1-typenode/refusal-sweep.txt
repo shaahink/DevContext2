@@ -1,0 +1,10 @@
+E1.3 invariant-refusal sweep - label=E1.3-at-HEAD
+cli-core-dll-written=2026-08-13T23:35:06
+
+eShop                refusals=0 (no GraphInvariants diagnostic)
+TodoApi              refusals=0 (no GraphInvariants diagnostic)
+CleanArchitecture    refusals=0 (no GraphInvariants diagnostic)
+MediatR              refusals=0 (no GraphInvariants diagnostic)
+Hangfire             refusals=0 (no GraphInvariants diagnostic)
+eshop-microservices  refusals=0 (no GraphInvariants diagnostic)
+DevContext           refusals=0 (no GraphInvariants diagnostic)

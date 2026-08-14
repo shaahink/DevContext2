@@ -1,0 +1,46 @@
+﻿E1.2 lost-edge diff - base=795ad1b vs HEAD
+base-core-dll=2026-08-13T23:06:53
+TodoApi    base calls=50
+MediatR    base calls=31
+head-core-dll=2026-08-13T23:07:17
+
+TodoApi    head calls=48
+  LOST=2  GAINED=0
+    LOST   Member:TodoApi.RateLimitExtensions::AddRateLimiting -> Type:Microsoft.Extensions.DependencyInjection.IServiceCollection   [was Semantic]
+    LOST   Member:TodoApi.RateLimitExtensions::AddRateLimiting -> Type:Microsoft.Extensions.Options.OptionsBuilder`1   [was Semantic]
+  head Calls edges whose TYPE target is not a declared node: 0
+
+MediatR    head calls=26
+  LOST=18  GAINED=13
+    LOST   Member:MediatR.Licensing.LicenseValidator::Validate -> Type:Microsoft.Extensions.Logging.ILogger   [was Semantic]
+    LOST   Member:MediatR.Mediator::CreateStream -> Type:System.Collections.Concurrent.ConcurrentDictionary`2   [was Semantic]
+    LOST   Member:MediatR.Mediator::PublishNotification -> Type:System.Collections.Concurrent.ConcurrentDictionary`2   [was Semantic]
+    LOST   Member:MediatR.Mediator::Send -> Type:System.Collections.Concurrent.ConcurrentDictionary`2   [was Semantic]
+    LOST   Member:MediatR.NotificationPublishers.TaskWhenAllPublisher::Publish -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Pipeline.RequestExceptionActionProcessorBehavior`2::GetMethodInfoForAction -> Type:System.Type   [was Semantic]
+    LOST   Member:MediatR.Pipeline.RequestExceptionActionProcessorBehavior`2::Handle -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Pipeline.RequestExceptionProcessorBehavior`2::Handle -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::AddMediatRClasses -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::AddRequiredServices -> Type:Microsoft.Extensions.DependencyInjection.IServiceCollection   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::ConnectImplementationsToTypesClosing -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::FindInterfacesThatClosesCore -> Type:System.Type   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::GetConcreteRequestTypes -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::RegisterBehaviorIfImplementationsExist -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Registration.ServiceRegistrar::RegisterClosedBehaviorsFromAssemblies -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Wrappers.NotificationHandlerWrapperImpl`1::Handle -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:MediatR.Wrappers.StreamRequestHandlerWrapperImpl`2::Handle -> Type:System.Collections.Generic.IEnumerable`1   [was Semantic]
+    LOST   Member:Microsoft.Extensions.DependencyInjection.MediatRServiceCollectionExtensions::CheckLicense -> Type:System.Threading.Tasks.TaskFactory   [was Semantic]
+    GAINED Member:MediatR.Mediator::CreateStream -> Type:MediatR.Wrappers.StreamRequestHandlerBase   [Semantic]
+    GAINED Member:MediatR.Mediator::CreateStream -> Type:MediatR.Wrappers.StreamRequestHandlerWrapper`1   [Semantic]
+    GAINED Member:MediatR.Mediator::PublishNotification -> Type:MediatR.Wrappers.NotificationHandlerWrapper   [Semantic]
+    GAINED Member:MediatR.Mediator::Send -> Type:MediatR.Wrappers.RequestHandlerBase   [Semantic]
+    GAINED Member:MediatR.Mediator::Send -> Type:MediatR.Wrappers.RequestHandlerWrapper   [Semantic]
+    GAINED Member:MediatR.Mediator::Send -> Type:MediatR.Wrappers.RequestHandlerWrapper`1   [Semantic]
+    GAINED Member:MediatR.NotificationPublishers.ForeachAwaitPublisher::Publish -> Type:MediatR.NotificationHandlerExecutor   [Semantic]
+    GAINED Member:MediatR.NotificationPublishers.TaskWhenAllPublisher::Publish -> Type:MediatR.NotificationHandlerExecutor   [Semantic]
+    GAINED Member:MediatR.Pipeline.RequestPostProcessorBehavior`2::Handle -> Type:MediatR.Pipeline.IRequestPostProcessor`2   [Semantic]
+    GAINED Member:MediatR.Pipeline.RequestPreProcessorBehavior`2::Handle -> Type:MediatR.Pipeline.IRequestPreProcessor`1   [Semantic]
+    GAINED Member:MediatR.Wrappers.NotificationHandlerWrapperImpl`1::Handle -> Type:MediatR.INotificationHandler`1   [Semantic]
+    GAINED Member:MediatR.Wrappers.RequestHandlerWrapperImpl`1::Handle -> Type:MediatR.IPipelineBehavior`2   [Semantic]
+    GAINED Member:MediatR.Wrappers.RequestHandlerWrapperImpl`2::Handle -> Type:MediatR.IPipelineBehavior`2   [Semantic]
+  head Calls edges whose TYPE target is not a declared node: 0

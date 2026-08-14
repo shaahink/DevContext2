@@ -33,7 +33,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
                 foreach (var method in hub.HubMethods)
                 {
                     var memberId = NodeId.ForMember(typeFqn, method);
-                    g.AddNode(new GraphNode(memberId, $"{hub.HubType}.{method}", NodeKind.Member)
+                    g.AddNode(new GraphNode(memberId, SymbolCanon.MemberTitle(memberId.Key), NodeKind.Member)
                     {
                         FilePath = hub.SourceFile,
                         LineNumber = hub.LineNumber, // T2.2: no trailing-colon members

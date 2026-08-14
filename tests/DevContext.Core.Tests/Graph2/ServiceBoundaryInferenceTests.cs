@@ -105,7 +105,8 @@ public sealed class ServiceBoundaryInferenceTests
             new ProjectInfo("Tests", @"C:\repo\Tests\Tests.csproj", "C#", ["net10.0"], [], []),
         };
         var scope = new SolutionScope([.. projects]);
-        var runnable = ServiceBoundaryInference.RunnableProjects(scope);
+        var runnable = ServiceBoundaryInference.RunnableProjects(
+            scope, new Models.DiscoveryModel { Projects = [.. projects] });
         Assert.Equal(2, runnable.Length);
         Assert.Contains(runnable, p => p.Name == "Api");
         Assert.Contains(runnable, p => p.Name == "Worker");

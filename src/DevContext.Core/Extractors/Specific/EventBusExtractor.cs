@@ -260,7 +260,6 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                     ExtractorName = "EventBusExtractor",
                     SourceFile = site.File,
                     LineNumber = site.Line,
-                    Confidence = 0.6f,
                 });
             }
         }
@@ -326,7 +325,6 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                     ExtractorName = extractorName,
                     SourceFile = filePath,
                     LineNumber = lineNumber,
-                    Confidence = 0.7f,
                 });
             }
         }

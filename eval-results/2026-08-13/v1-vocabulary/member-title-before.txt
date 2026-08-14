@@ -1,0 +1,261 @@
+﻿V1.2 MEMBER-TITLE VOCABULARY PROBE (one-rule mirror vs engine GraphNode.Title)
+cli: C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli mtime: 2026-08-13T20:33:10
+
+POLE eShop
+  EntryPoint   match     56   MISMATCH     53
+  Member       match    258   MISMATCH    183
+  Service      match     12   MISMATCH      0
+  Store        match      6   MISMATCH      0
+  Type         match    545   MISMATCH     23
+      Member id=Member:eShop.Catalog.API.CatalogApi::<lambda> GET /api/catalog/catalogtypes
+         engine='<lambda> GET /api/catalog/catalogtypes'  mirror='CatalogApi.<lambda> GET /api/catalog/catalogtypes'
+      Member id=Member:eShop.Catalog.API.CatalogApi::<lambda> GET /api/catalog/catalogbrands
+         engine='<lambda> GET /api/catalog/catalogbrands'  mirror='CatalogApi.<lambda> GET /api/catalog/catalogbrands'
+      Member id=Member:eShop.WebhookClient.Endpoints.AuthenticationEndpoints::<lambda> POST /logout
+         engine='<lambda> POST /logout'  mirror='AuthenticationEndpoints.<lambda> POST /logout'
+      Member id=Member:eShop.WebhookClient.Endpoints.WebhookEndpoints::<lambda> POST /webhook-received
+         engine='<lambda> POST /webhook-received'  mirror='WebhookEndpoints.<lambda> POST /webhook-received'
+      Member id=Member:Webhooks.API.WebHooksApi::<lambda> GET /api/webhooks/
+         engine='<lambda> GET /api/webhooks/'  mirror='WebHooksApi.<lambda> GET /api/webhooks/'
+      Member id=Member:Webhooks.API.WebHooksApi::<lambda> GET /api/webhooks/{id:int}
+         engine='<lambda> GET /api/webhooks/{id:int}'  mirror='WebHooksApi.<lambda> GET /api/webhooks/{id:int}'
+      Member id=Member:Webhooks.API.WebHooksApi::<lambda> POST /api/webhooks/
+         engine='<lambda> POST /api/webhooks/'  mirror='WebHooksApi.<lambda> POST /api/webhooks/'
+      Member id=Member:Webhooks.API.WebHooksApi::<lambda> DELETE /api/webhooks/{id:int}
+         engine='<lambda> DELETE /api/webhooks/{id:int}'  mirror='WebHooksApi.<lambda> DELETE /api/webhooks/{id:int}'
+
+POLE FluentValidation
+  Member       match      0   MISMATCH    115
+  Type         match    196   MISMATCH      8
+      Type id=Type:FluentValidation.Internal.AccessorCache`1.Key
+         engine='Key'  mirror='AccessorCache'
+      Type id=Type:FluentValidation.Internal.TrackingCollection`1.CaptureDisposable
+         engine='CaptureDisposable'  mirror='TrackingCollection'
+      Type id=Type:FluentValidation.Internal.TrackingCollection`1.EventDisposable
+         engine='EventDisposable'  mirror='TrackingCollection'
+      Type id=Type:FluentValidation.ValidatorDescriptor`1.RulesetMetadata
+         engine='RulesetMetadata'  mirror='ValidatorDescriptor'
+      Type id=Type:FluentValidation.Validators.PolymorphicValidator`2.DerivedValidatorFactory
+         engine='DerivedValidatorFactory'  mirror='PolymorphicValidator'
+      Type id=Type:FluentValidation.Validators.PrecisionScaleValidator`1.Info
+         engine='Info'  mirror='PrecisionScaleValidator'
+      Type id=Type:type.Assembly
+         engine='type.Assembly'  mirror='Assembly'
+      Type id=Type:typeof(T).Assembly
+         engine='typeof(T).Assembly'  mirror='Assembly'
+
+POLE AutoMapper
+  Member       match      0   MISMATCH    208
+  Service      match      1   MISMATCH      0
+  Type         match    257   MISMATCH      2
+      Type id=Type:NullLoggerFactory.Instance
+         engine='NullLoggerFactory.Instance'  mirror='Instance'
+      Type id=Type:opt => opt.AddMaps(typeof(Source))
+         engine='opt => opt.AddMaps(typeof(Source))'  mirror='AddMaps(typeof(Source))'
+      Member id=Member:AutoMapper.DuplicateTypeMapConfigurationException::GetErrors
+         engine='GetErrors'  mirror='DuplicateTypeMapConfigurationException.GetErrors'
+      Member id=Member:AutoMapper.ConstructorParameterMap::DefaultValue
+         engine='DefaultValue'  mirror='ConstructorParameterMap.DefaultValue'
+      Member id=Member:AutoMapper.Features.FeatureExtensions::SetFeature
+         engine='SetFeature'  mirror='FeatureExtensions.SetFeature'
+      Member id=Member:AutoMapper.Features.FeatureExtensions::ReverseTo
+         engine='ReverseTo'  mirror='FeatureExtensions.ReverseTo'
+      Member id=Member:AutoMapper.Mapper::MapCore
+         engine='MapCore'  mirror='Mapper.MapCore'
+      Member id=Member:AutoMapper.MemberMap::Types
+         engine='Types'  mirror='MemberMap.Types'
+
+POLE MediatR
+  EntryPoint   match      0   MISMATCH      1
+  Member       match      0   MISMATCH     21
+  Type         match    165   MISMATCH      5
+      EntryPoint id=EntryPoint:domain:NotificationHandler
+         engine='NotificationHandler'  mirror='domain:NotificationHandler'
+      Type id=Type:TextWriter.Null
+         engine='TextWriter.Null'  mirror='Null'
+      Type id=Type:new MediatR.Tests.PipelineTests.Logger()
+         engine='new MediatR.Tests.PipelineTests.Logger()'  mirror='Logger()'
+      Type id=Type:new MediatR.Tests.StreamPipelineTests.Logger()
+         engine='new MediatR.Tests.StreamPipelineTests.Logger()'  mirror='Logger()'
+      Type id=Type:new MediatR.Tests.SendTests.Dependency()
+         engine='new MediatR.Tests.SendTests.Dependency()'  mirror='Dependency()'
+      Type id=Type:new System.IO.StringWriter()
+         engine='new System.IO.StringWriter()'  mirror='StringWriter()'
+      Member id=Member:MediatR.Mediator::Send
+         engine='Send'  mirror='Mediator.Send'
+      Member id=Member:MediatR.Mediator::PublishNotification
+         engine='PublishNotification'  mirror='Mediator.PublishNotification'
+
+POLE CleanArchitecture
+  EntryPoint   match      5   MISMATCH      2
+  Member       match     10   MISMATCH     27
+  Service      match      2   MISMATCH      0
+  Type         match     90   MISMATCH      3
+      EntryPoint id=EntryPoint:domain:ContributorDeletedHandler
+         engine='ContributorDeletedHandler'  mirror='domain:ContributorDeletedHandler'
+      EntryPoint id=EntryPoint:domain:ContributorNameUpdatedEmailNotificationHandler
+         engine='ContributorNameUpdatedEmailNotificationHandler'  mirror='domain:ContributorNameUpdatedEmailNotificationHandler'
+      Type id=Type:options =>
+         options.UseSqlite(connectionString)
+         engine='options =>
+         options.UseSqlite(connectionString)'  mirror='UseSqlite(connectionString)'
+      Type id=Type:options =>
+    {
+      // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported.
+      options.ServiceLifetime = ServiceLifetime.Scoped;
+
+      // Supply any TYPE from each assembly you want scanned (the generator finds the assembly from the type)
+      options.Assemblies =
+      [
+        typeof(Contributor),                       // Core
+        typeof(CreateContributorCommand),         // UseCases
+        typeof(InfrastructureServiceExtensions), // Infrastructure
+        typeof(MediatorConfig)                  // Web
+      ];
+
+      // Register pipeline behaviors here (order matters)
+      options.PipelineBehaviors =
+      [
+        typeof(LoggingBehavior<,>)
+      ];
+
+      // If you have stream behaviors:
+      // options.StreamPipelineBehaviors = [ typeof(YourStreamBehavior<,>) ];
+    }
+         engine='options =>
+    {
+      // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported.
+      options.ServiceLifetime = ServiceLifetime.Scoped;
+
+      // Supply any TYPE from each assembly you want scanned (the generator finds the assembly from the type)
+      options.Assemblies =
+      [
+        typeof(Contributor),                       // Core
+        typeof(CreateContributorCommand),         // UseCases
+        typeof(InfrastructureServiceExtensions), // Infrastructure
+        typeof(MediatorConfig)                  // Web
+      ];
+
+      // Register pipeline behaviors here (order matters)
+      options.PipelineBehaviors =
+      [
+        typeof(LoggingBehavior<,>)
+      ];
+
+      // If you have stream behaviors:
+      // options.StreamPipelineBehaviors = [ typeof(YourStreamBehavior<,>) ];
+    }'  mirror='StreamPipelineBehaviors = [ typeof(YourStreamBehavior<,>) ];
+    }'
+      Type id=Type:builder.Configuration
+         engine='builder.Configuration'  mirror='Configuration'
+      Member id=Member:Clean.Architecture.Infrastructure.InfrastructureServiceExtensions::AddInfrastructureServices
+         engine='AddInfrastructureServices'  mirror='InfrastructureServiceExtensions.AddInfrastructureServices'
+      Member id=Member:Clean.Architecture.Core.ContributorAggregate.Contributor::UpdatePhoneNumber
+         engine='UpdatePhoneNumber'  mirror='Contributor.UpdatePhoneNumber'
+      Member id=Member:Clean.Architecture.Core.ContributorAggregate.ContributorName::Validate
+         engine='Validate'  mirror='ContributorName.Validate'
+
+POLE dotnet-podcasts
+  EntryPoint   match     22   MISMATCH      2
+  Member       match     75   MISMATCH     75
+  Service      match      5   MISMATCH      0
+  Type         match    156   MISMATCH      9
+      Member id=Member:Program::<lambda> GET /
+         engine='<lambda> GET /'  mirror='Program.<lambda> GET /'
+      Member id=Member:Program::<lambda> GET /version
+         engine='<lambda> GET /version'  mirror='Program.<lambda> GET /version'
+      EntryPoint id=EntryPoint:worker:Worker
+         engine='Worker'  mirror='worker:Worker'
+      EntryPoint id=EntryPoint:signalr:ListenTogetherHub
+         engine='ListenTogetherHub'  mirror='signalr:ListenTogetherHub'
+      Type id=Type:options =>
+{
+    options.DefaultApiVersion = new ApiVersion(2, 0);
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = new HeaderApiVersionReader("api-version");
+}
+         engine='options =>
+{
+    options.DefaultApiVersion = new ApiVersion(2, 0);
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = new HeaderApiVersionReader("api-version");
+}'  mirror='ApiVersionReader = new HeaderApiVersionReader("api-version");
+}'
+      Type id=Type:setup =>
+{
+    setup.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+}
+         engine='setup =>
+{
+    setup.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+}'  mirror='AllowAnyMethod());
+}'
+      Type id=Type:options => options.AddFixedWindowLimiter("feeds", options =>
+{
+    options.PermitLimit = 5;
+    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    options.QueueLimit = 0;
+    options.Window = TimeSpan.FromSeconds(2);
+    options.AutoReplenishment = false;
+})
+         engine='options => options.AddFixedWindowLimiter("feeds", options =>
+{
+    options.PermitLimit = 5;
+    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    options.QueueLimit = 0;
+    options.Window = TimeSpan.FromSeconds(2);
+    options.AutoReplenishment = false;
+})'  mirror='AutoReplenishment = false;
+})'
+      Type id=Type:tracing =>
+        tracing.SetResourceBuilder(serviceResource)
+        .AddAzureMonitorTraceExporter(o =>
+        {
+            o.ConnectionString = azureMonitorConnectionString;
+        })
+        .AddJaegerExporter()
+        .AddHttpClientInstrumentation()
+        .AddAspNetCoreInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()
+         engine='tracing =>
+        tracing.SetResourceBuilder(serviceResource)
+        .AddAzureMonitorTraceExporter(o =>
+        {
+            o.ConnectionString = azureMonitorConnectionString;
+        })
+        .AddJaegerExporter()
+        .AddHttpClientInstrumentation()
+        .AddAspNetCoreInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()'  mirror='AddEntityFrameworkCoreInstrumentation()'
+
+POLE DevContext
+  EntryPoint   match      1   MISMATCH     29
+  Member       match    281   MISMATCH    463
+  Service      match      3   MISMATCH      0
+  Type         match    484   MISMATCH      8
+      Member id=Member:global.Program::<lambda> GET /health
+         engine='<lambda> GET /health'  mirror='Program.<lambda> GET /health'
+      EntryPoint id=EntryPoint:grpc:DevContextService.Analyze
+         engine='DevContextService.Analyze'  mirror='grpc:DevContextService.Analyze'
+      EntryPoint id=EntryPoint:grpc:DevContextService.CloseSession
+         engine='DevContextService.CloseSession'  mirror='grpc:DevContextService.CloseSession'
+      EntryPoint id=EntryPoint:grpc:DevContextService.ListEntryPoints
+         engine='DevContextService.ListEntryPoints'  mirror='grpc:DevContextService.ListEntryPoints'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetMap
+         engine='DevContextService.GetMap'  mirror='grpc:DevContextService.GetMap'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetTrace
+         engine='DevContextService.GetTrace'  mirror='grpc:DevContextService.GetTrace'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetNode
+         engine='DevContextService.GetNode'  mirror='grpc:DevContextService.GetNode'
+      EntryPoint id=EntryPoint:grpc:DevContextService.GetNeighbors
+         engine='DevContextService.GetNeighbors'  mirror='grpc:DevContextService.GetNeighbors'
+
+=== TOTALS ===
+  EntryPoint   match     84   MISMATCH     87
+  Member       match    624   MISMATCH   1092
+  Service      match     23   MISMATCH      0
+  Store        match      6   MISMATCH      0
+  Type         match   1893   MISMATCH     58

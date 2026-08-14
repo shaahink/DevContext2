@@ -17,7 +17,7 @@ export interface FlowStat {
   readonly boundaryCrossings: number;
   /** Count of `data` seam nodes on the flow. */
   readonly dataTouches: number;
-  /** % of nodes with resolution === 'Semantic' (Roslyn-verified). */
+  /** % of nodes in the `verified` tier — Roslyn-resolved (see `edgeTier` in core/format). */
   readonly verifiedPct: number;
   readonly touchedEntities: readonly string[];
   readonly emittedEvents: readonly string[];

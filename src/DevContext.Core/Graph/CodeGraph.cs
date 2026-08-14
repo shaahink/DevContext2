@@ -315,17 +315,67 @@ public sealed class CodeGraphBuilder
     private readonly List<Flow> _flows = [];
     private ImmutableArray<EntryPoint> _entries = [];
     private ImmutableArray<EventWire> _eventWiring = [];
+    private readonly List<(string Invariant, string Key)> _refused = [];
+    private readonly HashSet<string> _refusedSeen = new(StringComparer.Ordinal);
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
+
+    /// <summary>The DISTINCT node keys refused by the V1.3 invariants, in first-seen order (so it is
+    /// deterministic and bounded by the number of offending keys, not by how many producers retried
+    /// them). E1.3: a refusal deletes a node AND every edge that wanted it, so a silent one hides two
+    /// things at once — a producer regression, and however many edges went with it. #7's own history is
+    /// the argument: the producer minted <c>Type:…::Type(1)</c> for months and nothing counted it.
+    /// <see cref="GraphBuilder"/> reports this as a diagnostic; an empty list is the healthy state.</summary>
+    public IReadOnlyList<(string Invariant, string Key)> RefusedNodes => _refused;
+
+    private void Refuse(string invariant, string key)
+    {
+        if (_refusedSeen.Add(invariant + "|" + key)) _refused.Add((invariant, key));
+    }
 
     /// <summary>Adds a node, or MERGES into the existing one with the same id. Because a class collapses
     /// to one Type node touched by many passes (AddTypeNodes seeds the declaration; each join adds a role
     /// tag), merge = union of <see cref="GraphNode.Tags"/> + first-non-null declaration info
     /// (FilePath/SourceBody/Project). Order-independent: a name-only node added by a join is later enriched
-    /// when its declaration appears, and vice-versa. Returns the resulting node.</summary>
+    /// when its declaration appears, and vice-versa. Returns the resulting node — which for a node
+    /// REFUSED by the V1.3 invariants below is the unstored input, so callers must not read the
+    /// return as proof of membership (<see cref="HasNode"/> answers that; no caller in Core does).</summary>
     public GraphNode AddNode(GraphNode node)
     {
+        // V1.2 (backlog #17): a Member node's title is DERIVED from its key, never supplied. Titles
+        // merge first-write-wins, so with a dozen producers the displayed vocabulary was decided by
+        // pass ORDER — the entry builders said "CatalogApi.GetAllItemsV1", the call-graph and seam
+        // passes said bare "Send". One derivation here makes that unreachable.
+        if (node.Id.Kind == NodeKind.Member)
+        {
+            var title = Graph2.SymbolCanon.MemberTitle(node.Id.Key);
+            if (!string.Equals(node.Title, title, StringComparison.Ordinal))
+                node = node with { Title = title };
+        }
+
+        // V1.3 — the two standing invariants, enforced where a node is MADE, so no producer and no
+        // pass order can reach a surface with either shape. Both are refusals, not repairs: the
+        // engine does not know which type these nodes mean, and inventing one is how #7 happened.
+        //
+        //  (a) backlog #7's rider — a Type node may not carry a MEMBER id. Hangfire's explicit
+        //      interface implementation `string IStackTraceFormatter<string>.Type(string)` shipped
+        //      as Type:Hangfire.StackTraceHtmlFragments::Type(1) and 26 BCL System.Type references
+        //      bound onto it, ranking a dashboard formatter fragment #5 in the repo by connectivity.
+        //  (b) backlog #18 — a Type node may not be minted from lambda/expression TEXT. A 20-line
+        //      DI lambda, comments and all, reached the UI as a node title.
+        //
+        // A refused node is not stored, so AddEdge (which requires both endpoints) drops the edge
+        // that wanted it — the phantom leaves no half behind.
+        if (node.Id.Kind == NodeKind.Type)
+        {
+            if (Graph2.SymbolCanon.IsMemberKey(node.Id.Key)) { Refuse("INV-A", node.Id.Key); return node; }
+            if (Graph2.SymbolCanon.IsExpressionText(node.Id.Key)) { Refuse("INV-B", node.Id.Key); return node; }
+            // Key is a name but the title is not: the title is derived, as V1.2 does for members.
+            if (Graph2.SymbolCanon.IsExpressionText(node.Title))
+                node = node with { Title = Graph2.SymbolCanon.ShortNameOf(node.Id.Key) };
+        }
+
         if (_nodes.TryGetValue(node.Id, out var existing))
         {
             var mergedTags = existing.Tags.IsDefaultOrEmpty
@@ -370,7 +420,7 @@ public sealed class CodeGraphBuilder
     /// new resolution is not an upgrade (Syntactic can go to Semantic; Semantic cannot go to Syntactic).</summary>
     public bool UpgradeEdge(NodeId from, NodeId to, EdgeKind kind, Resolution newResolution)
     {
-        if (newResolution == Resolution.Syntactic) return false;
+        if (EdgeConfidence.IsApproximate(newResolution)) return false; // V1.1 (#25) — one definition
         if (!_out.TryGetValue(from, out var list)) return false;
         for (var i = 0; i < list.Count; i++)
         {

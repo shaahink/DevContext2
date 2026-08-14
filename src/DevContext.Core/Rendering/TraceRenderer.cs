@@ -78,13 +78,14 @@ public static class TraceRenderer
         if (step.Provenance is { } p)
             sb.Append($"  ({PathDisplay.RelativeProvenance(basePath, p)})");
 
-        if (step.Resolution is Resolution.Syntactic)
-            sb.Append(" [approx]");
-        else if (step.Resolution is Resolution.Join or Resolution.Semantic)
+        // V1.1 (#25) — the tier comes from EdgeConfidence, the one definition. A Join step stays
+        // unlabelled here (it is neither Roslyn-verified nor a string guess); only the two ends of
+        // the scale carry a marker.
+        switch (EdgeConfidence.TierOf(step.Resolution))
         {
-            // verified — no label needed, or label "verified" for semantic
-            if (step.Resolution == Resolution.Semantic)
-                sb.Append(" [verified]");
+            case EdgeTier.Approximate: sb.Append(" [approx]"); break;
+            case EdgeTier.Verified: sb.Append(" [verified]"); break;
+            default: break;
         }
 
         // I1.6 — multi-impl honesty: when DI has >1 impl for this Resolve

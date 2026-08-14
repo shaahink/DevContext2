@@ -1,0 +1,80 @@
+{
+  "is_error": false,
+  "duration_api_ms": 21161,
+  "num_turns": 7,
+  "stop_reason": "end_turn",
+  "session_id": "e4204933-f261-4de3-9988-000c312ad3cb",
+  "total_cost_usd": 0.1058145,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 4222,
+    "cache_read_input_tokens": 49329,
+    "output_tokens": 1529,
+    "output_tokens_details": {
+      "thinking_tokens": 29
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 4222,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 934,
+        "cache_read_input_tokens": 11486,
+        "cache_creation_input_tokens": 1460,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1460
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 570,
+      "outputTokens": 17,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000655,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 10,
+      "outputTokens": 1529,
+      "cacheReadInputTokens": 49329,
+      "cacheCreationInputTokens": 4222,
+      "webSearchRequests": 0,
+      "costUSD": 0.1051595,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it never touches the event bus at all.\n\n**What CreateItem actually does** (`src/Catalog.API/Apis/CatalogApi.cs:366-388`):\n\n1. Constructs a new `CatalogItem` from the posted product, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`).\n2. Computes an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` and assigns it to `item.Embedding` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n3. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` — a plain EF Core insert, with no `EventService` call and no local transaction/outbox handling (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n4. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`).\n\n**How I established the \"none\":** a usage search for the Catalog API's `ProductPriceChangedIntegrationEvent` type (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`) returns exactly one raiser in the whole solution: `CatalogApi.UpdateItem` at `src/Catalog.API/Apis/CatalogApi.cs:350`. `UpdateItem` is the method that publishes it, and only conditionally — when the EF change tracker reports the `Price` property as modified, it builds the event, persists it atomically with the catalog change via `SaveEventAndCatalogContextChangesAsync`, then calls `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:347-357`). Otherwise it just saves (`src/Catalog.API/Apis/CatalogApi.cs:360`).\n\nOne nuance worth flagging: `CreateItem` accepts a `Price` on the incoming product, so a newly created item does get a price — but since there is no prior price to change, no price-changed event is emitted, and downstream subscribers (e.g. the Webhooks handler at `src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`) will never be notified about item creation.",
+  "ttft_ms": 1750,
+  "ttft_stream_ms": 985,
+  "time_to_request_ms": 143,
+  "type": "result",
+  "duration_ms": 22064,
+  "uuid": "89c18517-195e-412d-9f66-93f09c7b2f42"
+}

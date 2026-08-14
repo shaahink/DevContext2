@@ -1,0 +1,18 @@
+# H1.1 resumability proof - re-invoking the same batch spawns nothing
+
+$ node eval/agent-probe/run-probe.mjs --repo eShop --questions eshop-a1 --reps 1 --arms G,M,B --allow-no-bare
+repo=eShop@9b4f9434 model=claude-opus-5 isolation=no-settings-fallback cap=$1.50
+cells=3 alreadyRecorded=3 planned=0 seed=20260811
+nothing to do - every cell is already recorded
+
+# and the two refusals that cap spend
+
+$ ... --reps 4   (72 cells)
+
+REFUSED: 69 runs planned but the ceiling is 60. Narrow with --questions / --arms / --reps and run again; the file is resumable, so a second invocation picks up where this one stopped.
+
+
+$ ... --max-runs 200
+
+REFUSED: --max-runs 200 exceeds the hard ceiling of 60. The probe subprocesses are invisible to conductor's budget; this ceiling is the only brake.
+

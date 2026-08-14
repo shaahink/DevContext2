@@ -58,7 +58,7 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
                 if (g.HasNode(svcTypeNodeId))
                 {
                     memberNodeId = NodeId.ForMember(svcTypeFqn, method);
-                    g.AddNode(new GraphNode(memberNodeId, $"{svc.ImplementationType}.{method}", NodeKind.Member)
+                    g.AddNode(new GraphNode(memberNodeId, SymbolCanon.MemberTitle(memberNodeId.Key), NodeKind.Member)
                     { FilePath = svc.SourceFile, LineNumber = svc.LineNumber });
                 }
                 else

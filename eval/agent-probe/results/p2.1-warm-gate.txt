@@ -1,0 +1,32 @@
+P2.1 pilot - pre-batch warm gate (DESIGN 8, assertion 1; DESIGN 4.5)
+
+DESIGN section 8 states the pre-flight assertions as "run before every batch - a batch that
+fails any of these is void". This is the batch-level evidence for assertion 1, captured verbatim
+from the head of the pilot's own stdout before any timed run executed.
+
+Source: .conductor/bg-logs/probe-p2-pilot-20260811-000637128.log, lines 1-6 (untracked, hence
+this committed excerpt). Produced by the warm gate in run-probe.mjs, which analyses the repo once
+per arm and REFUSES to start the batch unless it reports cached=true.
+
+--------------------------------------------------------------------------------
+repo=eShop@9b4f9434 model=claude-opus-5 isolation=no-settings-fallback cap=$1.50
+cells=54 alreadyRecorded=3 planned=51 seed=20260811
+warm: analyzing C:\Code\DevContext2\eval-repos\eShop (cold pass may take minutes)
+warm: pass 1 cached=true 2467ms
+warm: pass 2 cached=true 519ms (fresh mcp process)
+[1/51] eshop-d1/M/rep3 ...
+--------------------------------------------------------------------------------
+
+Why pass 2 is the one that matters: pass 1 proves the analysis is cached in the process that just
+ran it, which is nearly circular. Pass 2 runs in a FRESH mcp process and still reports cached=true
+in 519ms, which proves the cache is on disk and that any later run - in any arm, in its own
+subprocess - hits it rather than paying the cold cost. No timed run in this batch paid for a cold
+analysis.
+
+Line 1 also records, on the batch itself, the two harness-level pre-registration deviations that
+apply to all 54 runs: isolation=no-settings-fallback (DESIGN 6.3 asked for --bare) and cap=$1.50
+(DESIGN 6.6 pre-registered $2.00). Both are in DEVIATIONS.md with their rationale and their
+effect on the result.
+
+Re-derivable per run, for the runs that called analyze at all:
+  node eval/agent-probe/audit-preflight.mjs --check

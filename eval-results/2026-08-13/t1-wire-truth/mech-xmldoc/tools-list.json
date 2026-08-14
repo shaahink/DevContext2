@@ -1,0 +1,697 @@
+{
+  "tools": [
+    {
+      "name": "top_flows",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "seam",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "type": "integer",
+            "default": 8
+          },
+          "maxPaths": {
+            "type": "integer",
+            "default": 3
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "tests_for",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "type": "integer",
+            "default": 6
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "impact",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "type": "integer",
+            "default": 4
+          },
+          "direction": {
+            "type": "string",
+            "default": "up"
+          },
+          "files": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "default": null
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "list_sessions",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "verify_context",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "type": "integer",
+            "default": 8000
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "get_context",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "type": "integer",
+            "default": 8000
+          },
+          "intent": {
+            "type": "string",
+            "default": "trace"
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "status",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "trace",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "depth": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          },
+          "format": {
+            "type": "string",
+            "default": "default"
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "read_source",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "windowLines": {
+            "type": "integer",
+            "default": 20
+          },
+          "mode": {
+            "type": "string",
+            "default": "window"
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "close_session",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "overview",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "resolve",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "stats",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "analyze",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sln": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "find",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20
+          },
+          "cursor": {
+            "type": "integer",
+            "default": 0
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "usages",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "entrypoints",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "full": {
+            "type": "boolean",
+            "default": false
+          },
+          "top": {
+            "type": "integer",
+            "default": 15
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "node",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "neighbors",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "direction": {
+            "type": "string",
+            "default": "out"
+          },
+          "query": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "config",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "map",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    }
+  ]
+}

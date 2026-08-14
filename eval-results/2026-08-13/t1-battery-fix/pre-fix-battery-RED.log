@@ -1,0 +1,73 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 2c: Wire-truth gate (real MCP handshake) ---
+wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\server-identity.json
+  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 30436, started 2026-08-13T18:08:43.4536302Z)
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\tools-list.json
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+  tools: 14 | described: 14 | params: 52/52 described
+  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
+
+  PASS  every tool on the wire has a non-empty description - all described
+  PASS  every tool parameter on the wire has a description - all described
+  PASS  tools/list is non-empty - 14 tools
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
+  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\enum-dials.json
+  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+wire-truth: GREEN
+  PASS  wire truth: every tool + parameter described, menu curated, enum dials reject
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 37600, started 2026-08-13T18:08:53.7924000Z)
+  handle: 6ab499df8811425cbba55a523dbc3e9b
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+partial-truth: GREEN
+  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
+
+--- Step 3: Eval expectation tests ---
+powershell.exe : ForEach-Object : The term 'Get-FileHash' is not recognized as the name of a cmdlet, function, script 
+file, or operable 
+At C:\Code\DevContext2-engine\eval\_repro-battery.ps1:3 char:1
++ & powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\Code\DevCon ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ForEach-Object ...e, or operable :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At C:\Code\DevContext2-engine\eval\gates.ps1:273 char:84
++ ... ts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
++                                                          ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Get-FileHash:String) [ForEach-Object], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException,Microsoft.PowerShell.Commands.ForEachObjectCommand
+ 
+EXITCODE=1

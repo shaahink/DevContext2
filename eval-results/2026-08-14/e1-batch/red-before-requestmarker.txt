@@ -1,0 +1,62 @@
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.43]     DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "IRequest<bool>", expectedResponse: "bool", expectedKind: Command) [FAIL]
+[xUnit.net 00:00:01.46]     DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "ICommand<int>", expectedResponse: "int", expectedKind: Command) [FAIL]
+[xUnit.net 00:00:01.46]     DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "IQuery<OrderDto>", expectedResponse: "OrderDto", expectedKind: Query) [FAIL]
+[xUnit.net 00:00:01.46]     DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_generic_parameter_never_becomes_the_request_type [FAIL]
+[xUnit.net 00:00:01.64]     DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_detection_draws_no_edge_and_leaves_the_request_untagged_as_a_handler [FAIL]
+  Failed DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "IRequest<bool>", expectedResponse: "bool", expectedKind: Command) [16 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "<self>"
+Actual:   "bool"
+           ↑ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(String iface, String expectedResponse, MediatRKind expectedKind) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\RequestMarkerJoinTests.cs:line 35
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "ICommand<int>", expectedResponse: "int", expectedKind: Command) [1 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "<self>"
+Actual:   "int"
+           ↑ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(String iface, String expectedResponse, MediatRKind expectedKind) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\RequestMarkerJoinTests.cs:line 35
+   at InvokeStub_RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(iface: "IQuery<OrderDto>", expectedResponse: "OrderDto", expectedKind: Query) [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "<self>"
+Actual:   "OrderDto"
+           ↑ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(String iface, String expectedResponse, MediatRKind expectedKind) in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\RequestMarkerJoinTests.cs:line 35
+   at InvokeStub_RequestMarkerJoinTests.A_request_marker_names_itself_as_the_request_and_its_type_arg_as_the_response(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_generic_parameter_never_becomes_the_request_type [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "<self>"
+Actual:   "R"
+           ↑ (pos 0)
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_generic_parameter_never_becomes_the_request_type() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\RequestMarkerJoinTests.cs:line 47
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_detection_draws_no_edge_and_leaves_the_request_untagged_as_a_handler [219 ms]
+  Error Message:
+   Assert.DoesNotContain() Failure: Filter matched in collection
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ↓ (pos 2)
+Collection: [GraphNode { Id = Type:Orders.Api.CreateOrderCommand, Title = CreateOrderCommand, Kind = Type, FilePath = C:/repo/src/Orders.Api/CreateOrderCommand.cs, Project = Orders.Api, SourceBody = , LineNumber = , Tags = System.Collections.Immutable.ImmutableArray`1[System.String], Layer = Application, Feature = Orders }, GraphNode { Id = Type:Orders.Api.CreateOrderCommandHandler, Title = CreateOrderCommandHandler, Kind = Type, FilePath = C:/repo/src/Orders.Api/CreateOrderCommandHandler.cs, Project = Orders.Api, SourceBody = , LineNumber = , Tags = System.Collections.Immutable.ImmutableArray`1[System.String], Layer = Application, Feature = Orders }, GraphNode { Id = Type:<self>, Title = <self>, Kind = Type, FilePath = , Project = , SourceBody = , LineNumber = , Tags = System.Collections.Immutable.ImmutableArray`1[System.String], Layer = Application, Feature =  }]
+  Stack Trace:
+     at DevContext.Core.Tests.Graph2.RequestMarkerJoinTests.A_request_marker_detection_draws_no_edge_and_leaves_the_request_untagged_as_a_handler() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\Graph2\RequestMarkerJoinTests.cs:line 107
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     5, Passed:     1, Skipped:     0, Total:     6, Duration: 236 ms - DevContext.Core.Tests.dll (net10.0)

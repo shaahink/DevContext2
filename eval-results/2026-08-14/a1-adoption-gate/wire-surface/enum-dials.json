@@ -1,0 +1,107 @@
+[
+  {
+    "tool": "read_source",
+    "arguments": {
+      "query": "X",
+      "mode": "full"
+    },
+    "dial": "mode",
+    "expect": "reject mode",
+    "ok": true,
+    "reply": {
+      "error": "Invalid mode: 'full'.",
+      "hint": "mode must be one of: window | member.",
+      "example": "read_source(handle, query:\"OrderService\", mode:\"member\")"
+    }
+  },
+  {
+    "tool": "neighbors",
+    "arguments": {
+      "query": "X",
+      "direction": "sideways"
+    },
+    "dial": "direction",
+    "expect": "reject direction",
+    "ok": true,
+    "reply": {
+      "error": "Invalid direction: 'sideways'.",
+      "hint": "direction must be one of: out | in | usages.",
+      "example": "neighbors(handle, query:\"OrderService\", direction:\"in\")"
+    }
+  },
+  {
+    "tool": "impact",
+    "arguments": {
+      "query": "X",
+      "direction": "sideways"
+    },
+    "dial": "direction",
+    "expect": "reject direction",
+    "ok": true,
+    "reply": {
+      "error": "Invalid direction: 'sideways'.",
+      "hint": "direction must be one of: up | down | both.",
+      "example": "impact(handle, query:\"OrderService\", direction:\"down\")"
+    }
+  },
+  {
+    "tool": "trace",
+    "arguments": {
+      "focus": "X",
+      "format": "verbose"
+    },
+    "dial": "format",
+    "expect": "reject format",
+    "ok": true,
+    "reply": {
+      "error": "Invalid format: 'verbose'.",
+      "hint": "format must be one of: default | compact.",
+      "example": "trace(handle, focus:\"POST /basket/checkout\", format:\"compact\")"
+    }
+  },
+  {
+    "tool": "get_context",
+    "arguments": {
+      "focus": "X",
+      "intent": "summarise"
+    },
+    "dial": "intent",
+    "expect": "reject intent",
+    "ok": true,
+    "reply": {
+      "error": "Invalid intent: 'summarise'.",
+      "hint": "intent must be one of: trace | explain | review.",
+      "example": "get_context(handle, focus:\"POST /api/orders\", intent:\"explain\")"
+    }
+  },
+  {
+    "tool": "read_source",
+    "arguments": {
+      "query": "X",
+      "mode": "member"
+    },
+    "dial": null,
+    "expect": "pass the guard",
+    "ok": true,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then read_source(query:\"OrderService\")"
+    }
+  },
+  {
+    "tool": "impact",
+    "arguments": {
+      "query": "X",
+      "direction": "both"
+    },
+    "dial": null,
+    "expect": "pass the guard",
+    "ok": true,
+    "reply": {
+      "error": "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")",
+      "hint": "Run analyze(path) first, then retry.",
+      "example": "analyze(path) then impact(query:\"OrderService\")"
+    }
+  }
+]

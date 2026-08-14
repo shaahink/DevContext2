@@ -242,7 +242,7 @@ public sealed class TraceQualityTests
         Assert.NotNull(snapshot.Graph);
         Assert.False(snapshot.Entries.IsDefaultOrEmpty);
 
-        var (seams, withTarget, _, _) = GraphStats.Compute(snapshot.Graph, snapshot.Entries);
+        var (seams, withTarget) = GraphStats.Compute(snapshot.Graph, snapshot.Entries);
         var counts = seams.ToDictionary(s => s.Seam, s => s.Count);
 
         // Minimum seam-edge thresholds — these must not regress.

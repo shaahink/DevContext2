@@ -169,7 +169,30 @@ async function toolCall(client, tool, args, tracker) {
     tracker.totalTokens = (tracker.totalTokens || 0) + estimateFromResponse(data);
   }
 
+  // A tool that answers with an ERROR ENVELOPE (G1.3: no tool throws a stack trace at an agent)
+  // is a successful JSON-RPC response carrying `{ "error": ... }`, and the MCP logs it as
+  // `IsError = false`. Every question below reads named fields off the payload, so an envelope
+  // silently degrades to `full->0` / `found=false` / `undefined tok` and the harness reports a
+  // capability failure it never saw. That is how the 2026-08-14 red (8/12) reached a fix session
+  // with no diagnosis attached: the server log said every call completed cleanly, and the scored
+  // table said the features were broken. Surface the envelope where BOTH the table and the gate's
+  // stderr will carry it, and let the question's own assertion still decide pass/fail.
+  const envelope = errorEnvelopeOf(data);
+  if (envelope) {
+    if (tracker) (tracker.errors ??= []).push(`${tool}: ${envelope}`);
+    console.error(`    ! ${tool} answered with an error envelope: ${envelope}`);
+  }
+
   return data;
+}
+
+/** The one-line text of an error envelope, or null when the payload is a real answer. */
+function errorEnvelopeOf(data) {
+  if (typeof data !== "object" || data === null) return null;
+  const err = data.error ?? data.Error;
+  if (err === undefined || err === null) return null;
+  const text = typeof err === "string" ? err : JSON.stringify(err);
+  return text.replace(/\s+/g, " ").slice(0, 300);
 }
 
 // ---- Analyze ----
@@ -516,6 +539,7 @@ async function checkoutGate(client, handle) {
     pass: gateTracker.calls <= 3 && gateTracker.totalTokens <= 2000 && trace.found === true,
     calls: gateTracker.calls,
     tokens: gateTracker.totalTokens,
+    envelopes: errorSuffix(gateTracker),
     found: trace.found,
     steps,
     crossService: hasCrossService,
@@ -523,6 +547,13 @@ async function checkoutGate(client, handle) {
 }
 
 // ---- Helpers ----
+
+/** Error envelopes a question's calls collected, folded into its scored-table detail so the
+ * artifact and the CI failure text both carry WHY, not just that it failed. */
+function errorSuffix(tracker) {
+  const errs = tracker?.errors ?? [];
+  return errs.length === 0 ? "" : ` | error envelopes: ${errs.join("; ")}`;
+}
 
 function countTraceSteps(root) {
   if (!root) return 0;
@@ -599,7 +630,7 @@ async function main() {
           id: qa.id,
           question: qa.question,
           passed: result.pass,
-          detail: result.detail,
+          detail: result.detail + errorSuffix(qTracker),
           budget: qa.tokenBudget,
           calls: qTracker.calls,
           tokens: qTracker.totalTokens,
@@ -634,7 +665,7 @@ async function main() {
       id: "gate-checkout",
       question: "Checkout gate: answer in <=3 calls, <=2k tokens",
       passed: gateResult.pass,
-      detail: `${gateResult.calls ?? "?"} calls, ${gateResult.tokens ?? "?"} tok, found=${gateResult.found ?? false}, ${gateResult.steps ?? 0} steps, cross-service=${gateResult.crossService ?? false}${gateResult.error ? ", err=" + gateResult.error : ""}`,
+      detail: `${gateResult.calls ?? "?"} calls, ${gateResult.tokens ?? "?"} tok, found=${gateResult.found ?? false}, ${gateResult.steps ?? 0} steps, cross-service=${gateResult.crossService ?? false}${gateResult.error ? ", err=" + gateResult.error : ""}${gateResult.envelopes ?? ""}`,
       budget: 2000,
       calls: gateResult.calls ?? 0,
       tokens: gateResult.tokens ?? 0,
@@ -718,14 +749,18 @@ async function main() {
     artifact.push("- [x] Session lifecycle: create, list, close");
     artifact.push("");
     artifact.push("## Tool coverage");
-    artifact.push(`Available tools (${toolNames.length}): ${toolNames.join(", ")}`);
+    artifact.push(`Advertised tools (${toolNames.length}): ${toolNames.join(", ")}`);
     artifact.push("");
+    // T1.2 — `tools/list` is the CURATED menu, not the whole surface: eight tools are unlisted
+    // specialists that the fallback handler dispatches for real. Every M4 tool this run exercised
+    // was called successfully above, so "not on tools/list" is not "missing" — saying otherwise
+    // would put a false gap in the artifact.
     const m4tools = ["overview", "resolve", "trace", "impact", "read_source", "find", "config", "get_context", "tests_for"];
-    const covered = m4tools.filter((t) => toolNames.includes(t));
-    const missing = m4tools.filter((t) => !toolNames.includes(t));
-    artifact.push(`M4 tools covered: ${covered.length}/9 (${covered.join(", ")})`);
-    if (missing.length > 0)
-      artifact.push(`M4 tools missing: ${missing.join(", ")}`);
+    const advertised = m4tools.filter((t) => toolNames.includes(t));
+    const unlisted = m4tools.filter((t) => !toolNames.includes(t));
+    artifact.push(`M4 tools on the advertised menu: ${advertised.length}/9 (${advertised.join(", ")})`);
+    if (unlisted.length > 0)
+      artifact.push(`M4 tools served as unlisted specialists: ${unlisted.join(", ")}`);
 
     const artPath = join(resultsDir, "mcp-qa.md");
     fs.writeFileSync(artPath, artifact.join("\n"), "utf8");

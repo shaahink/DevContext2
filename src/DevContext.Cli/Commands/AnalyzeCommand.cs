@@ -532,7 +532,10 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
 
         // Graph seam coverage — how much wiring was bridged and how confidently (the Map/Trace
-        // equivalent of the legacy scorer funnel). "approx" = resolved syntactically only.
+        // equivalent of the legacy scorer funnel). V1.1 (#25): the three columns are the whole
+        // partition — "verified" is Roslyn-resolved ONLY, "joined" is a detection join (and the
+        // unlabelled default), "approx" is a syntax/string heuristic. The table used to print
+        // Edges and Approx alone, which invited the reader to subtract joins into "verified".
         if (graph is { Seams.Length: > 0 })
         {
             AnsiConsole.WriteLine();
@@ -541,9 +544,14 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 .Title("Graph Seams")
                 .AddColumn("Seam")
                 .AddColumn(new TableColumn("Edges").RightAligned())
+                .AddColumn(new TableColumn("Verified").RightAligned())
+                .AddColumn(new TableColumn("Joined").RightAligned())
                 .AddColumn(new TableColumn("Approx").RightAligned());
             foreach (var s in graph.Seams)
-                seamTable.AddRow(s.Seam, s.Count.ToString(), s.Approx > 0 ? $"[yellow]{s.Approx}[/]" : "0");
+                seamTable.AddRow(s.Seam, s.Count.ToString(),
+                    s.Verified > 0 ? $"[green]{s.Verified}[/]" : "0",
+                    s.Joined.ToString(),
+                    s.Approx > 0 ? $"[yellow]{s.Approx}[/]" : "0");
             AnsiConsole.Write(seamTable);
 
             if (graph.Entries > 0)

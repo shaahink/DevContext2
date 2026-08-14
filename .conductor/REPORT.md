@@ -1,116 +1,90 @@
-﻿# Conductor — DevContext graph-v2 — autonomous remainder run report
+﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `8bdf44c`_
+_Updated 2026-08-14 11:34 UTC · branch `feat/pre-release-engine` · HEAD `26d9a15`_
 
 **Status:** Completed
-**Stage:** G10 — Sweep for thresholds calibrated on pre-Batch-A data · attempts used 0
-**Checkpoints:** 22/22 done · **Sessions run:** 28 · **Cost:** $358.4167 (agent $358.0599 + gates $0.3568) · **Tokens:** 5,057,197 in / 1,962,410 out
-**Confirmed phases:** G1, G2, G3, G4, G5, G6, G7, G8, G9, G10
+**Stage:** Z1 — Close-out: README honesty pass, release-gate statuses, backlog reconciliation · attempts used 0
+**Checkpoints:** 20/20 done · **Sessions run:** 30 · **Cost:** $219.8282 (agent $219.6406 + gates $0.1876) · **Tokens:** 3,713,464 in / 1,462,348 out
+**Confirmed phases:** T1, V1, E1, D1, R1, A1, Z1
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| G1 | R4 MCP correctness + honesty fixes (R4 §1 items 1-7) | ██████████ 4/4 | confirmed ✓ |
-| G2 | R4 menu hygiene + one trace default (items 11-12) | ██████████ 2/2 | confirmed ✓ |
-| G3 | R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) | ██████████ 3/3 | confirmed ✓ |
-| G4 | R4 dogfood drive — is the MCP a proper tool? | ██████████ 3/3 | confirmed ✓ |
-| G5 | D-3 — a CLI verb reaches its handler | ██████████ 2/2 | confirmed ✓ |
-| G6 | D-4 — one vocabulary for "service" on Atlas | ██████████ 2/2 | confirmed ✓ |
-| G7 | C-2 / C-3 — a library's empty sections fill or withhold with a reason | ██████████ 2/2 | confirmed ✓ |
-| G8 | R1 scale wall — profile HotChocolate, do not raise the timeout | ██████████ 2/2 | confirmed ✓ |
-| G9 | R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) | ██████████ 1/1 | confirmed ✓ |
-| G10 | Sweep for thresholds calibrated on pre-Batch-A data | ██████████ 1/1 | confirmed ✓ |
+| T1 | W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) | ██████████ 4/4 | confirmed ✓ |
+| V1 | W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) | ██████████ 3/3 | confirmed ✓ |
+| E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
+| D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
+| R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
+| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ██████████ 2/2 | confirmed ✓ |
+| Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ██████████ 2/2 | confirmed ✓ |
 
-<details> ✅<summary>G1 — R4 MCP correctness + honesty fixes (R4 §1 items 1-7) (4/4)</summary>
+<details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G1.1 | `map` returns the structured Map surface (library surface, packages, aggregates, service styles); its markdown stops advertising CLI flags that don't exist over MCP | ✅ DONE | [`cf1a822`](https://github.com/shaahink/DevContext2/commit/cf1a822) |
-| G1.2 | `get_context` accepts type/symbol roots — a library gets a pack instead of nothing | ✅ DONE | [`79743b0`](https://github.com/shaahink/DevContext2/commit/79743b0) |
-| G1.3 | Seam glyphs match the proto (singular/plural), handle-less calls stop retargeting across repos, RpcException stops leaking past the error envelope on all five tools | ✅ DONE | [`75704f2`](https://github.com/shaahink/DevContext2/commit/75704f2) |
-| G1.4 | `find(kind:)` filters server-side so total/hasMore are true; `analyze` returns an honest long-run note + a `cached` flag | ✅ DONE | [`a09c456`](https://github.com/shaahink/DevContext2/commit/a09c456) |
+| T1.1 | Bug #5 fixed by measurement: a real MCP `tools/list` call shows a non-empty description for EVERY tool on the wire (mechanism verified against what the ModelContextProtocol SDK actually reads, not assumed); schema tax re-measured and recorded against the P1.2 baseline | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
+| T1.2 | Menu curated: core agent surface shipped (PRODUCT-DIRECTION §7 set + navigation primitives as the candidate), the rest demoted or folded, retired names handled by the did-you-mean path reading the REAL tool list; `tools/list` shows the curated described menu | ✅ DONE | [`76c42dd`](https://github.com/shaahink/DevContext2/commit/76c42dd) |
+| T1.3 | Confident-partial-truth family closed on the agent path: #6 trace-by-nodeId routes through the resolver `get_context` uses; #10 invalid enum values rejected with the good error envelope; #9 fillNote names elision and the budgetTokens lever; #2 entrypoint names round-trip into `get_context`/`trace` — evidence is real MCP calls showing each new shape | ✅ DONE | [`cdb152c`](https://github.com/shaahink/DevContext2/commit/cdb152c) |
+| T1.4 | Wire-truth gate in the battery, proven RED on the pre-fix build then green: every tool described, invalid mode/direction/format rejected, a `found:true` trace has steps or says why not, every elision named | ✅ DONE | [`c246d77`](https://github.com/shaahink/DevContext2/commit/c246d77) |
 
 </details>
 
-<details> ✅<summary>G2 — R4 menu hygiene + one trace default (items 11-12) (2/2)</summary>
+<details> ✅<summary>V1 — W2a one-vocabulary pack (25, 17, 7-rider invariant, 18) (3/3)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G2.1 | Tool menu folded (`flow`→`trace(compact)`, `insights`→`stats`, `interesting_points`→`overview`) and the did-you-mean handler reads the real tool list instead of a second hand-maintained one | ✅ DONE | [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) |
-| G2.2 | One trace budget default across MCP / CLI / server, read from `TracePolicy` (Batch E's single source) | ✅ DONE | [`35eea1e`](https://github.com/shaahink/DevContext2/commit/35eea1e) |
+| V1.1 | ONE verified-edge definition (#25): GraphStats/SeamStat and GraphOrphansSource agree, the definition stated in one place, every surface reads it | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
+| V1.2 | ONE member-title helper (#17) next to SymbolCanon used by every producer; the owner-qualified vs bare split gone on the six poles it was measured on | ✅ DONE | [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) |
+| V1.3 | Two standing invariants land red-first: no node carries kind Type with a member id (#7 rider); lambda/expression text never becomes a node title on any path (#18) | ✅ DONE | [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) |
 
 </details>
 
-<details> ✅<summary>G3 — R4 missing primitives: seam / kind-filtered neighbours / cache truth (8-10) (3/3)</summary>
+<details> ✅<summary>E1 — W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G3.1 | `seam(from,to)` path-between primitive exists at proto + GraphQuery + tool | ✅ DONE | [`baa5ffd`](https://github.com/shaahink/DevContext2/commit/baa5ffd) |
-| G3.2 | Kind-filtered `neighbors` ("who WRITES this table", "who SENDS this command") exposed | ✅ DONE | [`d82d074`](https://github.com/shaahink/DevContext2/commit/d82d074) |
-| G3.3 | Snapshot-cache truth (`from_cache` / `analyzed_at` / `git_head`) on AnalysisSummary + SessionInfo | ✅ DONE | [`cf0fa62`](https://github.com/shaahink/DevContext2/commit/cf0fa62) |
+| E1.1 | #11 static type-name-receiver calls produce edges; the dogfood invariant (DevContext's own helper layer has in-edges in DevContext's own graph) added to the battery and proven red first | ✅ DONE | [`abfa564`](https://github.com/shaahink/DevContext2/commit/abfa564) |
+| E1.2 | #12 fixed via the TextSpan-on-op shape (BodyOp records the invocation's own span; relocate-by-line class killed including the TryBindLocalDeclType / TryBindGenericArg / args-bind sister sites); full matrix run against cells declared BEFORE coding; engine-own approx share recorded before/after (baseline 1103/1383) | ✅ DONE | [`8f0ce0a`](https://github.com/shaahink/DevContext2/commit/8f0ce0a) |
+| E1.3 | #8 re-measured (its stated mechanism is refuted by #11) and fixed or re-filed with the true mechanism; #7 explicit-interface/BCL-collision Type-node fixed | ✅ DONE | [`f686e25`](https://github.com/shaahink/DevContext2/commit/f686e25) |
+| E1.4 | Batch acceptance: the probe's class-C impact question resolves the true impact set on eShop (hand-verified against the question key), matrix shows declared cells flipped and no others | ✅ DONE | [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) |
 
 </details>
 
-<details> ✅<summary>G4 — R4 dogfood drive — is the MCP a proper tool? (3/3)</summary>
+<details> ✅<summary>D1 — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) (4/4)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G4.1 | Dogfood Task 1 — 10 real architecture questions on an unseen repo, MCP tools only, every call logged and graded HELPED / NEUTRAL / HURT | ✅ DONE | [`254fd36`](https://github.com/shaahink/DevContext2/commit/254fd36) |
-| G4.2 | Dogfood Tasks 2+3 — a real change made through MCP orientation, and DevContext used on itself | ✅ DONE | [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) |
-| G4.3 | `eval-results/<date>/mcp-dogfood/REPORT.md` — call log, grades, ranked "what it lacks", judged against R4 §3's success bar | ✅ DONE | [`546fb32`](https://github.com/shaahink/DevContext2/commit/546fb32) |
+| D1.1 | Catalog-reachability instrument: for every catalog descriptor a test asserts its signal is reachable and its Kind has a producing path (descriptor→signal→extractor→builder→entry); proven RED on the Orleans and TimedJob finds before any closure | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
+| D1.2 | Reachable-surface holes closed with consumer-app fixtures + expectations: Orleans packages on the descriptor; BackgroundService/IHostedService base-type detector; TimedJob producer or honest deletion of the kind; Avalonia descriptor + WinForms Exe case | ✅ DONE | [`78e8998`](https://github.com/shaahink/DevContext2/commit/78e8998) |
+| D1.3 | Filed set: #14 generic command verbs (strip type args in leaf comparison, carry the type arg as parent); #20/#19 one source of truth for "what is a service"; #2's detection half (addressable entry names single-sourced); Blazor UI-vs-HTTP distinction; per-detection Confidence read or deleted | ✅ DONE | [`796843f`](https://github.com/shaahink/DevContext2/commit/796843f) |
+| D1.4 | Rung 4: Hangfire and Quartz consumer job entries (attribute + interface shapes), one consumer-app fixture each | ✅ DONE | [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) |
 
 </details>
 
-<details> ✅<summary>G5 — D-3 — a CLI verb reaches its handler (2/2)</summary>
+<details> ✅<summary>R1 — W6 metric recalibration (22, 23, 24) against the post-E1 graph (1/1)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G5.1 | Root cause named, per verb with evidence: why GitVersion's five `ICommand<TSettings>` verbs join no handler | ✅ DONE | [`d21e72b`](https://github.com/shaahink/DevContext2/commit/d21e72b) |
-| G5.2 | The join lands — a CLI verb reaches its handler on the gitversion pole, with the CleanArchitecture canary unmoved | ✅ DONE | [`11ebe20`](https://github.com/shaahink/DevContext2/commit/11ebe20) |
+| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | ✅ DONE | [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) |
 
 </details>
 
-<details> ✅<summary>G6 — D-4 — one vocabulary for "service" on Atlas (2/2)</summary>
+<details> ✅<summary>A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G6.1 | One vocabulary for "service" on Atlas — the canvas, the per-service breakdown and Hub radar stop disagreeing about what a service is | ✅ DONE | [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) |
-| G6.2 | Raw metadata arity never reaches the UI (no `` Logging.ILogger`1 `` in a rendered surface) | ✅ DONE | [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) |
+| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ✅ DONE | [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) |
+| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | ✅ DONE | [`4f51931`](https://github.com/shaahink/DevContext2/commit/4f51931) |
 
 </details>
 
-<details> ✅<summary>G7 — C-2 / C-3 — a library's empty sections fill or withhold with a reason (2/2)</summary>
+<details> ✅<summary>Z1 — Close-out: README honesty pass, release-gate statuses, backlog reconciliation (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| G7.1 | C-2 — Atlas's five empty sections on a library either fill or withhold themselves with a stated reason | ✅ DONE | [`55af763`](https://github.com/shaahink/DevContext2/commit/55af763) |
-| G7.2 | C-3 — the withhold-don't-suppress rule applied consistently wherever a surface has no entries | ✅ DONE | [`55af763`](https://github.com/shaahink/DevContext2/commit/55af763) |
-
-</details>
-
-<details> ✅<summary>G8 — R1 scale wall — profile HotChocolate, do not raise the timeout (2/2)</summary>
-
-| # | Title | Status | Commit |
-|---|---|---|---|
-| G8.1 | HotChocolate profiled: the phase that does not terminate inside the 600s budget is NAMED, with per-phase timings as evidence | ✅ DONE | [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) |
-| G8.2 | Fixed, or recorded as an accepted limitation with the defect class named — R1's exit criterion answered either way. **Not by raising the timeout.** | ✅ DONE | [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) |
-
-</details>
-
-<details> ✅<summary>G9 — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro) (1/1)</summary>
-
-| # | Title | Status | Commit |
-|---|---|---|---|
-| G9.1 | An auxiliary/demo executable stops deciding a packable library's archetype: `CLI` and `MahApps.Metro` read Library, canary poles unmoved | ✅ DONE | [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) |
-
-</details>
-
-<details> ✅<summary>G10 — Sweep for thresholds calibrated on pre-Batch-A data (1/1)</summary>
-
-| # | Title | Status | Commit |
-|---|---|---|---|
-| G10.1 | Sweep for thresholds calibrated on pre-Batch-A (starved-graph) data; each one re-measured on current data and corrected or justified in a comment that states the measurement | ✅ DONE | [`d06755f`](https://github.com/shaahink/DevContext2/commit/d06755f) |
+| Z1.1 | README honesty pass: agent story stated as measured (primer + whatever A1.2 earned), results linked, claims ⊆ measurements; release-gate table statuses recorded | ✅ DONE | [`82ede13`](https://github.com/shaahink/DevContext2/commit/82ede13) |
+| Z1.2 | BUG-BACKLOG reconciled (fixed closed with evidence, re-measured re-statused); PRE-RELEASE-PLAN §3 stage table updated; full battery green; branch pushed | ✅ DONE | [`82ede13`](https://github.com/shaahink/DevContext2/commit/82ede13) |
 
 </details>
 
@@ -118,80 +92,99 @@ _Updated 2026-08-02 12:35 UTC · branch `feat/graph-v2` · HEAD `8bdf44c`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Overhead | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | G1 | Deliver | 1 | 07-29 00:28 | 0:56 | Advanced | G1.1 | 2 | fast-engine:OK · guards:OK | $12.6728 | $0.0305 | 172,654/66,379 |
-| 2 | G1 | Deliver | 1 | 07-29 01:29 | 0:55 | GatesRed | G1.2 | 3 | fast-engine:FAIL · guards:OK | $16.4956 | $0.0163 | 230,092/92,873 |
-| 3 | G1 | Fix | 2 | 07-29 03:04 | 0:06 | Interrupted |  | 0 |  |  |  |  |
-| 4 | G1 | Resume | 2r1 | 07-29 03:12 | 1:13 | Advanced | G1.3 | 4 | fast-engine:OK · guards:OK | $25.4288 | $0.0146 | 173,665/115,497 |
-| 5 | G1 | Deliver | 1 | 07-29 04:28 | 0:24 | Advanced | G1.4 | 3 | fast-engine:OK · guards:OK | $16.5483 | $0.0156 | 225,857/83,097 |
-| 6 | G2 | Deliver | 1 | 07-29 05:11 | 0:52 | Advanced | G2.1 G2.2 | 4 | fast-engine:OK · guards:OK | $25.1946 | $0.0223 | 308,321/130,080 |
-| 7 | G3 | Deliver | 1 | 07-29 06:23 | 0:28 | Advanced | G3.1 | 1 | fast-engine:OK · guards:OK | $16.9647 | $0.0133 | 262,171/89,155 |
-| 8 | G3 | Deliver | 1 | 07-29 06:54 | 0:10 | AgentError |  | 0 | fast-engine:FAIL · guards:FAIL |  | $0.0000 |  |
-| 9 | G3 | Fix | 2 | 07-29 07:05 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:FAIL |  | $0.0000 |  |
-| 10 | G3 | Deliver | 3 | 07-29 07:05 | 2:22 | Interrupted |  | 0 |  |  |  |  |
-| 11 | G3 | Resume | 3r1 | 07-29 09:27 | 0:00 | AgentError |  | 0 | fast-engine:FAIL · guards:OK | $0.0000 | $0.0095 |  |
-| 12 | G3 | Deliver | 1 | 07-29 09:29 | 0:31 | Advanced | G3.2 | 1 | fast-engine:OK · guards:OK | $16.9310 | $0.0132 | 240,450/86,120 |
-| 13 | G3 | Deliver | 1 | 07-29 10:03 | 0:29 | Advanced | G3.3 | 3 | fast-engine:OK · guards:OK | $14.4742 | $0.0140 | 210,692/81,557 |
-| 14 | G4 | Deliver | 1 | 07-29 10:46 | 0:28 | Advanced | G4.1 | 3 | fast-engine:OK · guards:OK | $12.9056 | $0.0173 | 404,013/93,678 |
-| 15 | G4 | Deliver | 1 | 07-29 11:17 | 0:28 | Advanced | G4.2 G4.3 | 4 | fast-engine:OK · guards:OK | $14.4902 | $0.0155 | 249,634/100,477 |
-| 16 | G5 | Deliver | 1 | 07-29 12:02 | 0:25 | GatesRed | G5.1 | 2 | fast-engine:FAIL · guards:OK | $10.9637 | $0.0100 | 198,784/74,494 |
-| 17 | G5 | Fix | 2 | 07-29 12:29 | 0:15 | GatesRed |  | 2 | fast-engine:FAIL · guards:OK | $8.4244 | $0.0089 | 164,208/46,667 |
-| 18 | G5 | Fix | 3 | 07-29 12:46 | 0:42 | Progress |  | 2 | fast-engine:OK · guards:OK | $13.0171 | $0.0110 | 221,201/103,688 |
-| 19 | G5 | Deliver | 3 | 07-29 13:31 | 0:46 | Advanced | G5.2 | 4 | fast-engine:OK · guards:OK | $18.0011 | $0.0177 | 226,885/92,868 |
-| 20 | G6 | Deliver | 1 | 07-29 14:31 | 0:54 | Advanced | G6.1 | 2 | fast-app:OK · guards:OK | $31.7807 | $0.0260 | 303,408/117,180 |
-| 21 | G6 | Deliver | 1 | 07-29 15:30 | 0:43 | Advanced | G6.2 | 1 | fast-app:OK · guards:OK | $20.6312 | $0.0160 | 257,618/110,930 |
-| 22 | G6 | Fix | 2 | 07-29 16:30 | 0:34 | Progress |  | 1 | fast-app:OK · guards:OK | $13.7036 | $0.0133 | 209,463/73,225 |
-| 23 | G7 | Deliver | 1 | 07-29 17:17 | 0:42 | Advanced | G7.1 G7.2 | 5 | fast-app:OK · guards:OK | $21.2053 | $0.0209 | 245,917/106,260 |
-| 24 | G8 | Deliver | 1 | 07-29 18:16 | 1:13 | Advanced | G8.1 G8.2 | 4 | fast-engine:OK · guards:OK | $22.1017 | $0.0120 | 262,531/119,875 |
-| 25 | G9 | Deliver | 1 | 07-29 19:43 | 0:15 | LimitBackoff |  | 0 |  | $2.5773 |  | 85,046/14,993 |
-| 26 | G9 | Resume | 1 | 07-29 20:29 | 0:03 | LimitBackoff |  | 0 |  | $0.0000 |  |  |
-| 27 | G9 | Resume | 1 | 08-02 10:50 | 0:34 | Advanced | G9.1 | 3 | fast-engine:OK · guards:OK | $12.2255 | $0.0219 | 215,763/73,372 |
-| 28 | G10 | Deliver | 1 | 08-02 11:44 | 0:34 | Advanced | G10.1 | 13 | fast-engine:OK · guards:OK | $11.3225 | $0.0170 | 188,824/89,945 |
+| 1 | T1 | Deliver | 1 | 08-13 16:16 | 0:29 | Advanced | T1.1 T1.2 | 4 | fast-engine:OK · guards:OK | $12.9213 | $0.0278 | 193,772/93,007 |
+| 2 | T1 | Deliver | 1 | 08-13 16:50 | 0:24 | Advanced | T1.3 | 2 | fast-engine:OK · guards:OK | $12.3856 | $0.0276 | 182,713/70,802 |
+| 3 | T1 | Deliver | 1 | 08-13 17:19 | 0:28 | Advanced | T1.4 | 4 | fast-engine:OK · guards:OK | $9.0504 | $0.0264 | 149,249/71,678 |
+| 4 | T1 | Fix | 2 | 08-13 17:59 | 0:31 | Progress |  | 5 | fast-engine:OK · guards:OK | $13.9168 | $0.0271 | 164,370/78,266 |
+| 5 | V1 | Deliver | 1 | 08-13 18:46 | 0:28 | Advanced | V1.1 | 4 | fast-engine:OK-retry · guards:OK | $12.8408 | $0.0606 | 186,202/82,566 |
+| 6 | V1 | Deliver | 1 | 08-13 19:25 | 0:27 | Advanced | V1.2 | 2 | fast-engine:OK · guards:OK | $8.7991 | $0.0181 | 153,341/57,563 |
+| 7 | V1 | Deliver | 1 | 08-13 19:56 | 0:26 | Advanced | V1.3 | 3 | gates green (none configured) | $14.7864 |  | 223,675/82,121 |
+| 8 | E1 | Deliver | 1 | 08-13 20:34 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.3330 |  | 25,299/891 |
+| 9 | E1 | Fix | 2 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 10 | E1 | Deliver | 3 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 11 | E1 | Deliver | 4 | 08-13 20:35 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 12 | E1 | Deliver | 5 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 13 | E1 | Deliver | 6 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 14 | E1 | Deliver | 7 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 15 | E1 | Deliver | 8 | 08-13 20:36 | 0:00 | AgentError |  | 0 | gates green (none configured) | $0.0000 |  |  |
+| 16 | E1 | Deliver | 1 | 08-13 20:44 | 1:00 | Advanced | E1.1 | 16 | gates green (none configured) | $16.6244 |  | 233,800/97,827 |
+| 17 | E1 | Deliver | 1 | 08-13 21:45 | 0:26 | Advanced | E1.2 | 5 | gates green (none configured) | $11.4408 |  | 180,795/74,866 |
+| 18 | E1 | Deliver | 1 | 08-13 22:11 | 0:49 | Advanced | E1.3 | 3 | gates green (none configured) | $11.5717 |  | 165,321/83,648 |
+| 19 | E1 | Deliver | 1 | 08-13 23:01 | 0:33 | Advanced | E1.4 | 2 | gates green (none configured) | $13.3545 |  | 204,970/89,424 |
+| 20 | D1 | Deliver | 1 | 08-13 23:55 | 0:02 | KilledByUser |  | 0 |  |  |  | 36,301/40 |
+| 21 | D1 | Deliver | 1 | 08-14 00:01 | 0:37 | Advanced | D1.1 D1.2 | 6 | gates green (none configured) | $12.8113 |  | 221,543/112,888 |
+| 22 | D1 | Deliver | 1 | 08-14 00:38 | 0:37 | Advanced | D1.3 | 4 | gates green (none configured) | $13.4409 |  | 205,917/72,126 |
+| 23 | D1 | Deliver | 1 | 08-14 01:16 | 0:28 | Advanced | D1.4 | 3 | gates green (none configured) | $12.0738 |  | 186,290/82,351 |
+| 24 | R1 | Deliver | 1 | 08-14 02:07 | 0:31 | Advanced | R1.1 | 3 | gates green (none configured) | $10.5692 |  | 167,565/71,470 |
+| 25 | A1 | Deliver | 1 | 08-14 03:08 | 0:38 | Advanced | A1.1 | 5 | gates green (none configured) | $14.4701 |  | 197,178/118,885 |
+| 26 | A1 | Deliver | 1 | 08-14 03:47 | 0:11 | Progress |  | 2 | gates green (none configured) | $3.7595 |  | 89,159/30,359 |
+| 27 | A1 | Deliver | 1 | 08-14 03:59 | 0:09 | Progress |  | 1 | gates green (none configured) | $2.2953 |  | 78,089/15,861 |
+| 28 | A1 | Deliver | 1 | 08-14 04:08 | 0:31 | Advanced | A1.2 | 2 | gates green (none configured) | $2.1665 |  | 62,958/21,017 |
+| 29 | A1 | Fix | 2 | 08-14 05:03 | 0:23 | Interrupted |  | 0 |  |  |  | 151,581/480 |
+| 30 | A1 | Resume | 2r1 | 08-14 10:13 | 0:23 | Advanced | Z1.1 Z1.2 | 3 | gates green (none configured) | $10.0289 |  | 253,376/54,212 |
+
+## Money
+
+_What this run has cost, from its own `costs` rows. Same numbers as `conductor money`._
+
+| scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
+|---|---|---|---|---|---|---|---|
+| **run total** | 29 | 300.6M | 98.3% | $219.85 | 20 | 15M | $10.99 |
+| stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
+| stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
+| stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
+| stage D1 | 4 | 51.9M | 98.3% | $38.33 | 4 | 13M | $9.58 |
+| stage R1 | 1 | 14.5M | 98.3% | $10.57 | 1 | 14.5M | $10.57 |
+| stage A1 | 5 | 40.7M | 97.7% | $32.72 | 4 | 10.2M | $8.18 |
+| 2026-08 | 29 | 300.6M | 98.3% | $219.85 | 20 | 15M | $10.99 |
+
+_Where the money goes: agent $219.64 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.73/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-29 19:16:50  ▪ gate guards pass [phase]  (41.0s)
-07-29 19:16:50  ▪ gate battery pass [phase]  (8m52s)
-07-29 19:16:50  ▸ stage G7 confirmed  (59m40s)
-07-29 19:16:54  ▸ stage G8 entered — R1 scale wall — profile HotChocolate, do not raise the timeout
-07-29 19:16:55  • session #24 G8 Deliver started (attempt 1/4)
-07-29 20:32:39  ▪ gate fast-engine pass [session]  (1m21s)
-07-29 20:32:39  ▪ gate guards pass [session]  (38.9s)
-07-29 20:32:42  • session #24 G8 → Advanced · done G8.1,G8.2 · 4 commit(s)  (1h15m47s)
-07-29 20:43:06  ▪ gate fast-engine pass [phase]  (1m24s)
-07-29 20:43:06  ▪ gate guards pass [phase]  (39.9s)
-07-29 20:43:06  ▪ gate battery pass [phase]  (8m19s)
-07-29 20:43:06  ▸ stage G8 confirmed  (1h26m11s)
-07-29 20:43:11  ▸ stage G9 entered — R1 archetype loses to an auxiliary executable (CLI, MahApps.Metro)
-07-29 20:43:11  • session #25 G9 Deliver started (attempt 1/2)
-07-29 20:59:12  • session #25 G9 → LimitBackoff  (16m00s)
-07-29 21:29:10  • session #26 G9 Resume started (attempt 1/2)
-07-29 21:32:36  • session #26 G9 → LimitBackoff  (3m26s)
-08-02 11:38:44  ◆ run resumed · DevContext graph-v2 — autonomous remainder
-08-02 11:50:24  ◆ plan reloaded — v7 · 10 stages · 4 gates
-08-02 11:50:29  ◆ plan reloaded — v8 · 10 stages · 4 gates
-08-02 11:50:35  • session #27 G9 Resume started (attempt 1/2)
-08-02 12:29:07  ▪ gate fast-engine pass [session]  (2m06s)
-08-02 12:29:07  ▪ gate guards pass [session]  (1m33s)
-08-02 12:29:12  • session #27 G9 → Advanced · done G9.1 · 3 commit(s)  (38m37s)
-08-02 12:43:56  ▪ gate fast-engine pass [phase]  (1m54s)
-08-02 12:43:56  ▪ gate guards pass [phase]  (1m11s)
-08-02 12:43:56  ▪ gate battery pass [phase]  (11m37s)
-08-02 12:43:57  ✓ checkpoint G9.1 confirmed
-08-02 12:43:57  ▸ stage G9 confirmed  (88h00m45s)
-08-02 12:44:00  ▸ stage G10 entered — Sweep for thresholds calibrated on pre-Batch-A data
-08-02 12:44:00  • session #28 G10 Deliver started (attempt 1/2)
-08-02 13:21:18  ▪ gate fast-engine pass [session]  (1m35s)
-08-02 13:21:18  ▪ gate guards pass [session]  (1m14s)
-08-02 13:21:22  • session #28 G10 → Advanced · done G10.1 · 13 commit(s)  (37m21s)
-08-02 13:21:22  ◆ plan reloaded — v9 · 10 stages · 4 gates
-08-02 13:35:00  ▪ gate fast-engine pass [phase]  (1m54s)
-08-02 13:35:00  ▪ gate guards pass [phase]  (1m17s)
-08-02 13:35:00  ▪ gate battery pass [phase]  (10m23s)
-08-02 13:35:00  ✓ checkpoint G10.1 confirmed
-08-02 13:35:00  ▸ stage G10 confirmed  (50m59s)
+08-14 03:07:15  ✓ checkpoint D1.4 confirmed
+08-14 03:07:15  ▸ stage D1 confirmed  (2h12m12s)
+08-14 03:07:21  ▸ stage R1 entered — W6 metric recalibration (22, 23, 24) against the post-E1 graph
+08-14 03:07:21  • session #24 R1 Deliver started (attempt 1/2)
+08-14 03:39:05  • session #24 R1 → Advanced · done R1.1 · 3 commit(s)  (31m43s)
+08-14 04:04:17  ▪ gate fast-engine pass [phase]  (4m02s)
+08-14 04:04:17  ▪ gate guards pass [phase]  (2m03s)
+08-14 04:04:18  ▪ gate battery pass [phase]  (19m03s)
+08-14 04:04:18  ✓ checkpoint R1.1 confirmed
+08-14 04:04:18  ▸ stage R1 confirmed  (56m56s)
+08-14 04:04:43  ▸ stage A1 entered — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
+08-14 04:04:44  ■ needs human — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume`
+08-14 04:08:05  • session #25 A1 Deliver started (attempt 1/4)
+08-14 04:47:09  • session #25 A1 → Advanced · done A1.1 · 5 commit(s)  (39m04s)
+08-14 04:47:10  • session #26 A1 Deliver started (attempt 1/4)
+08-14 04:58:58  • session #26 A1 → Progress · 2 commit(s)  (11m47s)
+08-14 04:59:01  • session #27 A1 Deliver started (attempt 1/4)
+08-14 05:08:35  • session #27 A1 → Progress · 1 commit(s)  (9m34s)
+08-14 05:08:39  • session #28 A1 Deliver started (attempt 1/4)
+08-14 05:39:59  • session #28 A1 → Advanced · done A1.2 · 2 commit(s)  (31m19s)
+08-14 06:02:54  ▪ gate fast-engine FAIL [phase]  (2m16s)
+08-14 06:02:54  ▪ gate guards pass [phase]  (2m41s)
+08-14 06:02:54  ▪ gate battery FAIL [phase]  (3m43s)
+08-14 06:03:07  • session #29 A1 Fix started (attempt 2/4)
+08-14 11:13:24  ◆ run resumed · DevContext pre-release - engine and agent face
+08-14 11:13:25  • session #30 A1 Resume started (attempt 2/4)
+08-14 11:36:39  • session #30 A1 → Advanced · done Z1.1,Z1.2 · 3 commit(s)  (23m13s)
+08-14 12:11:26  ▪ gate fast-engine pass [phase]  (7m04s)
+08-14 12:11:26  ▪ gate guards pass [phase]  (1m51s)
+08-14 12:11:26  ▪ gate battery pass [phase]  (25m49s)
+08-14 12:11:27  ✓ checkpoint A1.1 confirmed
+08-14 12:11:27  ✓ checkpoint A1.2 confirmed
+08-14 12:11:27  ✓ checkpoint Z1.1 confirmed
+08-14 12:11:27  ✓ checkpoint Z1.2 confirmed
+08-14 12:11:27  ▸ stage A1 confirmed  (8h06m43s)
+08-14 12:11:37  ▸ stage Z1 entered — Close-out: README honesty pass, release-gate statuses, backlog reconciliation
+08-14 12:33:56  ▪ gate fast-engine pass [phase]  (2m53s)
+08-14 12:33:56  ▪ gate guards pass [phase]  (1m55s)
+08-14 12:33:57  ▪ gate battery pass [phase]  (11m25s)
+08-14 12:33:57  ▸ stage Z1 confirmed  (22m19s)
 ```
 
 ## Health
@@ -199,22 +192,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 28 · retries 9 (32 %) · overall Alert
-⛔ [gate-repetition] gate 'fast-engine' failed 3x in a row
-⛔ [same-failure-loop] stage G3: 3 consecutive sessions made no progress
-⚠ [context-saturation] session #12: 24,741,432 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #13: 20,653,481 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #19: 26,816,442 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #20: 51,631,186 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #21: 30,558,526 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #23: 32,174,554 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #24: 32,989,754 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #2: 23,739,978 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #4: 41,612,852 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #5: 24,423,544 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #6: 37,715,259 context tokens (≥ 20,000,000)
-⚠ [context-saturation] session #7: 24,222,376 context tokens (≥ 20,000,000)
-⚠ [gate-oscillation] gate 'fast-engine' flipped pass/fail 6x
+sessions 30 · retries 10 (33 %) · overall Alert
+⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
+⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #7: 20,985,542 context tokens (≥ 20,000,000)
+⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
 ```
 
 ## Repo
@@ -222,82 +205,75 @@ sessions 28 · retries 9 (32 %) · overall Alert
 _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
-branch: feat/graph-v2
-working tree: M GRAPH-V2-START.md, ?? eval-results/2026-07-19/, ?? eval-results/2026-07-27/batchA-tests.txt, ?? eval-results/2026-07-27/bench-s2-close.txt, ?? eval-results/2026-07-27/bench-s2-dntsite.txt, ?? eval-results/2026-07-27/gates-s1-close.err.txt, ?? eval-results/2026-07-27/gates-s1-close.txt, ?? eval-results/2026-07-27/gates-s2-close.err.txt (+116 more)
-vs upstream: up to date
+branch: feat/pre-release-engine
+working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
+vs upstream: 19 ahead, 22 behind
 ```
 
 ### Commits by session
 
-- **s19 (G5 Deliver)** — 4 commit(s):
-  - [`e819b7d`](https://github.com/shaahink/DevContext2/commit/e819b7d) chore: s19 handoff - G5.2 claimed, G5 complete, blast radius corrected for G9.1
-  - [`5805713`](https://github.com/shaahink/DevContext2/commit/5805713) chore: G5.2 evidence - measurement scripts, before/after dumps, red-then-green logs
-  - [`a637b54`](https://github.com/shaahink/DevContext2/commit/a637b54) G5.2 truth: a quality RATIO cannot see a pole where nothing resolves
-  - [`11ebe20`](https://github.com/shaahink/DevContext2/commit/11ebe20) G5.2: a CLI verb reaches its handler - one call spelled two ways was two facts
-- **s20 (G6 Deliver)** — 2 commit(s):
-  - [`850d7c4`](https://github.com/shaahink/DevContext2/commit/850d7c4) chore(conductor): G6.1 handoff for session #21
-  - [`2fdd4cf`](https://github.com/shaahink/DevContext2/commit/2fdd4cf) G6.1 (R3 D-4): one vocabulary for "service" on Atlas
-- **s21 (G6 Deliver)** — 1 commit(s):
-  - [`051386c`](https://github.com/shaahink/DevContext2/commit/051386c) G6.2 (R3 D-4): a metadata arity marker is identity, never a name
-- **s22 (G6 Fix)** — 1 commit(s):
-  - [`7c65b3e`](https://github.com/shaahink/DevContext2/commit/7c65b3e) G6.3 (R3 D-4): the scope boundary names what it drops
-- **s23 (G7 Deliver)** — 5 commit(s):
-  - [`ff64251`](https://github.com/shaahink/DevContext2/commit/ff64251) chore(tracker): stage G7 complete — C-2 + C-3 landed, C-3 boundary named
-  - [`5ba0ec7`](https://github.com/shaahink/DevContext2/commit/5ba0ec7) G7.2 (R3 C-3): zero entries is not "no analysis"
-  - [`1518807`](https://github.com/shaahink/DevContext2/commit/1518807) conductor: the orchestrator plan edits from this run (planVersion 5, run budget)
-  - [`d6ef0b0`](https://github.com/shaahink/DevContext2/commit/d6ef0b0) chore(tracker): G7.1 handoff — C-2 landed, C-3 instrument named
-  - [`55af763`](https://github.com/shaahink/DevContext2/commit/55af763) G7.1 (R3 C-2): a library's empty Atlas sections say why
-- **s24 (G8 Deliver)** — 4 commit(s):
-  - [`2fb2cc2`](https://github.com/shaahink/DevContext2/commit/2fb2cc2) chore(conductor): commit orchestrator plan state + refreshed mcp-qa artifact
-  - [`73a03c2`](https://github.com/shaahink/DevContext2/commit/73a03c2) chore(conductor): s24 G8 handoff — scale wall profiled + fixed
-  - [`d6be215`](https://github.com/shaahink/DevContext2/commit/d6be215) perf(G8.2): one per-file index kills the R1 scale wall — HotChocolate 1275s -> 64s
-  - [`59b17aa`](https://github.com/shaahink/DevContext2/commit/59b17aa) perf(G8.1): profile HotChocolate — the scale wall is one file meeting a per-file quadratic
-- **s27 (G9 Resume)** — 3 commit(s):
-  - [`a8af4bd`](https://github.com/shaahink/DevContext2/commit/a8af4bd) docs(tracker): G9.1 handoff
-  - [`7d82108`](https://github.com/shaahink/DevContext2/commit/7d82108) docs(eval): G9.1 evidence - archetype vs auxiliary executable
-  - [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) fix(archetype): an auxiliary executable stops deciding a packable library's archetype (G9.1)
-- **s28 (G10 Deliver)** — 13 commit(s):
-  - [`dcdb65d`](https://github.com/shaahink/DevContext2/commit/dcdb65d) chore(tracker): note the branch reconciliation in the G10.1 handoff
-  - [`91e2bca`](https://github.com/shaahink/DevContext2/commit/91e2bca) chore: reconcile feat/graph-v2 with its remote
-  - [`4cb1fab`](https://github.com/shaahink/DevContext2/commit/4cb1fab) chore(tracker): G10.1 handoff — five pre-Batch-A thresholds re-measured, two corrected
-  - [`55293b5`](https://github.com/shaahink/DevContext2/commit/55293b5) G10.1: re-measure every pre-Batch-A threshold; a rate that had no denominator
-  - [`06fcae5`](https://github.com/shaahink/DevContext2/commit/06fcae5) G10.1: the depth number E-2 left behind ran in front of the rule it was under
-  - [`0e07b83`](https://github.com/shaahink/DevContext2/commit/0e07b83) chore(conductor): s27 G9 Advanced — Idle
-  - [`3f67b46`](https://github.com/shaahink/DevContext2/commit/3f67b46) chore(conductor): s27 G9 Advanced — Idle
-  - [`a8af4bd`](https://github.com/shaahink/DevContext2/commit/a8af4bd) docs(tracker): G9.1 handoff
-  - [`7d82108`](https://github.com/shaahink/DevContext2/commit/7d82108) docs(eval): G9.1 evidence - archetype vs auxiliary executable
-  - [`ea0dc3f`](https://github.com/shaahink/DevContext2/commit/ea0dc3f) fix(archetype): an auxiliary executable stops deciding a packable library's archetype (G9.1)
-  - [`f022d55`](https://github.com/shaahink/DevContext2/commit/f022d55) chore(conductor): s26 G9 LimitBackoff — Paused
-  - [`cded2ef`](https://github.com/shaahink/DevContext2/commit/cded2ef) chore(conductor): s26 G9 LimitBackoff — Backoff
+- **s22 (D1 Deliver)** — 4 commit(s):
+  - [`b480065`](https://github.com/shaahink/DevContext2/commit/b480065) docs(d1): D1.3 evidence, the three backlog closures, and the handoff (D1.3)
+  - [`1122d02`](https://github.com/shaahink/DevContext2/commit/1122d02) fix(detection): one verdict decides what is a service, and the counts stop disagreeing (D1.3)
+  - [`0a614cc`](https://github.com/shaahink/DevContext2/commit/0a614cc) fix(detection): a Blazor @page is a UI entry in the catalog too, not an HTTP endpoint (D1.3)
+  - [`796843f`](https://github.com/shaahink/DevContext2/commit/796843f) fix(detection): read the generic command attribute, and let its type argument build the second level of the tree (D1.3)
+- **s23 (D1 Deliver)** — 3 commit(s):
+  - [`ded5493`](https://github.com/shaahink/DevContext2/commit/ded5493) docs(d1): D1.4 evidence and the handoff for the next session (D1.4)
+  - [`cbae476`](https://github.com/shaahink/DevContext2/commit/cbae476) refactor(detection): Confidence moves to the one detection that is read, 27 writes go (D1.3 leftover)
+  - [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) feat(detection): a Hangfire or Quartz consumer app finally has entry points (D1.4)
+- **s24 (R1 Deliver)** — 3 commit(s):
+  - [`b72cb7d`](https://github.com/shaahink/DevContext2/commit/b72cb7d) chore(tracker): R1.1 handoff for the next session (R1.1)
+  - [`372f77c`](https://github.com/shaahink/DevContext2/commit/372f77c) docs(metrics): the surviving threshold names its calibration commit (R1.1)
+  - [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) refactor(metrics): two metrics retire on measurement, one has its premise refuted (R1.1)
+- **s25 (A1 Deliver)** — 5 commit(s):
+  - [`c5a3888`](https://github.com/shaahink/DevContext2/commit/c5a3888) fix(probe): store the unseen tree verbatim so its pin verifies from a checkout (A1.1)
+  - [`711a23c`](https://github.com/shaahink/DevContext2/commit/711a23c) feat(probe): the unseen repo, built from a pinned source and verified by building it (A1.1)
+  - [`a3f68ee`](https://github.com/shaahink/DevContext2/commit/a3f68ee) pre-register(probe): five amendments to DESIGN, written before the run they govern (A1.1)
+  - [`67a6ef1`](https://github.com/shaahink/DevContext2/commit/67a6ef1) chore(conductor): s24 R1 Advanced — Idle
+  - [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) chore(conductor): s24 R1 Advanced — Idle
+- **s26 (A1 Deliver)** — 2 commit(s):
+  - [`e15e576`](https://github.com/shaahink/DevContext2/commit/e15e576) eval(probe): the adoption gate reports one statistic and names the branch it fires (A1.2)
+  - [`c1d1ed7`](https://github.com/shaahink/DevContext2/commit/c1d1ed7) eval(probe): a re-measurement gets its own ledger, and the revised surface is measured first (A1.2)
+- **s27 (A1 Deliver)** — 1 commit(s):
+  - [`76a7e2b`](https://github.com/shaahink/DevContext2/commit/76a7e2b) eval(probe): the gate names which pre-flight assertions a B-only batch can carry (A1.2)
+- **s28 (A1 Deliver)** — 2 commit(s):
+  - [`ec64ea9`](https://github.com/shaahink/DevContext2/commit/ec64ea9) chore(tracker): hand off the cleared adoption gate; stage A1 closed (A1.2)
+  - [`4f51931`](https://github.com/shaahink/DevContext2/commit/4f51931) eval(probe): the adoption gate clears - a described surface moves unprompted use 20x (A1.2)
+- **s30 (A1 Resume)** — 3 commit(s):
+  - [`efb0c4d`](https://github.com/shaahink/DevContext2/commit/efb0c4d) chore(z1.2): full battery GREEN - and step 0a caught the sibling run in the act
+  - [`eb422d6`](https://github.com/shaahink/DevContext2/commit/eb422d6) docs(z1.2): reconcile the backlog against what was actually measured (24 -> 5 open)
+  - [`82ede13`](https://github.com/shaahink/DevContext2/commit/82ede13) docs(z1.1): the README says 14 tools because the wire says 14 (honesty pass)
 
 ## Last gate run
 
-fast-engine:OK · guards:OK · battery:OK
+fast-engine:OK · guards:OK · battery:OK-retry
 
 ## Last session result
 
-> SESSION-RESULT: **Stage G10 delivered — G10.1 claimed DONE** (`conductor task --done G10.1 --evidence eval-results/2026-08-02/G10/G10.1-EVIDENCE.md`), commits `06fcae5` · `55293b5` · `4cb1fab`, reconciled and pushed at `dcdb65d`. Ten threshold candidates were found by two regex sweeps with **`git blame` against batchA `4e1292d` as the discriminator** (every candidate blames to 07-02…07-18) and re-measured by a new instrument, `g10-threshold-sweep.ps1` — 11 poles, one cold analysis each, made cheap by redirecting `DEVCONTEXT_CACHE_ROOT` so the first `query` per pole runs cold against this build and the second is a cache hit (11 poles × 2 ops in 4 minutes, no stale-snapshot risk). **Four of th…
+> **Z1 closed — README honest, backlog reconciled 24→5, battery green, pushed**
+> - Z1.1: four false README claims fixed against measurements; agent story stated as measured (0.015→0.306 vs the 0.20 floor, primer-not-accelerator named); release-gate statuses recorded in PLAN §8
+> - Z1.2: BUG-BACKLOG reconciled — 16 FIXED with artifact paths, 2 RETIRED, 1 HELD-premise-REFUTED, 5 open and said so; 18 run.db-only defects given a durable copy; PLAN §3 stage table now states what each stage delivered
+> - Full battery GREEN (106-line log), and it opens with the new gate lock queueing behind the sibling desktop run — the fratricide fix observed working, not argued for
+> - (+1 more outcomes not shown)
 
 ## Tracker handoff
 
 ```
-**STAGE G10 COMPLETE — G10.1 @ 06fcae5 + 55293b5**, evidence `eval-results/2026-08-02/G10/G10.1-EVIDENCE.md`.
-Ten candidates found by two regex sweeps + **`git blame` against batchA `4e1292d` as the discriminator** — every
-one blames to 07-02..07-18. Re-measured with `g10-threshold-sweep.ps1`: 11 poles, one COLD analysis each.
-**The tool note that makes this cheap: `DEVCONTEXT_CACHE_ROOT` redirects the snapshot cache** — point it at a
-temp dir and the first `query` per pole runs cold against YOUR build, the second is a hit. 11 poles, 2 ops, 4 min.
-**Four of five stale thresholds no longer mean what their comment says.** CORRECTED: (1) START HERE filtered
-`nodeCount >= 4` **before** D-E's band rule, so it could delete the whole request-shaped band — red-then-green
-proof reproduces E-2 **verbatim** (`expected 'CheckoutViewModel.CheckoutAsync' to be 'POST /api/orders/draft'`)
-without any checkout title; `flow-ranking.ts` shipped with no spec, it has one now. (2) home-page read
-`unwired/entries > 0.2` as a rate at n=1 — GitVersion and MediatR each shipped a WARNING saying "1 of 1".
-JUSTIFIED + bug, measurement now stated at each site: **`graph.orphans` has NEVER fired** (Semantic share
-0.010–0.259 on every app; floor 0.5 unreachable — left there on purpose, see ledger CALL 1); **L3.4's sparse
-broadening never fires** on 11/11 incl. its own trigger repos, so identity-strip's hub-scope line has never
-rendered (cause is between line 199 and `k<5` — Dapper's Calls edges span 32 types, so k=16; **start there**);
-**deep-spine ratio is saturated** (1.000 on 5/11). Also: the engine ships **two definitions of a verified edge**
-(GraphStats approx = Syntactic only, so Join counts; GraphOrphansSource counts Semantic only; Join is the enum
-DEFAULT). Gates: Cli 0w/0e · loom-guards PASSED incl. Truth · app 159/159 · `ng build` EXIT 0. 4 bugs filed.
-**Branch was DIVERGED from origin** (all of G9 existed twice under different shas — infrastructure, not a red);
-reconciled by merge @ `91e2bca`, pushed. Don't rebase it — see the ledger trap. **Next = G10 is CLOSED; take the next stage.**
+STAGE Z1 CLOSED - Z1.1 (82ede13) + Z1.2. The run is complete: T1 V1 E1 D1 R1 A1 Z1 all DONE.
+Z1.1 README honesty pass - four claims were FALSE and are fixed against measurements, not against
+other docs: "22 tools" in five places (tools/list answers 14 + 8 unlisted), "Cytoscape dagre"
+(it is ELK; package.json has no dagre), "no hallucinated code" (refuted by our OWN backlog #6,
+126/2453 phantom edges), and a gate-battery block listing five commands that are NOT the battery.
+The agent story is now stated as measured with both evidence links: 0.015 -> 0.306 vs the 0.20
+pre-registered floor, adoption is not dominance (80 mcp vs 146 native), primer-not-accelerator
+named out loud. Release-gate statuses are a Status column in PRE-RELEASE-PLAN section 8.
+Z1.2 BUG-BACKLOG reconciled: 24 filed -> 16 FIXED (each with an artifact path), 2 RETIRED,
+1 HELD-premise-REFUTED, 5 open of which only #3/#13/#16 are this engine's. The 18 defects this
+run filed into the gitignored run.db are now in that file too, or they die with the run.
+NEXT SESSION / OWNER: gate 1 (ripgrep test) is NOT MET and cannot be met here - eval-repos/ holds
+only eShop, TodoApi, VerticalSlice; DntSite has no checkout, AutoMapper is not in eval-repos.json,
+and PRODUCT-DIRECTION section 9's Blazor row still reads "(add one)", so that shape NEVER had a
+repo. It is a repo decision, not an engine defect. Gate 4 (unseen-repo non-inferiority, ~$200)
+is owner-gated and unrun, so the DEEP-EVAL allowed-to-fail branch IS the live release story and
+the README says so. Merge to develop remains owner-signed.
 ```

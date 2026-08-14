@@ -35,7 +35,7 @@ public sealed class ServiceVocabularyTests
 
     private static string[] RunnableSet(DiscoveryModel model)
         => [.. ServiceBoundaryInference
-            .RunnableProjects(SolutionScope.FromModel(model), model.SamplesAreTheProduct)
+            .RunnableProjects(SolutionScope.FromModel(model), model)
             .Select(p => p.Name).OrderBy(n => n, StringComparer.Ordinal)];
 
     /// <summary>The load-bearing one. RED before G6.1: `Shop.Common` is a runnable production project,
@@ -83,6 +83,82 @@ public sealed class ServiceVocabularyTests
 
         Assert.Equal(RunnableSet(model), PerServiceRows(model));
         Assert.Equal(["Shop.Api"], PerServiceRows(model));
+    }
+
+    /// <summary>D1.3 (#20) — AutoMapper's shape: a packable library plus the demo console that
+    /// exercises it. The archetype detector had already judged that exe auxiliary (that judgement is
+    /// WHY the repo reads Library), while the service population never asked — so the Atlas said
+    /// "1 services (1 drawn)" and named TestApp. One verdict now, consulted by both.</summary>
+    [Fact]
+    public void An_auxiliary_demo_executable_is_not_a_service_on_either_surface()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("AutoMapper", @"C:\repo\src\AutoMapper\AutoMapper.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: null, IsPackable: true),
+                new ProjectInfo("TestApp", @"C:\repo\src\TestApp\TestApp.csproj",
+                    "C#", ["net10.0"], [@"C:\repo\src\AutoMapper\AutoMapper.csproj"], [], "Exe"),
+            ],
+        };
+
+        Assert.True(ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model));
+        Assert.Empty(RunnableSet(model));
+        Assert.Equal(RunnableSet(model), PerServiceRows(model));
+    }
+
+    /// <summary>The guard that makes the rule above safe, and the reason it is the COMPOSITE verdict
+    /// and not its per-project half: "a non-WinExe exe that transitively references a library" is true
+    /// of every service in a normal app. A repo whose libraries declare no packability is not a
+    /// library shipping demos, and its services stay drawn.</summary>
+    [Fact]
+    public void A_real_apps_services_survive_the_auxiliary_executable_rule()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                Proj("Shop.Domain", "Shop.Domain", null),
+                new ProjectInfo("Shop.Api", @"C:\repo\src\Shop.Api\Shop.Api.csproj", "C#", ["net10.0"],
+                    [@"C:\repo\src\Shop.Domain\Shop.Domain.csproj"], [Pkg("Microsoft.AspNetCore.App")], "Exe"),
+                new ProjectInfo("Shop.Worker", @"C:\repo\src\Shop.Worker\Shop.Worker.csproj", "C#", ["net10.0"],
+                    [@"C:\repo\src\Shop.Domain\Shop.Domain.csproj"], [], "Exe"),
+            ],
+        };
+
+        Assert.False(ArchetypeDetector.ExecutablesAreAuxiliaryToALibrary(model));
+        Assert.Equal(["Shop.Api", "Shop.Worker"], RunnableSet(model));
+        Assert.Equal(RunnableSet(model), PerServiceRows(model));
+    }
+
+    /// <summary>D1.3 (#19) — the FOURTH counter. The microservices rung's evidence line used to count a
+    /// third population of its own (no production filter at all), so a page could read "6 runnable web
+    /// services" above a breakdown of 5 and a canvas of 5. The count is now a subset of the one service
+    /// set by construction: a functional-test host shaped exactly like a web service cannot inflate it.</summary>
+    [Fact]
+    public void The_style_evidence_count_is_a_subset_of_the_drawn_services()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                Proj("Shop.Basket.API", "Shop.Basket.API", "Exe", Pkg("Microsoft.AspNetCore.App")),
+                // The bus is a SEAM only when two projects carry the same transport (DetectBusPackage).
+                Proj("Shop.Catalog.API", "Shop.Catalog.API", "Exe",
+                    Pkg("Microsoft.AspNetCore.App"), Pkg("MassTransit")),
+                Proj("Shop.Ordering.API", "Shop.Ordering.API", "Exe",
+                    Pkg("Microsoft.AspNetCore.App"), Pkg("MassTransit")),
+                // Shaped exactly like a web service, and not one. The old counter took it.
+                Proj("Shop.FunctionalTests", "Shop.FunctionalTests", "Exe",
+                    Pkg("xunit"), Pkg("Microsoft.AspNetCore.App")),
+            ],
+        };
+
+        Assert.Equal(3, PerServiceRows(model).Length);
+        var via = ArchitectureStyleDetector.Detect(model).Via;
+        Assert.Contains("3 runnable web services", via);
+        Assert.DoesNotContain("4 runnable web services", via);
     }
 
     /// <summary>The Aspire AppHost is a member of the set — with the orchestrator's style, not a

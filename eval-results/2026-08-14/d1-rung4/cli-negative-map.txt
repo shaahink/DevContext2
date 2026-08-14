@@ -1,0 +1,33 @@
+Overview map (no focus).
+Analyzing project...
+
+MAP  ConsumerApp     (1 project)
+
+STACK  net10.0
+
+STYLE  Unknown  (confidence low)
+       evidence: ArchitectureStyleDetector
+
+       per service:
+         ConsumerApp: Unknown
+
+TOPOLOGY (depends-on)
+   ConsumerApp
+
+CONSOLE VIEW
+   ConsumerApp  (Exe)
+   NOTE: no entry points detected — trace a focused type (e.g. trace 
+"<TypeName>")
+
+→ drill in:  trace a focused entry   (e.g. trace "<TypeName>")
+
+analyzed 3 files · 3 nodes · 1 edges · 0 entries · ~104 tokens · 1.3s stage2 
+×2.7
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │     ConsumerApp      │
+│   Time   │        1892ms        │
+│  Tokens  │  ~104 (budget 8000)  │
+│ Version  │ v1.0.6-preview.0.104 │
+╰──────────┴──────────────────────╯

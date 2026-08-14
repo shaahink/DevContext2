@@ -28,7 +28,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             if (g.HasNode(typeId))
             {
                 handlerNode = NodeId.ForMember(typeFqn, field.FieldName);
-                g.AddNode(new GraphNode(handlerNode, $"{field.TypeName}.{field.FieldName}", NodeKind.Member)
+                g.AddNode(new GraphNode(handlerNode, SymbolCanon.MemberTitle(handlerNode.Key), NodeKind.Member)
                 { FilePath = field.SourceFile, LineNumber = field.LineNumber });
             }
             else

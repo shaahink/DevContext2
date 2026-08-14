@@ -129,6 +129,59 @@ public static class SymbolCanon
         return paren > 0 && memberCanonical.EndsWith(')') ? memberCanonical[..paren] : memberCanonical;
     }
 
+    /// <summary>The ONE display title for a Member node: owner short name + <c>.</c> + member name
+    /// (<c>MediatR.Mediator::Send</c> → <c>Mediator.Send</c>), derived from the member KEY so no
+    /// producer can mint a second vocabulary (pre-release V1.2, backlog #17 — the engine shipped 343
+    /// owner-qualified and 627 bare Member titles across six poles, same kind, same page; a bare
+    /// "Send" in a neighbours list or call stack does not say whose). Applied once, in
+    /// <c>CodeGraphBuilder.AddNode</c>, so every Member node carries it by construction. A key with
+    /// no member separator is not a member key and is returned verbatim.</summary>
+    public static string MemberTitle(string memberKey)
+    {
+        var sep = memberKey.IndexOf(MemberSep, StringComparison.Ordinal);
+        if (sep <= 0) return memberKey;
+        return ShortNameOf(memberKey[..sep]) + "." + memberKey[(sep + MemberSep.Length)..];
+    }
+
+    /// <summary>The same title from the parts a producer usually holds — the owning type's canonical
+    /// id (or any spelling of it) and the bare member name.</summary>
+    public static string MemberTitle(string typeCanonical, string memberName)
+        => ShortNameOf(typeCanonical) + "." + memberName;
+
+    /// <summary>True when a key is a MEMBER key — it carries the member separator
+    /// (<c>Ns.Owner::Handle</c>, and with the BodyFacts arity suffix still on,
+    /// <c>Ns.Owner::Handle(2)</c>). One place answers that question, because the answer decides
+    /// whether a node may be minted as a <c>Type</c> (pre-release V1.3, backlog #7's rider).</summary>
+    public static bool IsMemberKey(string? key)
+        => !string.IsNullOrEmpty(key) && key.Contains(MemberSep, StringComparison.Ordinal);
+
+    /// <summary>True when text is source EXPRESSION or LAMBDA text rather than a NAME — it carries
+    /// syntax no type reference can contain: <c>=</c> (so <c>=&gt;</c> too), a parenthesis, a brace,
+    /// a semicolon, a quote, or a newline/tab. The engine shipped ~76 Type nodes across nine poles
+    /// whose id AND title were raw source — a 20-line DI lambda with its comments, <c>new
+    /// System.IO.StringWriter()</c>, <c>Config.GetApis()</c>, the string literal <c>"self"</c> —
+    /// because a registration detection recorded the ARGUMENT EXPRESSION as a type name and the
+    /// graph trusted it (pre-release V1.3, backlog #18).
+    /// <para>The rule is deliberately about SYNTAX, not shape. A queue channel is keyed by its
+    /// display text on purpose (<c>feed-queue [AzureStorageQueue]</c>, B5/Prism D1.2d), so a
+    /// "must look like a type name" rule would delete real event wiring; the seven nodes in that
+    /// gap are named in the V1.3 evidence rather than swept up. A dotted expression carrying no
+    /// syntax at all (<c>type.Assembly</c>) is indistinguishable from a nested type here and is
+    /// not claimed to be caught.</para></summary>
+    public static bool IsExpressionText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        foreach (var c in text)
+        {
+            switch (c)
+            {
+                case '=' or '(' or ')' or '{' or '}' or ';' or '"' or '\'' or '\n' or '\r' or '\t':
+                    return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>Bare display short name of a canonical id's last segment — nested chain and arity
     /// marker stripped (<c>Ns.Outer.Inner`2</c> → <c>Inner</c>). For member keys, pass the owner
     /// type through <see cref="OwnerTypeOf"/> first.</summary>

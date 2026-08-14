@@ -83,9 +83,17 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["FastEndpoints"]),
 
+        // D1.3 (#15) — a Blazor @page is a UI entry, and the CATALOG was the stale side of that:
+        // HttpEntryPointBuilder has emitted UiEntry for a .razor @page since T1.7 (which is what
+        // stopped Blazor pages counting as anonymous HTTP endpoints in the security insight), while
+        // this descriptor still declared HttpEndpoint/"HTTP". CatalogReachabilityTests measured the
+        // disagreement — the blazor consumer project produces UiEntry, not the declared kind.
+        // RenderLabel stays "UI": MapRenderer.KindLabels groups by Kind and takes the FIRST
+        // descriptor, and this is the first UiEntry one in file order, so any other string here would
+        // silently relabel every desktop entry too.
         new(SignalKey: ArchitectureSignals.Keys.Blazor,
-            Kind:       EntryPointKind.HttpEndpoint,
-            RenderLabel:"HTTP",
+            Kind:       EntryPointKind.UiEntry,
+            RenderLabel:"UI",
             Role:       SurfaceRole.AppEntry,
             Packages:   ["Microsoft.AspNetCore.Components"],
             SdkHints:   [],
@@ -119,7 +127,12 @@ public static class EntrySurfaceCatalog
             Kind:       EntryPointKind.UiEntry,
             RenderLabel:"UI",
             Role:       SurfaceRole.AppEntry,
-            Packages:   ["Microsoft.WindowsAppSDK", "CommunityToolkit.WinUI", "CommunityToolkit.Mvvm"],
+            // D1.2 — "Avalonia" is a family key (prefix matching covers Avalonia.Desktop,
+            // Avalonia.Themes.*, Avalonia.ReactiveUI). Avalonia was documented in DesktopEntryExtractor
+            // and undetectable: its base types (Window/UserControl) were already handled, but no
+            // package or SDK in this catalog fired desktop-ui, so a cross-platform Avalonia head
+            // (OutputType Exe, not WinExe) reached nothing. Measured by the avalonia-exe shape case.
+            Packages:   ["Microsoft.WindowsAppSDK", "CommunityToolkit.WinUI", "CommunityToolkit.Mvvm", "Avalonia"],
             SdkHints:   ["Microsoft.NET.Sdk.WindowsDesktop"],
             SelfNamePatterns: []),
 
@@ -213,25 +226,43 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["MassTransit"]),
 
+        // D1.2 — the packages are what makes this descriptor reachable AT ALL. With `Packages: []` the
+        // only mechanism left was SelfNamePatterns, which is a SELF-SOURCE map keyed on the analysed
+        // repo's own project names ("this repo IS Orleans") — so a consumer app referencing Orleans
+        // fired no signal, OrleansGrainExtractor never ran, and GrainMethod entries could not exist
+        // outside Orleans' own repo (which self-sources to Library). Measured by
+        // CatalogReachabilityTests. One FAMILY KEY, the same idiom "AspNetCore.HealthChecks" already
+        // uses here: TryMatchSignal falls back to prefix matching, so this covers .Server (silo host),
+        // .Client, .Sdk (grain + interface classlibs), .Core and every .Persistence.*/.Clustering.*
+        // provider. Listing the four leaf ids instead would miss a provider-only project — measured.
+        // The self-source guard still wins on Orleans' own repo: a self-sourced key cannot be
+        // re-registered from a PackageReference (DependencyExtractor.cs:125, 195).
         new(SignalKey: ArchitectureSignals.Keys.Orleans,
             Kind:       EntryPointKind.GrainMethod,
             RenderLabel:"Orleans",
             Role:       SurfaceRole.AppEntry,
-            Packages:   [],
+            Packages:   ["Microsoft.Orleans"],
             SdkHints:   [],
             SelfNamePatterns: ["Orleans", "Microsoft.Orleans"]),
 
+        // D1.4 (rung 4) — these two descriptors used to declare Kind: null, which made them signals
+        // ABOUT a repo and nothing more: measured pre-fix, a Hangfire or Quartz consumer app fired its
+        // signal and produced *not one entry of any kind* from its job surface. PRODUCT-DIRECTION §4's
+        // rung 4 ("scheduled jobs — detected; surface as entries") was the half that was missing.
+        // Role stays FrameworkLibrary on purpose: MassTransit above is the precedent (a library signal
+        // that still declares a Kind), and it keeps ArchetypeDetector's AppEntryKinds unchanged, so
+        // teaching the engine about jobs does not move any repo's archetype.
         new(SignalKey: ArchitectureSignals.Keys.Quartz,
-            Kind:       null,
-            RenderLabel:"",
+            Kind:       EntryPointKind.ScheduledJob,
+            RenderLabel:"Scheduled",
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Quartz"],
             SdkHints:   [],
             SelfNamePatterns: ["Quartz"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Hangfire,
-            Kind:       null,
-            RenderLabel:"",
+            Kind:       EntryPointKind.ScheduledJob,
+            RenderLabel:"Scheduled",
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Hangfire"],
             SdkHints:   [],

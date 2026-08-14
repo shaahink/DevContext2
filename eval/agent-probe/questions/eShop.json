@@ -1,0 +1,118 @@
+{
+  "repo": "eShop",
+  "sha": "9b4f9434",
+  "authoredBy": "K1.1",
+  "note": "Pre-registered ground truth. Every mustMention and mustNotMention entry below was confirmed by reading src at 9b4f9434f46fdc5c1a6e9e936af2868340cdbc48, not taken from a doc. DESIGN.md 3.3 lists B x2 with E and F at 1/2 per repo; the K1 acceptance asks for six questions covering all six classes per repo, so this file is one question per class - E and F therefore appear on the pilot repo rather than on half the set.",
+  "questions": [
+    {
+      "id": "eshop-a1",
+      "class": "A",
+      "prompt": "I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.",
+      "answer": "It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.",
+      "expectedVerdict": null,
+      "mustMention": ["Aspire", "eShop.AppHost", "Catalog.API", "Basket.API", "Ordering.API", "WebApp"],
+      "mustNotMention": [],
+      "evidence": [
+        "src/eShop.AppHost/Program.cs",
+        "src/Basket.API/Program.cs",
+        "src/Catalog.API/Program.cs",
+        "src/Ordering.API/Program.cs",
+        "src/WebApp/Program.cs"
+      ]
+    },
+    {
+      "id": "eshop-b1",
+      "class": "B",
+      "prompt": "A customer submits the checkout form in the web storefront. Follow that all the way to the line of code that writes the order to the database, and name the handlers involved in order.",
+      "answer": "Checkout.razor's HandleSubmitAsync validates and calls HandleValidSubmitAsync, which calls BasketState.CheckoutAsync (src/WebApp/Services/BasketState.cs:78). CheckoutAsync resolves the buyer id and user name, fetches the basket items, builds a CreateOrderRequest and calls OrderingService.CreateOrder (src/WebApp/Services/OrderingService.cs), which POSTs to /api/Orders/ with an x-requestid header - this is the process boundary, WebApp to Ordering.API. In Ordering.API the route is registered in OrdersApi.MapOrdersApiV1 as api.MapPost(\"/\", CreateOrderAsync) on the group \"api/orders\". OrdersApi.CreateOrderAsync (src/Ordering.API/Apis/OrdersApi.cs:118) builds a CreateOrderCommand, wraps it in IdentifiedCommand<CreateOrderCommand, bool> for idempotency and sends THAT through MediatR. The wrapper is handled by CreateOrderIdentifiedCommandHandler (in CreateOrderCommandHandler.cs), which inherits IdentifiedCommandHandler and, if the request id has not been seen, re-sends the inner CreateOrderCommand through the mediator. That reaches CreateOrderCommandHandler.Handle, which adds an OrderStartedIntegrationEvent to the outbox, builds the Order aggregate (Address, Order ctor, AddOrderItem per line), calls _orderRepository.Add(order) and finally _orderRepository.UnitOfWork.SaveEntitiesAsync - implemented on OrderingContext (src/Ordering.Infrastructure/OrderingContext.cs:47), which is the EF Core save that persists the order. The two grep-hostile hops are the HTTP boundary and the MediatR IdentifiedCommand indirection: nothing textually links CreateOrderAsync to CreateOrderCommandHandler.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "CheckoutAsync",
+        "OrderingService",
+        "CreateOrderAsync",
+        "CreateOrderIdentifiedCommandHandler",
+        "CreateOrderCommandHandler",
+        "IOrderRepository",
+        "OrderingContext"
+      ],
+      "mustNotMention": [],
+      "evidence": [
+        "src/WebApp/Components/Pages/Checkout/Checkout.razor",
+        "src/WebApp/Services/BasketState.cs",
+        "src/WebApp/Services/OrderingService.cs",
+        "src/Ordering.API/Apis/OrdersApi.cs",
+        "src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs",
+        "src/Ordering.Infrastructure/OrderingContext.cs"
+      ]
+    },
+    {
+      "id": "eshop-c1",
+      "class": "C",
+      "prompt": "I need to change the behaviour of CreateOrderCommandHandler in Ordering.API. What depends on it, directly or indirectly, and what could break? List everything, including anything outside Ordering.API.",
+      "answer": "Directly: OrdersApi.CreateOrderAsync is the only production code path that dispatches CreateOrderCommand (via IdentifiedCommand), and CreateOrderIdentifiedCommandHandler / its IdentifiedCommandHandler base is the wrapper that forwards to it, so both the endpoint contract and the idempotency wrapper sit on top of it. Its collaborators are IOrderRepository (Add plus UnitOfWork.SaveEntitiesAsync on OrderingContext), IOrderingIntegrationEventService, IIdentityService and IMediator. The cross-service consequence is the one that is easy to miss: the handler's first act is AddAndSaveEventAsync(new OrderStartedIntegrationEvent(message.UserId)), and Basket.API subscribes to OrderStartedIntegrationEvent (src/Basket.API/Extensions/Extensions.cs:19) with OrderStartedIntegrationEventHandler, which calls repository.DeleteBasketAsync - so if that event stops being emitted, customers' baskets stop being cleared after checkout even though ordering still works. Building the Order aggregate also raises domain events consumed inside Ordering.API. Tests that break: NewOrderRequestHandlerTest (tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs) constructs CreateOrderCommandHandler directly; the ordering functional tests exercise POST /api/orders end to end. NOT affected: CreateOrderDraftCommandHandler, which serves the separate /draft endpoint, builds an in-memory Order.NewDraft() and never touches this handler or the database.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "OrdersApi",
+        "CreateOrderIdentifiedCommandHandler",
+        "OrderStartedIntegrationEvent",
+        "OrderStartedIntegrationEventHandler",
+        "NewOrderRequestHandlerTest"
+      ],
+      "mustNotMention": ["CreateOrderDraftCommandHandler"],
+      "evidence": [
+        "src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs",
+        "src/Ordering.API/Apis/OrdersApi.cs",
+        "src/Basket.API/Extensions/Extensions.cs",
+        "src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs",
+        "tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs",
+        "src/Ordering.API/Application/Commands/CreateOrderDraftCommandHandler.cs"
+      ]
+    },
+    {
+      "id": "eshop-d1",
+      "class": "D",
+      "prompt": "Does CatalogApi.CreateItem publish ProductPriceChangedIntegrationEvent? Answer yes or no, and say exactly what CreateItem does.",
+      "answer": "No. CatalogApi.CreateItem (src/Catalog.API/Apis/CatalogApi.cs:366) builds a CatalogItem from the posted product, computes an embedding via services.CatalogAI.GetEmbeddingAsync, calls services.Context.CatalogItems.Add(item) and services.Context.SaveChangesAsync(), then returns Created. It never touches the event bus. ProductPriceChangedIntegrationEvent is constructed at exactly one place in the whole repository - CatalogApi.cs:350, inside the sibling method UpdateItem - and even there only when the price actually changed (priceEntry.IsModified); that branch calls EventService.SaveEventAndCatalogContextChangesAsync followed by PublishThroughEventBusAsync, while the else branch just calls SaveChangesAsync. The trap is that CreateItem and UpdateItem live in the same file and the same class, so an agent that reads CatalogApi.cs and attributes file-level facts to the member being asked about will answer yes.",
+      "expectedVerdict": "no",
+      "mustMention": ["UpdateItem", "SaveChangesAsync"],
+      "mustNotMention": [],
+      "evidence": [
+        "src/Catalog.API/Apis/CatalogApi.cs",
+        "src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs"
+      ]
+    },
+    {
+      "id": "eshop-e1",
+      "class": "E",
+      "prompt": "In Basket.API, which integration event handlers update the prices of items already sitting in a customer's basket when a catalog item's price changes? Name each handler and the file it lives in.",
+      "answer": "There are none. Basket.API registers exactly one subscription - src/Basket.API/Extensions/Extensions.cs:19, AddSubscription<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>() - and that handler only calls repository.DeleteBasketAsync to empty the basket after an order starts. Basket.API has no subscription to ProductPriceChangedIntegrationEvent and no code that rewrites basket item prices; the only subscriber to that event anywhere in this repository is Webhooks.API (src/Webhooks.API/Extensions/Extensions.cs:21), whose ProductPriceChangedIntegrationEventHandler dispatches webhooks and never touches a basket. Basket item prices in this version are carried by the client on UpdateBasket. Note for the grader: an older generation of this sample (eShopOnContainers) DID have a Basket.API price-update handler, so a confident named answer here is most likely recalled rather than read - which is exactly what this control is for.",
+      "expectedVerdict": "none",
+      "mustMention": [],
+      "mustNotMention": [],
+      "evidence": [
+        "src/Basket.API/Extensions/Extensions.cs",
+        "src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs",
+        "src/Webhooks.API/Extensions/Extensions.cs",
+        "src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs"
+      ]
+    },
+    {
+      "id": "eshop-f1",
+      "class": "F",
+      "prompt": "Which files in this repository contain the literal string GracePeriodTime? List every one, with its path.",
+      "answer": "Exactly three, all under src/OrderProcessor: src/OrderProcessor/BackgroundTaskOptions.cs (the int GracePeriodTime property), src/OrderProcessor/Services/GracePeriodManagerService.cs (twice - once inside the raw SQL WHERE clause as @GracePeriodTime and once as the AddWithValue parameter name) and src/OrderProcessor/appsettings.json (\"GracePeriodTime\": \"1\" under BackgroundTaskOptions). Nothing else in the tree contains the string. This is deliberately a question ripgrep answers in one call and a code graph cannot: two of the three occurrences are a JSON configuration key and a token inside a SQL string literal, neither of which is a symbol.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "src/OrderProcessor/BackgroundTaskOptions.cs",
+        "src/OrderProcessor/Services/GracePeriodManagerService.cs",
+        "src/OrderProcessor/appsettings.json"
+      ],
+      "mustNotMention": ["src/Ordering.API/appsettings.json"],
+      "evidence": [
+        "src/OrderProcessor/BackgroundTaskOptions.cs",
+        "src/OrderProcessor/Services/GracePeriodManagerService.cs",
+        "src/OrderProcessor/appsettings.json"
+      ]
+    }
+  ]
+}

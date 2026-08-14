@@ -1,0 +1,63 @@
+{
+  "measuredAt": "2026-08-13T17:37:17.098Z",
+  "mcpExe": "C:\\Code\\DevContext2-engine\\src\\DevContext.Mcp\\bin\\Debug\\net10.0\\devcontext-mcp.exe",
+  "repo": "C:\\Code\\DevContext2-engine\\eval-repos\\TodoApi",
+  "handle": "cfe41cf219a841558b0a91b96381d8e2",
+  "checks": [
+    {
+      "bug": "env",
+      "label": "the server answering is THIS repo's fresh build",
+      "ok": true,
+      "detail": "C:\\Code\\DevContext2-engine\\src\\DevContext.Server\\bin\\Debug\\net10.0\\ (pid 36216, started 2026-08-13T17:37:08.5016318Z)"
+    },
+    {
+      "bug": 2,
+      "label": "every entrypoints title resolves in get_context AND trace",
+      "ok": true,
+      "detail": "12 titles round-tripped"
+    },
+    {
+      "bug": 6,
+      "label": "trace(nodeId) never renders a phantom whose title IS its kind",
+      "ok": true,
+      "detail": "12 nodeIds"
+    },
+    {
+      "bug": 6,
+      "label": "a found:true trace with 0 steps says WHY (note) instead of an empty tree",
+      "ok": true,
+      "detail": "no silent empty trace"
+    },
+    {
+      "bug": 6,
+      "label": "trace(nodeId) is not weaker than trace(bare name) for the same node",
+      "ok": true,
+      "detail": "id and name agree"
+    },
+    {
+      "bug": 9,
+      "label": "the probe found a real elided pack to judge (else the check is vacuous)",
+      "ok": true,
+      "detail": "Extensions elides +64 lines"
+    },
+    {
+      "bug": 9,
+      "label": "no pack claims 'everything reachable' while its own text shows an elision",
+      "ok": true,
+      "detail": "no false completeness claim"
+    },
+    {
+      "bug": 9,
+      "label": "every elided pack names the elision AND the budgetTokens lever",
+      "ok": true,
+      "detail": "all elisions named"
+    },
+    {
+      "bug": 10,
+      "label": "an out-of-range enum is rejected, not silently re-read",
+      "ok": true,
+      "detail": "Invalid mode: 'full'."
+    }
+  ],
+  "failed": 0
+}

@@ -1,0 +1,220 @@
+{
+  "snapshotCache": "miss \u00B7 saved 74624fb",
+  "nodeCount": 132,
+  "edgeCount": 74,
+  "entryCount": 7,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 5,
+  "entriesWithDeepSpine": 7,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 5,
+    "DomainEventHandler": 2
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 42,
+      "verified": 29,
+      "joined": 7,
+      "approx": 6
+    },
+    {
+      "kind": "Sends",
+      "total": 6,
+      "verified": 6,
+      "joined": 0,
+      "approx": 0
+    },
+    {
+      "kind": "Handles",
+      "total": 7,
+      "verified": 0,
+      "joined": 7,
+      "approx": 0
+    },
+    {
+      "kind": "Consumes",
+      "total": 2,
+      "verified": 0,
+      "joined": 2,
+      "approx": 0
+    },
+    {
+      "kind": "ReadsWrites",
+      "total": 8,
+      "verified": 2,
+      "joined": 0,
+      "approx": 6
+    },
+    {
+      "kind": "Resolves",
+      "total": 8,
+      "verified": 0,
+      "joined": 8,
+      "approx": 0
+    },
+    {
+      "kind": "EntityRelation",
+      "total": 1,
+      "verified": 0,
+      "joined": 0,
+      "approx": 1
+    }
+  ],
+  "totalWallMs": 22999,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 1223
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 3591
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 4416
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 9927
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 389
+    },
+    {
+      "stage": "Insights",
+      "ms": 1046
+    },
+    {
+      "stage": "Compression",
+      "ms": 511
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 517
+    }
+  ],
+  "extractionFailures": [
+    {
+      "source": "ConfigDefaultsSource",
+      "category": "config-json",
+      "count": 3,
+      "sample": "JsonReaderException: \u0027/\u0027 is invalid after a value. Expected either \u0027,\u0027, \u0027}\u0027, or \u0027]\u0027. LineNumber: 2 | BytePositionInLine: 4."
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "5/5 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "evidence": [
+        "POST /Contributors",
+        "DELETE /Contributors/{ContributorId:int}",
+        "GET /Contributors/{ContributorId:int}",
+        "GET /Contributors",
+        "PUT /Contributors/{ContributorId:int}"
+      ],
+      "confidence": 0,
+      "confidenceBasis": "0/5 endpoints have known auth"
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "evidence": [
+        "APPLICATIONINSIGHTS_CONNECTION_STRING",
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+      ],
+      "confidence": 0.5,
+      "confidenceBasis": "Config key extraction is regex-based \u2014 may miss Bind()/Options pattern keys. appsettings parsing is best-effort."
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IEmailSender (2 impls) \u00B7 IListContributorsQueryService (2 impls) \u00B7 IListIncompleteItemsQueryService (2 impls)",
+      "evidence": [
+        "IEmailSender (2 impls)",
+        "IListContributorsQueryService (2 impls)",
+        "IListIncompleteItemsQueryService (2 impls)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "graph.orphans",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Possible dead code: 5 public types with zero inbound references",
+      "evidence": [
+        "DataSchemaConstants",
+        "VogenEfCoreConverters",
+        "EventDispatchInterceptor",
+        "FakeListContributorsQueryService",
+        "FakeEmailSender"
+      ],
+      "confidence": 0.4,
+      "confidenceBasis": "coverage basis: 69% of 42 Calls edges verified, 5/7 entries wired; body-constructed, implemented, and entity-indexed types excluded"
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 5/7 (71%) \u2014 trace any entry for its full path",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 52 Extension \u00B7 33 Scoped \u00B7 1 Singleton (86 total)",
+      "evidence": [],
+      "confidence": 0.5
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 5 HTTP \u00B7 2 DomainEventHandler",
+      "evidence": [
+        "5 HTTP",
+        "2 DomainEventHandler"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Clean.Architecture.ServiceDefaults (2 dependents) \u00B7 Clean.Architecture.Core (2 dependents) \u00B7 Clean.Architecture.UseCases (2 dependents)",
+      "evidence": [
+        "Clean.Architecture.ServiceDefaults (2 dependents)",
+        "Clean.Architecture.Core (2 dependents)",
+        "Clean.Architecture.UseCases (2 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 3 entities across 2 scopes",
+      "evidence": [
+        "Clean.Architecture.Core (1 entities)",
+        "AppDbContext (1 entities)"
+      ],
+      "confidence": 0.6,
+      "confidenceBasis": "Entity detection is name/heuristic-based \u2014 may miss some code-first models"
+    }
+  ]
+}

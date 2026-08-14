@@ -1,0 +1,98 @@
+{
+  "repo": "TodoApi",
+  "sha": "307a1ead",
+  "authoredBy": "K1.2",
+  "note": "Pre-registered ground truth. Every mustMention and mustNotMention entry below was confirmed in the tree at 307a1eadbbd77a3004c318f2377e4818bc400af6. This is the floor-check repo (DESIGN.md 3.2): it is small enough that grep should win, so a treatment win here is a reason to suspect the harness, not to celebrate.",
+  "questions": [
+    {
+      "id": "todoapi-a1",
+      "class": "A",
+      "prompt": "I have just been handed this repository. What kind of system is it, what processes run, and where is the data stored?",
+      "answer": "It is the .NET Aspire TodoApp sample - a small three-project web app, not a distributed system. The composition root is TodoApp.AppHost/Program.cs, which starts two projects: Todo.Api (registered as \"todoapi\") and Todo.Web.Server (registered as \"todo-web-server\", WithReference(todoapi)), plus a sqliteweb container for browsing the database and an optional database-migration operation (AddTodoDbMigration, TodoApp.AppHost/Extensions.cs) the other resources wait for. Todo.Api is a minimal API: TodoApi.MapTodos maps the /todos group (GET /, GET /{id}, POST /, PUT /{id}, DELETE /{id}) and UsersApi maps user endpoints; it uses ASP.NET Core Identity with JWT bearer tokens. Todo.Web.Server is a Blazor host that acts as a backend-for-frontend - it serves the Blazor WebAssembly client (Todo.Web.Client, rendered InteractiveWebAssembly from Todo.Web/Server/App.razor), owns the auth cookie, and forwards /todos to Todo.Api through YARP. Storage is SQLite via TodoDbContext (Todo.Api/Program.cs:24, AddSqlite<TodoDbContext>), with the connection string falling back to \"Data Source=.db/Todos.db\". TodoApp.ServiceDefaults carries the shared Aspire wiring and Todo.Api.Tests holds the functional tests.",
+      "expectedVerdict": null,
+      "mustMention": ["TodoApp.AppHost", "Todo.Api", "Todo.Web.Server", "Todo.Web.Client", "Sqlite"],
+      "mustNotMention": [],
+      "evidence": [
+        "TodoApp.AppHost/Program.cs",
+        "Todo.Api/Program.cs",
+        "Todo.Api/Todos/TodoApi.cs",
+        "Todo.Web/Server/Program.cs",
+        "Todo.Web/Server/App.razor"
+      ]
+    },
+    {
+      "id": "todoapi-b1",
+      "class": "B",
+      "prompt": "A user types a new todo into the Blazor UI and presses add. Follow that request all the way to the code that writes a row to the database, naming every hop including the one that crosses a process boundary.",
+      "answer": "The Blazor WebAssembly UI (Todo.Web/Client/Components/TodoList.razor, inside TodoApp.razor) calls TodoClient.AddTodoAsync (Todo.Web/Client/TodoClient.cs), which does client.PostAsJsonAsync(\"todos\", new TodoItem { Title = title }) against its own origin - the BFF, Todo.Web.Server. There, Todo.Web.Server's TodoApi.MapTodos (Todo.Web/Server/TodoApi.cs) maps a /todos group with RequireAuthorization and a single YARP catch-all route: group.MapForwarder(\"{*path}\", \"http://todoapi\", ...). Its request transform reads the access token out of the auth cookie with c.HttpContext.GetTokenAsync(TokenNames.AccessToken) and sets an Authorization: Bearer header on the outbound request. That \"http://todoapi\" host is not a DNS name in the source - it is the Aspire resource name given to the Todo.Api project in TodoApp.AppHost/Program.cs (AddProject<Projects.Todo_Api>(\"todoapi\")), resolved by service discovery, and it is the process boundary. Inside Todo.Api, the request lands on Todo.Api/Todos/TodoApi.cs group.MapPost(\"/\", ...) which constructs new Todo { Title = newTodo.Title, OwnerId = owner.Id }, calls db.Todos.Add(todo) and await db.SaveChangesAsync() on TodoDbContext - the SQLite write - and returns Created. Note there are two different static classes both named TodoApi, one per project; only the Todo.Api one touches the database.",
+      "expectedVerdict": null,
+      "mustMention": ["TodoClient", "AddTodoAsync", "MapForwarder", "todoapi", "TodoDbContext", "SaveChangesAsync"],
+      "mustNotMention": [],
+      "evidence": [
+        "Todo.Web/Client/TodoClient.cs",
+        "Todo.Web/Server/TodoApi.cs",
+        "TodoApp.AppHost/Program.cs",
+        "Todo.Api/Todos/TodoApi.cs",
+        "Todo.Api/TodoDbContext.cs"
+      ]
+    },
+    {
+      "id": "todoapi-c1",
+      "class": "C",
+      "prompt": "I want to change the CurrentUser type in Todo.Api - how it is shaped and how it gets populated. What depends on it and what would break? List everything.",
+      "answer": "CurrentUser (Todo.Api/Authorization/CurrentUser.cs) is a scoped service holding the TodoUser, the ClaimsPrincipal, and the derived Id and IsAdmin. Four files in Todo.Api depend on it. (1) Todo.Api/Todos/TodoApi.cs - every one of the five /todos endpoints takes CurrentUser owner as a parameter and uses owner.Id (and owner.IsAdmin on GET /{id}, PUT and DELETE) for ownership filtering, so a change to Id or IsAdmin changes the authorization semantics of the whole API. (2) Todo.Api/Authorization/CurrentUserExtensions.cs - AddCurrentUser registers it AddScoped and also registers the private nested ClaimsTransformation as IClaimsTransformation; that transformation is what actually fills Principal and looks the user up with userManager.FindByIdAsync. This is the non-obvious wiring: CurrentUser is populated from a claims-transformation hook, not from middleware, so nothing calls a setter anywhere you can grep for. (3) Todo.Api/Authorization/CheckCurrentUserAuthHandler.cs - CheckCurrentUserAuthHandler takes CurrentUser by constructor injection and succeeds the CheckCurrentUserRequirement only when currentUser.User is not null; the policy is applied through RequireCurrentUser(), which the /todos group requires. If CurrentUser stops being populated, every /todos call fails authorization rather than throwing, which is the failure mode to expect. (4) Todo.Api/Program.cs wires both up. The functional tests in Todo.Api.Tests exercise these paths through the API. Not a dependency: Todo.Web/Client/TodoApp.razor and Todo.Web/Server/App.razor also contain the token CurrentUser, but that is an unrelated Blazor parameter of type string? holding a display name in a different project - a pure name collision.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "CheckCurrentUserAuthHandler",
+        "ClaimsTransformation",
+        "RequireCurrentUser",
+        "AddCurrentUser",
+        "IsAdmin"
+      ],
+      "mustNotMention": ["Todo.Web/Client/TodoApp.razor"],
+      "evidence": [
+        "Todo.Api/Authorization/CurrentUser.cs",
+        "Todo.Api/Authorization/CurrentUserExtensions.cs",
+        "Todo.Api/Authorization/CheckCurrentUserAuthHandler.cs",
+        "Todo.Api/Todos/TodoApi.cs",
+        "Todo.Api/Program.cs",
+        "Todo.Web/Client/TodoApp.razor"
+      ]
+    },
+    {
+      "id": "todoapi-d1",
+      "class": "D",
+      "prompt": "In Todo.Api, does the GET /todos endpoint that lists todos return other users' todos when the caller is an admin? Answer yes or no and quote the filter it actually applies.",
+      "answer": "No. The list endpoint is group.MapGet(\"/\", ...) in Todo.Api/Todos/TodoApi.cs and its filter is db.Todos.Where(todo => todo.OwnerId == owner.Id) - owner id only, with no admin branch, so an admin listing todos sees only their own. Its siblings in the same file and the same class do honour admin: GET /{id} matches todo.OwnerId == owner.Id || owner.IsAdmin, and both PUT /{id} and DELETE /{id} filter on t.OwnerId == owner.Id || owner.IsAdmin. That is the trap - three of the four ownership checks in this file include owner.IsAdmin and the list endpoint does not, so an agent that reads the file and generalises the admin rule to the whole class answers yes.",
+      "expectedVerdict": "no",
+      "mustMention": ["OwnerId", "IsAdmin"],
+      "mustNotMention": [],
+      "evidence": ["Todo.Api/Todos/TodoApi.cs", "Todo.Api/Authorization/CurrentUser.cs"]
+    },
+    {
+      "id": "todoapi-e1",
+      "class": "E",
+      "prompt": "This app cleans up completed todos on a schedule. Which background or hosted service does that, and where is it registered?",
+      "answer": "None - the premise is false. There is no BackgroundService, no IHostedService implementation and no AddHostedService call anywhere in this repository; searching for any of those three returns nothing. Nothing deletes or archives completed todos on a schedule. The only deletion path is the explicit DELETE /todos/{id} endpoint in Todo.Api/Todos/TodoApi.cs, and IsComplete is only ever set by PUT /todos/{id}. The only non-request-driven work the AppHost starts is the optional database-migration operation in TodoApp.AppHost/Extensions.cs, which runs migrations once at startup and is not a cleanup service. A named service in an answer to this question is fabricated.",
+      "expectedVerdict": "none",
+      "mustMention": [],
+      "mustNotMention": [],
+      "evidence": [
+        "Todo.Api/Todos/TodoApi.cs",
+        "Todo.Api/Program.cs",
+        "TodoApp.AppHost/Program.cs",
+        "TodoApp.AppHost/Extensions.cs"
+      ]
+    },
+    {
+      "id": "todoapi-f1",
+      "class": "F",
+      "prompt": "Which files in this repository contain the literal string Todos.db? List every one, with its path.",
+      "answer": "Exactly two. Todo.Api/Program.cs:23 - var connectionString = builder.Configuration.GetConnectionString(\"Todos\") ?? \"Data Source=.db/Todos.db\"; - the fallback SQLite connection string. And TodoApp.AppHost/Program.cs, twice: once in the comment on line 12 and once as the container argument .WithArgs(\"Todos.db\") on line 16, which points the sqliteweb container at the database file. No other file contains the string - in particular it is not in any appsettings.json, because the path only ever appears as an inline fallback and a container argument. That is what makes this a grep question: both hits are string literals, one of them inside a comment, and neither is a symbol a code graph would carry.",
+      "expectedVerdict": null,
+      "mustMention": ["Todo.Api/Program.cs", "TodoApp.AppHost/Program.cs"],
+      "mustNotMention": ["Todo.Api/appsettings.json"],
+      "evidence": ["Todo.Api/Program.cs", "TodoApp.AppHost/Program.cs"]
+    }
+  ]
+}

@@ -332,7 +332,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights,
         string snapshotCache, DevContext.Core.Models.RunReport? report)
     {
-        var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
+        var (seams, entriesWithTarget) = query.Stats();
         var entries = query.EntryPoints();
         var byKind = entries.GroupBy(e => e.Kind.ToString())
             .OrderByDescending(g => g.Count())
@@ -352,10 +352,13 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             sparseGraph = graph.IsSparseGraph,
             hubScopeNodes = graph.HubScopeNodeCount,
             entriesWithTarget,
-            entriesWithDeepSpine,
-            deepSpineRatio,
+            // R1.1 (#24): entriesWithDeepSpine/deepSpineRatio left this payload with the metric —
+            // saturated on 12 poles post-E1 (GraphStats.Compute carries the measurement).
             entriesByKind = byKind,
-            seams = seams.Select(s => new { kind = s.Seam, total = s.Count, verified = s.Count - s.Approx, approx = s.Approx }).ToArray(),
+            // V1.1 (#25): read the tier split off the row. This used to be `verified = total - approx`,
+            // which called every Join edge — the enum's default, so every edge nobody labelled —
+            // Roslyn-verified, while the desktop app rendered those same edges "approx".
+            seams = seams.Select(s => new { kind = s.Seam, total = s.Count, verified = s.Verified, joined = s.Joined, approx = s.Approx }).ToArray(),
             // K2 (D3.3) — the analyze-time waterfall rides the stats surface: stage timeline of the
             // run that PRODUCED this snapshot (persisted, so a cache HIT serves the original run's
             // timings). Empty on pre-D3.3 snapshots — honest, that run recorded no stages.

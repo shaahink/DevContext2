@@ -63,7 +63,6 @@ public sealed class BlazorEntryExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = 1,
-                        Confidence = 0.9f,
                     });
                 }
             }

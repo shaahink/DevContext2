@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":\"Unknown tool \\u0027no_such_tool_xyz\\u0027.\",\"hint\":\"Use one of availableTools.\",\"example\":\"overview(handle)\",\"availableTools\":[\"analyze\",\"close_session\",\"config\",\"entrypoints\",\"find\",\"get_context\",\"impact\",\"list_sessions\",\"map\",\"neighbors\",\"node\",\"overview\",\"read_source\",\"resolve\",\"seam\",\"stats\",\"status\",\"tests_for\",\"top_flows\",\"trace\",\"usages\",\"verify_context\"]}"
+    }
+  ],
+  "isError": true
+}

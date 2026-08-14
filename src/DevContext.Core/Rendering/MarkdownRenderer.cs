@@ -511,6 +511,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         // Collect MediatR handler types for linkage
         var mediatRTypes = model.Detections.OfType<MediatRHandlerDetection>()
+            .Where(m => !string.Equals(m.RequestType, MediatRExtractor.SelfRequest, StringComparison.Ordinal))
             .Select(m => m.HandlerType)
             .ToHashSet();
 
@@ -714,7 +715,12 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
-        var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
+        // E1.4 — a REQUEST-MARKER detection is a request declaration, not a handler. It used to render
+        // here as `| Command | bool | Unit | CreateOrderCommand |`: the response type in the Request
+        // column, and the request itself in the Handler column.
+        var handlers = model.Detections.OfType<MediatRHandlerDetection>()
+            .Where(h => !string.Equals(h.RequestType, MediatRExtractor.SelfRequest, StringComparison.Ordinal))
+            .ToList();
         if (handlers.Count == 0) return;
 
         sb.AppendLine($"## {SectionNames.MediatRHandlers}");

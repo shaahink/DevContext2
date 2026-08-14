@@ -1,0 +1,75 @@
+## QUESTION PUT TO THE ENGINEER
+I have just been handed this repository. What kind of system is it, and what are its runnable entry points? Name the processes that start when the solution runs and say what composes them.
+
+## ANSWER KEY (verified ground truth)
+It is the .NET Aspire reference eShop: a distributed, multi-service e-commerce sample. The composition root is the Aspire AppHost, src/eShop.AppHost/Program.cs, which is the single place the topology is declared - it registers the backing resources (redis, a rabbitmq resource named 'eventbus', postgres with catalogdb/identitydb/orderingdb) and then nine projects via AddProject: identity-api (Identity.API), basket-api (Basket.API), catalog-api (Catalog.API), ordering-api (Ordering.API), order-processor (OrderProcessor), payment-processor (PaymentProcessor), webhooks-api (Webhooks.API), webhooksclient (WebhookClient) and webapp (WebApp, the Blazor storefront). Each of those has its own src/<name>/Program.cs. Services talk to each other two ways: HTTP/gRPC for request-response (WebApp -> Ordering.API, WebApp -> Basket.API over gRPC) and a RabbitMQ integration-event bus (src/EventBus, src/EventBusRabbitMQ) for asynchronous flows. src/ClientApp and src/HybridApp are MAUI clients and are not part of the AppHost graph.
+
+Elements a complete answer names: `Aspire`, `eShop.AppHost`, `Catalog.API`, `Basket.API`, `Ordering.API`, `WebApp`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## What it is
+
+A .NET Aspire–orchestrated **microservices e‑commerce reference app** (the eShop reference application), 19 projects on `net10.0` (plus MAUI TFMs), analyzed from `eShop.slnx`. The style detector rates it "Microservices, high confidence — Aspire orchestration of 9 runnable services", with Minimal APIs + Controllers, MediatR CQRS, EF Core/Postgres, FluentValidation and DDD aggregates (`Buyer`, `Order`).
+
+## The composition root
+
+`src/eShop.AppHost` is the Aspire AppHost — the thing you actually F5. It references and starts **nine** project resources (line numbers are the `AddProject` calls in `src/eShop.AppHost/Program.cs`):
+
+| Process | Kind | Started at |
+|---|---|---|
+| Identity.API | Duende IdentityServer web app (MVC controllers) | `src/eShop.AppHost/Program.cs:23` |
+| Basket.API | gRPC service | `src/eShop.AppHost/Program.cs:30` |
+| Catalog.API | Minimal-API Web API (EF Core + pgvector) | `src/eShop.AppHost/Program.cs:36` |
+| Ordering.API | Web API (MediatR/CQRS, DDD) | `src/eShop.AppHost/Program.cs:40` |
+| OrderProcessor | Worker service | `src/eShop.AppHost/Program.cs:46` |
+| PaymentProcessor | Worker service | `src/eShop.AppHost/Program.cs:51` |
+| Webhooks.API | Web API | `src/eShop.AppHost/Program.cs:54` |
+| WebhookClient | Blazor UI | `src/eShop.AppHost/Program.cs:65` |
+| WebApp | Blazor storefront (+ YARP) | `src/eShop.AppHost/Program.cs:69` |
+
+Every one of these also references `eShop.ServiceDefaults` (`AddServiceDefaults` in `src/eShop.ServiceDefaults/Extensions.cs`) for OpenTelemetry, health checks and service discovery.
+
+**Not** started by the AppHost: `ClientApp` (.NET MAUI) and `HybridApp` (MAUI + Blazor hybrid) are separately-launched client apps — the AppHost has no dependency edge to either; `ClientApp` even has its own solution `src/ClientApp/ClientApp.sln`. The remaining projects (`EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, `WebAppComponents`, `eShop.ServiceDefaults`) are libraries, not processes.
+
+## Backing resources the AppHost also brings up
+
+- **PostgreSQL** databases: `catalogdb` (`src/Catalog.API/Extensions/Extensions.cs:15`), `orderingdb` (`src/Ordering.API/Extensions/Extensions.cs:17`, also consumed by OrderProcessor at `src/OrderProcessor/Extensions/Extensions.cs:13`); Identity.API and Webhooks.API have their own EF contexts (`src/Identity.API/Data/ApplicationDbContext.cs`, `src/Webhooks.API/Infrastructure/WebhooksContext.cs`) — I did not verify their Aspire resource names.
+- **Redis** (`redis`) for the basket: `src/Basket.API/Extensions/Extensions.cs:14`, backing `RedisBasketRepository`.
+- **RabbitMQ** (`eventbus`): `AddRabbitMqEventBus("eventbus")` in `src/Basket.API/Extensions/Extensions.cs:18`, `src/Catalog.API/Extensions/Extensions.cs:31`, `src/OrderProcessor/Extensions/Extensions.cs:10`.
+- **AI backend, optional**: either Ollama as a container with `embedding`/`chat` models (`src/eShop.AppHost/Extensions.cs:AddOllama`, uses `all-minilm` and `llama3.1`) or OpenAI/Azure OpenAI connection strings `textEmbeddingModel`/`chatModel` (`src/eShop.AppHost/Extensions.cs:AddOpenAI`); Catalog picks between them at `src/Catalog.API/Extensions/Extensions.cs:38-46`.
+- The AppHost also injects `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` into every project resource (`src/eShop.AppHost/Extensions.cs:22-46`).
+
+## Entry points inside those processes (109 total)
+
+- **43 HTTP endpoints** — Catalog minimal APIs (`src/Catalog.API/Apis/CatalogApi.cs:21-107`), Ordering (`POST /api/orders/`, `PUT /api/orders/cancel|ship`, `POST /api/orders/draft`), Webhooks (`src/Webhooks.API/Apis/WebHooksApi.cs`), Identity MVC controllers (`src/Identity.API/Quickstart/...`).
+- **3 gRPC methods** — `Basket.GetBasket/UpdateBasket/DeleteBasket` (`src/Basket.API/Grpc/BasketService.cs:8`).
+- **13 RabbitMQ message consumers** — e.g. `OrderStartedIntegrationEventHandler` in Basket.API, `OrderStatusChangedToStockConfirmedIntegrationEventHandler` in PaymentProcessor, `ProductPriceChangedIntegrationEventHandler` in Webhooks.API.
+- **1 hosted background service** — `GracePeriodManagerService`, registered at `src/OrderProcessor/Extensions/Extensions.cs:18`; it is what makes OrderProcessor a process rather than a library.
+- **7 MediatR domain-event handlers** in `src/Ordering.API/Application/DomainEventHandlers/`, behind the pipeline `LoggingBehavior → TransactionBehavior → ValidatorBehavior`.
+- **42 UI entries** — Blazor routes in WebApp (`/cart`, `/checkout`, `/user/orders`) and WebhookClient (`/add-webhook`, `/login`), plus MAUI `[RelayCommand]` view-model entries in ClientApp and Razor pages in HybridApp.
+
+## How the processes talk
+
+WebApp → Basket.API over gRPC (`src/WebApp/Services/BasketService.cs:7`), WebApp → Catalog.API / Ordering.API over HTTP (`src/WebApp/Extensions/Extensions.cs:34,38`), WebhookClient → Webhooks.API (`src/WebhookClient/Extensions/Extensions.cs:19`), and everything else via 13 RabbitMQ integration events (Ordering.API ↔ Catalog.API, Ordering.API → PaymentProcessor, OrderProcessor → Ordering.API, Catalog/Ordering → Webhooks.API).
+
+## Caveat
+
+I could not open `src/eShop.AppHost/Program.cs` as text with the tools available; the nine project registrations and their line numbers come from the dependency-graph provenance recorded for that file, and the resource names (`redis`, `eventbus`, `catalogdb`, `orderingdb`) come from the consuming services' own registration code cited above. The exact set of container resources declared in `Program.cs` (e.g. whether a standalone YARP reverse-proxy resource is added — `Aspire.Hosting.Yarp` is imported at `src/eShop.AppHost/Extensions.cs:3`) is therefore inferred rather than read directly.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

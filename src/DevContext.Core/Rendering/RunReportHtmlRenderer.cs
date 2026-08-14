@@ -180,14 +180,18 @@ public static class RunReportHtmlRenderer
                 sb.AppendLine($"<span class='dc-stats-graph-stat'>{d}<span class='dc-stats-graph-label'>depth</span></span>");
             sb.AppendLine("</div>");
 
-            // Per-seam coverage — how much wiring was bridged, and the approx (syntactic-only) share.
+            // Per-seam coverage — how much wiring was bridged, split by tier (V1.1 / #25: verified is
+            // Roslyn-resolved ONLY; joined is a detection join, which this table used to leave the
+            // reader to subtract into "verified").
             if (g.Seams.Length > 0)
             {
-                sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Seam</th><th>Edges</th><th>Approx</th></tr></thead><tbody>");
+                sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Seam</th><th>Edges</th>"
+                    + "<th>Verified</th><th>Joined</th><th>Approx</th></tr></thead><tbody>");
                 foreach (var s in g.Seams)
                 {
                     var approx = s.Approx > 0 ? $"<span class='dc-stats-skip-chip'>{s.Approx}</span>" : "0";
-                    sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(s.Seam)}</td><td>{s.Count}</td><td>{approx}</td></tr>");
+                    sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(s.Seam)}</td><td>{s.Count}</td>"
+                        + $"<td>{s.Verified}</td><td>{s.Joined}</td><td>{approx}</td></tr>");
                 }
                 sb.AppendLine("</tbody></table>");
             }

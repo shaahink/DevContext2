@@ -1,0 +1,15 @@
+﻿E1.4 batch matrix - label=HEAD-e14-batch
+cli=C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli-core-dll-written=2026-08-14T00:04:29
+
+pole                 nodes   edges   calls     m2m     m2t  verified   approx  phantomT
+eShop                 1137    1174     803     383     313       352      451         0
+TodoApi                114      67      48      17      19         6       42         0
+CleanArchitecture      132      74      42      13      22        29       13         0
+MediatR                163      55      26       0      25        22        4         0
+Hangfire               994     877     859       7     852       776       83         0
+eshop-microservices     415     340     199      91      74       115       84         0
+DevContext            1629    2463    2453    1405    1018      1119     1334         0
+    dogfood DevContext.Core.Graph2.BodyFactExtractor       typeIn=  3 memberIn=  0
+    dogfood DevContext.Core.Utilities.RazorCodeVirtualizer typeIn=  3 memberIn= 12
+    dogfood DevContext.Core.Utilities.ExtractorHelpers     typeIn=  7 memberIn=  1

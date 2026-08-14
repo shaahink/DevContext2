@@ -1,0 +1,120 @@
+{
+  "repo": "FluentValidation",
+  "sha": "94397908",
+  "authoredBy": "K1.3",
+  "note": "Pre-registered ground truth. Every mustMention and mustNotMention entry below was confirmed in the tree at 943979089b55664ceb8390547ea1eb84ee99252a. This is the library repo (DESIGN.md 3.2): no entry points, no hosted processes, so the question shapes are API-surface and call-pipeline rather than request flows.",
+  "questions": [
+    {
+      "id": "fv-a1",
+      "class": "A",
+      "prompt": "I have just been handed this repository. What kind of codebase is it, what does a consumer of it actually write, and what are its entry points?",
+      "answer": "It is a library, not an application: there is no Program.cs, no Main, no host and no entry point anywhere in src - the only executable-shaped projects are the test projects (src/FluentValidation.Tests, src/FluentValidation.Tests.Benchmarks). FluentValidation is a .NET validation library with four projects in FluentValidation.sln: src/FluentValidation (the core package), src/FluentValidation.DependencyInjectionExtensions (optional Microsoft.Extensions.DependencyInjection registration and AssemblyScanner-based discovery), and the two test projects. A consumer derives from AbstractValidator<T> and declares rules in the constructor with the fluent builders RuleFor / RuleForEach plus condition builders (When, Unless, RuleSet, Include), then calls validator.Validate(instance) or ValidateAsync and reads a ValidationResult, whose Errors are ValidationFailure objects. The public contracts are IValidator / IValidator<T>; the rule primitives live in src/FluentValidation/Internal (PropertyRule, RuleBase, RuleBuilder, RuleComponent) and the ~29 built-in checks in src/FluentValidation/Validators (NotNullValidator, NotEmptyValidator, LengthValidator, EmailValidator, CreditCardValidator and so on), surfaced to users as the extension methods in DefaultValidatorExtensions.cs. Global configuration is static: ValidatorOptions.Global. The library multi-targets and is strong-named (src/Directory.Build.props).",
+      "expectedVerdict": null,
+      "mustMention": [
+        "AbstractValidator",
+        "RuleFor",
+        "IValidator",
+        "ValidationResult",
+        "FluentValidation.DependencyInjectionExtensions"
+      ],
+      "mustNotMention": [],
+      "evidence": [
+        "FluentValidation.sln",
+        "src/FluentValidation/AbstractValidator.cs",
+        "src/FluentValidation/IValidator.cs",
+        "src/FluentValidation/Results/ValidationResult.cs",
+        "src/FluentValidation/DefaultValidatorExtensions.cs"
+      ]
+    },
+    {
+      "id": "fv-b1",
+      "class": "B",
+      "prompt": "I call validator.Validate(myObject) on a class deriving from AbstractValidator<T>. Follow that call to the code that decides a single property is invalid and to the code that constructs the failure object. Name every hop.",
+      "answer": "AbstractValidator<T>.Validate(T instance) (src/FluentValidation/AbstractValidator.cs:98) builds a ValidationContext<T> with the default selector and calls the Validate(ValidationContext<T>) overload (line 115), which calls ValidateInternal(context). That is the hop grep cannot follow: there is no ValidateInternal method anywhere in the source. It is generated at compile time by Zomp.SyncMethodGenerator from the [CreateSyncVersion] attribute on the private ValidateInternalAsync (line 140), so the only textual occurrence of the name is the call site itself. ValidateInternalAsync runs PreValidate, then loops the validator's Rules (TrackingCollection<IValidationRuleInternal<T>>) calling Rules[i].ValidateAsync, honouring ClassLevelCascadeMode. Those rules are PropertyRule<T,TProperty> (src/FluentValidation/Internal/PropertyRule.cs, and CollectionPropertyRule for RuleForEach), whose ValidateAsync (line 52) resolves the property value and, for each RuleComponent<T,TProperty>, calls component.ValidateAsync. RuleComponent (src/FluentValidation/Internal/RuleComponent.cs:92) is where the actual check happens: _propertyValidator.IsValid(context, value) on the IPropertyValidator<T,TProperty> - the async twin being _asyncPropertyValidator.IsValidAsync at line 95. When that returns false, PropertyRule.ValidateAsync (line 126) calls CreateValidationError, inherited from RuleBase (src/FluentValidation/Internal/RuleBase.cs:320), which prepares the MessageFormatter (PrepareMessageFormatterForValidationError), builds the message and constructs new ValidationFailure(context.PropertyPath, error, value). The failure is added to context.Failures and surfaces in the ValidationResult returned at the top. Two hops are invisible to text search: the source-generated ValidateInternal, and the IPropertyValidator interface dispatch to whichever concrete validator the rule was configured with.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "ValidateInternal",
+        "PropertyRule",
+        "RuleComponent",
+        "IPropertyValidator",
+        "CreateValidationError",
+        "ValidationFailure"
+      ],
+      "mustNotMention": [],
+      "evidence": [
+        "src/FluentValidation/AbstractValidator.cs",
+        "src/FluentValidation/Internal/PropertyRule.cs",
+        "src/FluentValidation/Internal/RuleComponent.cs",
+        "src/FluentValidation/Internal/RuleBase.cs",
+        "src/FluentValidation/Validators/IPropertyValidator.cs"
+      ]
+    },
+    {
+      "id": "fv-c1",
+      "class": "C",
+      "prompt": "I want to change the IPropertyValidator<T,TProperty>.IsValid contract - its signature and what it is allowed to do. What depends on it inside this repository, and what would break? List everything.",
+      "answer": "IsValid is declared on IPropertyValidator<T,TProperty> (src/FluentValidation/Validators/IPropertyValidator.cs) and the blast radius has four parts. (1) The single sync call site: RuleComponent<T,TProperty> (src/FluentValidation/Internal/RuleComponent.cs:92) invokes _propertyValidator.IsValid(context, value); RuleComponentForNullableStruct does the same for nullable value types. Every rule execution goes through there, so the whole PropertyRule / CollectionPropertyRule pipeline is downstream. (2) The base classes and their subclasses: PropertyValidator<T,TProperty> is the abstract base every synchronous built-in check derives from, so all of them change signature together - NotNullValidator, NotEmptyValidator, EqualValidator, NotEqualValidator, LengthValidator, EmailValidator, CreditCardValidator, RegularExpressionValidator, EnumValidator, StringEnumValidator, PredicateValidator, PrecisionScaleValidator, RangeValidator, the comparison family (AbstractComparisonValidator, GreaterThan/GreaterThanOrEqual/LessThan/LessThanOrEqual), InclusiveBetween/ExclusiveBetween, Empty/Null, NoopPropertyValidator, ChildValidatorAdaptor and PolymorphicValidator. (3) The asynchronous counterpart: AsyncPropertyValidator / AsyncPredicateValidator expose IsValidAsync, the twin RuleComponent path at line 95, and any signature change has to be made symmetrically or the two paths diverge. (4) The public wiring: the user-facing extension methods in DefaultValidatorExtensions.cs construct these validators and hand them to SetValidator, and IPropertyValidator is public API - so this is a binary and source breaking change for every consumer with a custom validator, and the FluentValidation.Tests suite exercises it throughout. Ground truth for the grader: AssemblyScanner is NOT in the blast radius - it discovers IValidator implementations by assembly scanning and never touches IPropertyValidator or IsValid.",
+      "expectedVerdict": null,
+      "mustMention": [
+        "RuleComponent",
+        "PropertyValidator",
+        "AsyncPropertyValidator",
+        "DefaultValidatorExtensions",
+        "NotNullValidator"
+      ],
+      "mustNotMention": ["AssemblyScanner"],
+      "evidence": [
+        "src/FluentValidation/Validators/IPropertyValidator.cs",
+        "src/FluentValidation/Internal/RuleComponent.cs",
+        "src/FluentValidation/Validators/PropertyValidator.cs",
+        "src/FluentValidation/Validators/AsyncPropertyValidator.cs",
+        "src/FluentValidation/DefaultValidatorExtensions.cs",
+        "src/FluentValidation/AssemblyScanner.cs"
+      ]
+    },
+    {
+      "id": "fv-d1",
+      "class": "D",
+      "prompt": "Does AbstractValidator<T>.Validate(T instance) throw a ValidationException when the instance is invalid? Answer yes or no and say what it does instead.",
+      "answer": "No. Validate(T instance) returns a ValidationResult whose IsValid is false and whose Errors hold the ValidationFailure list; failures are data, not an exception. The trap is that ValidationException genuinely appears inside AbstractValidator<T> - the sibling member RaiseValidationException (line 389) is exactly 'throw new ValidationException(result.Errors)' - so an agent reading the class and attributing a file-level fact to the member being asked about answers yes. RaiseValidationException is reached only from the two guarded sites in ValidateInternalAsync (lines 146-147 and 175-176), both of which require context.ThrowOnFailures, and the Validate(T instance) overload never sets it: it constructs a plain ValidationContext<T> with the default selector. ThrowOnFailures is set only through ValidationStrategy.ThrowOnFailures (src/FluentValidation/Internal/ValidationStrategy.cs:121), which is what the ValidateAndThrow / ValidateAndThrowAsync extension methods in DefaultValidatorExtensions_Validate.cs use - those are the members that throw. The exceptions Validate(T) can raise are unrelated to failure content: InvalidOperationException for a null root model, ArgumentNullException for a null context, and AsyncValidatorInvokedSynchronouslyException if an async rule is run synchronously.",
+      "expectedVerdict": "no",
+      "mustMention": [
+        "ValidationResult",
+        "RaiseValidationException",
+        "ThrowOnFailures",
+        "ValidateAndThrow"
+      ],
+      "mustNotMention": [],
+      "evidence": [
+        "src/FluentValidation/AbstractValidator.cs",
+        "src/FluentValidation/DefaultValidatorExtensions_Validate.cs",
+        "src/FluentValidation/Internal/ValidationStrategy.cs",
+        "src/FluentValidation/ValidationException.cs"
+      ]
+    },
+    {
+      "id": "fv-e1",
+      "class": "E",
+      "prompt": "Which built-in validator in this library checks password strength - minimum length plus required character classes? Name the class and the file it lives in.",
+      "answer": "There is none - the premise is false. src/FluentValidation/Validators contains the complete built-in set and it has no password, complexity or strength validator: AbstractComparisonValidator, AsyncPredicateValidator, AsyncPropertyValidator, ChildValidatorAdaptor, ComparableComparer, CreditCardValidator, EmailValidator, EmptyValidator, EnumValidator, EqualValidator, ExclusiveBetweenValidator, GreaterThanOrEqualValidator, GreaterThanValidator, InclusiveBetweenValidator, IPropertyValidator, LengthValidator, LessThanOrEqualValidator, LessThanValidator, NoopPropertyValidator, NotEmptyValidator, NotEqualValidator, NotNullValidator, NullValidator, PolymorphicValidator, PrecisionScaleValidator, PredicateValidator, PropertyValidator, RangeValidator, RegularExpressionValidator, StringEnumValidator. Searching the whole of src for 'password' case-insensitively returns nothing at all, and docs/built-in-validators.md documents every built-in check with no password entry - its single mention of the word is an Equal example comparing Password to PasswordConfirmation. A consumer composes password rules themselves from MinimumLength, Matches and Must. Any named class in an answer to this question is fabricated.",
+      "expectedVerdict": "none",
+      "mustMention": [],
+      "mustNotMention": [],
+      "evidence": [
+        "src/FluentValidation/Validators",
+        "docs/built-in-validators.md",
+        "src/FluentValidation/DefaultValidatorExtensions.cs"
+      ]
+    },
+    {
+      "id": "fv-f1",
+      "class": "F",
+      "prompt": "Which files in this repository contain the literal string netstandard2.0? List every one, with its path.",
+      "answer": "Exactly two. Changelog.txt, twice - line 13 ('Drops support for netstandard2.0, netstandard2.1, .net 5, .net 6 and .net 7...') and line 476 ('Removed netstandard1.0 support. Supported platforms are now netstandard1.1, netstandard2.0 and net45.') - and src/FluentValidation/FluentValidation.csproj once, at line 29, as the condition on an ItemGroup: Condition=\"'$(TargetFramework)' == 'netstandard2.0'\". Nothing else in the tree contains it; in particular src/Directory.Build.props does not, even though that is where the shared build properties live. This is a grep question by construction: both hits are plain text, one in a changelog and one in an MSBuild condition attribute, and neither is a symbol a code graph would hold.",
+      "expectedVerdict": null,
+      "mustMention": ["Changelog.txt", "src/FluentValidation/FluentValidation.csproj"],
+      "mustNotMention": ["src/Directory.Build.props"],
+      "evidence": ["Changelog.txt", "src/FluentValidation/FluentValidation.csproj"]
+    }
+  ]
+}

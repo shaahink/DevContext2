@@ -11,6 +11,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var byType = VerbsByCommandType(model);
         foreach (var cmd in model.Detections.OfType<CliCommandDetection>())
         {
             if (!scope.Contains(cmd.SourceFile) || !noise.IsProductionEntrySource(cmd.SourceFile)) continue;
@@ -18,7 +19,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
 
             // B4 (D1.1d): plain-Main fallback entries carry no settings type — title is the exe itself.
             // Batch B: a declared verb leads, because that is what the user types.
-            var title = cmd.CommandName is { Length: > 0 } verb
+            var title = VerbPath(cmd, byType) is { Length: > 0 } verb
                 ? $"{verb} ({cmd.CommandType})"
                 : cmd.SettingsType.Length > 0
                     ? $"{cmd.CommandType} —settings {cmd.SettingsType}"
@@ -43,7 +44,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
                 // Entry builders run before AddCallEdges (GraphBuilder.Build), so the member node never
                 // exists yet — the builder creates it, exactly as HttpEntryPointBuilder does for a
                 // controller action.
-                g.AddNode(new GraphNode(handlerId, $"{cmd.CommandType}.{executeMember}", NodeKind.Member)
+                g.AddNode(new GraphNode(handlerId, SymbolCanon.MemberTitle(handlerId.Key), NodeKind.Member)
                 {
                     FilePath = cmd.SourceFile,
                 });
@@ -64,6 +65,41 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             });
         }
         return entries.ToImmutable();
+    }
+
+    /// <summary>D1.3 (#14) — every detected command type that declares a verb, so a sub-command can be
+    /// resolved to the verb its PARENT declares. The map is built from the detections themselves: a
+    /// parent lives in another project's file (GitVersion's ConfigCommand is in GitVersion.Core, its
+    /// init/show children in GitVersion.Configuration), so nothing but the whole detection set knows
+    /// both ends.</summary>
+    private static Dictionary<string, CliCommandDetection> VerbsByCommandType(DiscoveryModel model)
+    {
+        var map = new Dictionary<string, CliCommandDetection>(StringComparer.Ordinal);
+        foreach (var cmd in model.Detections.OfType<CliCommandDetection>())
+        {
+            if (cmd.CommandName is not { Length: > 0 }) continue;
+            map.TryAdd(cmd.CommandType, cmd);
+        }
+        return map;
+    }
+
+    /// <summary>D1.3 (#14) — the verb a user actually types: <c>"config init"</c>, not <c>"init"</c>.
+    /// Walks the parent chain the generic command attribute declares. An unresolvable parent (declared
+    /// in a repo we cannot see, or carrying no verb of its own) contributes NOTHING rather than a
+    /// guessed prefix — the leaf verb is still true. Cycles and runaway depth stop the walk.</summary>
+    private static string VerbPath(CliCommandDetection cmd, Dictionary<string, CliCommandDetection> byType)
+    {
+        if (cmd.CommandName is not { Length: > 0 } leaf) return "";
+        var prefixes = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal) { cmd.CommandType };
+        var parent = cmd.ParentCommandType;
+        while (parent is { Length: > 0 } && seen.Add(parent) && prefixes.Count < 8)
+        {
+            if (!byType.TryGetValue(parent, out var owner) || owner.CommandName is not { Length: > 0 } verb) break;
+            prefixes.Insert(0, verb);
+            parent = owner.ParentCommandType;
+        }
+        return prefixes.Count == 0 ? leaf : $"{string.Join(' ', prefixes)} {leaf}";
     }
 
     /// <summary>D-3 — the command's execute member, named by shape: the single method the command type

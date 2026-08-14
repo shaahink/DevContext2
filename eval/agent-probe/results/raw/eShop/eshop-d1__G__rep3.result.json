@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 18811,
+  "num_turns": 4,
+  "stop_reason": "end_turn",
+  "session_id": "fe854b51-97cf-4eb9-b126-d1ca52669190",
+  "total_cost_usd": 0.07496349999999999,
+  "usage": {
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 2998,
+    "cache_read_input_tokens": 13231,
+    "output_tokens": 1506,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2998,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1148,
+        "cache_read_input_tokens": 5199,
+        "cache_creation_input_tokens": 1664,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1664
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 568,
+      "outputTokens": 24,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000688,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 6,
+      "outputTokens": 1506,
+      "cacheReadInputTokens": 13231,
+      "cacheCreationInputTokens": 2998,
+      "webSearchRequests": 0,
+      "costUSD": 0.0742755,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — it publishes no integration events at all.\n\nWhat `CreateItem` actually does (`src/Catalog.API/Apis/CatalogApi.cs:366-388`), in order:\n\n1. Takes `[AsParameters] CatalogServices services` and a `CatalogItem product` from the request body (`src/Catalog.API/Apis/CatalogApi.cs:366-368`).\n2. Constructs a **new** `CatalogItem` from the posted product, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-381`). Note it does **not** copy `OnReorder`.\n3. Computes and assigns an AI embedding via `services.CatalogAI.GetEmbeddingAsync(item)` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n4. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` directly on the DbContext — not the transactional `EventService` (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n5. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`).\n\nIt is registered as `POST /items` with the endpoint name `CreateItem` (`src/Catalog.API/Apis/CatalogApi.cs:103-104`), and is annotated `[ProducesResponseType<ProblemDetails>(400)]` even though its return type is only `Task<Created>` (`src/Catalog.API/Apis/CatalogApi.cs:365-366`).\n\nHow I established the \"no\": the only construction/publication of `ProductPriceChangedIntegrationEvent` anywhere in the Catalog service is in `UpdateItem`, guarded by `if (priceEntry.IsModified)`, where it is saved via `services.EventService.SaveEventAndCatalogContextChangesAsync` and then published with `PublishThroughEventBusAsync` (`src/Catalog.API/Apis/CatalogApi.cs:345-357`). A repository-wide search for `ProductPriceChangedIntegrationEvent` returned only that one usage plus the event record definitions (`src/Catalog.API/IntegrationEvents/Events/ProductPriceChangedIntegrationEvent.cs:6`, `src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEvent.cs:3`) and the Webhooks subscriber side (`src/Webhooks.API/IntegrationEvents/ProductPriceChangedIntegrationEventHandler.cs:3`, `src/Webhooks.API/Extensions/Extensions.cs:21`).\n\nOne caveat: `CreateItem` does not call `UpdateItem`, so there is no indirect path to that publish either — the two are separate endpoints, and only `UpdateItemDeprecated` delegates to `UpdateItem` (`src/Catalog.API/Apis/CatalogApi.cs:321`).",
+  "ttft_ms": 2000,
+  "ttft_stream_ms": 1186,
+  "time_to_request_ms": 75,
+  "type": "result",
+  "duration_ms": 18021,
+  "uuid": "c00320c1-d2b4-4322-895b-685024a56bec"
+}

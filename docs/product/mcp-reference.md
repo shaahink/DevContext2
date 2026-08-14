@@ -1,11 +1,12 @@
 # MCP Reference
 
-DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **22 tools**
-so any MCP-compatible agent (Claude Code, Cursor, VS Code, Cline, …) can query an analyzed .NET
-codebase instead of grepping it.
+DevContext ships an **MCP (Model Context Protocol) server** — `devcontext-mcp` — exposing **14
+advertised tools plus 8 unlisted specialists** so any MCP-compatible agent (Claude Code, Cursor,
+VS Code, Cline, …) can query an analyzed .NET codebase instead of grepping it.
 
-Verified against `src/DevContext.Mcp/DevContextTools.cs` (tool XML summaries are the tool
-descriptions clients see) and `src/DevContext.Mcp/Program.cs`.
+Verified against `src/DevContext.Mcp/DevContextTools.cs` (the `[Description]` attributes ARE the
+descriptions clients see — the XML doc file is not read by the SDK), `src/DevContext.Mcp/McpToolMenu.cs`
+(which half a tool is on) and `src/DevContext.Mcp/Program.cs`.
 
 ## How it works
 
@@ -86,21 +87,42 @@ path or put the directory on `PATH`):
   for a handle rather than guessing.
 - Symbols are addressed two ways: a precise `nodeId` (`Kind:Key`, from `resolve`/`find`) or a fuzzy
   `query`. Ambiguity is honest: a query matching several nodes returns the candidates — no tool
-  ever silently picks one.
+  ever silently picks one. **`focus` accepts a nodeId everywhere `nodeId` does** — `trace` and
+  `get_context` included — so an id read off `resolve`/`find`/`entrypoints`, or off a did-you-mean
+  candidate list, can be handed straight back (T1.3; before it, `trace` was the one tool that
+  answered a nodeId with a miss or a confident empty tree).
 - Budgeted tools (`trace`, `get_context`) take `budgetTokens` and name what they cut
   ("N omitted") instead of truncating silently. A dial you do not name is left UNSET on the wire, so
   the server's one trace policy applies it — the MCP no longer carries its own copy of the defaults.
+- **A reply's completeness claim is a fact, not an inference.** Every cut `get_context` makes is
+  declared on an `omitted[]` line beginning `elided ` and naming the lever that undoes it; `fillNote`
+  reads those lines. So "the pack already contains everything reachable from this focus" is only ever
+  said when nothing was cut — and a pack that elided anything says `INCOMPLETE` at any fill level
+  (T1.3). `trace` likewise: a `found:true` with `steps:0` carries a `note` saying nothing outbound
+  resolved and naming the `neighbors(direction:"in")` call that shows the other direction.
 
-## Tool catalog (22)
+## Tool catalog — 14 advertised, 8 unlisted (†)
+
+`tools/list` advertises **14** tools: the core surface for getting from "a repo" to "the right code
+with its wiring". The other **8 are marked † below — unlisted, not removed.** They are built from
+the same methods with the same schemas and **calling one by name works exactly as before**; they are
+simply kept off the menu an agent reads at connect, because tool selection is the whole game and 22
+verbs is a lot to weigh before any work has happened. An unknown-tool reply names them and says what
+each one answers, so they stay discoverable.
+
+Every tool and **every parameter** carries a description on the wire. That was not true before
+2026-08-13: all 22 shipped `description: ""` while 26 XML doc summaries sat unused in the source,
+because the SDK reads `[Description]` attributes and not the XML doc file.
+`eval/mcp-qa/wire-truth.js` measures both facts off a real `tools/list` and fails if either regresses.
 
 ### Session
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
 | `analyze` | Start analysis of a .NET repo; returns the session handle. Idempotent per repo+HEAD+solution. | `path`, `sln` |
-| `status` | Check whether a session handle is still valid. | `handle` |
-| `list_sessions` | List all active analysis sessions on the server. | — |
-| `close_session` | Release a session's resources (engine + any clone). Idempotent. | `handle` |
+| `status` † | Check whether a session handle is still valid. | `handle` |
+| `list_sessions` † | List all active analysis sessions on the server. | — |
+| `close_session` † | Release a session's resources (engine + any clone). Idempotent. | `handle` |
 
 ### Orientation — what is this repo?
 
@@ -110,7 +132,7 @@ path or put the directory on `PATH`):
 | `map` | Architecture map, structured **and** rendered: style, archetype, topology, packages, aggregates, pipeline behaviours, per-service styles, the library surface (entry API, abstractions, namespace groups, internals, extension points, consumer paths, generators), the archetype view, the solution scope — plus the markdown. | `handle` |
 | `stats` | Full analysis stats: node/edge counts, seam breakdown, every insight (category, severity, evidence, confidence, action), warnings, swallowed extraction failures. | `handle` |
 | `entrypoints` | Entry points (HTTP routes, bus consumers, gRPC services). Summary by default; `kind` filters, `full:true` lists every entry. | `kind`, `top`, `full` |
-| `top_flows` | Top 20 entry points ranked by importance score. | `handle` |
+| `top_flows` † | Top 20 entry points ranked by importance score. | `handle` |
 
 ### Navigation — find and inspect symbols
 
@@ -118,7 +140,7 @@ path or put the directory on `PATH`):
 |------|--------------|----------------|
 | `resolve` | Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks. | `query`, `limit` |
 | `find` | Free-text search across graph nodes, paginated. `kind` filters server-side, so `total` and `hasMore` count every match, not the page. | `query`, `kind`, `limit`, `cursor` |
-| `node` | Detail card for a node: title, kind, file path, degrees. | `nodeId` or `query` |
+| `node` † | Detail card for a node: title, kind, file path, degrees. | `nodeId` or `query` |
 | `neighbors` | Outgoing/incoming edges of a node. `kind` narrows to one seam server-side, which is how you ask a pointed question: who **writes** this table (`direction: in, kind: ReadsWrites`), who **sends** this command (`kind: Sends`), who **consumes** this event (`kind: Consumes`). The reply always carries `totalEdges` and `kindsPresent` for the **unfiltered** set in that direction, so a filter that matched nothing names what to ask instead — and an unknown kind returns nothing plus the valid list, never the unfiltered edges wearing your filter's name. On a type, the members' edges roll up, so the answer names *which member* carries the seam. | `nodeId`/`query`, `direction: out\|in\|usages`, `kind` |
 | `usages` | All usages (in-edges) of a node across the codebase. | `nodeId` or `query` |
 | `read_source` | Read source for a node: `window` (N lines around) or `member` (full declaration body). | `nodeId`/`query`, `mode`, `windowLines` |
@@ -130,15 +152,15 @@ path or put the directory on `PATH`):
 | `trace` | Call spine from one entry. `format: compact` is the small flow summary (~150 tokens: `steps`/`touches`/`emits`, each step prefixed with a seam glyph, plus a `legend` keying the ones it used); `format: default` is the full tree. **Omit `depth`/`budgetTokens` and the server's trace policy decides** — and only then can it deepen a walk that hit the limit with budget to spare. Naming a dial gets exactly that dial; `budgetTokens: 0` = full tree. Cut subtrees are named ("N omitted"), and `budgetSource` says whether the budget was yours or the policy's. | `focus`/`query`, `depth`, `format: default\|compact`, `budgetTokens` |
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
 | `seam` | The wiring path **between** two symbols, hop by hop, each hop naming its seam kind, how the edge was bound, and the file:line. `trace` walks down from one entry and `impact` returns a set with distances; this is the only tool that answers "how does A reach B". Returns the shortest paths (`totalPaths` counts every one, including those the page left out); says `direction: reverse` when the connection runs the other way round, and names the retry when the hop budget — not the graph — ended the search. | `from`, `to`, `maxDepth` (8), `maxPaths` (3) |
-| `tests_for` | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
-| `config` | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |
+| `tests_for` † | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
+| `config` † | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |
 
 ### Context packs — LLM-ready output
 
 | Tool | What it does | Key parameters |
 |------|--------------|----------------|
 | `get_context` | Budget-priced context pack for a focus: identity header, flows, signatures, bodies, DI wiring, config, contracts, tests — with per-section provenance. A pack filling <85% of budget says why (`fillNote`: budget-cut vs content-exhausted) and, when the focus is weakly connected, suggests better-connected focuses (`suggestedFocuses`). | `focus`/`query`, `budgetTokens` (default 8000), `intent: trace\|explain\|review` |
-| `verify_context` | Has the source drifted since `analyze`? Per-section stale flags, changed files with line deltas, repo HEAD then/now (hash + line-count delta, no diff). | `focus`/`query`, `budgetTokens` |
+| `verify_context` † | Has the source drifted since `analyze`? Per-section stale flags, changed files with line deltas, repo HEAD then/now (hash + line-count delta, no diff). | `focus`/`query`, `budgetTokens` |
 
 ### Folded tools (removed — the replacement answers the same question)
 

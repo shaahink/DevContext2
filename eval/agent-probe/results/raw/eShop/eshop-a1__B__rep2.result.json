@@ -1,0 +1,94 @@
+{
+  "is_error": false,
+  "duration_api_ms": 75053,
+  "num_turns": 18,
+  "stop_reason": "end_turn",
+  "session_id": "02e98733-9b25-419a-8a16-f7d12aaf5222",
+  "total_cost_usd": 0.4878644999999999,
+  "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 26091,
+    "cache_read_input_tokens": 174629,
+    "output_tokens": 5555,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 26091,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2541,
+        "cache_read_input_tokens": 30504,
+        "cache_creation_input_tokens": 2279,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2279
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 575,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000665,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 20,
+      "outputTokens": 5555,
+      "cacheReadInputTokens": 174629,
+      "cacheCreationInputTokens": 26091,
+      "webSearchRequests": 0,
+      "costUSD": 0.4871995,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_013wirFD34jgzd3CC43g6tyw",
+      "tool_input": {
+        "command": "cd C:/Code/DevContext2/eval-repos/eShop && for p in Basket.API Catalog.API Identity.API Ordering.API OrderProcessor PaymentProcessor Webhooks.API WebApp WebhookClient HybridApp ClientApp eShop.ServiceDefaults EventBus EventBusRabbitMQ IntegrationEventLogEF Ordering.Domain Ordering.Infrastructure WebAppComponents eShop.AppHost; do echo \"=== $p\"; grep -E \"Sdk=|<OutputType>|<TargetFramework\" src/$p/$p.csproj | head -6; done",
+        "description": "Inspect project SDKs and output types"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Y3kJ47mAtT3kWJ9KYvRUtj",
+      "tool_input": {
+        "command": "cd C:/Code/DevContext2/eval-repos/eShop && for p in Basket.API OrderProcessor PaymentProcessor Webhooks.API WebApp WebhookClient HybridApp; do echo \"=== $p\"; head -40 src/$p/Program.cs 2>/dev/null; done",
+        "description": "Read Program.cs for several services"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "## What kind of system this is\n\n**eShop is a .NET Aspire–orchestrated, microservices-based e-commerce reference application** (\"AdventureWorks\"): a set of independently-hosted ASP.NET Core services that talk over HTTP, gRPC, and a RabbitMQ integration-event bus, plus two .NET MAUI client apps. It is an app, not a library — 19 projects in `eShop.slnx`, described in `README.md:1-3` as \"A reference .NET application implementing an e-commerce website using a services-based architecture using .NET Aspire\". It targets `net10.0` (e.g. `src/Ordering.API/Ordering.API.csproj:4`).\n\n## The single runnable entry point\n\n**`src/eShop.AppHost` is the one thing you run.** It is an Aspire AppHost (`src/eShop.AppHost/eShop.AppHost.csproj:1` — `Sdk=\"Aspire.AppHost.Sdk/13.2.0\"`, `OutputType=Exe`), started via `dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj` (`README.md:72-75`) or by setting it as the startup project in `eShop.Web.slnf` (`README.md:67-70`). Everything else is composed by `builder.Build().Run()` at `src/eShop.AppHost/Program.cs:103`.\n\n## Processes that start when the solution runs\n\n**Nine .NET projects**, each `AddProject`-ed in `src/eShop.AppHost/Program.cs` (and each project-referenced from `src/eShop.AppHost/eShop.AppHost.csproj:21-31`):\n\n| Resource name | Project | Kind |\n|---|---|---|\n| `identity-api` (`Program.cs:23`) | Identity.API | ASP.NET Core MVC + Duende IdentityServer; `AddIdentityServer` at `src/Identity.API/Program.cs:18`, auto-migrates `identitydb` (`src/Identity.API/Program.cs:12`) |\n| `basket-api` (`Program.cs:30`) | Basket.API | gRPC service — `app.MapGrpcService<BasketService>()` (`src/Basket.API/Program.cs:12`), backed by Redis |\n| `catalog-api` (`Program.cs:36`) | Catalog.API | Minimal-API web API over Postgres/pgvector, with optional AI semantic search |\n| `ordering-api` (`Program.cs:40`) | Ordering.API | Minimal-API web API, DDD/CQRS with MediatR pipeline behaviors (`LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior`); owns the EF migrations |\n| `order-processor` (`Program.cs:46`) | OrderProcessor | Background worker — `Microsoft.NET.Sdk.Worker` (`src/OrderProcessor/OrderProcessor.csproj:1`), runs `GracePeriodManagerService` as a hosted service (`src/OrderProcessor/Extensions/Extensions.cs:18`) |\n| `payment-processor` (`Program.cs:51`) | PaymentProcessor | Event-driven worker; its only job is subscribing to `OrderStatusChangedToStockConfirmedIntegrationEvent` (`src/PaymentProcessor/Program.cs:5-6`) |\n| `webhooks-api` (`Program.cs:54`) | Webhooks.API | Versioned minimal-API for webhook subscriptions (`src/Webhooks.API/Program.cs:19-21`) |\n| `webapp` (`Program.cs:69`) | WebApp | The storefront — Blazor Server (`MapRazorComponents<App>().AddInteractiveServerRenderMode()`, `src/WebApp/Program.cs:30`); also proxies product images to catalog-api (`src/WebApp/Program.cs:32`) |\n| `webhooksclient` (`Program.cs:65`) | WebhookClient | Blazor Server demo client for webhooks (`src/WebhookClient/Program.cs:25`) |\n\n**Plus one YARP reverse proxy and three containers:**\n- `mobile-bff` — an Aspire-hosted YARP resource (`src/eShop.AppHost/Program.cs:60-62`), routing `/catalog-api/...`, ordering, and identity traffic for the mobile clients (`src/eShop.AppHost/Extensions.cs:185-220`).\n- `redis` (`Program.cs:7`), `eventbus` RabbitMQ (`Program.cs:8-9`), and `postgres` using the `ankane/pgvector` image (`Program.cs:10-13`), which hosts four databases: `catalogdb`, `identitydb`, `orderingdb`, `webhooksdb` (`Program.cs:15-18`).\n- Optionally OpenAI/Azure OpenAI or an Ollama container, both **off by default** (`useOpenAI = false` at `Program.cs:80`, `useOllama = false` at `Program.cs:86`).\n\n## What does *not* start with the solution\n\n**ClientApp and HybridApp are not launched by the AppHost.** They are .NET MAUI apps (`src/ClientApp/ClientApp.csproj:4`, `src/HybridApp/HybridApp.csproj:4-16`) with `MauiProgram.CreateMauiApp()` entry points, are absent from the AppHost's `AddProject` calls and project references, and are excluded from `eShop.Web.slnf`. They are deployed to devices/emulators separately and reach the backend through the `mobile-bff` proxy — HybridApp hardcodes `http://localhost:11632/` (`src/HybridApp/MauiProgram.cs:9`).\n\n## How composition works\n\nTwo mechanisms, layered:\n\n1. **Aspire service discovery / config injection.** `WithReference` injects connection strings and service endpoints (e.g. `webapp` references basket, catalog, ordering, rabbitmq at `Program.cs:72-75`), and `WithEnvironment` wires identity URLs. Note the deliberate cycle: identity-api gets callback URLs for all five clients (`Program.cs:96-101`), while those clients get `IdentityUrl` pointing back at it.\n2. **RabbitMQ integration events.** Services are decoupled publisher/subscriber pairs — 13 message consumers across Basket.API, Catalog.API, Ordering.API, PaymentProcessor, WebApp, and Webhooks.API (e.g. `OrderStartedIntegrationEventHandler` in Basket.API, `GracePeriodConfirmedIntegrationEventHandler` in Ordering.API), built on the shared `EventBus`/`EventBusRabbitMQ` libraries.\n\nShared, non-runnable libraries: `eShop.ServiceDefaults` (telemetry/health/service-discovery, called as `AddServiceDefaults()`/`AddBasicServiceDefaults()` in every host), `EventBus`, `EventBusRabbitMQ`, `IntegrationEventLogEF`, `Ordering.Domain`, `Ordering.Infrastructure`, and `WebAppComponents` (Razor class library shared by WebApp and HybridApp).\n\nOne caveat worth flagging: `README.md:12` says \"based on .NET 9\", but every project actually targets `net10.0` — the README is stale on that point.",
+  "ttft_ms": 1565,
+  "ttft_stream_ms": 812,
+  "time_to_request_ms": 36,
+  "type": "result",
+  "duration_ms": 91113,
+  "uuid": "93444eb6-3df8-4221-91ff-101add97fcfe"
+}

@@ -1,0 +1,62 @@
+## QUESTION PUT TO THE ENGINEER
+A customer submits the checkout form in the web storefront. Follow that all the way to the line of code that writes the order to the database, and name the handlers involved in order.
+
+## ANSWER KEY (verified ground truth)
+Checkout.razor's HandleSubmitAsync validates and calls HandleValidSubmitAsync, which calls BasketState.CheckoutAsync (src/WebApp/Services/BasketState.cs:78). CheckoutAsync resolves the buyer id and user name, fetches the basket items, builds a CreateOrderRequest and calls OrderingService.CreateOrder (src/WebApp/Services/OrderingService.cs), which POSTs to /api/Orders/ with an x-requestid header - this is the process boundary, WebApp to Ordering.API. In Ordering.API the route is registered in OrdersApi.MapOrdersApiV1 as api.MapPost("/", CreateOrderAsync) on the group "api/orders". OrdersApi.CreateOrderAsync (src/Ordering.API/Apis/OrdersApi.cs:118) builds a CreateOrderCommand, wraps it in IdentifiedCommand<CreateOrderCommand, bool> for idempotency and sends THAT through MediatR. The wrapper is handled by CreateOrderIdentifiedCommandHandler (in CreateOrderCommandHandler.cs), which inherits IdentifiedCommandHandler and, if the request id has not been seen, re-sends the inner CreateOrderCommand through the mediator. That reaches CreateOrderCommandHandler.Handle, which adds an OrderStartedIntegrationEvent to the outbox, builds the Order aggregate (Address, Order ctor, AddOrderItem per line), calls _orderRepository.Add(order) and finally _orderRepository.UnitOfWork.SaveEntitiesAsync - implemented on OrderingContext (src/Ordering.Infrastructure/OrderingContext.cs:47), which is the EF Core save that persists the order. The two grep-hostile hops are the HTTP boundary and the MediatR IdentifiedCommand indirection: nothing textually links CreateOrderAsync to CreateOrderCommandHandler.
+
+Elements a complete answer names: `CheckoutAsync`, `OrderingService`, `CreateOrderAsync`, `CreateOrderIdentifiedCommandHandler`, `CreateOrderCommandHandler`, `IOrderRepository`, `OrderingContext`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## Answer
+
+The checkout submit in the Blazor storefront ends up writing the order at `_ = await base.SaveChangesAsync(cancellationToken);` inside `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:59`), reached via the handler chain **OrdersApi.CreateOrderAsync → CreateOrderIdentifiedCommandHandler (base `IdentifiedCommandHandler<T,R>.Handle`) → CreateOrderCommandHandler.Handle → OrderRepository.Add / OrderingContext.SaveEntitiesAsync**, with the MediatR pipeline behaviors LoggingBehavior → ValidatorBehavior → TransactionBehavior wrapping the two command handlers.
+
+### Step by step
+
+**1. WebApp (Blazor) — form submit**
+- The checkout page's `EditForm` binds `OnSubmit="@HandleSubmitAsync"` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:12`).
+- `HandleSubmitAsync` validates and then calls `HandleValidSubmitAsync()` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:106-109`).
+- `HandleValidSubmitAsync` sets `Info.CardTypeId = 1`, calls `await Basket.CheckoutAsync(Info)` and navigates to `user/orders` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:111-116`).
+
+**2. WebApp service layer**
+- `BasketState.CheckoutAsync` assigns a `RequestId`, resolves buyer id/user name, fetches basket items, builds a `CreateOrderRequest`, then calls `await orderingService.CreateOrder(request, checkoutInfo.RequestId)` and deletes the basket (`src/WebApp/Services/BasketState.cs:78-108`).
+- `OrderingService.CreateOrder` issues `HTTP POST` to `"/api/Orders/"` with an `x-requestid` header (`src/WebApp/Services/OrderingService.cs:5`, `src/WebApp/Services/OrderingService.cs:12-15`).
+
+**3. Ordering.API — HTTP endpoint**
+- The route `POST /api/orders/` is mapped in `src/Ordering.API/Apis/OrdersApi.cs:17` and handled by `OrdersApi.CreateOrderAsync` (`src/Ordering.API/Apis/OrdersApi.cs:118`).
+- It masks the card number, builds a `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` with the request id, and sends it through MediatR (`src/Ordering.API/Apis/OrdersApi.cs:139-146`).
+
+**4. MediatR pipeline behaviors** (registered as open behaviors in order `LoggingBehavior` → `ValidatorBehavior` → `TransactionBehavior`; `TransactionBehavior.Handle` opens the DB transaction around the handler and commits it — `src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-47`).
+
+**5. Idempotency handler**
+- `CreateOrderIdentifiedCommandHandler` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57`) inherits `IdentifiedCommandHandler<CreateOrderCommand, bool>`, whose `Handle` checks `_requestManager.ExistAsync(message.Id)`, short-circuits duplicates, records the request, and otherwise re-sends the inner `CreateOrderCommand` through the mediator (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:46-56`).
+
+**6. Order creation handler**
+- `CreateOrderCommandHandler.Handle` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29`) publishes `OrderStartedIntegrationEvent`, builds the `Address` and `Order` aggregate, adds order items, then calls `_orderRepository.Add(order)` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:49`) and `return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:51`).
+
+**7. Persistence**
+- `OrderRepository.Add` stages the entity: `return _context.Orders.Add(order).Entity;` (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15-17`). `UnitOfWork` is the `OrderingContext` itself (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:8`).
+- `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs:47`) first dispatches domain events (`src/Ordering.Infrastructure/OrderingContext.cs:55`) and then performs the actual database write: `_ = await base.SaveChangesAsync(cancellationToken);` (`src/Ordering.Infrastructure/OrderingContext.cs:59`). The surrounding transaction is committed by `TransactionBehavior` via `_dbContext.CommitTransactionAsync(transaction)` (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:47`), which itself calls `SaveChangesAsync()` again (`src/Ordering.Infrastructure/OrderingContext.cs:~79`).
+
+### Caveats
+- Line numbers for `OrderingContext.SaveEntitiesAsync`'s body and `CreateOrderCommandHandler.Handle`'s body were derived by counting within the source windows I read; they may be off by a line or two, but the file and the statements themselves are quoted verbatim.
+- I did not verify the exact `MapPost` lambda text for `POST /api/orders/`; [REDACTED] reported the endpoint as registered at `src/Ordering.API/Apis/OrdersApi.cs:17` and resolving to `OrdersApi.CreateOrderAsync`.
+- There is a second, separate checkout path in the MAUI client (`eShop.ClientApp.ViewModels.CheckoutViewModel.CheckoutAsync`); that is not the web storefront and is not part of the chain above.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

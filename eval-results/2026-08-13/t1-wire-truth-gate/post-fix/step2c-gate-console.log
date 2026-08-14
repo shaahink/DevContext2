@@ -1,0 +1,43 @@
+harness: gates.ps1 lines 186..259 against repoRoot=C:\Code\DevContext2-engine
+
+--- Step 2c: Wire-truth gate (real MCP handshake) ---
+wire-truth: C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\server-identity.json
+  PASS  the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 3504, started 2026-08-13T17:44:27.7285606Z)
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\tools-list.json
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+  tools: 14 | described: 14 | params: 52/52 described
+  tools/list payload: 12358 chars (~3090 tokens), 883 chars/tool
+
+  PASS  every tool on the wire has a non-empty description - all described
+  PASS  every tool parameter on the wire has a description - all described
+  PASS  tools/list is non-empty - 14 tools
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\specialist-list_sessions.json
+  PASS  an unlisted specialist is still callable and answers for real - list_sessions (unlisted) -> {"count":0,"sessions":[]}
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\unknown-tool-envelope.json
+  PASS  an unknown name gets the did-you-mean envelope - {"error":"Unknown tool \u0027no_such_tool_xyz\u0027.","hint":"Use one of availableTools.",
+  PASS  the envelope's availableTools equals the advertised menu - 14 vs 14
+  PASS  the envelope names the unlisted specialists, each with what it answers - close_session config list_sessions node status tests_for top_flows verify_context
+  PASS  no specialist is also on the advertised menu - menu and specialists are disjoint
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\enum-dials.json
+  PASS  every out-of-range enum dial is rejected, not silently re-read - 5 dials reject
+  PASS  a VALID enum value still reaches the real code path (the guard is not a blanket reject) - valid values pass the guard
+  wrote C:\Users\shahi\AppData\Local\Temp\devcontext-gate-wire-truth\wire-truth.json
+
+wire-truth: GREEN
+  PASS  wire truth: every tool + parameter described, menu curated, enum dials reject
+  PASS  [#env] the server answering is THIS repo's fresh build - C:\Code\DevContext2-engine\src\DevContext.Server\bin\Debug\net10.0\ (pid 18388, started 2026-08-13T17:44:40.5857315Z)
+  handle: 914e0c1ebb0c4b56b8f4d64dda2914ca
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+partial-truth: GREEN
+  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
+
+step 2c fell through (no exit) - PASS path, harness exitCode=0

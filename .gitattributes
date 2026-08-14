@@ -1,0 +1,5 @@
+# The probe's unseen repo (DESIGN.md 3.2, A1.1) is pinned by a sha256 over its own bytes, in
+# eval/agent-probe/unseen-repo.manifest.json. Git's end-of-line normalisation would rewrite those
+# bytes on checkout and the pin would fail for everyone but the machine that generated it, so this
+# tree is stored and checked out verbatim.
+eval/agent-probe/unseen/** -text

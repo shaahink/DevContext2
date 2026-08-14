@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 17157,
+  "num_turns": 4,
+  "stop_reason": "end_turn",
+  "session_id": "3d5751c0-6fd9-4c2c-878b-42a7f366a9fc",
+  "total_cost_usd": 0.0457565,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 1119,
+    "cache_read_input_tokens": 17335,
+    "output_tokens": 1008,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 1119,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 553,
+        "cache_read_input_tokens": 4767,
+        "cache_creation_input_tokens": 217,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 217
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 559,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0006590000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 8,
+      "outputTokens": 1008,
+      "cacheReadInputTokens": 17335,
+      "cacheCreationInputTokens": 1119,
+      "webSearchRequests": 0,
+      "costUSD": 0.0450975,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Three files contain the literal string `GracePeriodTime`:**\n\n1. `src/OrderProcessor/BackgroundTaskOptions.cs:5` — the options property definition: `public int GracePeriodTime { get; set; }`\n2. `src/OrderProcessor/appsettings.json:15` — the configuration value: `\"GracePeriodTime\": \"1\"`\n3. `src/OrderProcessor/Services/GracePeriodManagerService.cs:72` — as a SQL parameter in the query `WHERE CURRENT_TIMESTAMP - \"OrderDate\" >= @GracePeriodTime AND \"OrderStatus\" = 'Submitted'`, and again at `src/OrderProcessor/Services/GracePeriodManagerService.cs:74` where the parameter is bound: `command.Parameters.AddWithValue(\"GracePeriodTime\", TimeSpan.FromMinutes(_options.GracePeriodTime));`\n\nAll matches are confined to the `src/OrderProcessor` project. I verified this two ways: a ripgrep-based content search across the repo, and a plain recursive `grep` over all files (including any git-ignored or build-output files, which ripgrep skips by default). Both returned the same three files. Note that the file *name* `GracePeriodManagerService.cs` contains \"GracePeriod\" but not the full string `GracePeriodTime`, so no additional files match by path alone.",
+  "ttft_ms": 1528,
+  "ttft_stream_ms": 782,
+  "time_to_request_ms": 49,
+  "type": "result",
+  "duration_ms": 28610,
+  "uuid": "06f5f443-1b8a-4df8-8963-cf4eee6c9884"
+}

@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 147907,
+  "num_turns": 39,
+  "stop_reason": "end_turn",
+  "session_id": "6f5070aa-bc89-4d55-ace4-fbeb811282e2",
+  "total_cost_usd": 0.9792164999999999,
+  "usage": {
+    "input_tokens": 46,
+    "cache_creation_input_tokens": 43935,
+    "cache_read_input_tokens": 512515,
+    "output_tokens": 11309,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 43935,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3821,
+        "cache_read_input_tokens": 46140,
+        "cache_creation_input_tokens": 1569,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1569
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 46,
+      "outputTokens": 11309,
+      "cacheReadInputTokens": 512515,
+      "cacheCreationInputTokens": 43935,
+      "webSearchRequests": 0,
+      "costUSD": 0.9785625,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**Answer: the chain is Blazor `Checkout` page → `BasketState` → HTTP POST to Ordering.API → MediatR `IdentifiedCommandHandler` → `CreateOrderCommandHandler` → `OrderingContext.SaveEntitiesAsync`, where `base.SaveChangesAsync` writes the order row.**\n\nHandlers in order (WebApp = the storefront, Ordering.API = the service that persists):\n\n1. **`Checkout.HandleSubmitAsync`** — the checkout `EditForm` posts to it: `<EditForm ... FormName=\"checkout\" OnSubmit=\"@HandleSubmitAsync\" Enhance>` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:12`); after validation it calls `HandleValidSubmitAsync` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:105-108`).\n2. **`Checkout.HandleValidSubmitAsync`** — sets `Info.CardTypeId = 1`, calls `Basket.CheckoutAsync(Info)`, then navigates to `user/orders` (`src/WebApp/Components/Pages/Checkout/Checkout.razor:111-116`).\n3. **`BasketState.CheckoutAsync`** — assigns a `RequestId`, resolves buyer id/user name, fetches basket items (`src/WebApp/Services/BasketState.cs:78-89`), then calls `OrderingService.CreateOrder` (`src/WebApp/Services/BasketState.cs:107`) and clears the basket (`src/WebApp/Services/BasketState.cs:108`).\n4. **`OrderingService.CreateOrder`** — HTTP `POST /api/Orders/` with an `x-requestid` header (`src/WebApp/Services/OrderingService.cs:12-15`).\n5. **`OrdersApi.CreateOrderAsync`** (Ordering.API) — routed by `api.MapPost(\"/\", CreateOrderAsync)` (`src/Ordering.API/Apis/OrdersApi.cs:17`); it masks the card number, builds a `CreateOrderCommand`, wraps it in `IdentifiedCommand<CreateOrderCommand, bool>` and does `services.Mediator.Send(requestCreateOrder)` (`src/Ordering.API/Apis/OrdersApi.cs:118-156`).\n6. **MediatR pipeline behaviors** run around that send: `LoggingBehavior`, `ValidatorBehavior`, `TransactionBehavior` — the last one opens the DB transaction/execution strategy (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-32`).\n7. **`CreateOrderIdentifiedCommandHandler`** (derives from `IdentifiedCommandHandler<CreateOrderCommand, bool>`, declared at `src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:56-58`) — its inherited **`IdentifiedCommandHandler.Handle`** does the idempotency check via `IRequestManager.ExistAsync` / `CreateRequestForCommandAsync` and then forwards the inner `CreateOrderCommand` through the mediator (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:39-51`; the method continues to line 105 — I read its first half, the class summary states it \"just enqueues the original inner command\", `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:3-6`).\n8. **`CreateOrderCommandHandler.Handle`** — publishes `OrderStartedIntegrationEvent`, builds the `Order` aggregate plus items (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:29-45`), then `_orderRepository.Add(order)` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:49`) and `return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken)` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:51`).\n9. **`OrderRepository.Add`** — `_context.Orders.Add(order).Entity`, i.e. only EF change-tracking, not yet a DB write (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:15-17`); `UnitOfWork` is the `OrderingContext` (`src/Ordering.Infrastructure/Repositories/OrderRepository.cs:8`).\n10. **`OrderingContext.SaveEntitiesAsync`** — first `await _mediator.DispatchDomainEventsAsync(this)` (`src/Ordering.Infrastructure/OrderingContext.cs`, in the method starting ~line 47; dispatch helper at `src/Ordering.Infrastructure/MediatorExtension.cs:5-19`), which runs the domain-event handler **`ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.Handle`** (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-47`) in the same transaction.\n\n**The line that writes the order to the database** is `_ = await base.SaveChangesAsync(cancellationToken);` inside `OrderingContext.SaveEntitiesAsync` (`src/Ordering.Infrastructure/OrderingContext.cs`, roughly line 59 — I counted it from the file contents rather than reading a line-numbered gutter, so the number may be off by a line or two; the method is uniquely identifiable by its \"After executing this line all the changes ... will be committed\" comment). The surrounding transaction is committed by `TransactionBehavior` (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:20-32`).\n\nNote: an earlier DB write also happens on the same request path before the order itself — `RequestManager.CreateRequestForCommandAsync` saves the idempotency `ClientRequest` row (`src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:48`), and `OrderingIntegrationEventService.AddAndSaveEventAsync` persists the integration-event log (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:33`). Those write different tables, not the order.",
+  "ttft_ms": 2006,
+  "ttft_stream_ms": 1075,
+  "time_to_request_ms": 90,
+  "type": "result",
+  "duration_ms": 147509,
+  "uuid": "af4488ac-3af5-4296-9dec-02e91663e912"
+}

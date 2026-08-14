@@ -13,47 +13,52 @@ public static class GraphStats
 {
     /// <summary>Tallies every out-edge by kind (with the syntactic/approx share) and counts entries that
     /// resolved a target. Cheap — one pass over the graph's adjacency.</summary>
-    public static (ImmutableArray<SeamStat> Seams, int EntriesWithTarget, int EntriesWithDeepSpine, double DeepSpineRatio) Compute(
+    // R1.1 (#24, 2026-08-14): the deep-spine ratio that used to ride this tuple is RETIRED.
+    // Re-measured on 12 poles against the post-E1 graph
+    // (eval-results/2026-08-14/r1-metrics/threshold-grid-post-e1.txt): 1.000 on eight of them
+    // (TodoApi, VerticalSlice, CleanArchitecture, MediatR, dotnet-podcasts, eshop-microservices,
+    // Hangfire, self), 0.982 on eShop and 0.994 on FastEndpoints, and 0 only on the two poles with
+    // zero entries, where it was a divide-by-zero artifact rather than a measurement. Identical
+    // shape to the 2026-08-02 grid, so E1's 8x lift in Semantic share moved it not at all: ">=2
+    // steps" means "the entry reaches one thing", which is now true of essentially every entry that
+    // exists. It shipped as a coverage row ("Deep spine (>=2) | 107/109 (98%)") that reads the same
+    // on every repo. The bar was NOT raised to make it separate again — where a useful one sits is
+    // a question about the step DISTRIBUTION, which no surface exposes, and inventing a 3 or a 4 by
+    // eye is not a calibration. Its design origin was proposal-loom.md:312 ("entries with >=2-deep
+    // spine >=70% on non-CQRS repos"), a build-time acceptance bar that has been met with room to
+    // spare on every pole measured since.
+    public static (ImmutableArray<SeamStat> Seams, int EntriesWithTarget) Compute(
         CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var byKind = new Dictionary<EdgeKind, (int Count, int Approx)>();
+        // V1.1 (#25): the split is TALLIED per tier from EdgeConfidence — the one definition — and
+        // carried on the row. It used to record only Count and Approx, which left every consumer to
+        // infer "verified = Count - Approx"; that inference counts Resolution.Join (the enum's
+        // DEFAULT, i.e. every edge nobody labelled) as Roslyn-verified, and it is the reason the CLI
+        // and the desktop app printed opposite verdicts for the same edge.
+        var byKind = new Dictionary<EdgeKind, (int Count, int Verified, int Joined, int Approx)>();
         foreach (var node in graph.Nodes)
         {
             foreach (var e in graph.OutEdges(node.Id))
             {
                 byKind.TryGetValue(e.Kind, out var c);
-                byKind[e.Kind] = (c.Count + 1, c.Approx + (e.Resolution == Resolution.Syntactic ? 1 : 0));
+                var tier = EdgeConfidence.TierOf(e);
+                byKind[e.Kind] = (
+                    c.Count + 1,
+                    c.Verified + (tier == EdgeTier.Verified ? 1 : 0),
+                    c.Joined + (tier == EdgeTier.Joined ? 1 : 0),
+                    c.Approx + (tier == EdgeTier.Approximate ? 1 : 0));
             }
         }
 
         var seams = byKind
             .OrderBy(kv => kv.Key)
-            .Select(kv => new SeamStat(kv.Key.ToString(), kv.Value.Count, kv.Value.Approx))
+            .Select(kv => new SeamStat(kv.Key.ToString(), kv.Value.Count, kv.Value.Verified, kv.Value.Joined, kv.Value.Approx))
             .ToImmutableArray();
 
         var withTarget = entries.IsDefaultOrEmpty
             ? 0
             : entries.Count(e => !string.IsNullOrEmpty(e.Target));
 
-        // G10.1 RE-MEASURED 2026-08-02, 11 poles (eval-results/2026-08-02/G10/threshold-grid.txt):
-        // THIS RATIO IS SATURATED. It reads 1.000 on CleanArchitecture, MediatR, dotnet-podcasts,
-        // self and DntSite, 0.982 on eShop (107/109) and 0.961 on wolverine (49/51). A >=2-step
-        // spine means "the entry reaches one thing", which was a real distinction when entries
-        // routinely resolved to nothing and is now true of very nearly every entry that exists — so
-        // the number the report prints as coverage ("Deep spine (>=2) | 107/109 (98%)",
-        // ReportRenderer) is the same on every repo and separates none of them.
-        //
-        // The bar is NOT raised here. Where a useful one sits is a question about the step
-        // distribution, which no surface currently exposes, and inventing a 3 or a 4 to make the row
-        // look discriminating would be re-calibrating a shipped metric by eye. Tracked as a
-        // conductor bug; measured here so the next reader does not mistake 100% for good news.
-        var flows = graph.Flows;
-        var totalEntries = entries.IsDefaultOrEmpty ? 0 : entries.Length;
-        var deepCount = totalEntries == 0
-            ? 0
-            : flows.Count(f => f.Steps.Length >= 2);
-        var ratio = totalEntries == 0 ? 0.0 : (double)deepCount / totalEntries;
-
-        return (seams, withTarget, deepCount, ratio);
+        return (seams, withTarget);
     }
 }

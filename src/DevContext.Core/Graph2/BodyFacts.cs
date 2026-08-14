@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Text;
+
 namespace DevContext.Core.Graph2;
 
 /// <summary>Structured facts about one method-like member's body, produced by a single syntax walk
@@ -16,7 +18,18 @@ public sealed record BodyFacts(SymbolId Member, string MemberName, ImmutableArra
 }
 
 /// <summary>One structured operation observed in a member body, at a known 1-based line.</summary>
-public abstract record BodyOp(int Line);
+public abstract record BodyOp(int Line)
+{
+    /// <summary>The character span of the op's OWN syntax node in the file it was extracted from, or null
+    /// when the producer did not record one. E1.2 (backlog #12): a line is not an address. Consumers that
+    /// need the syntax node back (the semantic-lite upgrade is the only one) used to relocate it from
+    /// <see cref="Line"/> and then walk ANCESTORS — which lands on the enclosing STATEMENT, so an
+    /// invocation whose statement fits on one line was a descendant and was never found, and two ops
+    /// sharing a line both widened to their common parent. With the op's own span the relocation is exact
+    /// and that whole bug class is gone. Spans are only meaningful against the same tree the op was
+    /// extracted from, so a consumer must fall back to the line when the span does not fit its tree.</summary>
+    public TextSpan? Span { get; init; }
+}
 
 /// <summary>A method invocation. <paramref name="ReceiverText"/> is the root identifier of the receiver
 /// (e.g. <c>sender</c> in <c>sender.Send(cmd)</c>); <paramref name="ReceiverType"/> is its declared type

@@ -1,0 +1,217 @@
+{
+  "version": "1.0",
+  "planVersion": 1,
+  "name": "DevContext pre-release - engine and agent face",
+  "repo": "C:/Code/DevContext2-engine",
+  "satelliteRepos": [],
+  "tracker": "PRE-RELEASE-ENGINE-TRACKER.md",
+  "planDoc": "docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md",
+  "branchPattern": "^feat/pre-release-engine$",
+  "pauseOnBlocked": true,
+  "agent": {
+    "command": "claude",
+    "args": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model",
+      "{model}",
+      "--session-id",
+      "{sessionId}"
+    ],
+    "resumeArgs": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--dangerously-skip-permissions",
+      "--model",
+      "{model}",
+      "--resume",
+      "{claudeSessionId}"
+    ],
+    "output": "stream-json",
+    "model": "claude-opus-5"
+  },
+  "advisor": {
+    "command": "claude",
+    "args": [
+      "-p",
+      "{prompt}",
+      "--output-format",
+      "json",
+      "--model",
+      "claude-haiku-4-5-20251001"
+    ],
+    "output": "json",
+    "timeoutMinutes": 6
+  },
+  "progress": {
+    "kind": "markdown-table"
+  },
+  "conventions": {
+    "stageIdPattern": "(?<stage>[A-Za-z]+\\d+)(?:\\.\\d+)?[a-z]?",
+    "handoffMarker": "## Handoff",
+    "humanToken": "HUMAN:",
+    "status": {
+      "done": ["DONE"],
+      "blocked": ["BLOCKED"],
+      "inProgress": ["IN PROGRESS"],
+      "todo": ["TODO"],
+      "skipped": ["SKIPPED"]
+    }
+  },
+  "stages": [
+    {
+      "id": "T1",
+      "title": "W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate)",
+      "sessions": 3,
+      "notes": "STRAND DOC: docs/dev/research/DEEP-EVAL-2026-08-13.md section 4 W1, plus BUG-BACKLOG.md items 5, 6, 10, 9, 2. Fix bug 5 BY MEASUREMENT: the ModelContextProtocol SDK decides whether GenerateDocumentationFile or Description attributes reach the wire - verify via a real tools/list call, never assume. Re-measure the schema tax after (baseline is eval/agent-probe/results/p1.2-tool-schema-tax.md). The curated core surface candidate is PRODUCT-DIRECTION.md section 7's set plus navigation primitives. Evidence for every claim is a real MCP call showing the new response shape, not a diff. The wire-truth gate (T1.4) must be proven RED first on the pre-fix build.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "V1",
+      "title": "W2a one-vocabulary pack (25, 17, 7-rider invariant, 18)",
+      "sessions": 2,
+      "notes": "STRAND DOC: docs/dev/research/GRAPH-DETECTION-AUDIT-2026-08-13.md section 3.3, items filed in BUG-BACKLOG.md as 25, 17, 18 plus the item-7 rider invariant. This stage exists so E1's acceptance numbers are measured in one honest currency - it lands BEFORE any edge work. Zero blast radius expected: if a matrix cell moves, stop and explain before proceeding. Re-verify every audit file:line reference before editing (house rule - the sweep was 2026-08-13).",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "E1",
+      "title": "W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant",
+      "sessions": 4,
+      "notes": "STRAND DOC: docs/dev/research/GRAPH-DETECTION-AUDIT-2026-08-13.md sections 3.1 and 4.1-4.2; bugs 11, 12, 8, 7 in BUG-BACKLOG.md each name their discriminating fixture - build the fixture and watch it go RED before fixing. BATCH DISCIPLINE: bug 12 moves call-edge counts on every pole by design - declare the flip/hold/not-worsen matrix cells in writing BEFORE coding, run the full matrix after, judge against the declaration. Bug 8's stated mechanism is REFUTED by 11 - re-measure before fixing. Prefer the TextSpan-on-op fix shape (record the invocation's own span on BodyOp) over patching one arm - it kills the sister sites too. Determinism seals are non-negotiable: DeterministicOrderTests stays green, call-edge canonical order stays CALL SITE.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "D1",
+      "title": "W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs)",
+      "sessions": 3,
+      "notes": "STRAND DOC: docs/dev/research/GRAPH-DETECTION-AUDIT-2026-08-13.md sections 8-9. The instrument comes FIRST (D1.1) and must be RED on the Orleans and TimedJob finds before any closure - it converts the hand-found holes into a permanent property, the detection twin of the dogfood invariant. Every closure follows the catalog's own add-a-shape contract and ships with a consumer-app fixture plus expectation - the missing-expectation gap is WHY these survived the 47-pole matrix. None of this touches the binder, so it is safe to deliver while E1's findings settle. Keep ArchetypeDetectorTests and the false-positive negative tests green.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "R1",
+      "title": "W6 metric recalibration (22, 23, 24) against the post-E1 graph",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/GRAPH-DETECTION-AUDIT-2026-08-13.md section 3.3 items 22-24 and section 10 (the G10 lesson: thresholds calibrated on a starved graph silently invert). Runs strictly AFTER E1 because two of the three thresholds read the Semantic share E1 changes. Each surviving threshold carries a comment STATING the measurement and the calibration commit. Retiring a metric that never discriminated is a valid outcome and must be recorded as one.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "A1",
+      "title": "W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate",
+      "sessions": 2,
+      "notes": "STRAND DOC: eval-results/agent-probe/RESULTS.md sections 9-10 (the pre-registered decision rules and the design debts) plus docs/dev/research/DEEP-EVAL-2026-08-13.md section 4 W3. A1.1 amends eval/agent-probe/DESIGN.md IN WRITING BEFORE any run - pre-registration is the whole point. A1.2 re-runs arm B alone on eShop, 18 runs, UNCHANGED prompt, and reports mcp_call_share against the pre-registered 0.2 floor; a result below the floor with described curated tools is a REAL finding and fires the design's honest fallback - report it as such, never as a failure of this stage. The probe batch is a long child process: run it via conductor bg start --purpose probe so the watchdog sees a live child. Budget cap per run stays at 1.50 dollars; refuse more than 60 runs.",
+      "ownerGate": false,
+      "kind": "deliver"
+    },
+    {
+      "id": "Z1",
+      "title": "Close-out: README honesty pass, release-gate statuses, backlog reconciliation",
+      "sessions": 1,
+      "notes": "STRAND DOC: docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md sections 6-8 plus DEEP-EVAL-2026-08-13.md section 4 (the release-gate table). The README states the agent story AS MEASURED - primer plus whatever A1.2 earned - with results linked; claims must be a subset of measurements. Reconcile BUG-BACKLOG.md (close fixed items with evidence links, re-status re-measured ones) and update the PRE-RELEASE-PLAN stage table. Leave the tree clean and pushed; merging to develop is owner-signed and NOT this stage's job.",
+      "ownerGate": false,
+      "kind": "deliver"
+    }
+  ],
+  "gates": [
+    {
+      "name": "fast-engine",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1 -SkipEval -Scope engine",
+      "optional": false,
+      "tier": "full",
+      "parallel": false,
+      "timeoutMinutes": 60
+    },
+    {
+      "name": "guards",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\loom-guards.ps1",
+      "optional": false,
+      "skipIfMissing": "scripts/loom-guards.ps1",
+      "tier": "full",
+      "parallel": false,
+      "timeoutMinutes": 10
+    },
+    {
+      "name": "battery",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File eval\\gates.ps1",
+      "optional": false,
+      "tier": "full",
+      "parallel": false,
+      "timeoutMinutes": 80
+    }
+  ],
+  "gatePolicy": "perPhase",
+  "verifyEachDelivery": true,
+  "limits": {
+    "stallMinutes": 25,
+    "stallGraceMinutes": 3,
+    "sessionTimeoutMinutes": 180,
+    "batterySettleSeconds": 120,
+    "authPreflight": true,
+    "maxResumesPerSession": 2,
+    "stageSlackFactor": 2,
+    "backoffMinutes": 30,
+    "maxBackoffs": 10,
+    "maxRunCostUsd": 350,
+    "approvalMode": false,
+    "maxSessionTokens": 31000000,
+    "softBreakRatio": 0.8,
+    "maxConcurrentLanes": 2,
+    "stallPatternTermination": true,
+    "sameFailureCircuitBreaker": true,
+    "stallBackoffMinutes": 12,
+    "overheadCostPerSecond": 0.0001,
+    "verifierThreshold": 80
+  },
+  "report": {
+    "commit": true,
+    "push": true,
+    "heartbeatMinutes": 0
+  },
+  "telegram": {
+    "allowedChatIds": ["99205495"],
+    "pollIntervalSeconds": 4,
+    "enableTwoWay": true
+  },
+  "promptExtra": "TRAPS THIS PROGRAM HAS ALREADY PAID FOR - do not rediscover them:\n1. Every node scripts/... command needs an absolute cd in the SAME command - a drifted working directory has cost this program two sessions.\n2. analyze takes a POSITIONAL path; query takes --path. analyze --path silently analyses the working directory instead.\n3. Rebuild src/DevContext.Cli after ANY Core edit - the CLI carries its own DevContext.Core.dll (stale-dll trap). Evidence from a stale binary is worse than none.\n4. CLI paths must be ABSOLUTE - a relative path is parsed as a GitHub repo and cloned.\n5. MEASURE a verdict, do not read it off a doc comment. Checking what a field CONTAINS is the highest-value habit here. This audit's own file:line claims are dated 2026-08-13 - re-verify before editing.\n6. Never weaken a measurement to get green: no deleted tests, no relaxed expectations, no re-declared goldens. If a bar is genuinely wrong, escalate via the tracker handoff and stop.\n7. Never merge to develop. That is an owner-signed event.\n8. Any batch of headless runs, matrix sweep, or judge sweep is a LONG CHILD PROCESS: run it via conductor bg start --purpose <label> -- <cmd>, then conductor bg status / bg logs. A foreground child is invisible to the watchdog and gets you killed as stalled mid-batch.\n9. If eval-repos submodules are empty, run git submodule update --init first - gates and the probe need eShop present.\n10. Scripts you write on Windows must be pure ASCII - PowerShell 5.1 reads unmarked UTF-8 as cp1252 and a smart dash breaks the parse; gh --jq with double quotes is mangled by PowerShell, fetch raw JSON and ConvertFrom-Json instead.",
+  "templatesDir": "templates",
+  "packs": [],
+  "batteryCollapse": false,
+  "readOrder": [
+    "AGENTS.md",
+    "docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md"
+  ],
+  "analysisLanes": [],
+  "mutatingLanes": [],
+  "workflows": {
+    "deliver": {
+      "name": "deliver",
+      "description": "Deliver until the stage's checkpoints are confirmed. Conductor's battery is the QA; no separate verify session.",
+      "steps": [
+        {
+          "id": "deliver",
+          "kind": "deliver",
+          "deliver": true
+        },
+        {
+          "id": "fix-if-red",
+          "kind": "fix",
+          "runIf": "!gatesGreen",
+          "deliver": true
+        }
+      ],
+      "repeat": true
+    }
+  },
+  "defaultWorkflow": "deliver"
+}

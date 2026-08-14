@@ -1,0 +1,69 @@
+## QUESTION PUT TO THE ENGINEER
+I need to change the behaviour of CreateOrderCommandHandler in Ordering.API. What depends on it, directly or indirectly, and what could break? List everything, including anything outside Ordering.API.
+
+## ANSWER KEY (verified ground truth)
+Directly: OrdersApi.CreateOrderAsync is the only production code path that dispatches CreateOrderCommand (via IdentifiedCommand), and CreateOrderIdentifiedCommandHandler / its IdentifiedCommandHandler base is the wrapper that forwards to it, so both the endpoint contract and the idempotency wrapper sit on top of it. Its collaborators are IOrderRepository (Add plus UnitOfWork.SaveEntitiesAsync on OrderingContext), IOrderingIntegrationEventService, IIdentityService and IMediator. The cross-service consequence is the one that is easy to miss: the handler's first act is AddAndSaveEventAsync(new OrderStartedIntegrationEvent(message.UserId)), and Basket.API subscribes to OrderStartedIntegrationEvent (src/Basket.API/Extensions/Extensions.cs:19) with OrderStartedIntegrationEventHandler, which calls repository.DeleteBasketAsync - so if that event stops being emitted, customers' baskets stop being cleared after checkout even though ordering still works. Building the Order aggregate also raises domain events consumed inside Ordering.API. Tests that break: NewOrderRequestHandlerTest (tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs) constructs CreateOrderCommandHandler directly; the ordering functional tests exercise POST /api/orders end to end. NOT affected: CreateOrderDraftCommandHandler, which serves the separate /draft endpoint, builds an in-memory Order.NewDraft() and never touches this handler or the database.
+
+Elements a complete answer names: `OrdersApi`, `CreateOrderIdentifiedCommandHandler`, `OrderStartedIntegrationEvent`, `OrderStartedIntegrationEventHandler`, `NewOrderRequestHandlerTest`
+Terms a correct answer must NOT put forward as part of its answer (naming one in order to
+rule it out is correct behaviour, not an error): `CreateOrderDraftCommandHandler`
+
+## CANDIDATE ANSWER
+Some words have been replaced with [REDACTED] to keep the grading blind. Treat each one as an
+uninformative placeholder: never let its presence or absence count for or against the answer.
+
+## Answer
+
+`CreateOrderCommandHandler` has **no direct C# callers in production code** — it is only reached through MediatR. Everything that depends on it does so through the `CreateOrderCommand` message, the MediatR pipeline, or the side effects the handler produces (an outbox integration event + a `Submitted` order row + a domain event). The blast radius reaches **Basket.API, WebApp, ClientApp (MAUI), OrderProcessor, Catalog.API, PaymentProcessor and Webhooks.API**, plus 4 test files.
+
+### 1. How it is invoked (in-process, Ordering.API)
+
+- Registered only by assembly scanning: `services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining(typeof(Program)))` — `src/Ordering.API/Extensions/Extensions.cs:35-42`. There is no explicit `AddTransient<IRequestHandler<CreateOrderCommand,bool>>`, so renaming/re-typing the handler silently changes registration rather than producing a compile error.
+- Actual dispatch: `CreateOrderIdentifiedCommandHandler` (`src/Ordering.API/Application/Commands/CreateOrderCommandHandler.cs:57-71`) inherits `IdentifiedCommandHandler`, which calls `_mediator.Send(command, cancellationToken)` at `src/Ordering.API/Application/Commands/IdentifiedCommandHandler.cs:87`.
+  - **Important failure-masking behaviour:** that wrapper `catch { return default; }` (`IdentifiedCommandHandler.cs:99-102`), so any exception you introduce in the handler becomes `false`, not a 500. It also returns `true` for a duplicate `x-requestid` without ever running your handler (`CreateOrderCommandHandler.cs:67-70`, `IdentifiedCommandHandler.cs:41-45`).
+- HTTP entry point: `OrdersApi.CreateOrderAsync` builds the command and sends `IdentifiedCommand<CreateOrderCommand,bool>` (`src/Ordering.API/Apis/OrdersApi.cs:141-166`), mapped as `POST api/orders` (`src/Ordering.API/Apis/OrdersApi.cs:9,17`). Note it returns `TypedResults.Ok()` even when `result == false` (`OrdersApi.cs:157-166`) — a broken handler surfaces only as a log warning.
+- Three MediatR open behaviors wrap every send (`Extensions.cs:39-41`):
+  - `ValidatorBehavior` runs `CreateOrderCommandValidator` and throws `OrderingDomainException` before your handler if fields are missing (`src/Ordering.API/Application/Behaviors/ValidatorBehavior.cs:28-34`, `src/Ordering.API/Application/Validations/CreateOrderCommandValidator.cs:6-16`). Adding/removing required data on the command means updating this validator, and `IdentifiedCommandValidator` is hard-typed to `IdentifiedCommand<CreateOrderCommand,bool>` (`src/Ordering.API/Application/Validations/IdentifiedCommandValidator.cs:3`).
+  - `TransactionBehavior` opens the DB transaction and, **after commit**, publishes whatever the handler queued in the outbox (`src/Ordering.API/Application/Behaviors/TransactionBehavior.cs:38-52`). If you save/publish differently, transactional guarantees and event ordering change here.
+  - `LoggingBehavior` (`src/Ordering.API/Application/Behaviors/LoggingBehavior.cs:2`).
+
+### 2. Side effects other services rely on
+
+- **Basket.API** – the handler creates `OrderStartedIntegrationEvent` (`CreateOrderCommandHandler.cs:32-33`); Basket subscribes (`src/Basket.API/Extensions/Extensions.cs:19`) and **deletes the user's basket** (`src/Basket.API/IntegrationEvents/EventHandling/OrderStartedIntegrationEventHandler.cs:14`). Removing or reordering that event leaves baskets un-emptied.
+- **Buyer/payment-method creation + WebApp notification** – `new Order(...)` raises `OrderStartedDomainEvent` and sets `OrderStatus.Submitted` (`src/Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs:57,63`). `ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler` then creates the Buyer, verifies the payment method and emits `OrderStatusChangedToSubmittedIntegrationEvent` (`src/Ordering.API/Application/DomainEventHandlers/ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs:20-52`), consumed by **WebApp** (`src/WebApp/Extensions/Extensions.cs:50`, `src/WebApp/Services/OrderStatus/IntegrationEvents/EventHandling/OrderStatusChangedToSubmittedIntegrationEventHandler.cs:8-10`). That file already carries a warning that the event only works because `SaveChanges` happened to propagate the buyer Id (lines 31-32) — anything that changes save timing in your handler can break it.
+- **OrderProcessor** – polls raw SQL `WHERE "OrderStatus" = 'Submitted'` on `ordering.orders` (`src/OrderProcessor/Services/GracePeriodManagerService.cs:69-73`). If the handler stops persisting orders in `Submitted` state (or writes them differently), the grace-period job silently stops emitting `GracePeriodConfirmedIntegrationEvent`, which kills the rest of the saga: Ordering's `GracePeriodConfirmedIntegrationEventHandler` (`src/Ordering.API/Extensions/Extensions.cs:55`) → **Catalog.API** stock validation (`src/Catalog.API/Extensions/Extensions.cs:32-33`) → **PaymentProcessor** (`src/PaymentProcessor/Program.cs:6`) → back to Ordering (`Extensions.cs:56-59`) → **Webhooks.API** paid/shipped webhooks (`src/Webhooks.API/Extensions/Extensions.cs:22-23`) and WebApp status handlers (`src/WebApp/Extensions/Extensions.cs:45-49`).
+
+### 3. External HTTP callers of `POST api/orders`
+
+- **WebApp checkout**: `BasketState.CheckoutAsync` builds `CreateOrderRequest` and calls `OrderingService.CreateOrder` (`src/WebApp/Services/BasketState.cs:92-108`, `src/WebApp/Services/OrderingService.cs:12-18`). It ignores the response status and immediately deletes the basket and navigates to `user/orders` (`BasketState.cs:107-108`, `src/WebApp/Components/Pages/Checkout/Checkout.razor:115`) — so a handler that stops creating orders will look successful to the user.
+- **ClientApp (MAUI)**: `OrderService.CreateOrderAsync` posts to `api/orders` with an `x-requestid` header (`src/ClientApp/Services/Order/OrderService.cs:13,28-39`), called from `src/ClientApp/ViewModels/CheckoutViewModel.cs:112`.
+- **AppHost/YARP** routes `/api/orders/{*any}` to Ordering.API (`src/eShop.AppHost/Extensions.cs:243`).
+
+### 4. Tests that will break
+
+- `tests/Ordering.UnitTests/Application/NewOrderCommandHandlerTest.cs:41` — constructs `CreateOrderCommandHandler` directly with the exact 5-arg constructor and asserts `Handle` returns `false` (line 43-46). Any constructor or return-semantics change breaks this.
+- `tests/Ordering.FunctionalTests/OrderingApiTests.cs:136-160` (`AddNewOrder` expects `200 OK`) and `:120-133` (`AddNewEmptyOrder` expects `400`) exercise the full pipeline end-to-end.
+- `tests/Ordering.UnitTests/Application/IdentifiedCommandHandlerTest.cs:22,44,60-62` and `tests/Ordering.UnitTests/Application/OrdersWebApiTest.cs:74` depend on the `CreateOrderCommand` type/constructor (they mock the mediator, so they break only if you change the command, not the handler body).
+
+### Things worth flagging
+
+- `IIdentityService` is injected into the handler but never used (`CreateOrderCommandHandler.cs:10,22`) — removing it is safe for production but breaks the unit test above.
+- The `IMediator` dependency is likewise injected and unused in `Handle`.
+- The card number reaching the handler is already masked by the API (`OrdersApi.cs:140-144`), while the validator still demands length 12-19 (`CreateOrderCommandValidator.cs:11`) — keep that in mind if you touch card handling.
+
+I did not find any other `IRequestHandler<CreateOrderCommand, …>`, any message-bus subscription that produces a `CreateOrderCommand`, or any reflection-based/`nameof`-based reference to the handler type outside the files cited; I established this by grepping the whole repository for `CreateOrderCommand`/`CreateOrderCommandHandler` (9 files total) and for every `AddSubscription<…>` registration.
+
+## OUTPUT
+Reply with exactly this JSON object, no code fence:
+{"correct": true|false, "fabricated": true|false, "missing": [], "extra": [], "reason": ""}
+
+- correct: the answer substantively answers the question and agrees with the key. Judge the
+  substance, not the wording, the length or the formatting. An answer that reaches the key's
+  conclusion by a different route is correct. An answer that hedges into both a right and a
+  wrong conclusion is not correct.
+- fabricated: the answer asserts a file, symbol, method or code path that the key contradicts,
+  or states as fact something the key shows to be false. Being incomplete is NOT fabrication.
+- missing: key elements the answer omits, as short strings.
+- extra: substantive claims the answer makes that the key does not cover. These are not
+  necessarily wrong - list them so a human can check.
+- reason: one sentence, under 30 words.

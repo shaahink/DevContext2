@@ -1,0 +1,765 @@
+{
+  "tools": [
+    {
+      "name": "top_flows",
+      "description": "Top 20 entry points ranked by importance score - the shortlist of flows worth tracing. Example: top_flows(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "seam",
+      "description": "The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "from": {
+            "description": "The starting symbol - a nodeId or a resolvable name.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "to": {
+            "description": "The destination symbol - a nodeId or a resolvable name.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "description": "Max hops to search before giving up (default 8).",
+            "type": "integer",
+            "default": 8
+          },
+          "maxPaths": {
+            "description": "How many distinct paths to return (default 3).",
+            "type": "integer",
+            "default": 3
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "tests_for",
+      "description": "Best-effort: find test methods whose call closure reaches a node. Method: walks in-edges up to maxDepth and classifies callers as tests by name/path/project. 0 results means none reached in the graph, NOT \"untested\". Example: tests_for(\"abc123\", query:\"OrderService\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "description": "How many in-edge hops to walk (default 6).",
+            "type": "integer",
+            "default": 6
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "impact",
+      "description": "Transitive impact analysis: upward (what reaches this) or downward (what this affects), grouped by service. Address the symbol with 'nodeId' or 'query', or pass 'files' for diff-aware \"I changed X, what breaks\". Example: impact(\"abc123\", query:\"OrderService\", direction:\"down\"), impact(\"abc123\", files:[\"path/to/file.cs\"])",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "maxDepth": {
+            "description": "How many hops to walk (default 4).",
+            "type": "integer",
+            "default": 4
+          },
+          "direction": {
+            "description": "\"up\" (default, what reaches this) or \"down\" (what this affects). Any other value is rejected.",
+            "type": "string",
+            "default": "up"
+          },
+          "files": {
+            "description": "Changed file paths for diff-aware impact, instead of a single symbol.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "default": null
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "list_sessions",
+      "description": "List all active analysis sessions on the server, with the repo each one covers. Example: list_sessions()",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "verify_context",
+      "description": "Has the source drifted since analyze? Compares analyze-time file hashes against disk, per pack section for a focus. Returns per-section stale flags, changed files with line deltas, and repo HEAD then/now. Method: hash + line-count delta only, no diff. Example: verify_context(\"abc123\", \"POST /api/orders\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "description": "The same focus you passed to get_context.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "description": "Same budget as the get_context call being verified (default 8000), so the same sections are compared.",
+            "type": "integer",
+            "default": 8000
+          },
+          "query": {
+            "description": "Synonym for 'focus'.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "get_context",
+      "description": "Budget-priced context pack for a focus: the identity, trace, signatures and usage sections an agent needs to work on one thing, cut to fit budgetTokens. Anything elided is named in the reply, and raising budgetTokens brings it back. Example: get_context(\"abc123\", \"POST /api/orders\", 4000, \"trace\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "description": "What to build the pack around: an entry route, a symbol name, or a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "description": "Token budget for the pack (default 8000). Raise it to un-elide sections the reply says were cut.",
+            "type": "integer",
+            "default": 8000
+          },
+          "intent": {
+            "description": "\"trace\" (default), \"explain\", or \"review\" - shifts which sections get the budget. Any other value is rejected.",
+            "type": "string",
+            "default": "trace"
+          },
+          "query": {
+            "description": "Synonym for 'focus'.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "status",
+      "description": "Check whether a session handle is still valid. Example: status(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "trace",
+      "description": "Trace execution flow: the call spine from ONE entry, hop by hop. Address it with 'focus' OR 'query' - an entry route, a symbol name, or a nodeId from resolve/find. format:\"compact\" is the small flow summary (what it touches/emits, ~150 tok); format:\"default\" is the full tree. Omit depth/budgetTokens to get the server's trace policy; cut subtrees are named (\"N omitted\"); budgetTokens:0 gives the full tree. Example: trace(\"abc123\", \"POST /api/orders\", 6, \"compact\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "focus": {
+            "description": "What to trace: an entry route, a symbol name, or a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "depth": {
+            "description": "Max hops. Omit for the server's trace policy (elastic depth).",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          },
+          "format": {
+            "description": "\"default\" (full tree) or \"compact\" (~150-token flow summary). Any other value is rejected.",
+            "type": "string",
+            "default": "default"
+          },
+          "query": {
+            "description": "Synonym for 'focus'.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "budgetTokens": {
+            "description": "Token budget for the rendered tree. Omit for the server's policy; 0 = no budget, full tree.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "read_source",
+      "description": "Read the source code behind a node, with its real file:line. Example: read_source(\"abc123\", query:\"OrderService\", mode:\"member\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "windowLines": {
+            "description": "Lines of context around the node in window mode (default 20).",
+            "type": "integer",
+            "default": 20
+          },
+          "mode": {
+            "description": "\"window\" (default, windowLines around the node) or \"member\" (the whole declaration body). Any other value is rejected.",
+            "type": "string",
+            "default": "window"
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "close_session",
+      "description": "Release a session's resources (engine + any clone). Idempotent. Example: close_session(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "overview",
+      "description": "One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Start here after analyze. Example: overview(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "resolve",
+      "description": "Resolve a symbol/route/file to candidates with kind, service, path and the nodeId every other tool takes. Never silently picks - returns all matches. Example: resolve(\"abc123\", \"Product\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "description": "Symbol, route or file to resolve - a short name is fine.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "limit": {
+            "description": "Max candidates to return (default 10).",
+            "type": "integer",
+            "default": 10
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "stats",
+      "description": "Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "analyze",
+      "description": "Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution returns the existing handle. Example: analyze(\"C:/repos/MyApp\"), analyze(\"C:/repos/GitVersion\", sln:\"GitVersion.slnx\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "Absolute path to the repo root, or a GitHub URL/owner-name to clone.",
+            "type": "string"
+          },
+          "sln": {
+            "description": "Which solution to analyze in a multi-solution repo: name, file name, or repo-relative path.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "find",
+      "description": "Free-text search across graph nodes, paginated. Returns nodeIds the navigation tools take. Example: find(\"abc123\", \"Order\", kind:\"Type\", limit:10, cursor:0)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "description": "Search term - substring match over node titles.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "description": "Filter to one node kind, e.g. Type, Member, Entry. Omit for all kinds.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "limit": {
+            "description": "Page size (default 20).",
+            "type": "integer",
+            "default": 20
+          },
+          "cursor": {
+            "description": "Offset into the result list, for paging (default 0).",
+            "type": "integer",
+            "default": 0
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "usages",
+      "description": "Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "entrypoints",
+      "description": "List entry points (HTTP routes, bus consumers, gRPC services, jobs). Summary by default: per-kind counts + top-N by score (~1.5k tok). Names round-trip into trace/get_context. Example: entrypoints(\"abc123\", kind:\"HttpEndpoint\"), entrypoints(\"abc123\", full:true)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "description": "Filter to one entry kind, e.g. HttpEndpoint, MessageConsumer, GrpcService. Omit for all kinds.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "full": {
+            "description": "true = every entry instead of the scored top-N summary.",
+            "type": "boolean",
+            "default": false
+          },
+          "top": {
+            "description": "How many entries the summary lists per kind (default 15).",
+            "type": "integer",
+            "default": 15
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "node",
+      "description": "Detail card for a graph node: title, kind, file path, in/out degrees. Address with 'nodeId' (precise) or 'query' (fuzzy). Example: node(\"abc123\", query:\"OrderService\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "neighbors",
+      "description": "Outgoing/incoming edges of a node - one hop, with the seam kind and file:line on each. Optional 'kind' filters to one seam, which is how you ask a pointed question: who WRITES this table (direction:\"in\", kind:\"ReadsWrites\"), who SENDS this command (direction:\"in\", kind:\"Sends\"), who CONSUMES this event (kind:\"Consumes\"). The reply always names every kind this node does have, so a miss tells you what to ask instead. Example: neighbors(\"abc123\", query:\"Order\", direction:\"in\", kind:\"ReadsWrites\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "nodeId": {
+            "description": "Exact node id, as returned by resolve/find/neighbors.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "direction": {
+            "description": "\"out\" (default), \"in\", or \"usages\". Any other value is rejected.",
+            "type": "string",
+            "default": "out"
+          },
+          "query": {
+            "description": "Fuzzy name to resolve instead of a nodeId.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "kind": {
+            "description": "Filter to one seam kind, e.g. Calls, ReadsWrites, Sends, Consumes. Omit for all kinds.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "config",
+      "description": "Find config key usage sites (IConfiguration, GetValue, GetSection) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "key": {
+            "description": "Config key to filter on, e.g. \"GrpcSettings:DiscountUrl\". Omit for every key found.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    },
+    {
+      "name": "map",
+      "description": "The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface, archetype view, solution scope) plus rendered markdown. Bigger than overview - use when you need the whole picture. Example: map(\"abc123\")",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "description": "Session handle from analyze(). Omit to use this client's last analyzed session.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          }
+        }
+      },
+      "execution": {
+        "taskSupport": "optional"
+      }
+    }
+  ]
+}

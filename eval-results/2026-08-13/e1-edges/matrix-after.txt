@@ -1,0 +1,15 @@
+﻿E1.1 edge matrix - label=AFTER-e11
+cli=C:\Code\DevContext2-engine\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.exe
+cli-core-dll-written=2026-08-13T22:04:48
+
+pole                 nodes   edges   calls     m2m     m2t  verified   approx
+eShop                 1126    1100     737     344     286        39      698
+TodoApi                117      69      50      17      21         2       48
+CleanArchitecture      134      60      28       5      16         7       21
+MediatR                174      60      31       0      30        20       11
+Hangfire               986     729     711       6     705       152      559
+eshop-microservices     423     337     196      88      74        12      184
+DevContext            1637    2414    2404    1284    1090       231     2173
+    dogfood DevContext.Core.Graph2.BodyFactExtractor       typeIn=  3 memberIn=  0
+    dogfood DevContext.Core.Utilities.RazorCodeVirtualizer typeIn=  3 memberIn= 11
+    dogfood DevContext.Core.Utilities.ExtractorHelpers     typeIn=  7 memberIn=  0

@@ -1,0 +1,107 @@
+{
+  "snapshotCache": "miss \u00B7 saved daa00b7",
+  "nodeCount": 336,
+  "edgeCount": 295,
+  "entryCount": 0,
+  "sparseGraph": false,
+  "hubScopeNodes": 0,
+  "entriesWithTarget": 0,
+  "entriesWithDeepSpine": 0,
+  "deepSpineRatio": 0,
+  "entriesByKind": {},
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 265,
+      "verified": 233,
+      "joined": 0,
+      "approx": 32
+    },
+    {
+      "kind": "Resolves",
+      "total": 30,
+      "verified": 0,
+      "joined": 3,
+      "approx": 27
+    }
+  ],
+  "totalWallMs": 15988,
+  "stages": [
+    {
+      "stage": "DiscoveryAndCacheWarmup",
+      "ms": 407
+    },
+    {
+      "stage": "GenericExtraction",
+      "ms": 2363
+    },
+    {
+      "stage": "SignalSealing",
+      "ms": 0
+    },
+    {
+      "stage": "SpecificExtraction",
+      "ms": 2034
+    },
+    {
+      "stage": "SemanticLite",
+      "ms": 7629
+    },
+    {
+      "stage": "GraphAssembly",
+      "ms": 723
+    },
+    {
+      "stage": "Insights",
+      "ms": 422
+    },
+    {
+      "stage": "Compression",
+      "ms": 296
+    },
+    {
+      "stage": "Snapshot",
+      "ms": 867
+    }
+  ],
+  "extractionFailures": [],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 45 interfaces, 67 classes (112 total public types)",
+      "evidence": [
+        "45 interfaces",
+        "67 classes"
+      ],
+      "confidence": 0.9,
+      "confidenceBasis": "Public accessibility is compiler-level \u2014 highly reliable"
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: FluentValidation (2 dependents) \u00B7 FluentValidation.DependencyInjectionExtensions (1 dependents)",
+      "evidence": [
+        "FluentValidation (2 dependents)",
+        "FluentValidation.DependencyInjectionExtensions (1 dependents)"
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: IRuleBuilder (28) \u00B7 ValidationContext (24) \u00B7 TrackingCollection (10) \u00B7 IValidationRuleInternal (9) \u00B7 IValidator (9)",
+      "evidence": [
+        "IRuleBuilder (28)",
+        "ValidationContext (24)",
+        "TrackingCollection (10)",
+        "IValidationRuleInternal (9)",
+        "IValidator (9)"
+      ],
+      "confidence": 0.5
+    }
+  ]
+}

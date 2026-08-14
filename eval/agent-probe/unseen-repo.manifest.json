@@ -1,0 +1,56 @@
+{
+  "tool": "eval/agent-probe/rename-repo.mjs",
+  "seed": "20260814",
+  "source": {
+    "path": "C:/Code/DevContext2-engine/eval-repos/VerticalSlice"
+  },
+  "ownedNamespacePrefixes": [
+    "Clean.Architecture"
+  ],
+  "pathOnlyHeads": [
+    "Clean"
+  ],
+  "redactions": [
+    "dotnet-architecture/eShopOnWeb -> internal/reference-sample"
+  ],
+  "excluded": {
+    "dirs": [
+      ".claude",
+      ".git",
+      ".github",
+      ".idea",
+      ".template.config",
+      ".vs",
+      ".vscode",
+      "TestResults",
+      "bin",
+      "docs",
+      "node_modules",
+      "obj"
+    ],
+    "filePattern": "(\\.min\\.(js|css)|\\.map|\\.md|\\.png|\\.jpg|\\.jpeg|\\.gif|\\.ico|\\.svg|\\.woff2?|\\.ttf|\\.eot|\\.snk|\\.pfx)$"
+  },
+  "counts": {
+    "filesEmitted": 132,
+    "filesRewritten": 125,
+    "filesCopiedVerbatim": 7,
+    "pathsRenamed": 121,
+    "identifierSubstitutions": 965,
+    "namespaceSegmentsRenamed": 2,
+    "typesRenamed": 85,
+    "typesDeclared": 92
+  },
+  "heldBack": [
+    "Create",
+    "Delete",
+    "Extensions",
+    "GetById",
+    "List",
+    "Program",
+    "Update"
+  ],
+  "residualIdentityHits": {
+    "Clean": 1
+  },
+  "treeSha256": "9857e03c4f0493de46203d2be11431ad894dea1739cdb61582e3d16550b9317f"
+}

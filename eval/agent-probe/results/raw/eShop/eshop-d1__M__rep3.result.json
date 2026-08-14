@@ -1,0 +1,77 @@
+{
+  "is_error": false,
+  "duration_api_ms": 23644,
+  "num_turns": 8,
+  "stop_reason": "end_turn",
+  "session_id": "ebcccad3-0cb2-4af2-a3f2-717c503582e6",
+  "total_cost_usd": 0.1012135,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 4750,
+    "cache_read_input_tokens": 20151,
+    "output_tokens": 1715,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 4750,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1024,
+        "cache_read_input_tokens": 5470,
+        "cache_creation_input_tokens": 2302,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2302
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 568,
+      "outputTokens": 29,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0007130000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 10,
+      "outputTokens": 1715,
+      "cacheReadInputTokens": 20151,
+      "cacheCreationInputTokens": 4750,
+      "webSearchRequests": 0,
+      "costUSD": 0.10050049999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "**No.** `CatalogApi.CreateItem` does not publish `ProductPriceChangedIntegrationEvent` — or any integration event at all.\n\n**What CreateItem actually does** (`src/Catalog.API/Apis/CatalogApi.cs:365-387`):\n\n1. Takes `[AsParameters] CatalogServices services` and a `CatalogItem product` from the request body, and is annotated to produce a 400 `ProblemDetails` response (`src/Catalog.API/Apis/CatalogApi.cs:364-368`).\n2. Constructs a **new** `CatalogItem` from the posted product, copying `Id`, `CatalogBrandId`, `CatalogTypeId`, `Description`, `PictureFileName`, `Price`, `AvailableStock`, `RestockThreshold`, and `MaxStockThreshold` (`src/Catalog.API/Apis/CatalogApi.cs:370-380`).\n3. Computes an AI embedding for the item via `services.CatalogAI.GetEmbeddingAsync(item)` and assigns it to `item.Embedding` (`src/Catalog.API/Apis/CatalogApi.cs:382`).\n4. Adds the item to `services.Context.CatalogItems` and calls `SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:384-385`).\n5. Returns `TypedResults.Created($\"/api/catalog/items/{item.Id}\")` (`src/Catalog.API/Apis/CatalogApi.cs:387`).\n\n**How I established the negative:** The outbound call/reference edges from `CreateItem` are exactly seven, and they consist only of `CatalogItem`, `ICatalogAI`/`CatalogAI.GetEmbeddingAsync`, `CatalogServices`/`CatalogServices.Add`, and `CatalogContext.SaveChangesAsync` — there is no reference to the event service or any event type. Reading the full method body confirms there is no `SaveEventAndCatalogContextChangesAsync` or `PublishThroughEventBusAsync` call.\n\n**Where the event is actually raised:** The only usage of `eShop.Catalog.API.IntegrationEvents.Events.ProductPriceChangedIntegrationEvent` in the codebase is in `CatalogApi.UpdateItem` (`src/Catalog.API/Apis/CatalogApi.cs:350`), which — when the price changed — saves the event atomically with the DB change via `services.EventService.SaveEventAndCatalogContextChangesAsync(priceChangedEvent)` and then publishes it with `services.EventService.PublishThroughEventBusAsync(priceChangedEvent)` (`src/Catalog.API/Apis/CatalogApi.cs:352-356`); otherwise it just calls `SaveChangesAsync()` (`src/Catalog.API/Apis/CatalogApi.cs:358-360`).",
+  "ttft_ms": 1684,
+  "ttft_stream_ms": 937,
+  "time_to_request_ms": 76,
+  "type": "result",
+  "duration_ms": 22978,
+  "uuid": "0869e219-7f45-4ffc-a130-0daa3e332e73"
+}

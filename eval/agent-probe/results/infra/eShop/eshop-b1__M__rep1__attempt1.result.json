@@ -1,0 +1,74 @@
+{
+  "is_error": true,
+  "duration_api_ms": 153425,
+  "num_turns": 46,
+  "stop_reason": "stop_sequence",
+  "session_id": "5a83c12e-ee51-4537-ad8a-6e5229118380",
+  "total_cost_usd": 0.9880244999999999,
+  "usage": {
+    "input_tokens": 52,
+    "cache_creation_input_tokens": 42245,
+    "cache_read_input_tokens": 582428,
+    "output_tokens": 8972,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 42245,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1565,
+        "cache_read_input_tokens": 42600,
+        "cache_creation_input_tokens": 2963,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2963
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 574,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.000654,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty"
+    },
+    "claude-opus-5": {
+      "inputTokens": 54,
+      "outputTokens": 8975,
+      "cacheReadInputTokens": 627991,
+      "cacheCreationInputTokens": 44873,
+      "webSearchRequests": 0,
+      "costUSD": 0.9873704999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty"
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "api_error",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "API Error: Connection lost mid-response. The response above may be incomplete.",
+  "type": "result",
+  "duration_ms": 152820,
+  "uuid": "802fc00b-eaad-4152-b94e-5ea2e15782ff"
+}

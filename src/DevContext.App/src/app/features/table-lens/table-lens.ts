@@ -3,6 +3,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { type EntryGroupVm, type EntryVm, KIND_LABELS } from '../../models/view-models';
 import { copyToClipboard } from '../../core/clipboard';
+import { edgeTier } from '../../core/format';
 import { ToastService } from '../../ui/toast/toast';
 import type { TableColumn } from './table-lens-columns';
 import { WEB_COLUMNS, refreshSharedTargets } from './table-lens-columns';
@@ -96,7 +97,7 @@ type SortDir = 'asc' | 'desc';
             >
               @if (col.key === 'method' && entry.httpMethod) {
                 <span class="chip shrink-0">{{ entry.httpMethod }}</span>
-              } @else if (col.key === 'provenance' && entry.provenance === 'Syntactic') {
+              } @else if (col.key === 'provenance' && edgeTier(entry.provenance) === 'approx') {
                 <span class="chip text-warn">approx</span>
               } @else if (col.key === 'auth' && entry.authAttributes?.length) {
                 <span class="text-accent">{{ col.value(entry) }}</span>
@@ -117,6 +118,8 @@ export class TableLens {
   readonly dismissed = output<void>();
 
   protected readonly KIND_LABELS = KIND_LABELS;
+  /** V1.1 (#25) — the app's one reading of a wire resolution string (core/format). */
+  protected readonly edgeTier = edgeTier;
   protected readonly availableColumns = WEB_COLUMNS;
 
   protected readonly search = signal('');

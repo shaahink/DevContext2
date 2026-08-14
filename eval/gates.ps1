@@ -54,13 +54,34 @@ param(
     [switch]$SerialEval,
     # The MCP QA drive (step 2b) targets a machine-local dogfood repo (eval/mcp-qa/run.js) that
     # can't exist on a hosted runner — CI (.github/workflows/eval.yml) passes this. Local runs don't.
-    [switch]$SkipMcpQa
+    [switch]$SkipMcpQa,
+    # How long step 0a waits for the machine-wide gate lock before giving up with exit 8. The wait
+    # must outlast the LONGEST single gates.ps1 invocation that could be holding it, because that is
+    # what a waiter waits for: the full battery, measured at 12-19 min. 30 covers it with margin.
+    # Sized against conductor's own gate timeouts too — a waiter killed by the timeout dies without
+    # a verdict, which is the illegible outcome exit 8 exists to prevent, so the plans' gate
+    # timeoutMinutes were raised to clear wait + runtime.
+    [int]$GateLockWaitMinutes = 30
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $exitCode = 0
+
+# A terminating error anywhere in this script used to surface as a bare exit 1 with the transcript
+# truncated at whichever banner had just printed and NO diagnostic at all — indistinguishable from
+# a step verdict, and unreadable by whoever reads the gate log next. That cost the T1 phase gate two
+# full battery runs and a fix session on 2026-08-13 (Get-FileHash absent under a PS7-polluted
+# PSModulePath; see Get-EngineStamp). This trap costs nothing on a green run: it names the error and
+# exits 9, a code no step uses, so an abort can never again be mistaken for a measurement.
+trap {
+    Write-Host ""
+    Write-Host "GATE: FAIL (step ABORTED by an unhandled error - this is NOT a step verdict)" -ForegroundColor Red
+    Write-Host "  $($_.Exception.GetType().Name): $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Red
+    exit 9
+}
 
 function Write-Step {
     param([string]$Text)
@@ -102,20 +123,100 @@ function Invoke-NativeCapture {
     try { & $Command 2>&1 } finally { $ErrorActionPreference = $oldEap }
 }
 
+# Step 0a: One gate run at a time, machine-wide (2026-08-14).
+#
+# Step 0 below kills processes, and until this lock existed it killed them BY NAME across the whole
+# machine. That is fratricide the moment two gate runs overlap, and two DO: this repo and
+# C:\Code\DevContext2-desktop are separate checkouts of the same script driven by two concurrent
+# conductor runs, and they also share the hardcoded MCP port 5179 (tracked bug #1).
+#
+# MEASURED, not theorised. The 2026-08-14 fast-engine red scored the MCP QA harness 8/12 and read as
+# four capability regressions (entrypoints full:true, the self-describing note, the trace budget, the
+# checkout gate). The MCP's own log (%LOCALAPPDATA%\DevContext\logs\mcp-20260814_004.log) shows every
+# one of those calls completing `IsError = false` in id order: the server answered correctly and then
+# was killed underneath the harness at 05:59:02, mid-question. What is left in the log is the shape of
+# a dead gRPC peer - 2050ms, 1.5ms, 2068ms, 8ms: one connect timeout, then fail-fast, then the backoff
+# again - and three server spawns inside 23 seconds (06:00:25 / 06:00:41 / 06:00:48), each one proof
+# that the previous server had just been killed. Neither the harness alone (12/12) nor the same gate
+# alone (PASS) reproduces it, which is exactly why it burned a fix session.
+#
+# The lock is a real OS handle, so it cannot go stale: if the holder dies the kernel releases it.
+# Waiting is bounded and it FAILS rather than proceeding unlocked, because proceeding unlocked IS the
+# defect. Exit 8 is used by no step, so "another gate held the machine" can never be misread as a
+# measurement.
+Write-Step "Step 0a: Acquire the machine-wide gate lock"
+$gateLockPath = Join-Path $env:TEMP "devcontext-gates.lock"
+
+function Get-GateLockHolder {
+    param([string]$Path)
+    try {
+        $s = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        try {
+            $buf = New-Object byte[] 512
+            $n = $s.Read($buf, 0, $buf.Length)
+            return [System.Text.Encoding]::ASCII.GetString($buf, 0, $n).Trim()
+        } finally { $s.Dispose() }
+    } catch { return "(holder unknown)" }
+}
+
+$lockDeadline = (Get-Date).AddMinutes($GateLockWaitMinutes)
+$script:GateLock = $null
+$lockWaitAnnounced = $false
+while ($null -eq $script:GateLock) {
+    try {
+        # FileShare::Read lets a waiting gate READ who holds this, but not take it: acquiring needs
+        # write sharing the holder never grants.
+        $script:GateLock = [System.IO.File]::Open($gateLockPath, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::Read)
+    } catch [System.IO.IOException] {
+        if ((Get-Date) -gt $lockDeadline) {
+            Write-Fail "gate lock still held after $GateLockWaitMinutes min by $(Get-GateLockHolder $gateLockPath)" -Step 8
+            Write-Host ""
+            Write-Host "GATE: FAIL (step 0a - another gate run holds this machine; NOT a measurement)" -ForegroundColor Red
+            exit 8
+        }
+        if (-not $lockWaitAnnounced) {
+            Write-Host "  waiting for $(Get-GateLockHolder $gateLockPath) (up to $GateLockWaitMinutes min)" -ForegroundColor Yellow
+            $lockWaitAnnounced = $true
+        }
+        Start-Sleep -Seconds 5
+    }
+}
+$lockNote = "pid $PID  $repoRoot  scope=$Scope  $((Get-Date).ToString('s'))"
+$lockBytes = [System.Text.Encoding]::ASCII.GetBytes($lockNote)
+$script:GateLock.SetLength(0)
+$script:GateLock.Write($lockBytes, 0, $lockBytes.Length)
+$script:GateLock.Flush()
+Write-Pass "gate lock held ($lockNote)"
+
 # Step 0: Clear orphaned build-locking processes (Tapestry T0.1b).
 # The wrap-up audit lost four builds to leaked DevContext.Server processes holding bin/. Clearing
 # them here makes the gate trustworthy from cold, replacing the manual pre-session kill ritual.
+#
+# SCOPED TO THIS CHECKOUT (2026-08-14). The only process that can block THIS build is one holding
+# THIS repo's bin/, so the kill is scoped to executables and command lines under $repoRoot. The
+# unscoped version reached into the other checkout's live run - see Step 0a. Scoping loses nothing
+# the T0.1b intent ever wanted, and it is the half of the fix that survives if the other checkout
+# never adopts the lock.
 Write-Step "Step 0: Clear orphaned build-locking processes"
 $orphansKilled = 0
-Get-Process DevContext.Server, testhost -ErrorAction SilentlyContinue | ForEach-Object {
-    try { $_.Kill(); $script:orphansKilled++ } catch {}
+$repoPrefix = $repoRoot.TrimEnd('\') + '\'
+Get-Process DevContext.Server -ErrorAction SilentlyContinue | ForEach-Object {
+    $exe = try { $_.Path } catch { $null }
+    if ($exe -and $exe.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        try { $_.Kill(); $script:orphansKilled++ } catch {}
+    }
 }
-# Windows PowerShell 5.1's Get-Process has no CommandLine, so a dotnet host running our server dll
-# is found via CIM. The regex matches the server dll but not DevContext.Server.Tests.dll.
-Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe'" -ErrorAction SilentlyContinue |
-    Where-Object { $_.CommandLine -match 'DevContext\.Server\.dll' } |
+# Windows PowerShell 5.1's Get-Process has no CommandLine, so a dotnet host running our server dll -
+# and a test host running our test dlls - are found via CIM. The regex matches the server dll but not
+# DevContext.Server.Tests.dll; the repo-prefix test is what keeps the sibling checkout's run alive.
+Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe' OR Name = 'testhost.exe'" -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.CommandLine -and
+        $_.CommandLine.IndexOf($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -and
+        ($_.Name -eq 'testhost.exe' -or $_.CommandLine -match 'DevContext\.Server\.dll')
+    } |
     ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop; $script:orphansKilled++ } catch {} }
-Write-Pass "Cleared $orphansKilled orphaned process(es)"
+Write-Pass "Cleared $orphansKilled orphaned process(es) under $repoRoot"
 
 # Step 1: Build
 Write-Step "Step 1: Build solution"
@@ -183,26 +284,117 @@ if ($SkipMcpQa) {
     Write-Pass "MCP QA gate passed"
 }
 
+# Step 2c: Wire-truth gate (pre-release T1.4) — what an AGENT actually receives.
+#
+# Every other step in this battery reads the engine from the inside: C# tests, expectation JSON,
+# the CLI. None of them speaks MCP, and that hole is exactly where bug #5 lived for a year — the
+# C# source carried 26 XML doc summaries while `tools/list` on the wire carried 22 empty strings,
+# through every green gate. So these two probes drive a REAL MCP handshake over stdio against the
+# binary step 1 just built and judge the REPLY, never the source.
+#
+#   wire-truth.js    (~15s, no analyze) every tool AND parameter carries a description; the menu is
+#                    the curated one; an unknown name gets the did-you-mean envelope naming the
+#                    unlisted specialists; all five enum dials reject an out-of-range value while a
+#                    valid one still reaches the real code path.
+#   partial-truth.js (~2-4min, analyzes TodoApi) the confident-partial-truth family: every
+#                    entrypoints title round-trips through get_context AND trace; trace(nodeId) is
+#                    never weaker than trace(bare name) and never renders a phantom; a found:true
+#                    trace with 0 steps says why; an elided pack names the elision and the
+#                    budgetTokens lever (and the probe proves it actually found an elided pack, so
+#                    a green here can't be vacuous).
+#
+# Both print PASS/FAIL per bar and exit non-zero on any FAIL. Proven RED first, on a real pre-fix
+# binary built from 5853ac0 (the commit before the T1 fixes): eval-results/2026-08-13/t1-wire-truth-gate/.
+Write-Step "Step 2c: Wire-truth gate (real MCP handshake)"
+$node = Get-Command node -ErrorAction SilentlyContinue
+$mcpExe = Join-Path $repoRoot "src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe"
+# TEMP, not eval-results\: these probes dump ~800KB of raw wire transcript per run, and the battery
+# runs after every session. The path is printed on failure, which is when anyone wants it.
+$wireOut = Join-Path $env:TEMP "devcontext-gate-wire-truth"
+if (-not $node) {
+    Write-Fail "node not on PATH - the wire-truth probes cannot run (this step is not optional)" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - node missing)" -ForegroundColor Red
+    exit 2
+}
+if (-not (Test-Path $mcpExe)) {
+    Write-Fail "devcontext-mcp.exe not built at $mcpExe" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - MCP exe missing)" -ForegroundColor Red
+    exit 2
+}
+$wireResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\wire-truth.js") $wireOut }
+$wireExit = $LASTEXITCODE
+Write-Host ($wireResult -join "`n")
+if ($wireExit -ne 0) {
+    Write-Fail "wire-truth probe failed (exit $wireExit) - see $wireOut" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2c - wire truth)" -ForegroundColor Red
+    exit 2
+}
+Write-Pass "wire truth: every tool + parameter described, menu curated, enum dials reject"
+
+# partial-truth analyzes a repo, so it needs the eval-repos submodule. Absent = a HOLE in this
+# verdict, printed the way step 3 prints its skipped repos - never a silent pass.
+# The marker is a REAL file inside the pin (TodoApp.sln), not the directory: an uninitialised
+# submodule leaves the directory there and empty, so Test-Path on the dir alone would report
+# covered and skip forever. Measured 2026-08-13 - the first draft of this check tested for a
+# TodoApi.csproj that does not exist in the pin, and would have skipped on every machine.
+$ptRepo = Join-Path $repoRoot "eval-repos\TodoApi"
+if (-not (Test-Path (Join-Path $ptRepo "TodoApp.sln"))) {
+    Write-Host "  SKIP  partial-truth: eval-repos\TodoApi absent (git submodule update --init)." -ForegroundColor Yellow
+    Write-Host "        NOT COVERED by this verdict: entry round-trip, trace-by-nodeId, elision honesty." -ForegroundColor Yellow
+} else {
+    $ptResult = Invoke-NativeCapture { & node (Join-Path $repoRoot "eval\mcp-qa\partial-truth.js") $wireOut $ptRepo }
+    $ptExit = $LASTEXITCODE
+    Write-Host (($ptResult | Select-String "PASS|FAIL|GREEN|RED|handle:") -join "`n")
+    if ($ptExit -ne 0) {
+        Write-Host ($ptResult -join "`n")
+        Write-Fail "partial-truth probe failed (exit $ptExit) - see $wireOut" -Step 2
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 2c - partial truth)" -ForegroundColor Red
+        exit 2
+    }
+    Write-Pass "partial truth: entry names round-trip, nodeId traces, every elision named"
+}
+
 # Step 3: Eval tests.
 # T7.0 engine stamp: a content hash over everything that can change an eval verdict. If it
 # matches the stamp written by the last GREEN eval run, that verdict transfers and the step
 # is skipped — an app-only battery stays a citable full gate at ~zero eval cost.
+#
+# The digest is computed with .NET's SHA256 rather than `Get-FileHash`, and that is not a style
+# choice. In Windows PowerShell 5.1 `Get-FileHash` is not a binary cmdlet — it is a SCRIPT function
+# inside the 5.1 copy of Microsoft.PowerShell.Utility. When PowerShell 7's Modules directory sits
+# ahead of C:\Windows\System32\WindowsPowerShell\v1.0\Modules on PSModulePath (pwsh installs it
+# there; a process spawned from a pwsh shell inherits it), 5.1 resolves the PS7 manifest for that
+# module, which exports none of the 5.1 script functions — so Get-FileHash simply does not exist.
+# Measured 2026-08-13: the T1 phase-gate battery died here twice with a CommandNotFoundException
+# and exit 1, output truncated at the "Step 3" banner, while every measurement underneath was
+# green — the same empty-diagnostic shape Invoke-NativeCapture was written for, from a different
+# cause. Same algorithm, same digest (uppercase hex, so an existing stamp still transfers); the
+# only change is that the gate no longer depends on which shell launched it.
 function Get-EngineStamp {
     $stampPaths = @('src\DevContext.Core', 'src\DevContext.Cli', 'tests\DevContext.Core.Tests',
                     'eval\expectations', 'eval\fixtures', 'tests\fixtures')
     $exts = @('.cs', '.csproj', '.json', '.razor', '.props', '.proto', '.slnx', '.cshtml')
-    $sb = New-Object System.Text.StringBuilder
-    foreach ($p in $stampPaths) {
-        $dir = Join-Path $repoRoot $p
-        if (-not (Test-Path $dir)) { continue }
-        Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
-            Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
-                [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash)
-            }
-    }
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
-    $stream = New-Object System.IO.MemoryStream(,$bytes)
-    (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $sb = New-Object System.Text.StringBuilder
+        foreach ($p in $stampPaths) {
+            $dir = Join-Path $repoRoot $p
+            if (-not (Test-Path $dir)) { continue }
+            Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
+                    $fs = [System.IO.File]::OpenRead($_.FullName)
+                    try { $fileHash = $sha.ComputeHash($fs) } finally { $fs.Dispose() }
+                    [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' +
+                        [System.BitConverter]::ToString($fileHash).Replace('-', ''))
+                }
+        }
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
+        [System.BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '')
+    } finally { $sha.Dispose() }
 }
 $stampFile = Join-Path $repoRoot "eval\.eval-stamp.json"
 
@@ -437,7 +629,20 @@ if ($Scope -eq 'engine') {
     Write-Step "Step 5: App check - SKIPPED (-Scope engine)"
 } else {
     Write-Step "Step 5: App check (pnpm check)"
-    Push-Location (Join-Path $repoRoot "src\DevContext.App")
+    $appDir = Join-Path $repoRoot "src\DevContext.App"
+    # node_modules is gitignored, so a fresh clone (or a worktree nobody has run the app in) reaches
+    # this step with nothing installed. `pnpm check` then fails on its first script with "Could not
+    # find the '@angular-eslint/builder:lint' builder's node package" — forty lines of resolver noise
+    # for a one-line cause. Measured 2026-08-13: that is exactly how this step failed once the Step 3
+    # abort stopped hiding it. Say the cause and the command instead of making the next reader infer it.
+    if (-not (Test-Path (Join-Path $appDir "node_modules"))) {
+        Write-Fail "src\DevContext.App\node_modules is missing - the app's dependencies are not installed" -Step 5
+        Write-Host "        run: pnpm install --frozen-lockfile   (from src\DevContext.App)" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 5 - app deps not installed)" -ForegroundColor Red
+        exit 5
+    }
+    Push-Location $appDir
     try {
         # This step's inline workaround is where the hazard was first found; it is now the shared
         # Invoke-NativeCapture every step uses (see its comment for what it costs to leave one out).

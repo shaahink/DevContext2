@@ -35,16 +35,21 @@ public sealed record ConfidenceLedger(
         if (totalEdges == 0)
             return new ConfidenceLedger(0, 0, 0, [], 0, 0, 0, 0, 0, 0);
 
-        var verified = edgeList.Count(e => e.Resolution == Resolution.Semantic);
-        var approx = edgeList.Count(e => e.Resolution == Resolution.Syntactic || e.Confidence < 1.0f);
+        // V1.1 (#25): both counts come from EdgeConfidence, the one definition. `approx` used to be
+        // `Syntactic || Confidence < 1.0f` — a FOURTH spelling of the word, and one that could put a
+        // single edge in two buckets at once (a Semantic seam target ships at 0.95, so it counted as
+        // verified AND as approx). Confidence is a separate axis and stays out of the tier.
+        var verified = edgeList.Count(EdgeConfidence.IsVerified);
+        var approx = edgeList.Count(EdgeConfidence.IsApproximate);
 
         var perSeam = edgeList
             .GroupBy(e => e.Kind)
             .Select(g =>
             {
-                var sVerified = g.Count(e => e.Resolution == Resolution.Semantic);
-                var sApprox = g.Count(e => e.Resolution == Resolution.Syntactic || e.Confidence < 1.0f);
-                return new SeamConfidence(g.Key.ToString(), g.Count(), sVerified, sApprox);
+                var sVerified = g.Count(EdgeConfidence.IsVerified);
+                var sApprox = g.Count(EdgeConfidence.IsApproximate);
+                var sJoined = g.Count(EdgeConfidence.IsJoined);
+                return new SeamConfidence(g.Key.ToString(), g.Count(), sVerified, sApprox) { Joined = sJoined };
             })
             .OrderByDescending(s => s.Total)
             .ToImmutableArray();
@@ -70,9 +75,15 @@ public sealed record ConfidenceLedger(
     }
 }
 
-/// <summary>Per-seam confidence breakdown.</summary>
+/// <summary>Per-seam confidence breakdown. V1.1 (#25): <see cref="Verified"/>, <see cref="Joined"/>
+/// and <see cref="Approx"/> are the three <see cref="Graph.EdgeTier"/> counts and partition
+/// <see cref="Total"/> exactly — nothing here is a subtraction.</summary>
 public sealed record SeamConfidence(
     string Seam,
     int Total,
     int Verified,
-    int Approx);
+    int Approx)
+{
+    /// <summary>Edges derived by joining two detections — neither Roslyn-verified nor a string guess.</summary>
+    public int Joined { get; init; }
+}
