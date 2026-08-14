@@ -1,11 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 10:55 UTC · branch `feat/pre-release-desktop` · HEAD `96dba52`_
+_Updated 2026-08-14 11:57 UTC · branch `feat/pre-release-desktop` · HEAD `90dee71`_
 
-**Status:** Idle — advisor: human intervention required [5h 28m ago, 05:26:56Z]
-**Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0
-**Checkpoints:** 14/16 done · **Sessions run:** 24 · **Cost:** $174.1670 (agent $173.9954 + gates $0.1716) · **Tokens:** 2,763,891 in / 1,086,129 out
-**Confirmed phases:** N0, N1, N2, M1, N3, N4
+**Status:** Idle — advisor: human intervention required [6h 30m ago, 05:26:56Z]
+**Stage:** Z1 — Close-out: docs + backlog + README screenshot sync, full battery, push · attempts used 0
+**Checkpoints:** 16/16 done · **Sessions run:** 25 · **Cost:** $189.2838 (agent $189.1122 + gates $0.1716) · **Tokens:** 2,975,483 in / 1,174,418 out
+**Confirmed phases:** N0, N1, N2, M1, N3, N4, Z1
 
 ## Stage progress
 
@@ -17,7 +17,7 @@ _Updated 2026-08-14 10:55 UTC · branch `feat/pre-release-desktop` · HEAD `96db
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
 | N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | confirmed ✓ |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ██████████ 3/3 | confirmed ✓ |
-| Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
+| Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ██████████ 2/2 | confirmed ✓ |
 
 <details> ✅<summary>N0 — Truth batch - no-decision honesty fixes on Studio + MCP page (3/3)</summary>
 
@@ -75,12 +75,12 @@ _Updated 2026-08-14 10:55 UTC · branch `feat/pre-release-desktop` · HEAD `96db
 
 </details>
 
-<details><summary>Z1 — Close-out: docs + backlog + README screenshot sync, full battery, push (0/2)</summary>
+<details> ✅<summary>Z1 — Close-out: docs + backlog + README screenshot sync, full battery, push (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| Z1.1 | STUDIO-MCP-AUDIT statuses + DECISIONS.md (D-G settled by N2) + BUG-BACKLOG reconciled; PRE-RELEASE-PLAN §3 table updated for this run; full battery green; branch pushed | ⬜ TODO | - |
-| Z1.2 | README screenshot sync: docs/screenshots refreshed via the existing capture pipeline (screenshot-readme.mts / capture-readme.mts) against the post-N4 app — at minimum 08-context-studio, 09-export, 10-mcp plus any visibly changed page; README captions updated where the UI changed (agent-story claims untouched — engine Z1 owns those); committed and pushed | ⬜ TODO | - |
+| Z1.1 | STUDIO-MCP-AUDIT statuses + DECISIONS.md (D-G settled by N2) + BUG-BACKLOG reconciled; PRE-RELEASE-PLAN §3 table updated for this run; full battery green; branch pushed | ✅ DONE | [`d910b74`](https://github.com/shaahink/DevContext2/commit/d910b74) |
+| Z1.2 | README screenshot sync: docs/screenshots refreshed via the existing capture pipeline (screenshot-readme.mts / capture-readme.mts) against the post-N4 app — at minimum 08-context-studio, 09-export, 10-mcp plus any visibly changed page; README captions updated where the UI changed (agent-story claims untouched — engine Z1 owns those); committed and pushed | ✅ DONE | [`d910b74`](https://github.com/shaahink/DevContext2/commit/d910b74) |
 
 </details>
 
@@ -112,6 +112,7 @@ _Updated 2026-08-14 10:55 UTC · branch `feat/pre-release-desktop` · HEAD `96db
 | 22 | N4 | Deliver | 1 | 08-14 03:34 | 0:28 | Advanced | N4.3 | 3 | gates green (none configured) | $8.5554 |  | 144,279/59,999 |
 | 23 | N4 | Fix | 2 | 08-14 04:25 | 1:01 | AgentError |  | 0 | gates green (none configured) |  |  | 87,787/558 |
 | 24 | N4 | Fix | 3 | 08-14 05:26 | 0:00 | AgentError |  | 0 | gates green (none configured) |  |  |  |
+| 25 | Z1 | Deliver | 1 | 08-14 10:55 | 0:53 | Advanced | Z1.1 Z1.2 | 4 | gates green (none configured) | $15.1168 |  | 211,592/88,289 |
 
 ## Money
 
@@ -119,31 +120,26 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 24 | 243.9M | 98.5% | $174.19 | 14 | 17.4M | $12.44 |
+| **run total** | 25 | 265.8M | 98.5% | $189.30 | 16 | 16.6M | $11.83 |
+| window 1-24 26M / nudge 16.2M | 24 | 243.9M | 98.5% | $174.19 | 14 | 17.4M | $12.44 |
+| window 25-25 25M / nudge 21.3M | 1 | 21.9M | 98.6% | $15.12 | 2 | 10.9M | $7.56 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
 | stage N3 | 2 | 34.6M | 98.6% | $23.90 | 2 | 17.3M | $11.95 |
 | stage N4 | 6 | 71.4M | 98.5% | $50.47 | 3 | 23.8M | $16.82 |
-| 2026-08 | 24 | 243.9M | 98.5% | $174.19 | 14 | 17.4M | $12.44 |
+| stage Z1 | 1 | 21.9M | 98.6% | $15.12 | 2 | 10.9M | $7.56 |
+| 2026-08 | 25 | 265.8M | 98.5% | $189.30 | 16 | 16.6M | $11.83 |
 
-_Where the money goes: agent $174.00 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
+_The last ceiling change bought **1.6×** better dollars per delivered checkpoint._
+_Where the money goes: agent $189.11 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.71/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 00:50:31  ✓ checkpoint M1.1 confirmed
-08-14 00:50:31  ✓ checkpoint M1.2 confirmed
-08-14 00:50:31  ▸ stage M1 confirmed  (2h01m57s)
-08-14 00:50:36  ▸ stage N3 entered — Loop joints - routes into Studio + repo-file hand-off (owner decision 3)
-08-14 00:50:36  • session #17 N3 Deliver started (attempt 1/4)
-08-14 01:25:11  • session #17 N3 → Advanced · done N3.1 · 3 commit(s)  (34m35s)
-08-14 01:25:12  • session #18 N3 Deliver started (attempt 1/4)
-08-14 01:58:50  • session #18 N3 → Advanced · done N3.2 · 3 commit(s)  (33m38s)
-08-14 02:16:10  ▪ gate fast-app pass [phase]  (7m25s)
 08-14 02:16:10  ▪ gate guards pass [phase]  (1m46s)
 08-14 02:16:11  ▪ gate battery pass [phase]  (8m02s)
 08-14 02:16:11  ✓ checkpoint N3.1 confirmed
@@ -175,6 +171,15 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 11:54:57  ✓ checkpoint N4.1 confirmed
 08-14 11:54:57  ✓ checkpoint N4.2 confirmed
 08-14 11:54:57  ✓ checkpoint N4.3 confirmed
+08-14 11:54:57  ▸ stage N4 confirmed  (9h38m40s)
+08-14 11:55:09  ▸ stage Z1 entered — Close-out: docs + backlog + README screenshot sync, full battery, push
+08-14 11:55:10  • session #25 Z1 Deliver started (attempt 1/4)
+08-14 12:48:29  • session #25 Z1 → Advanced · done Z1.1,Z1.2 · 4 commit(s)  (53m19s)
+08-14 12:57:27  ▪ gate fast-app pass [phase]  (2m17s)
+08-14 12:57:27  ▪ gate guards pass [phase]  (1m24s)
+08-14 12:57:27  ▪ gate battery pass [phase]  (5m15s)
+08-14 12:57:27  ✓ checkpoint Z1.1 confirmed
+08-14 12:57:27  ✓ checkpoint Z1.2 confirmed
 ```
 
 ## Health
@@ -182,10 +187,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 24 · retries 9 (38 %) · overall Alert
+sessions 25 · retries 9 (36 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #21: 23,529,294 context tokens (≥ 20,000,000)
+⚠ [context-saturation] session #25: 21,578,907 context tokens (≥ 20,000,000)
 ⚠ [gate-oscillation] gate 'battery' flipped pass/fail 5x
 ```
 
@@ -195,15 +201,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: M eval-results/2026-08-14/mcp-qa.md
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s15 (M1 Deliver)** — 2 commit(s):
-  - [`e928f7a`](https://github.com/shaahink/DevContext2/commit/e928f7a) feat(app): the M1.2 hygiene batch - four surfaces stop over-claiming
-  - [`7ccbf56`](https://github.com/shaahink/DevContext2/commit/7ccbf56) fix(map): MapResponse.stack stops shipping empty to three readers
 - **s16 (M1 Fix)** — 2 commit(s):
   - [`951a836`](https://github.com/shaahink/DevContext2/commit/951a836) docs(tracker): handoff for the M1 gate-red fix + file bug #8
   - [`ad0eaff`](https://github.com/shaahink/DevContext2/commit/ad0eaff) fix(app): the lint error that failed M1 twice
@@ -243,29 +246,37 @@ vs upstream: up to date
   - [`f7789a7`](https://github.com/shaahink/DevContext2/commit/f7789a7) docs(n4): N4.3 handoff - stage N4 closed, next session starts Z1
   - [`c41f489`](https://github.com/shaahink/DevContext2/commit/c41f489) test(mcp): N4.3 - measure the deep links on the wire, and make it a gate
   - [`a4896f2`](https://github.com/shaahink/DevContext2/commit/a4896f2) feat(mcp-page): N4.3 - the feed stops being a window and becomes a door
+- **s25 (Z1 Deliver)** — 4 commit(s):
+  - [`0d1e790`](https://github.com/shaahink/DevContext2/commit/0d1e790) docs(z1): record the full battery verdict - GATE: PASS
+  - [`912ccc2`](https://github.com/shaahink/DevContext2/commit/912ccc2) docs(tracker): Z1 handoff - both close-out checkpoints landed, plan empty
+  - [`c1661b8`](https://github.com/shaahink/DevContext2/commit/c1661b8) docs(z1): the screenshots show the app this run built (Z1.2)
+  - [`d910b74`](https://github.com/shaahink/DevContext2/commit/d910b74) docs(z1): the audit stops being a plan and becomes a record (Z1.1)
 
 ## Last gate run
 
-fast-app:OK · fast-engine:OK · guards:OK · battery:OK
+fast-app:OK · guards:OK · battery:OK
 
 ## Last session result
 
-> SESSION-RESULT: N4.3's last open clause (the deep links) is delivered and claimed DONE with evidence at `eval-results/2026-08-14/N4.3-deep-links.md`, closing stage N4 — proto field 11 `primary_arg` landed with its reader, the MCP page's feed rows now open into Explore or replay in Studio keyed on the recorded gRPC method (never a tool-name table), a cross-repo guard adopts or refuses instead of mis-resolving, and a new wire probe (`eval/mcp-qa/deep-link-truth.js`, now a step-2c gate) proves it against a live sidecar at 10/10 PASS while also closing s21's unproven `ListMcpTools` claim (14 advertised, 8 specialists); nothing is red, three commits `a4896f2`/`c41f489`/`f7789a7` are pushed to `fe…
+> SESSION-RESULT: Stage Z1 is closed — **Z1.1 and Z1.2 both DONE and claimed**, so all 14 checkpoints of the desktop pre-release run are now delivered and the plan is empty. Z1.1 (`d910b74`, evidence `eval-results/2026-08-14/Z1.1-docs-reconciliation.md`) turned `STUDIO-MCP-AUDIT-2026-08-13.md` from a plan into a record — all 16 §3.F items and all six §5 moves carry their outcome and commit (16/16 closed, N5 deferred by its own default); `DECISIONS.md` gained a D-G subsection recording it as SETTLED by N2, leaving S11 = D-F + D-H; `BUG-BACKLOG.md` went 27 → 24 open with the tally explicitly scoped to Run B (engine closures stay Run A's Z1 to write up); the pre-release plan's §3 Run B table gain…
 
 ## Tracker handoff
 
 ```
-N4.3 CLOSED (4 of 4) and CLAIMED DONE. Stage N4 is complete; next session starts Z1.
-LANDED s22: a4896f2 - ToolCallEvent field 11 (primary_arg) declared WITH its reader; server decodes
-x-mcp-arg1-b64 beside args_digest; feed rows render open/replay and navigate. The routing decision is
-keyed on the gRPC METHOD the server recorded, read off the generated descriptor
-(DevContextService.method.getTrace.name), NEVER on the MCP tool name - a name table here is bug #4's
-disease. GetTrace/GetNode/GetImpact -> /explore?focus; GetContext/GetContextPack -> Studio via
-StudioHandoffStore. A row whose repo is not open adopts that live session first or refuses out loud.
-c41f489 - eval/mcp-qa/deep-link-truth.js drives a REAL sidecar and subscribes to ObserveToolCalls over
-gRPC-web: 10/10 PASS (GetTrace + GetContext both carry primary_arg="GET /"). Now a gate in step 2c
-beside partial-truth. It also closed s21's NOT PROVEN - ListMcpTools live: 14 advertised, 8 specialists.
-Gates: pnpm test 277/277 (28 files), pnpm build clean, Server + Mcp builds 0w/0e, contract-sweep 0 NEW.
-NEXT (Z1.1): step 2c now costs ~1-2min more; Z1.2 screenshots need a restarted dev server (trap 5) and
-10-mcp visibly changed (feed rows gained an open/replay affordance). Evidence: eval-results/2026-08-14/N4.3-deep-links.md
+Z1.1 and Z1.2 both CLOSED and CLAIMED. **All 14 checkpoints of run B are DONE - the plan is empty.**
+d910b74 (Z1.1) - every 3.F item and every N0-N5 move in STUDIO-MCP-AUDIT carries its outcome+commit
+(16/16 closed, N5 deferred); DECISIONS.md gains a D-G subsection (SETTLED by N2, so S11 = D-F + D-H);
+BUG-BACKLOG 27 -> 24 open (#30/#31 by N2.1, #4 by N4.3), tally scoped to Run B on purpose - engine
+closures are Run A's Z1 to write up, so a G-stage item there may already be fixed in code here.
+MEASURED, do not re-derive: #31's "client-only type" branch is a WIRE-FACING GUARD, not dead code;
+#32 is still open and its repro cited a 4000 default N2.2 deleted (corrected). Also fixed: the proto's
+two card-vocabulary comments omitted "usage" (regenerated), and M1.2's table numbered a run-bug as #30.
+c1661b8 (Z1.2) - 12 shots re-captured + new 13-mcp-feed.png. TRAP: the feed has NO backlog and is
+agents-only, so /mcp can only shoot empty unless real traffic arrives while the page is subscribed -
+scripts/seed-agent-calls.mjs drives a real sidecar at the running server; and fullPage on /mcp yields
+the VIEWPORT (the shell scrolls internally), hence the second shot. README captions follow the UI.
+FULL BATTERY: **GATE: PASS** (log .conductor/bg-logs/full-battery-20260814-113613721.log) - first full
+run since the gate lock landed; step 0a held it, step 0 killed nothing outside this checkout, no
+fratricide. NEXT: nothing is open in this plan. Merge to develop is OWNER-SIGNED; the engine run's Z1
+owns the README's "22 tools" line, which now sits beside a shot reading "14 advertised, 8 unlisted".
 ```
