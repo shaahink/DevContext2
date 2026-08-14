@@ -893,10 +893,11 @@ public sealed class DevContextGrpcService(
         // N4.3 — what the AGENT asked for, if an agent asked. The MCP sidecar's tool layer stamps
         // these (DevContext.Mcp/McpCallScope); nothing else on this server can know them, because
         // one MCP verb is several RPCs and the mapping lives on the other side of the wire.
-        // The sidecar also sends McpCallHeaders.PrimaryArg; it is deliberately not read yet — the
-        // field it would fill lands with the deep-link navigation that reads it (R-T1).
+        // PrimaryArg is the digest's navigable half: the subject of the call, alone, so the feed
+        // can open it instead of only printing it.
         var mcpTool = Header(request, Proto.McpCallHeaders.Tool);
         var argsDigest = DecodeHeader(request, Proto.McpCallHeaders.Args);
+        var primaryArg = DecodeHeader(request, Proto.McpCallHeaders.PrimaryArg);
 
         // The header is proof, not a hint: only the MCP sidecar sends it. The heuristic above is a
         // fallback for everything that does not (and N4.1 measured how easily it can be wrong).
@@ -908,6 +909,7 @@ public sealed class DevContextGrpcService(
             Tool = tool,
             McpTool = mcpTool,
             ArgsDigest = argsDigest,
+            PrimaryArg = primaryArg,
             SessionRepo = repo,
             Bytes = bytes,
             EstTokens = bytes / 4, // rough estimate: ~4 chars per token

@@ -1,8 +1,13 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { DEVCONTEXT_CLIENT } from '../../core/grpc/client';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore, STUDIO_ROUTE } from '../../state/studio-handoff.store';
+import { WorkspaceStore } from '../../state/workspace.store';
 import { McpPage } from './mcp-page';
 
 /**
@@ -20,6 +25,13 @@ describe('McpPage', () => {
   let observeToolCalls: Mock;
   let writeMcpConfig: Mock;
   let listMcpTools: Mock;
+  /** N4.3 — the deep links' collaborators: where a row goes, and which repo is open when it does. */
+  let navigate: Mock;
+  let navigateByUrl: Mock;
+  let tryAdopt: Mock;
+  let createTab: Mock;
+  let setActive: Mock;
+  let openTab: ReturnType<typeof signal<{ id: string; path: string; session: { handle: string | null } } | null>>;
 
   /**
    * N4.1 — the status the server MEASURED. The old page's whole status was one boolean that a
@@ -147,10 +159,24 @@ describe('McpPage', () => {
       command: 'C:/app/resources/server/devcontext-mcp.exe',
     });
     listMcpTools = vi.fn().mockResolvedValue(catalog());
+    navigate = vi.fn().mockResolvedValue(true);
+    navigateByUrl = vi.fn().mockResolvedValue(true);
+    tryAdopt = vi.fn().mockResolvedValue(true);
+    createTab = vi.fn().mockReturnValue('t2');
+    setActive = vi.fn();
+    // The default window: the agent's repo IS the one open here, so a link is a plain navigation.
+    openTab = signal<{ id: string; path: string; session: { handle: string | null } } | null>(
+      { id: 't1', path: 'C:/Code/eshop', session: { handle: 'handle-abcdef123456' } });
     TestBed.configureTestingModule({
       providers: [
         { provide: DevContextApi, useValue: { getMcpStatus, writeMcpConfig, listMcpTools } },
         { provide: DEVCONTEXT_CLIENT, useValue: { listSessions, startMcp, stopMcp, mcpHandshake, observeToolCalls } },
+        { provide: Router, useValue: { navigate, navigateByUrl } },
+        { provide: SessionStore, useValue: { handle: signal('handle-abcdef123456'), tryAdopt } },
+        {
+          provide: WorkspaceStore,
+          useValue: { activeTab: openTab, tabs: () => (openTab() ? [openTab()] : []), createTab, setActive },
+        },
       ],
     });
   });
@@ -340,6 +366,84 @@ describe('McpPage', () => {
 
     expect(text(el, 'feed-tool')).toBe('GetMap');
     expect(el.querySelector('[data-testid="feed-args"]')).toBeNull();
+  });
+
+  /**
+   * N4.3 (audit §4 Room 2, "rows deep-link") — the feed's last honesty problem was that watching
+   * an agent was all you could do: it named a symbol the agent had just read and gave the reader
+   * no way to follow it. These four pin WHAT a row opens, and — the part that matters — that the
+   * decision is keyed on the RPC the server recorded, not on a table of MCP tool names kept here.
+   * A tool-name table beside the served catalog is the defect this same checkpoint just deleted.
+   */
+  async function streamOne(overrides: Record<string, unknown>) {
+    observeToolCalls.mockReturnValue({
+      async *[Symbol.asyncIterator]() { yield evt(overrides); },
+    });
+    const { fixture, el } = await createPage();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+    return { fixture, el };
+  }
+
+  async function clickOpen(el: HTMLElement) {
+    (el.querySelector('[data-testid="feed-open"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+  }
+
+  it('a trace row opens the agent’s own focus in Explore', async () => {
+    const { el } = await streamOne({
+      tool: 'GetTrace', mcpTool: 'trace',
+      argsDigest: 'focus:POST /basket/checkout, depth:4',
+      primaryArg: 'POST /basket/checkout',
+    });
+
+    expect(el.querySelector('[data-testid="feed-open"]')?.getAttribute('data-dest')).toBe('explore');
+    await clickOpen(el);
+
+    // The key under ROW_ROUTES is the generated descriptor's method name; if that ever stopped
+    // matching what the server records as `tool`, the row would silently lose its link — so the
+    // assertion is on the navigation, with the wire's spelling of the RPC in the fixture.
+    expect(navigate).toHaveBeenCalledWith(['/explore'], { queryParams: { focus: 'POST /basket/checkout' } });
+  });
+
+  it('a get_context row replays the agent’s pack in Studio', async () => {
+    const { el } = await streamOne({
+      tool: 'GetContext', mcpTool: 'get_context',
+      argsDigest: 'focus:Acme.OrderService, intent:explain',
+      primaryArg: 'Acme.OrderService',
+    });
+
+    expect(el.querySelector('[data-testid="feed-open"]')?.getAttribute('data-dest')).toBe('studio');
+    await clickOpen(el);
+
+    const pending = TestBed.inject(StudioHandoffStore).pending();
+    expect(pending?.seeds.map((s) => s.type)).toEqual(['flow', 'bodies', 'usage']);
+    expect(pending?.seeds.every((s) => s.entryIds.includes('Acme.OrderService'))).toBe(true);
+    // The banner has to say the pack was PROPOSED from an agent's call, not hand-picked here.
+    expect(pending?.source).toContain('get_context');
+    expect(navigateByUrl).toHaveBeenCalledWith(STUDIO_ROUTE);
+  });
+
+  it('a row with no subject, or an RPC with no room behind it, offers no link', async () => {
+    const { el: noSubject } = await streamOne({ tool: 'GetTrace', mcpTool: 'trace', primaryArg: '' });
+    expect(noSubject.querySelector('[data-testid="feed-open"]')).toBeNull();
+
+    // A second page against the same TestBed — a fresh stream, not a reset harness.
+    const { el: noRoom } = await streamOne({ tool: 'GetStats', mcpTool: 'stats', primaryArg: 'whatever' });
+    expect(noRoom.querySelector('[data-testid="feed-open"]')).toBeNull();
+  });
+
+  it('a call against another repo is never focused against the open one', async () => {
+    tryAdopt.mockResolvedValue(false); // the server has no live session for it
+    const { el } = await streamOne({
+      tool: 'GetTrace', mcpTool: 'trace', sessionRepo: 'C:/Code/other-repo', primaryArg: 'Other.Service',
+    });
+
+    await clickOpen(el);
+
+    expect(tryAdopt).toHaveBeenCalledWith('C:/Code/other-repo');
+    // The whole point: a symbol from another codebase must not be resolved against this graph.
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('sessions render the analysis age, not just the session age (§3.F.13)', async () => {

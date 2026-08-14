@@ -1,8 +1,14 @@
 import { Component, inject, signal, type WritableSignal, type OnDestroy, type OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { copyToClipboard } from '../../core/clipboard';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
+import { DevContextService } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi, type McpCatalog, type McpHostConfig } from '../../data-access/devcontext-api';
+import { symbolCardSeeds } from '../context-studio/pack-proposal';
+import { SessionStore } from '../../state/session.store';
+import { StudioHandoffStore } from '../../state/studio-handoff.store';
+import { WorkspaceStore } from '../../state/workspace.store';
 import { ToastService } from '../../ui/toast/toast';
 
 function errorText(err: unknown): string {
@@ -23,6 +29,8 @@ interface ToolCallEntry {
   rpc: string;
   /** N4.3 — the arguments the agent sent, minus the handle. Empty for UI-origin calls. */
   args: string;
+  /** N4.3 — the ONE argument that says what the call was about; what a deep link opens. */
+  focus: string;
   repo: string;
   estTokens: number;
   elapsedMs: number;
@@ -437,6 +445,19 @@ interface WrittenConfig {
                   }
                   <span class="font-mono tabular-nums text-ink-subtle">~{{ e.estTokens }}t</span>
                   <span class="font-mono tabular-nums text-ink-subtle">{{ e.elapsedMs }}ms</span>
+                  <!-- N4.3 — follow the agent. A row that named a subject and ran an RPC with a
+                       room behind it opens there; everything else shows nothing rather than a
+                       link that would land on an empty focus. See rowRoute. -->
+                  @if (rowRoute(e)) {
+                    <button
+                      type="button"
+                      class="shrink-0 text-2xs text-accent hover:underline"
+                      data-testid="feed-open"
+                      [attr.data-dest]="rowRoute(e)"
+                      [title]="rowActionHint(e)"
+                      (click)="openRow(e)"
+                    >{{ rowActionLabel(e) }}</button>
+                  }
                 </div>
               }
             </div>
@@ -504,6 +525,12 @@ export class McpPage implements OnInit, OnDestroy {
   private readonly client: DevContextClient = inject(DEVCONTEXT_CLIENT);
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
+  /** N4.3 — the four collaborators a deep link needs: where to go, what to seed, and (because an
+   * agent works on whatever repo it was pointed at) which session the destination will read. */
+  private readonly router = inject(Router);
+  private readonly studio = inject(StudioHandoffStore);
+  private readonly session = inject(SessionStore);
+  private readonly workspace = inject(WorkspaceStore);
 
   /** N4.1 — the three measurements behind the status card (see the template's header comment).
    * There is no "telemetry streaming" flag any more: forwarding is unconditional server-side,
@@ -571,6 +598,27 @@ export class McpPage implements OnInit, OnDestroy {
       };
     });
   });
+
+  /**
+   * N4.3 — where a feed row opens, keyed on THE RPC THAT RAN.
+   *
+   * Not on the MCP tool name. A table of tool names kept in this page is exactly the defect
+   * BUG-BACKLOG #4 was (and the served catalog just killed): the menu is curated on the other
+   * side of the wire and drifts the day someone renames a verb. The gRPC method is a contract
+   * this app already binds to, so the keys below are read off the generated service descriptor —
+   * rename an RPC in the proto and this stops COMPILING instead of quietly linking nowhere.
+   *
+   * The rule is "open the subject in the room that answers that question": an RPC whose subject
+   * is a symbol goes to Explore focused on it; an RPC that BUILDS a pack replays in Studio. A new
+   * MCP tool that calls one of these RPCs inherits its link for free, which is the point.
+   */
+  private static readonly ROW_ROUTES: ReadonlyMap<string, 'explore' | 'studio'> = new Map([
+    [DevContextService.method.getTrace.name, 'explore' as const],
+    [DevContextService.method.getNode.name, 'explore' as const],
+    [DevContextService.method.getImpact.name, 'explore' as const],
+    [DevContextService.method.getContext.name, 'studio' as const],
+    [DevContextService.method.getContextPack.name, 'studio' as const],
+  ]);
 
   /** The tool names this page can put on the wire itself; see tryTool for the mapping. */
   private static readonly DRIVABLE = new Set([
@@ -835,6 +883,89 @@ export class McpPage implements OnInit, OnDestroy {
     this.events.set([]);
   }
 
+  /**
+   * N4.3 — where this row opens, or null when it opens nowhere.
+   *
+   * Null is the honest answer for most rows and must stay cheap to reach: a UI-origin call carries
+   * no subject, and neither does a verb whose question is the whole repo (stats, map). A link that
+   * navigated to an empty focus would be worse than no link.
+   */
+  protected rowRoute(e: ToolCallEntry): 'explore' | 'studio' | null {
+    if (!e.focus) return null;
+    return McpPage.ROW_ROUTES.get(e.rpc) ?? null;
+  }
+
+  protected rowActionLabel(e: ToolCallEntry): string {
+    return this.rowRoute(e) === 'studio' ? 'replay ↗' : 'open ↗';
+  }
+
+  protected rowActionHint(e: ToolCallEntry): string {
+    return this.rowRoute(e) === 'studio'
+      ? `Rebuild this pack in Context Studio, rooted at ${e.focus}`
+      : `Open ${e.focus} in Explore`;
+  }
+
+  /**
+   * N4.3 — follow one feed row into the room that answers it.
+   *
+   * The repo check is not politeness. An agent calls against whatever repo its host pointed it at,
+   * which is frequently NOT the one open in this window; focusing the agent's symbol against
+   * someone else's graph would resolve to nothing, or worse, to a same-named type in the wrong
+   * codebase. So the row's repo is opened first, and a row that cannot be opened refuses out loud.
+   */
+  protected async openRow(e: ToolCallEntry): Promise<void> {
+    const dest = this.rowRoute(e);
+    if (!dest) return;
+    if (!(await this.ensureRepoOpen(e.repo))) return;
+
+    if (dest === 'explore') {
+      const ok = await this.router.navigate(['/explore'], { queryParams: { focus: e.focus } });
+      if (!ok) this.toast.show('Could not open Explore', 'error');
+      return;
+    }
+
+    // The same seeds the NodeCard and Insights send (symbol-rooted trio), so a replay and a
+    // hand-off from Explore produce the same pack for the same symbol.
+    const ok = await this.studio.open({
+      seeds: symbolCardSeeds(e.focus, e.focus),
+      source: `the agent’s ${e.tool} call on ${e.focus}`,
+    });
+    if (!ok) this.toast.show('Could not open Context Studio', 'error');
+  }
+
+  /**
+   * True when the destination will read the SAME repo the agent called against. Adopts the
+   * server's live session for it when a different repo is open — the server has held that session
+   * all along (it is in the table above this feed), so this costs a listing, not a re-analyze.
+   */
+  private async ensureRepoOpen(repo: string): Promise<boolean> {
+    if (!repo) return true;
+    const norm = (p: string) => p.replace(/[\\/]+/g, '/').replace(/\/+$/, '').toLowerCase();
+    const active = this.workspace.activeTab();
+    if (active && norm(active.path) === norm(repo) && this.session.handle()) return true;
+
+    const already = this.workspace.tabs().find((t) => norm(t.path) === norm(repo));
+    if (already) {
+      this.workspace.setActive(already.id);
+      if (already.session.handle) return true;
+    } else if (!active || active.path) {
+      // Only take over a tab that is genuinely blank; otherwise the reader's open repo would be
+      // replaced by a click on someone else's call. M1.2: createTab reports refusal at the cap.
+      const created = this.workspace.createTab(repo, repo);
+      if (created === null) {
+        this.toast.show('All tabs are in use — close one to follow this call', 'error');
+        return false;
+      }
+      this.workspace.setActive(created);
+    }
+
+    const adopted = await this.session.tryAdopt(repo);
+    if (!adopted) {
+      this.toast.show(`No live session for ${repo} — analyze it to follow this call`, 'error');
+    }
+    return adopted;
+  }
+
   protected fmtAge(seconds: number): string {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
@@ -907,6 +1038,8 @@ export class McpPage implements OnInit, OnDestroy {
             tool: evt.mcpTool || evt.tool,
             rpc: evt.tool,
             args: evt.argsDigest ?? '',
+            // N4.3 — the digest's navigable half (proto field 11). Landed WITH this reader.
+            focus: evt.primaryArg ?? '',
             repo: evt.sessionRepo ?? '',
             estTokens: Number(evt.estTokens),
             elapsedMs: Number(evt.elapsedMs),

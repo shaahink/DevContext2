@@ -1166,10 +1166,12 @@ message ToolCallEvent {
   // is the only place that knows it. Empty for UI-origin calls: the app is not an agent and must
   // not be rendered as one.
   string mcp_tool = 10;
-  // 11 is reserved for the deep-link argument (the focus/node id a `trace` row would open in
-  // Explore and a `get_context` row would replay in Studio). It is NOT declared yet on purpose:
-  // R-T1 says a field lands with its reader, and the navigation is the other half of N4.3.
-  reserved 11;
+  // N4.3 — the ONE argument that says what the call was about: a focus string, a node id, a
+  // search query. It lands here now because its reader landed with it (R-T1) — the feed's rows
+  // are navigable, and this is what they navigate TO. The sidecar picks it (McpCallScope's
+  // priority order: nodeId beats focus beats query…), because only the tool layer knows which of
+  // an agent's arguments is the subject. Empty for UI-origin calls and for verbs with no subject.
+  string primary_arg = 11;
 }
 
 // ---------------------------------------------------------------------------
