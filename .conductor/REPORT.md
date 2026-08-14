@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `3392c0f`_
+_Updated 2026-08-14 03:47 UTC · branch `feat/pre-release-engine` · HEAD `c5a3888`_
 
-**Status:** NeedsHuman — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume` [8s ago, 03:04:44Z]
-**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0 · working ▸ A1.1
-**Checkpoints:** 16/20 done · **Sessions run:** 24 · **Cost:** $187.1078 (agent $186.9202 + gates $0.1876) · **Tokens:** 2,881,123 in / 1,221,534 out
+**Status:** Idle
+**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0 · working ▸ A1.2
+**Checkpoints:** 17/20 done · **Sessions run:** 25 · **Cost:** $201.5779 (agent $201.3903 + gates $0.1876) · **Tokens:** 3,078,301 in / 1,340,419 out
 **Confirmed phases:** T1, V1, E1, D1, R1
 
 ## Stage progress
@@ -16,7 +16,7 @@ _Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `3392c
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
-| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ░░░░░░░░░░ 0/2 | **← active** |
+| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | █████░░░░░ 1/2 | **← active** |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
@@ -70,11 +70,11 @@ _Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `3392c
 
 </details>
 
-<details><summary>A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate (0/2)</summary>
+<details><summary>A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate (1/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
-| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ⬜ TODO | - |
+| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ✅ DONE | - |
 | A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | ⬜ TODO | - |
 
 </details>
@@ -116,6 +116,7 @@ _Updated 2026-08-14 03:04 UTC · branch `feat/pre-release-engine` · HEAD `3392c
 | 22 | D1 | Deliver | 1 | 08-14 00:38 | 0:37 | Advanced | D1.3 | 4 | gates green (none configured) | $13.4409 |  | 205,917/72,126 |
 | 23 | D1 | Deliver | 1 | 08-14 01:16 | 0:28 | Advanced | D1.4 | 3 | gates green (none configured) | $12.0738 |  | 186,290/82,351 |
 | 24 | R1 | Deliver | 1 | 08-14 02:07 | 0:31 | Advanced | R1.1 | 3 | gates green (none configured) | $10.5692 |  | 167,565/71,470 |
+| 25 | A1 | Deliver | 1 | 08-14 03:08 | 0:38 | Advanced | A1.1 | 5 | gates green (none configured) | $14.4701 |  | 197,178/118,885 |
 
 ## Money
 
@@ -138,8 +139,6 @@ _Where the money goes: agent $186.92 (100%) · gate $0.19 (0%) · advisor $0.02 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 23:11:18  • session #17 E1 → Advanced · done E1.2 · 5 commit(s)  (26m12s)
-08-13 23:11:18  • session #18 E1 Deliver started (attempt 1/8)
 08-14 00:01:23  • session #18 E1 → Advanced · done E1.3 · 3 commit(s)  (50m05s)
 08-14 00:01:24  • session #19 E1 Deliver started (attempt 1/8)
 08-14 00:35:47  • session #19 E1 → Advanced · done E1.4 · 2 commit(s)  (34m22s)
@@ -178,6 +177,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 04:04:18  ✓ checkpoint R1.1 confirmed
 08-14 04:04:18  ▸ stage R1 confirmed  (56m56s)
 08-14 04:04:43  ▸ stage A1 entered — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
+08-14 04:04:44  ■ needs human — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume`
+08-14 04:08:05  • session #25 A1 Deliver started (attempt 1/4)
 ```
 
 ## Health
@@ -185,7 +186,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 24 · retries 8 (33 %) · overall Alert
+sessions 25 · retries 8 (32 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -198,25 +199,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
-vs upstream: 1 ahead, 2 behind
+working tree: clean
+vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s16 (E1 Deliver)** — 16 commit(s):
-  - [`795ad1b`](https://github.com/shaahink/DevContext2/commit/795ad1b) Merge remote-tracking branch 'origin/feat/pre-release-engine' into feat/pre-release-engine
-  - [`82f0e0f`](https://github.com/shaahink/DevContext2/commit/82f0e0f) fix(graph): static type-name-receiver calls produce edges, in BOTH producers (E1.1, #11)
-  - [`3b740d1`](https://github.com/shaahink/DevContext2/commit/3b740d1) chore(conductor): s7 V1 Advanced — Idle
-  - [`af29f58`](https://github.com/shaahink/DevContext2/commit/af29f58) chore(conductor): s7 V1 Advanced — Idle
-  - [`44e5319`](https://github.com/shaahink/DevContext2/commit/44e5319) docs(v1): V1.3 gate results — Core 766/0, Server 108/0; matrix + guards left to the battery
-  - [`e648644`](https://github.com/shaahink/DevContext2/commit/e648644) docs(v1): V1.3 evidence + handoff for E1
-  - [`3eb2f34`](https://github.com/shaahink/DevContext2/commit/3eb2f34) fix(graph): two standing invariants, enforced where a node is made (V1.3, #7 rider + #18)
-  - [`0fd1cbe`](https://github.com/shaahink/DevContext2/commit/0fd1cbe) chore(conductor): s6 V1 Advanced — Idle
-  - [`8502785`](https://github.com/shaahink/DevContext2/commit/8502785) chore(conductor): s6 V1 Advanced — Idle
-  - [`e1f40e3`](https://github.com/shaahink/DevContext2/commit/e1f40e3) docs(v1): V1.2 evidence gates + handoff for V1.3
-  - [`fd47300`](https://github.com/shaahink/DevContext2/commit/fd47300) fix(graph): one Member-title vocabulary, derived from the key (V1.2, #17)
-  - [`f5361ac`](https://github.com/shaahink/DevContext2/commit/f5361ac) chore(conductor): s5 V1 Advanced — Idle
 - **s17 (E1 Deliver)** — 5 commit(s):
   - [`0022029`](https://github.com/shaahink/DevContext2/commit/0022029) chore: drop the commit-message scratch file that git add -A swept in
   - [`66a0846`](https://github.com/shaahink/DevContext2/commit/66a0846) chore: gate artifacts left dirty by the pre-session battery
@@ -250,33 +238,34 @@ vs upstream: 1 ahead, 2 behind
   - [`b72cb7d`](https://github.com/shaahink/DevContext2/commit/b72cb7d) chore(tracker): R1.1 handoff for the next session (R1.1)
   - [`372f77c`](https://github.com/shaahink/DevContext2/commit/372f77c) docs(metrics): the surviving threshold names its calibration commit (R1.1)
   - [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) refactor(metrics): two metrics retire on measurement, one has its premise refuted (R1.1)
-
-## Last gate run
-
-fast-engine:OK · guards:OK · battery:OK
+- **s25 (A1 Deliver)** — 5 commit(s):
+  - [`c5a3888`](https://github.com/shaahink/DevContext2/commit/c5a3888) fix(probe): store the unseen tree verbatim so its pin verifies from a checkout (A1.1)
+  - [`711a23c`](https://github.com/shaahink/DevContext2/commit/711a23c) feat(probe): the unseen repo, built from a pinned source and verified by building it (A1.1)
+  - [`a3f68ee`](https://github.com/shaahink/DevContext2/commit/a3f68ee) pre-register(probe): five amendments to DESIGN, written before the run they govern (A1.1)
+  - [`67a6ef1`](https://github.com/shaahink/DevContext2/commit/67a6ef1) chore(conductor): s24 R1 Advanced — Idle
+  - [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) chore(conductor): s24 R1 Advanced — Idle
 
 ## Last session result
 
-> SESSION-RESULT:** R1.1 landed with all three metrics resolved against a fresh 12-pole post-E1 measurement (`eval-results/2026-08-14/r1-metrics/`, commits `557537c` + `372f77c` + handoff `b72cb7d`, build 0w/0e, units 922 passed / 0 failed). The G10 lesson arrived exactly as predicted and worse than filed: **#22 `graph.orphans` did not stay dormant — it inverted.** E1's 8× lift in Semantic share (eShop 0.057 → 0.438) cleared its 0.5 floor on 7 of 12 poles, the full gate now passes on 2, and both emit a `Notable` dead-code card — 10 claims, hand-verified in the target repos, **0 true**: it named four `: ICarterModule` HTTP endpoints and a `Decorate<IBasketRepository, CachedBasketRepository>`d r…
+> SESSION-RESULT: **A1.1 landed and is claimed DONE** (`conductor task --done A1.1`, evidence `eval-results/2026-08-14/a1-preregistration/A1.1-EVIDENCE.md`), across three pushed commits — `a3f68ee` the five DESIGN amendments, `711a23c` the unseen repo, `c5a3888` a pin-storage fix. `eval/agent-probe/DESIGN.md` now carries a §0 amendment log and five dated, in-place amendments written *before* any run: the unseen repo named/built/pinned, the "E and F at half weight" mix resolved to a per-repo assignment table, the non-inferiority endpoint replaced, κ made applicable with a degenerate-marginal rule, and arm **BI** added (verified: 21 argv elements, exactly one differs, and it is the system prompt…
 
 ## Tracker handoff
 
 ```
-R1.1 CLAIMED (557537c + 372f77c). The G10 lesson arrived on schedule and worse than predicted:
-#22 graph.orphans did not stay dormant, it INVERTED. E1 lifted the Semantic share 8x (eShop
-0.057 -> 0.438), the 0.5 floor is now cleared on 7/12 poles, and on the 2 where the full gate passes
-it emitted 10 dead-code claims of which I hand-verified 0 true - it named four `: ICarterModule`
-HTTP endpoints and a `Decorate<>`d repository as dead. RETIRED (source+tests deleted, lens-audit's
-P7 grep is now a ratchet on the id). #24 deep-spine RETIRED (saturated on 12 poles, unchanged from
-2026-08-02). #23 HELD and its premise REFUTED: the broadening DOES fire - Hangfire sparseGraph=true,
-hubScopeNodes=34 - the old 11-pole set just never held a repo that clears its gates.
-HUMAN: retiring graph.orphans reverses "keep-or-retire is yours" in OWNER-TODO.md §4. Reversible;
-a revival needs REGISTRATION-aware liveness (DI impl types, assembly-scan interfaces, decorators),
-not in-degree, and lens-audit will fail until it brings its own probe.
-NEXT: A1.1/A1.2 are the only TODOs left on the board. Bug #18 (hub-scope sizes hubs off
-model.CallEdges, a channel post-E1 left behind) is the cheapest live follow-up.
-REUSE, DO NOT REBUILD: eval-results/2026-08-14/r1-metrics/r1-metric-sweep.ps1 + r1-aggregate.mjs -
-12 poles, private cache root, one `query stats` per pole answers every graph threshold and reports
-which insights actually emitted. Six G10 poles (Dapper/Serilog/MahApps/GitVersion/DntSite/wolverine)
-are gone from this machine - do not assume that grid is reproducible.
+A1.1 CLAIMED (b0de331 + this commit). Evidence eval-results/2026-08-14/a1-preregistration/.
+DESIGN.md now carries §0 an amendment log and five dated amendments: unseen repo, question mix
+pinned per repo, the non-inferiority endpoint replaced, κ made applicable, arm BI added. Two
+RESULTS §10.4 figures did NOT survive re-derivation - its reachability table is the acc=1.00
+column called "the best each n can produce" (it is the worst; at acc=0.50 the interval is
+zero-width at every n), and the pairs were pseudo-replicated 5× which makes non-inferiority
+EASIER to declare. New endpoint: question-level, bootstrap over questions, ONE pooled test,
+margin −0.10 (`analyse.mjs --ni-power` prints both surfaces). Unseen repo BUILT and pinned:
+eval/agent-probe/unseen/Driewie/, 132 files, treeSha 9857e03c, `rename-repo.mjs --verify` PASSES,
+build 0 errors/4 warnings matching the unmodified control exactly. Building it found 3 defects
+reading could not - read the ledger note before touching rename-repo.mjs.
+NEXT: A1.2, the $10 adoption gate, now unblocked - pre-registration is committed and DESIGN §3.1
+names the branch to report either way. Run arm B alone on eShop, 18 runs, UNCHANGED prompt, via
+`conductor bg start --purpose probe`. A share <0.2 is a REAL product finding, not a failure.
+NOT DONE, and NOT A1.1's: questions/Driewie.json + the 2nd class-B question per repo (full-run
+W3.8 inputs, must be hand-authored before any full run).
 ```
