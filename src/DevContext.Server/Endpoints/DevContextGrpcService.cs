@@ -27,6 +27,7 @@ public sealed class DevContextGrpcService(
         ServerCallContext context)
     {
         var ct = context.CancellationToken;
+        var analyzeElapsed = Stopwatch.StartNew();
         var spec = new AnalyzeSpec(
             request.Path,
             request.HasFocus ? request.Focus : null,
@@ -70,10 +71,17 @@ public sealed class DevContextGrpcService(
             var (session, cached) = await work.ConfigureAwait(false);
             var (_, entriesWithTarget) = session.Query.Stats();
             var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
-            await responseStream.WriteAsync(new Proto.AnalyzeEvent
-            {
-                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary, Cached = cached },
-            }).ConfigureAwait(false);
+            var result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary, Cached = cached };
+
+            // N4.3 (audit §4 Room 2) — analyze finally appears in the feed. It is the FIRST thing
+            // an agent does and it was the one call this server never recorded: WrapT records on
+            // session access and analyze is what creates the session, so a watcher saw an agent's
+            // whole opening move as silence. Recorded here, after the work succeeded, so a failed
+            // analysis does not log as one that happened.
+            RecordToolCall(nameof(Analyze), session.Handle, session.RepoPath,
+                result.CalculateSize(), analyzeElapsed.ElapsedMilliseconds);
+
+            await responseStream.WriteAsync(new Proto.AnalyzeEvent { Result = result }).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -881,10 +889,25 @@ public sealed class DevContextGrpcService(
         var request = httpContext.HttpContext?.Request;
         var origin = httpContext.HttpContext?.Items[OriginTag.ItemKey] as string
             ?? OriginTag.FromRequest(request?.Headers.UserAgent, request?.Headers["x-user-agent"], request?.Headers.Origin);
+
+        // N4.3 — what the AGENT asked for, if an agent asked. The MCP sidecar's tool layer stamps
+        // these (DevContext.Mcp/McpCallScope); nothing else on this server can know them, because
+        // one MCP verb is several RPCs and the mapping lives on the other side of the wire.
+        // The sidecar also sends McpCallHeaders.PrimaryArg; it is deliberately not read yet — the
+        // field it would fill lands with the deep-link navigation that reads it (R-T1).
+        var mcpTool = Header(request, Proto.McpCallHeaders.Tool);
+        var argsDigest = DecodeHeader(request, Proto.McpCallHeaders.Args);
+
+        // The header is proof, not a hint: only the MCP sidecar sends it. The heuristic above is a
+        // fallback for everything that does not (and N4.1 measured how easily it can be wrong).
+        if (mcpTool.Length > 0) origin = OriginTag.Agent;
+
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,
             Tool = tool,
+            McpTool = mcpTool,
+            ArgsDigest = argsDigest,
             SessionRepo = repo,
             Bytes = bytes,
             EstTokens = bytes / 4, // rough estimate: ~4 chars per token
@@ -892,6 +915,22 @@ public sealed class DevContextGrpcService(
             TimestampUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Origin = origin,
         });
+    }
+
+    private static string Header(HttpRequest? request, string name)
+        => request?.Headers[name].ToString() ?? string.Empty;
+
+    /// <summary>
+    /// The two free-text MCP headers travel base64 of UTF-8 — a focus string is arbitrary repo
+    /// text and gRPC metadata is ASCII by spec. A value that will not decode is dropped rather
+    /// than rendered as mojibake in the feed.
+    /// </summary>
+    private static string DecodeHeader(HttpRequest? request, string name)
+    {
+        var raw = Header(request, name);
+        if (raw.Length == 0) return string.Empty;
+        try { return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(raw)); }
+        catch (FormatException) { return string.Empty; }
     }
 
     public override Task<Proto.PingResponse> Ping(Proto.PingRequest request, ServerCallContext context)

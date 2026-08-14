@@ -1,24 +1,22 @@
-﻿# DevContext pre-release - desktop agent loop Phase Tracker
+# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N4.2 LANDED + CLAIMED (d48a122 server/bundle, 7486a73 page, evidence eval-results/2026-08-14/N4.2-setup-that-works.md).
-devcontext-mcp now ships in the bundle (pnpm publish:sidecars = server + mcp into src-tauri/resources/server,
-beforeBuildCommand runs it); snippets are composed SERVER-side on GetMcpStatusResponse.hosts around the probed
-path (the page owns no snippet template any more); new RPC WriteMcpConfig(handle,host) writes+MERGES
-.mcp.json / .cursor/mcp.json / .vscode/mcp.json into the ANALYZED repo, refusing an unparseable file and
-reporting "unchanged" honestly. Gates: slnx 0w/0e, 14/14 McpConfigWriteTests, pnpm lint 0, pnpm test 267/267
-(was 256), n42-verify-setup.mts 11/11, n42-verify-bundle.mts 5/5, n41-verify-status.mts 8/8.
-DO NOT RE-DERIVE: (1) src-tauri/resources/server is a THIRD binary copy - re-run pnpm publish:sidecars after any
-proto/server edit or the bundle probe measures a stale server (it caught exactly that). (2) n42-verify-bundle.mts
-needs node --experimental-transform-types (generated devcontext_pb.ts has a TS enum). (3) NEVER run two Playwright
-probes at once - the first n41 re-run went red purely from that. (4) System.Text.Json's default encoder escapes
-angle brackets + non-ASCII paths; McpConfigWriter pins UnsafeRelaxedJsonEscaping.
-NEXT: N4.3 (ListTools RPC + curated catalog + feed keyed by MCP tool names, replay-in-Studio deep links).
-It REQUIRES Run A's T1 merged in - T1.1-T1.4 are on origin/feat/pre-release-engine, still NOT merged here.
-
+N4.3 PARTIAL - 3 of 4 clauses landed, card AMENDED + left TODO (not claimed done; the deep links are open).
+PRECONDITION DONE: origin/feat/pre-release-engine merged here as 153c99f (T1.1/T1.2 curated menu present).
+Merge note: eval/gates.ps1 kept the desktop file (fail-fast step order) and INSERTED the engine's Step 2c
+(wire-truth + partial-truth MCP probes) after Step 2b; devcontext_pb.ts was regenerated, not hand-merged.
+LANDED: 6c2501e ListMcpTools RPC - spawns devcontext-mcp, real tools/list PLUS one unknown-name call so the
+envelope yields specialists + retired aliases; page renders it; bug #4's literal tool array is GONE. Then the
+feed commit: rows keyed on the MCP verb (ScopedMcpServerTool + channel interceptor -> x-mcp-tool header, names
+in DevContext.Contracts/McpCallHeaders.cs), args_digest revived WITH a producer, analyze finally recorded.
+Gates: slnx 0w/0e, contract-sweep PASS 0 NEW, lint 0, pnpm test 273/273 (28 files), pnpm build clean,
+Server ~Mcp tests 60/60. NOT PROVEN: ListMcpTools has not been driven against a LIVE devcontext-mcp yet.
+NEXT: the deep links. ToolCallEvent field 11 is RESERVED on purpose (R-T1: a field lands with its reader).
+The sidecar already sends x-mcp-arg1-b64. Declare field 11, read it beside argsDigest in RecordToolCall,
+route trace -> Explore at that focus and get_context -> replay-in-Studio. Evidence: eval-results/2026-08-14/N4.3-catalog-served.md
 
 ## Baseline numbers (from run.db)
 

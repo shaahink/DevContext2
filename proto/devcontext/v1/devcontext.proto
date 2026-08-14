@@ -1141,11 +1141,15 @@ message ObserveToolCallsRequest {}
 
 message ToolCallEvent {
   string session_handle = 1;
+  // The gRPC method that ran: GetTrace, GetContextPack, Analyze. Always populated — it is what
+  // this server actually did, and for UI-origin traffic it is the only name there is.
   string tool = 2;
-  // S9 contract sweep — `args_digest` (3) was dead on BOTH ends: nothing ever assigned it and
-  // nothing ever read it, so every event on this stream carried an empty string for it.
-  reserved 3;
-  reserved "args_digest";
+  // N4.3 — REVIVED, with a producer this time. S9's contract sweep removed `args_digest` because
+  // it was dead on both ends: nothing assigned it, nothing read it. It now carries the arguments
+  // the AGENT sent (minus the session handle), summarised to a feed row's width, and the MCP
+  // sidecar is what fills it — see McpCallScope. Empty for UI-origin calls, which have no
+  // arguments an observer would want.
+  string args_digest = 3;
   int64 bytes = 4;
   int64 est_tokens = 5;
   int64 elapsed_ms = 6;
@@ -1155,6 +1159,17 @@ message ToolCallEvent {
   // (native gRPC, i.e. the MCP sidecar). One page load logged 163 UI calls / ~99k tok —
   // agent traffic drowns without this tag; the live feed default-filters to agents.
   string origin = 9;
+  // N4.3 (audit §4 Room 2, "the feed in the agent's vocabulary") — the MCP verb the agent asked
+  // for: `trace`, `get_context`, `analyze`. One verb can be several RPCs, so this is not derivable
+  // from `tool`, and a server-side name table would be the drifting second list BUG-BACKLOG #4
+  // was about. It arrives in a header set by the MCP sidecar's tool layer (McpCallScope), which
+  // is the only place that knows it. Empty for UI-origin calls: the app is not an agent and must
+  // not be rendered as one.
+  string mcp_tool = 10;
+  // 11 is reserved for the deep-link argument (the focus/node id a `trace` row would open in
+  // Explore and a `get_context` row would replay in Studio). It is NOT declared yet on purpose:
+  // R-T1 says a field lands with its reader, and the navigation is the other half of N4.3.
+  reserved 11;
 }
 
 // ---------------------------------------------------------------------------

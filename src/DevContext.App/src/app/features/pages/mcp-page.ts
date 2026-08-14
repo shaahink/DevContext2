@@ -17,7 +17,12 @@ function fmtWireTime(timestampUtcMs: bigint | number): string {
 
 interface ToolCallEntry {
   time: string;
+  /** N4.3 — what to CALL this row: the MCP verb when an agent made it, else the gRPC method. */
   tool: string;
+  /** The gRPC method that actually ran; shown as the subtitle when it differs from `tool`. */
+  rpc: string;
+  /** N4.3 — the arguments the agent sent, minus the handle. Empty for UI-origin calls. */
+  args: string;
   repo: string;
   estTokens: number;
   elapsedMs: number;
@@ -421,8 +426,15 @@ interface WrittenConfig {
                 <div class="flex items-center gap-2 px-3 py-1.5 border-b border-line/30 last:border-0 text-2xs hover:bg-surface-raised">
                   <span class="font-mono tabular-nums text-ink-subtle shrink-0 w-12">{{ e.time }}</span>
                   <span class="chip shrink-0 text-2xs" [class.text-accent]="e.origin === 'agent'">{{ e.origin }}</span>
-                  <span class="font-medium shrink-0 w-20 truncate">{{ e.tool }}</span>
+                  <!-- N4.3 — the agent's word for it. The feed was keyed on the gRPC method, which
+                       is the only name this server ever knew; an agent asked for trace, not
+                       GetTrace, and one verb can be several RPCs. The RPC stays in the tooltip
+                       because it is still what ran. -->
+                  <span class="font-medium shrink-0 w-24 truncate" [title]="e.rpc" data-testid="feed-tool">{{ e.tool }}</span>
                   <span class="text-ink-subtle shrink-0 w-16 truncate">{{ e.repo.split(/[\\/]/).pop() }}</span>
+                  @if (e.args) {
+                    <span class="font-mono text-ink-subtle truncate flex-1 min-w-0" [title]="e.args" data-testid="feed-args">{{ e.args }}</span>
+                  }
                   <span class="font-mono tabular-nums text-ink-subtle">~{{ e.estTokens }}t</span>
                   <span class="font-mono tabular-nums text-ink-subtle">{{ e.elapsedMs }}ms</span>
                 </div>
@@ -889,7 +901,12 @@ export class McpPage implements OnInit, OnDestroy {
             // to receive the row, so a reconnect or a buffered burst stamped old calls "now";
             // timestamp_utc_ms has been on the event since M3.3 and nothing read it.
             time: fmtWireTime(evt.timestampUtcMs),
-            tool: evt.tool,
+            // N4.3 — mcp_tool is the verb the AGENT asked for, stamped by the sidecar's tool layer
+            // (nothing on the server can derive it). It is empty for the app's own traffic, which
+            // is not an agent and must not be dressed as one, so those rows keep the RPC name.
+            tool: evt.mcpTool || evt.tool,
+            rpc: evt.tool,
+            args: evt.argsDigest ?? '',
             repo: evt.sessionRepo ?? '',
             estTokens: Number(evt.estTokens),
             elapsedMs: Number(evt.elapsedMs),

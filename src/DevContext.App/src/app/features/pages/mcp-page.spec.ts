@@ -306,6 +306,42 @@ describe('McpPage', () => {
     expect(text(el, 'feed-total')).toBe('Shown: 9500 tok');
   });
 
+  /**
+   * N4.3 (audit §4, Room 2 "the feed in the agent's vocabulary") — the feed was keyed on the gRPC
+   * method, the only name this server ever knew. An agent asked for `trace`, watched `GetTrace`
+   * go past, and one MCP verb can be several RPCs. The verb now travels from the sidecar's tool
+   * layer in a header, so the row can be spelled the way the agent spelled it.
+   */
+  it('an agent row is keyed on the MCP verb and shows what was asked for', async () => {
+    observeToolCalls.mockReturnValue({
+      async *[Symbol.asyncIterator]() {
+        yield evt({ tool: 'GetTrace', mcpTool: 'trace', argsDigest: 'focus:POST /basket/checkout', origin: 'agent' });
+      },
+    });
+    const { fixture, el } = await createPage();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'feed-tool')).toBe('trace');
+    expect(el.querySelector('[data-testid="feed-tool"]')?.getAttribute('title')).toBe('GetTrace');
+    expect(text(el, 'feed-args')).toBe('focus:POST /basket/checkout');
+  });
+
+  it('a UI row keeps the RPC name — the app is not an agent and is not dressed as one', async () => {
+    observeToolCalls.mockReturnValue({
+      async *[Symbol.asyncIterator]() {
+        yield evt({ tool: 'GetMap', mcpTool: '', argsDigest: '', origin: 'ui' });
+      },
+    });
+    const { fixture, el } = await createPage();
+    (el.querySelector('[data-testid="feed-origin-filter"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 5));
+    fixture.detectChanges();
+
+    expect(text(el, 'feed-tool')).toBe('GetMap');
+    expect(el.querySelector('[data-testid="feed-args"]')).toBeNull();
+  });
+
   it('sessions render the analysis age, not just the session age (§3.F.13)', async () => {
     const analyzedAt = new Date(Date.now() - 7200_000).toISOString(); // 2h ago
     listSessions.mockResolvedValue({ sessions: [session({ fromCache: true, analyzedAt })] });
