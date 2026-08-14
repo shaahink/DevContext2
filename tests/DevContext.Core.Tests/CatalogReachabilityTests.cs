@@ -811,6 +811,40 @@ public sealed class CatalogReachabilityTests
                     """),
             ],
             ArchitectureSignals.Keys.DesktopUi, EntryPointKind.UiEntry),
+
+        // A worker whose registration this repo never shows: Scrutor scanning, a library's own AddXxx()
+        // extension, the Worker SDK's generated host, or a host composed outside the scan scope. There
+        // is deliberately NO AddHostedService<T> anywhere in this fixture.
+        new("hosted-service-unregistered", "Microsoft.NET.Sdk", [], [("OutputType", "Exe")],
+            [
+                ("Workers/InventorySyncWorker.cs", """
+                    using Microsoft.Extensions.Hosting;
+
+                    namespace Consumer.Workers;
+
+                    public sealed class InventorySyncWorker : BackgroundService
+                    {
+                        protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
+                    }
+                    """),
+                ("ServiceRegistration.cs", """
+                    using Microsoft.Extensions.DependencyInjection;
+
+                    namespace Consumer;
+
+                    public static class ServiceRegistration
+                    {
+                        // Scrutor: the worker is registered by assembly scan, never named.
+                        public static IServiceCollection AddWorkers(this IServiceCollection services)
+                            => services.Scan(scan => scan
+                                .FromAssemblyOf<ServiceRegistration>()
+                                .AddClasses(c => c.AssignableTo<Microsoft.Extensions.Hosting.IHostedService>())
+                                .AsImplementedInterfaces()
+                                .WithSingletonLifetime());
+                    }
+                    """),
+            ],
+            null, EntryPointKind.HostedService),
     ];
 
     public static TheoryData<string> ShapeIds()
