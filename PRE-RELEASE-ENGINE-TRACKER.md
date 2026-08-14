@@ -4,22 +4,22 @@
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-A1.1 CLAIMED (b0de331 + this commit). Evidence eval-results/2026-08-14/a1-preregistration/.
-DESIGN.md now carries §0 an amendment log and five dated amendments: unseen repo, question mix
-pinned per repo, the non-inferiority endpoint replaced, κ made applicable, arm BI added. Two
-RESULTS §10.4 figures did NOT survive re-derivation - its reachability table is the acc=1.00
-column called "the best each n can produce" (it is the worst; at acc=0.50 the interval is
-zero-width at every n), and the pairs were pseudo-replicated 5× which makes non-inferiority
-EASIER to declare. New endpoint: question-level, bootstrap over questions, ONE pooled test,
-margin −0.10 (`analyse.mjs --ni-power` prints both surfaces). Unseen repo BUILT and pinned:
-eval/agent-probe/unseen/Driewie/, 132 files, treeSha 9857e03c, `rename-repo.mjs --verify` PASSES,
-build 0 errors/4 warnings matching the unmodified control exactly. Building it found 3 defects
-reading could not - read the ledger note before touching rename-repo.mjs.
-NEXT: A1.2, the $10 adoption gate, now unblocked - pre-registration is committed and DESIGN §3.1
-names the branch to report either way. Run arm B alone on eShop, 18 runs, UNCHANGED prompt, via
-`conductor bg start --purpose probe`. A share <0.2 is a REAL product finding, not a failure.
-NOT DONE, and NOT A1.1's: questions/Driewie.json + the 2nd class-B question per repo (full-run
-W3.8 inputs, must be hand-authored before any full run).
+A1.2 CLAIMED (4f51931). Evidence eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md
++ ADOPTION-GATE.md beside it. THE GATE CLEARS: median per-run mcp_call_share 0.306 vs the
+pre-registered 0.20 floor, so DESIGN §3.1's PROCEED branch fires - W3 runs as specified, arm B
+stays primary, B-vs-G remains a test of the MCP. Pilot (22 undescribed tools) was 0.015, 17/18
+below floor; this batch (14 curated described tools, prompt byte-unchanged) is 5/18 below.
+Pooled 0.354 and mean 0.335 clear too, so the verdict does not turn on the estimator. $6.42,
+0 censored, 0 isolation breaches; two devcontextShas in the rows are REPORT.md + the reporting
+script only, so one binary under test - verified, not assumed.
+THE TRAP THAT ATE s26 AND s27 IS SOLVED, use this shape: a `conductor bg` child dies with its
+parent, so LAUNCH FIRST TURN then BLOCK IN-SESSION on a PowerShell poll loop (45-60s sleeps,
+8-min foreground chunks) until the row count hits target. 18 runs = 22 min wall; ledger resumes
+on (question,arm,rep) so a kill only costs the row in flight.
+NEXT: STAGE A1 IS CLOSED (A1.1+A1.2 both DONE) and Z1.1/Z1.2 are the only open cards left in the
+run. Z1.1 wants "whatever A1.2 earned" in the README: the honest sentence is the 0.015 -> 0.306
+move on an unchanged prompt, and note adoption is not dominance (80 mcp vs 146 native calls).
+STILL UNBUILT, owned by nobody: questions/Driewie.json + the 2nd class-B question per repo.
 
 
 ## Baseline numbers (from run.db)
@@ -27,7 +27,7 @@ W3.8 inputs, must be hand-authored before any full run).
 | Metric | Value |
 |---|---|
 | Total checkpoints | 20 |
-| Done | 15 |
+| Done | 16 |
 | Claimed (unconfirmed) | 1 |
 
 ## Checkpoints
@@ -74,14 +74,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | DONE | 557537c | eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md |
+| R1.1 | #22/#23/#24 recalibrated against the post-E1 graph or retired; each surviving threshold carries a comment stating the measurement and the calibration commit | DONE ✓ | 557537c | eval-results/2026-08-14/r1-metrics/R1.1-EVIDENCE.md |
 
 ### A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | TODO | - | - |
-| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | TODO | - | - |
+| A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | DONE | 1d30e02 | eval-results/2026-08-14/a1-preregistration/A1.1-EVIDENCE.md |
+| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | IN PROGRESS | - | - |
 
 ### Z1 — Close-out: README honesty pass, release-gate statuses, backlog reconciliation
 
