@@ -1,22 +1,23 @@
-# DevContext pre-release - desktop agent loop Phase Tracker
+﻿# DevContext pre-release - desktop agent loop Phase Tracker
 
 **Plan:** DevContext pre-release - desktop agent loop | **Branch:** `feat/pre-release-desktop` | **Design doc:** docs/dev/research/PRE-RELEASE-PLAN-2026-08-13.md
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
 
-N4.3 PARTIAL - 3 of 4 clauses landed, card AMENDED + left TODO (not claimed done; the deep links are open).
-PRECONDITION DONE: origin/feat/pre-release-engine merged here as 153c99f (T1.1/T1.2 curated menu present).
-Merge note: eval/gates.ps1 kept the desktop file (fail-fast step order) and INSERTED the engine's Step 2c
-(wire-truth + partial-truth MCP probes) after Step 2b; devcontext_pb.ts was regenerated, not hand-merged.
-LANDED: 6c2501e ListMcpTools RPC - spawns devcontext-mcp, real tools/list PLUS one unknown-name call so the
-envelope yields specialists + retired aliases; page renders it; bug #4's literal tool array is GONE. Then the
-feed commit: rows keyed on the MCP verb (ScopedMcpServerTool + channel interceptor -> x-mcp-tool header, names
-in DevContext.Contracts/McpCallHeaders.cs), args_digest revived WITH a producer, analyze finally recorded.
-Gates: slnx 0w/0e, contract-sweep PASS 0 NEW, lint 0, pnpm test 273/273 (28 files), pnpm build clean,
-Server ~Mcp tests 60/60. NOT PROVEN: ListMcpTools has not been driven against a LIVE devcontext-mcp yet.
-NEXT: the deep links. ToolCallEvent field 11 is RESERVED on purpose (R-T1: a field lands with its reader).
-The sidecar already sends x-mcp-arg1-b64. Declare field 11, read it beside argsDigest in RecordToolCall,
-route trace -> Explore at that focus and get_context -> replay-in-Studio. Evidence: eval-results/2026-08-14/N4.3-catalog-served.md
+N4.3 CLOSED (4 of 4) and CLAIMED DONE. Stage N4 is complete; next session starts Z1.
+LANDED s22: a4896f2 - ToolCallEvent field 11 (primary_arg) declared WITH its reader; server decodes
+x-mcp-arg1-b64 beside args_digest; feed rows render open/replay and navigate. The routing decision is
+keyed on the gRPC METHOD the server recorded, read off the generated descriptor
+(DevContextService.method.getTrace.name), NEVER on the MCP tool name - a name table here is bug #4's
+disease. GetTrace/GetNode/GetImpact -> /explore?focus; GetContext/GetContextPack -> Studio via
+StudioHandoffStore. A row whose repo is not open adopts that live session first or refuses out loud.
+c41f489 - eval/mcp-qa/deep-link-truth.js drives a REAL sidecar and subscribes to ObserveToolCalls over
+gRPC-web: 10/10 PASS (GetTrace + GetContext both carry primary_arg="GET /"). Now a gate in step 2c
+beside partial-truth. It also closed s21's NOT PROVEN - ListMcpTools live: 14 advertised, 8 specialists.
+Gates: pnpm test 277/277 (28 files), pnpm build clean, Server + Mcp builds 0w/0e, contract-sweep 0 NEW.
+NEXT (Z1.1): step 2c now costs ~1-2min more; Z1.2 screenshots need a restarted dev server (trap 5) and
+10-mcp visibly changed (feed rows gained an open/replay affordance). Evidence: eval-results/2026-08-14/N4.3-deep-links.md
+
 
 ## Baseline numbers (from run.db)
 

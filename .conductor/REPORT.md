@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 02:44 UTC · branch `feat/pre-release-desktop` · HEAD `15f604b`_
+_Updated 2026-08-14 03:34 UTC · branch `feat/pre-release-desktop` · HEAD `fbb929b`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [6h 08m ago, 20:36:43Z]
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [6h 57m ago, 20:36:43Z]
 **Stage:** N4 — MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) · attempts used 0 · working ▸ N4.3
-**Checkpoints:** 13/16 done · **Sessions run:** 20 · **Cost:** $149.3521 (agent $149.1805 + gates $0.1716) · **Tokens:** 2,302,758 in / 937,186 out
+**Checkpoints:** 13/16 done · **Sessions run:** 21 · **Cost:** $165.6116 (agent $165.4400 + gates $0.1716) · **Tokens:** 2,531,825 in / 1,025,572 out
 **Confirmed phases:** N0, N1, N2, M1, N3
 
 ## Stage progress
@@ -70,7 +70,7 @@ _Updated 2026-08-14 02:44 UTC · branch `feat/pre-release-desktop` · HEAD `15f6
 | # | Title | Status | Commit |
 |---|---|---|---|
 | N4.1 | Status that measures: binary fs probe; ObserverCount + last-agent-call-at on the wire and rendered; handshake = one real MCP tools/list round-trip shown; Start/Stop killed or renamed to what it does | ✅ DONE | [`55d256a`](https://github.com/shaahink/DevContext2/commit/55d256a) |
-| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | ✅ DONE | - |
+| N4.2 | Setup that works: devcontext-mcp ships in the Tauri bundle; snippets carry the resolved absolute path; write-config-for-me button per host | ✅ DONE | [`d48a122`](https://github.com/shaahink/DevContext2/commit/d48a122) |
 | N4.3 | The catalog served: ListTools RPC (kills #4 structurally); page renders the curated described menu agents actually get (requires T1 merged in); feed keyed by MCP tool names (analyze wrapped, args digest, wire timestamps); rows deep-link — trace→Explore, get_context→replay-in-Studio | ⬜ TODO | - |
 
 </details>
@@ -108,6 +108,7 @@ _Updated 2026-08-14 02:44 UTC · branch `feat/pre-release-desktop` · HEAD `15f6
 | 18 | N3 | Deliver | 1 | 08-14 00:25 | 0:33 | Advanced | N3.2 | 3 | gates green (none configured) | $11.5801 |  | 158,207/57,297 |
 | 19 | N4 | Deliver | 1 | 08-14 01:16 | 0:54 | Advanced | N4.1 | 6 | gates green (none configured) | $13.1109 |  | 183,047/92,185 |
 | 20 | N4 | Deliver | 1 | 08-14 02:10 | 0:33 | Advanced | N4.2 | 3 | gates green (none configured) | $12.5393 |  | 179,580/77,366 |
+| 21 | N4 | Deliver | 1 | 08-14 02:44 | 0:49 | Progress |  | 83 | gates green (none configured) | $16.2595 |  | 229,067/88,386 |
 
 ## Money
 
@@ -115,24 +116,22 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 19 | 190.8M | 98.4% | $136.83 | 12 | 15.9M | $11.40 |
+| **run total** | 20 | 208.7M | 98.4% | $149.37 | 13 | 16.1M | $11.49 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
 | stage N3 | 2 | 34.6M | 98.6% | $23.90 | 2 | 17.3M | $11.95 |
-| stage N4 | 1 | 18.2M | 98.5% | $13.11 | 1 | 18.2M | $13.11 |
-| 2026-08 | 19 | 190.8M | 98.4% | $136.83 | 12 | 15.9M | $11.40 |
+| stage N4 | 2 | 36.1M | 98.5% | $25.65 | 2 | 18M | $12.83 |
+| 2026-08 | 20 | 208.7M | 98.4% | $149.37 | 13 | 16.1M | $11.49 |
 
-_Where the money goes: agent $136.64 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $149.18 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 22:48:23  ▪ gate fast-app pass [phase]  (14m03s)
-08-13 22:48:23  ▪ gate fast-engine pass [phase]  (4m34s)
 08-13 22:48:23  ▪ gate guards pass [phase]  (3m29s)
 08-13 22:48:23  ▪ gate battery pass [phase]  (18m29s)
 08-13 22:48:23  ✓ checkpoint N2.1 confirmed
@@ -171,6 +170,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 02:16:16  • session #19 N4 Deliver started (attempt 1/6)
 08-14 03:10:59  • session #19 N4 → Advanced · done N4.1 · 6 commit(s)  (54m42s)
 08-14 03:10:59  • session #20 N4 Deliver started (attempt 1/6)
+08-14 03:44:51  • session #20 N4 → Advanced · done N4.2 · 3 commit(s)  (33m51s)
+08-14 03:44:52  • session #21 N4 Deliver started (attempt 1/6)
 ```
 
 ## Health
@@ -178,7 +179,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 20 · retries 7 (35 %) · overall Alert
+sessions 21 · retries 7 (33 %) · overall Alert
 ⛔ [same-failure-loop] stage N2: 6 consecutive sessions made no progress
 ⚠ [context-saturation] session #14: 20,388,199 context tokens (≥ 20,000,000)
 ⚠ [gate-oscillation] gate 'battery' flipped pass/fail 3x
@@ -196,10 +197,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s13 (N2 Deliver)** — 3 commit(s):
-  - [`2ceb4b3`](https://github.com/shaahink/DevContext2/commit/2ceb4b3) docs(tracker): N2.2 handoff — stage N2 closed, start at N3.1
-  - [`7ff60eb`](https://github.com/shaahink/DevContext2/commit/7ff60eb) chore(gates): abort != fail, node_modules preflight, fail-fast step order
-  - [`aab7cf3`](https://github.com/shaahink/DevContext2/commit/aab7cf3) feat(studio): N2.2 honesty-note parity + one pack-budget number
 - **s14 (M1 Deliver)** — 15 commit(s):
   - [`cc29c12`](https://github.com/shaahink/DevContext2/commit/cc29c12) Merge remote-tracking branch 'origin/feat/pre-release-desktop' into feat/pre-release-desktop
   - [`3a10029`](https://github.com/shaahink/DevContext2/commit/3a10029) feat(wire): M1.1 items 2+3 - two file-addressed reads, both capped and both contained
@@ -238,26 +235,38 @@ vs upstream: up to date
   - [`15f604b`](https://github.com/shaahink/DevContext2/commit/15f604b) docs(n4): N4.2 evidence - measured against the published bundle, not just the dev build
   - [`7486a73`](https://github.com/shaahink/DevContext2/commit/7486a73) feat(mcp-page): N4.2 - the page renders the server's setup cards and can write the config
   - [`d48a122`](https://github.com/shaahink/DevContext2/commit/d48a122) feat(mcp): N4.2 - ship devcontext-mcp in the bundle, and write the host config for the user
+- **s21 (N4 Deliver)** — 83 commit(s):
+  - [`fbb929b`](https://github.com/shaahink/DevContext2/commit/fbb929b) feat(mcp): N4.3 - the live feed speaks the agent's vocabulary, and analyze stops being invisible
+  - [`6c2501e`](https://github.com/shaahink/DevContext2/commit/6c2501e) feat(mcp-page): N4.3 - the catalog is served, not restated (bug #4 dies structurally)
+  - [`153c99f`](https://github.com/shaahink/DevContext2/commit/153c99f) merge: bring the engine run's T1 curated MCP catalog onto the desktop branch (N4.3 precondition)
+  - [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) chore(conductor): s24 R1 Advanced — Idle
+  - [`b72cb7d`](https://github.com/shaahink/DevContext2/commit/b72cb7d) chore(tracker): R1.1 handoff for the next session (R1.1)
+  - [`372f77c`](https://github.com/shaahink/DevContext2/commit/372f77c) docs(metrics): the surviving threshold names its calibration commit (R1.1)
+  - [`557537c`](https://github.com/shaahink/DevContext2/commit/557537c) refactor(metrics): two metrics retire on measurement, one has its premise refuted (R1.1)
+  - [`eb98517`](https://github.com/shaahink/DevContext2/commit/eb98517) chore(conductor): s23 D1 Advanced — Idle
+  - [`cb2760a`](https://github.com/shaahink/DevContext2/commit/cb2760a) chore(conductor): s23 D1 Advanced — Idle
+  - [`ded5493`](https://github.com/shaahink/DevContext2/commit/ded5493) docs(d1): D1.4 evidence and the handoff for the next session (D1.4)
+  - [`cbae476`](https://github.com/shaahink/DevContext2/commit/cbae476) refactor(detection): Confidence moves to the one detection that is read, 27 writes go (D1.3 leftover)
+  - [`a221296`](https://github.com/shaahink/DevContext2/commit/a221296) feat(detection): a Hangfire or Quartz consumer app finally has entry points (D1.4)
 
 ## Last session result
 
-> SESSION-RESULT: **N4.2 landed, claimed and pushed** (`d48a122` server+bundle, `7486a73` page+specs, `15f604b` evidence; evidence at `eval-results/2026-08-14/N4.2-setup-that-works.md`). `devcontext-mcp` now ships in the Tauri bundle — `pnpm publish:sidecars` publishes it into `src-tauri/resources/server` beside the server and `beforeBuildCommand` runs it, so the page's old "ships with the installer" claim is finally true; the host snippets are no longer built in the page at all but arrive on `GetMcpStatusResponse.hosts`, composed by the same server code that writes the config, around the path the probe resolved; and a new `WriteMcpConfig(handle, host)` RPC writes and **merges** `.mcp.json` / …
+> SESSION-RESULT: N4.3 landed **3 of its 4 clauses** and is honestly recorded as partial — the card is amended and back at TODO rather than claimed done, because the deep links did not land. The precondition is closed: `origin/feat/pre-release-engine` is merged here as **153c99f**, bringing T1's curated 14-advertised/8-specialist menu with descriptions on the wire (five conflicts; the load-bearing one is `eval/gates.ps1`, where I kept the desktop's fail-fast step order and *inserted* the engine's new Step 2c wire-truth probes after Step 2b, so the battery now runs both branches' work). **6c2501e** serves the catalog: a new `ListMcpTools` RPC spawns `devcontext-mcp`, runs a real `tools/list` an…
 
 ## Tracker handoff
 
 ```
-N4.2 LANDED + CLAIMED (d48a122 server/bundle, 7486a73 page, evidence eval-results/2026-08-14/N4.2-setup-that-works.md).
-devcontext-mcp now ships in the bundle (pnpm publish:sidecars = server + mcp into src-tauri/resources/server,
-beforeBuildCommand runs it); snippets are composed SERVER-side on GetMcpStatusResponse.hosts around the probed
-path (the page owns no snippet template any more); new RPC WriteMcpConfig(handle,host) writes+MERGES
-.mcp.json / .cursor/mcp.json / .vscode/mcp.json into the ANALYZED repo, refusing an unparseable file and
-reporting "unchanged" honestly. Gates: slnx 0w/0e, 14/14 McpConfigWriteTests, pnpm lint 0, pnpm test 267/267
-(was 256), n42-verify-setup.mts 11/11, n42-verify-bundle.mts 5/5, n41-verify-status.mts 8/8.
-DO NOT RE-DERIVE: (1) src-tauri/resources/server is a THIRD binary copy - re-run pnpm publish:sidecars after any
-proto/server edit or the bundle probe measures a stale server (it caught exactly that). (2) n42-verify-bundle.mts
-needs node --experimental-transform-types (generated devcontext_pb.ts has a TS enum). (3) NEVER run two Playwright
-probes at once - the first n41 re-run went red purely from that. (4) System.Text.Json's default encoder escapes
-angle brackets + non-ASCII paths; McpConfigWriter pins UnsafeRelaxedJsonEscaping.
-NEXT: N4.3 (ListTools RPC + curated catalog + feed keyed by MCP tool names, replay-in-Studio deep links).
-It REQUIRES Run A's T1 merged in - T1.1-T1.4 are on origin/feat/pre-release-engine, still NOT merged here.
+N4.3 PARTIAL - 3 of 4 clauses landed, card AMENDED + left TODO (not claimed done; the deep links are open).
+PRECONDITION DONE: origin/feat/pre-release-engine merged here as 153c99f (T1.1/T1.2 curated menu present).
+Merge note: eval/gates.ps1 kept the desktop file (fail-fast step order) and INSERTED the engine's Step 2c
+(wire-truth + partial-truth MCP probes) after Step 2b; devcontext_pb.ts was regenerated, not hand-merged.
+LANDED: 6c2501e ListMcpTools RPC - spawns devcontext-mcp, real tools/list PLUS one unknown-name call so the
+envelope yields specialists + retired aliases; page renders it; bug #4's literal tool array is GONE. Then the
+feed commit: rows keyed on the MCP verb (ScopedMcpServerTool + channel interceptor -> x-mcp-tool header, names
+in DevContext.Contracts/McpCallHeaders.cs), args_digest revived WITH a producer, analyze finally recorded.
+Gates: slnx 0w/0e, contract-sweep PASS 0 NEW, lint 0, pnpm test 273/273 (28 files), pnpm build clean,
+Server ~Mcp tests 60/60. NOT PROVEN: ListMcpTools has not been driven against a LIVE devcontext-mcp yet.
+NEXT: the deep links. ToolCallEvent field 11 is RESERVED on purpose (R-T1: a field lands with its reader).
+The sidecar already sends x-mcp-arg1-b64. Declare field 11, read it beside argsDigest in RecordToolCall,
+route trace -> Explore at that focus and get_context -> replay-in-Studio. Evidence: eval-results/2026-08-14/N4.3-catalog-served.md
 ```
