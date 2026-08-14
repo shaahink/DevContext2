@@ -122,16 +122,20 @@ delete-or-build (owner call, desktop audit M7).
 
 ## 8. Release gates (from DEEP-EVAL §4, tracked in Run A's Z1)
 
-| # | Gate | Owner |
-|---|---|---|
-| 1 | Ripgrep test passes on the five shapes of PRODUCT-DIRECTION §9 | Z1 records status |
-| 2 | Wire-truth gate green in the battery | T1.4 builds it; battery enforces |
-| 3 | Arm-B adoption ≥ 0.2 with described+curated surface | A1.2 (~$10) |
-| 4 | Unseen-repo non-inferiority at a stated cost band | owner-gated full study (§6) |
-| 5 | README claims ⊆ measurements | Z1 honesty pass |
+| # | Gate | Owner | Status (recorded by Z1.1, 2026-08-14) |
+|---|---|---|---|
+| 1 | Ripgrep test passes on the five shapes of PRODUCT-DIRECTION §9 | Z1 records status | **NOT MET — not runnable as specified.** Measured on this box: `eval-repos/` holds `eShop`, `TodoApi`, `VerticalSlice` only, so 2 of the 5 shapes (Minimal API, CQRS/DDD) have a repo; **DntSite** (Controller Web API) has no checkout and **AutoMapper** (Library) is not in `eval-repos.json` at all; the **Blazor** row of §9 still reads "(add one)" — that shape was never assigned a repo. Closing this needs a repo decision, not a measurement pass. |
+| 2 | Wire-truth gate green in the battery | T1.4 builds it; battery enforces | **MET.** Step 2c of `eval/gates.ps1`, enforced on every full run: 14/14 tools described, 52/52 params, entry names round-trip into `get_context`/`trace`, every elision names its `budgetTokens` lever, out-of-range enums rejected. Green in the Z1 battery. |
+| 3 | Arm-B adoption ≥ 0.2 with described+curated surface | A1.2 (~$10) | **MET.** Median per-run `mcp_call_share` **0.306** vs the pre-registered **0.20** floor (pooled 0.354, mean 0.335); pilot on the 22-tool undescribed surface was 0.015. 18 runs, $6.42, prompt byte-unchanged. → `eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md` |
+| 4 | Unseen-repo non-inferiority at a stated cost band | owner-gated full study (§6) | **NOT RUN — owner-gated (~$200), by design.** A1.1 delivered what it runs on: the amended pre-registration (`eval/agent-probe/DESIGN.md`) and a build-verified identifier-renamed unseen repo. The allowed-to-fail branch is therefore the live one — see the Status line below. |
+| 5 | README claims ⊆ measurements | Z1 honesty pass | **MET (this pass).** Four claims were false or unmeasured and are now corrected: the MCP surface (22 tools → 14 advertised + 8 unlisted, five places), the graph layout ("Cytoscape dagre" → Cytoscape over ELK layered), "no hallucinated code" (contradicted by BUG-BACKLOG #6's measured phantom member nodes), and the gate-battery block (listed five commands that are not the battery). The agent story is now stated as measured, with the primer-not-accelerator limit named. |
 
 Gate 4 is allowed to fail: the release is then human lens + agent primer with a true README
 (DEEP-EVAL §4). What is not on the table is releasing the claim untested a second time.
+
+**Status as of 2026-08-14: that fallback branch is the live one.** Gate 4 has not been run, so the
+README claims a primer and explicitly says the accelerator claim is not established. Gates 2, 3 and 5
+are met; gate 1 is blocked on repos, not on the engine.
 
 ## 9. Launch drill (operator checklist — nothing here is done by the runs themselves)
 
