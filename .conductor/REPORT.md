@@ -1,10 +1,10 @@
 ﻿# Conductor — DevContext pre-release - engine and agent face run report
 
-_Updated 2026-08-14 04:08 UTC · branch `feat/pre-release-engine` · HEAD `76a7e2b`_
+_Updated 2026-08-14 05:02 UTC · branch `feat/pre-release-engine` · HEAD `4ad7e9b`_
 
 **Status:** Idle
-**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 0 · working ▸ A1.2
-**Checkpoints:** 17/20 done · **Sessions run:** 27 · **Cost:** $207.6327 (agent $207.4452 + gates $0.1876) · **Tokens:** 3,245,549 in / 1,386,639 out
+**Stage:** A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate · attempts used 1
+**Checkpoints:** 18/20 done · **Sessions run:** 28 · **Cost:** $209.7993 (agent $209.6117 + gates $0.1876) · **Tokens:** 3,308,507 in / 1,407,656 out
 **Confirmed phases:** T1, V1, E1, D1, R1
 
 ## Stage progress
@@ -16,7 +16,7 @@ _Updated 2026-08-14 04:08 UTC · branch `feat/pre-release-engine` · HEAD `76a7e
 | E1 | W2 edge completeness batch (11, 12 via TextSpan, re-measure 8, 7) + dogfood invariant | ██████████ 4/4 | confirmed ✓ |
 | D1 | W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs) | ██████████ 4/4 | confirmed ✓ |
 | R1 | W6 metric recalibration (22, 23, 24) against the post-E1 graph | ██████████ 1/1 | confirmed ✓ |
-| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | █████░░░░░ 1/2 | **← active** |
+| A1 | W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate | ██████████ 2/2 | gating… |
 | Z1 | Close-out: README honesty pass, release-gate statuses, backlog reconciliation | ░░░░░░░░░░ 0/2 | todo |
 
 <details> ✅<summary>T1 — W1 agent-surface trust pack (bug 5 by measurement, curated menu, partial-truth family, wire-truth gate) (4/4)</summary>
@@ -70,12 +70,12 @@ _Updated 2026-08-14 04:08 UTC · branch `feat/pre-release-engine` · HEAD `76a7e
 
 </details>
 
-<details><summary>A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate (1/2)</summary>
+<details> ✅<summary>A1 — W3 re-probe prep (DESIGN amendments, unseen repo) + the 10-dollar adoption gate (2/2)</summary>
 
 | # | Title | Status | Commit |
 |---|---|---|---|
 | A1.1 | DESIGN.md amended IN WRITING before any run, per RESULTS §10: unseen-repo protocol (identifier-renamed public repo prepared and committed), question mix (2× class B, E/F at half), non-inferiority bar re-specified at a reachable level, κ-on-20% rule with degenerate-marginal handling, B-instructed arm added | ✅ DONE | [`1d30e02`](https://github.com/shaahink/DevContext2/commit/1d30e02) |
-| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | 🔄 IN PROGRESS | - |
+| A1.2 | The pre-registered adoption gate: arm B alone, eShop, 18 runs, unchanged prompt, run as a bg child; mcp_call_share reported against the 0.2 floor with the pre-registered branch stated either way | ✅ DONE | [`4f51931`](https://github.com/shaahink/DevContext2/commit/4f51931) |
 
 </details>
 
@@ -119,6 +119,7 @@ _Updated 2026-08-14 04:08 UTC · branch `feat/pre-release-engine` · HEAD `76a7e
 | 25 | A1 | Deliver | 1 | 08-14 03:08 | 0:38 | Advanced | A1.1 | 5 | gates green (none configured) | $14.4701 |  | 197,178/118,885 |
 | 26 | A1 | Deliver | 1 | 08-14 03:47 | 0:11 | Progress |  | 2 | gates green (none configured) | $3.7595 |  | 89,159/30,359 |
 | 27 | A1 | Deliver | 1 | 08-14 03:59 | 0:09 | Progress |  | 1 | gates green (none configured) | $2.2953 |  | 78,089/15,861 |
+| 28 | A1 | Deliver | 1 | 08-14 04:08 | 0:31 | Advanced | A1.2 | 2 | gates green (none configured) | $2.1665 |  | 62,958/21,017 |
 
 ## Money
 
@@ -126,28 +127,22 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 26 | 283.6M | 98.4% | $205.36 | 17 | 16.7M | $12.08 |
+| **run total** | 28 | 288M | 98.4% | $209.82 | 18 | 16M | $11.66 |
 | stage T1 | 4 | 68M | 98.5% | $48.38 | 4 | 17M | $12.10 |
 | stage V1 | 3 | 51.3M | 98.5% | $36.51 | 3 | 17.1M | $12.17 |
 | stage E1 | 12 | 74.2M | 98.4% | $53.35 | 4 | 18.6M | $13.34 |
 | stage D1 | 4 | 51.9M | 98.3% | $38.33 | 4 | 13M | $9.58 |
 | stage R1 | 1 | 14.5M | 98.3% | $10.57 | 1 | 14.5M | $10.57 |
-| stage A1 | 2 | 23.7M | 98.2% | $18.23 | 1 | 23.7M | $18.23 |
-| 2026-08 | 26 | 283.6M | 98.4% | $205.36 | 17 | 16.7M | $12.08 |
+| stage A1 | 4 | 28.1M | 97.8% | $22.69 | 2 | 14.1M | $11.35 |
+| 2026-08 | 28 | 288M | 98.4% | $209.82 | 18 | 16M | $11.66 |
 
-_Where the money goes: agent $205.15 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $209.61 (100%) · gate $0.19 (0%) · advisor $0.02 (0%) · blended $0.73/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-14 00:54:48  ▪ gate guards pass [phase]  (1m35s)
-08-14 00:54:48  ▪ gate battery pass [phase]  (12m59s)
-08-14 00:54:48  ✓ checkpoint E1.1 confirmed
-08-14 00:54:48  ✓ checkpoint E1.2 confirmed
-08-14 00:54:48  ✓ checkpoint E1.3 confirmed
-08-14 00:54:48  ✓ checkpoint E1.4 confirmed
 08-14 00:54:48  ▸ stage E1 confirmed  (3h20m41s)
 08-14 00:55:02  ▸ stage D1 entered — W5 detection declared-coverage (reachability instrument, hole closures, filed set, rung-4 jobs)
 08-14 00:55:03  • session #20 D1 Deliver started (attempt 1/6)
@@ -182,6 +177,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 04:47:10  • session #26 A1 Deliver started (attempt 1/4)
 08-14 04:58:58  • session #26 A1 → Progress · 2 commit(s)  (11m47s)
 08-14 04:59:01  • session #27 A1 Deliver started (attempt 1/4)
+08-14 05:08:35  • session #27 A1 → Progress · 1 commit(s)  (9m34s)
+08-14 05:08:39  • session #28 A1 Deliver started (attempt 1/4)
+08-14 05:39:59  • session #28 A1 → Advanced · done A1.2 · 2 commit(s)  (31m19s)
+08-14 06:02:54  ▪ gate fast-engine FAIL [phase]  (2m16s)
+08-14 06:02:54  ▪ gate guards pass [phase]  (2m41s)
+08-14 06:02:54  ▪ gate battery FAIL [phase]  (3m43s)
 ```
 
 ## Health
@@ -189,7 +190,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 27 · retries 8 (30 %) · overall Alert
+sessions 28 · retries 8 (29 %) · overall Alert
 ⛔ [same-failure-loop] stage E1: 8 consecutive sessions made no progress
 ⚠ [context-saturation] session #16: 23,675,141 context tokens (≥ 20,000,000)
 ⚠ [context-saturation] session #4: 20,624,874 context tokens (≥ 20,000,000)
@@ -202,15 +203,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-engine
-working tree: M .conductor/REPORT.md, M PRE-RELEASE-ENGINE-TRACKER.md, ?? eval/agent-probe/results/a1.2-adoption-gate/
-vs upstream: 3 ahead
+working tree: M PRE-RELEASE-ENGINE-TRACKER.md, M eval-results/2026-08-14/mcp-qa.md
+vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s19 (E1 Deliver)** — 2 commit(s):
-  - [`1fbadde`](https://github.com/shaahink/DevContext2/commit/1fbadde) fix(graph): a REQUEST MARKER is not a handler, and its type arg is the RESPONSE (E1.4)
-  - [`6d0dbac`](https://github.com/shaahink/DevContext2/commit/6d0dbac) eval(e1): the class-C impact question, asked of the engine over a real MCP session (E1.4)
 - **s21 (D1 Deliver)** — 6 commit(s):
   - [`00fe9ca`](https://github.com/shaahink/DevContext2/commit/00fe9ca) chore(eval): MCP QA run artifact from the truth gate (D1.2)
   - [`6e026d2`](https://github.com/shaahink/DevContext2/commit/6e026d2) docs(d1): D1.2 evidence, the TimedJob measurement, and the handoff (D1.2)
@@ -242,28 +240,105 @@ vs upstream: 3 ahead
   - [`c1d1ed7`](https://github.com/shaahink/DevContext2/commit/c1d1ed7) eval(probe): a re-measurement gets its own ledger, and the revised surface is measured first (A1.2)
 - **s27 (A1 Deliver)** — 1 commit(s):
   - [`76a7e2b`](https://github.com/shaahink/DevContext2/commit/76a7e2b) eval(probe): the gate names which pre-flight assertions a B-only batch can carry (A1.2)
+- **s28 (A1 Deliver)** — 2 commit(s):
+  - [`ec64ea9`](https://github.com/shaahink/DevContext2/commit/ec64ea9) chore(tracker): hand off the cleared adoption gate; stage A1 closed (A1.2)
+  - [`4f51931`](https://github.com/shaahink/DevContext2/commit/4f51931) eval(probe): the adoption gate clears - a described surface moves unprompted use 20x (A1.2)
+
+## Last gate run
+
+fast-engine:FAIL-retry · guards:OK · battery:FAIL-retry
+
+<details><summary>fast-engine — exit 2</summary>
+
+```
+[conductor] retried once (SC4.1): the first attempt exited 2 after 106s. Below is the SECOND run.
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 1a: Contract sweep (dead proto fields) ---
+  PASS  Contract sweep clean (every response field read or allow-listed with a reason)
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+Test run for C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0) A total of 1 test files matched the specified pattern. Test run for C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0) A total of 1 test files matched the specified pattern. No test matches the given testcase filter `Category=McpQa` in C:\Code\DevContext2-engine\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll  [xUnit.net 00:00:39.06]     DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [FAIL]   Failed DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood [38 s]   Error Message:    MCP QA harness failed (exit 1 --- stderr ---  --- stdout --- DevContext MCP QA Harness (M4 post-gate) Repo: C:/Users/shahi/source/repos/run-aspnetcore-microservices/src MCP:  C:\Code\DevContext2-engine\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe    q1-overview: What is this repo? (one-call repo brief) ... PASS     overview 199 tok, archetype=true flows=true counts=true services=true  [1c 199tok]   q2-checkout-flow: How does checkout work? ... PASS     trace found: 46 steps, cross-service, 1476 tok  [1c 1476tok]   q3-discount-callers: Who calls the Discount service? ... PASS     10 Discount matches, usages=true  [2c 699tok]   q4-impact-of-handler: What breaks if I change CheckoutBasketCommandHandler? ... PASS     impact up=5 down=12 total=17  [3c 1146tok]   q5-ambiguous-product: What is Product? (disambiguation check) ... PASS     resolve returned 10 candidates, ambiguous=true, hint=yes  [1c 584tok]   q6-config-lookup: What config keys are used? ... PASS     config returned 4 keys  [1c 297tok]   q7-tests-for: What tests cover CheckoutBasketCommandHandler? ... PASS     tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler  [2c 182tok]   q8-query-addressing: Address impact/node/read_source by fuzzy query (not nodeId)? ... PASS     queryΓåÆ impact=true node=true read_source=true  [3c 717tok]   q9-entrypoints-summary: List entry points as a bounded summary (not a token wall)? ... FAIL     byKind=true, showing 15/34 (848tok), fullΓåÆ0  [2c 951tok]   q10-self-describing: Do best-effort tools explain their method (what 0 means)? ... FAIL     method note: tests_for=false, config=false  [3c 172tok]   q11-trace-budget: Does trace respect a token budget with named omissions? ... FAIL     budget400: 0 steps/undefinedtok omitted=undefined; full: 0 steps/undefinedtok  [2c 84tok]  ======================================== QA Scored Table (M4 post-gate) ======================================== | Question     | Pass | Calls | Tokens | Detail | |--------------|------|-------|--------|--------| | q1-overview  | YES  | 1     | 199    | overview 199 tok, archetype=true flows=true counts=true services=true | | q2-checkout-flow | YES  | 1     | 1476   | trace found: 46 steps, cross-service, 1476 tok | | q3-discount-callers | YES  | 2     | 699    | 10 Discount matches, usages=true | | q4-impact-of-handler | YES  | 3     | 1146   | impact up=5 down=12 total=17 | | q5-ambiguous-product | YES  | 1     | 584    | resolve returned 10 candidates, ambiguous=true, hint=yes | | q6-config-lookup | YES  | 1     | 297    | config returned 4 keys | | q7-tests-for | YES  | 2     | 182    | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler | | q8-query-addressing | YES  | 3     | 717    | queryΓåÆ impact=true node=true read_source=true | | q9-entrypoints-summary | NO   | 2     | 951    | byKind=true, showing 15/34 (848tok), fullΓåÆ0 | | q10-self-describing | NO   | 3     | 172    | method note: tests_for=false, config=false | | q11-trace-budget | NO   | 2     | 84     | budget400: 0 steps/undefinedtok omitted=undefined; full: 0 steps/undefinedtok | | gate-checkout | NO   | 2     | 77     | 2 calls, 77 tok, found=false, 0 steps, cross-service=false |  QA Score: 8/12 passing (67%) Gate (checkout <=3c/2ktok): FAIL Gate (QA >=90% actionable): FAIL )   Stack Trace:      at DevContext.Core.Tests.McpQaGateTests.McpQaHarness_Passes_Against_Dogfood() in C:\Code\DevContext2-engine\tests\DevContext.Core.Tests\McpQaGateTests.cs:line 66 --- End of stack trace from previous location ---  Failed!  - Failed:     1, Passed:     1, Skipped:     0, Total:     2, Duration: 38 s - DevContext.Core.Tests.dll (net10.0)
+  FAIL  MCP QA gate failed
+
+GATE: FAIL (step 2b - MCP QA)
+```
+</details>
+
+<details><summary>battery — exit 5</summary>
+
+```
+handle: 59193a11ee62449db9c73b3ec5355947
+  PASS  [#2] every entrypoints title resolves in get_context AND trace - 12 titles round-tripped
+  PASS  [#6] trace(nodeId) never renders a phantom whose title IS its kind - 12 nodeIds
+  PASS  [#6] a found:true trace with 0 steps says WHY (note) instead of an empty tree - no silent empty trace
+  PASS  [#6] trace(nodeId) is not weaker than trace(bare name) for the same node - id and name agree
+  PASS  [#9] the probe found a real elided pack to judge (else the check is vacuous) - Extensions elides +64 lines
+  PASS  [#9] no pack claims 'everything reachable' while its own text shows an elision - no false completeness claim
+  PASS  [#9] every elided pack names the elision AND the budgetTokens lever - all elisions named
+  PASS  [#10] an out-of-range enum is rejected, not silently re-read - Invalid mode: 'full'.
+partial-truth: GREEN
+  PASS  partial truth: entry names round-trip, nodeId traces, every elision named
+
+--- Step 3: Eval expectation tests ---
+  PASS  Eval cached - engine inputs unchanged since last green (2026-08-14 05:52); verdict transfers
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 15 nodes, 2 entries, 9 waterfall stages
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check (pnpm check) ---
+ All files pass linting.   > devcontext-app@0.0.0 test C:\Code\DevContext2-engine\src\DevContext.App > ng test --watch=false  ❯ Building... ✔ Building... Application bundle generation complete. [11.128 seconds] - 2026-08-14T05:02:13.489Z    RUN  v4.1.9 C:/Code/DevContext2-engine/src/DevContext.App   ❯ |devcontext-app| src/app/ui/graph-canvas/graph-layout.spec.ts (8 tests | 1 failed) 11889ms      × same input twice → identical geometry 6211ms System.Management.Automation.RemoteException ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ System.Management.Automation.RemoteException  FAIL  |devcontext-app| src/app/ui/graph-canvas/graph-layout.spec.ts > graph-layout (D4.1 determinism + no-clip contract) > same input twice → identical geometry Error: Test timed out in 5000ms. If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".  ❯ src/app/ui/graph-canvas/graph-layout.spec.ts:41:3      39|      40| describe('graph-layout (D4.1 determinism + no-clip contract)', () => {      41|   it('same input twice → identical geometry', async () => {        |   ^      42|     const { nodes, edges } = bigFixture();      43|     const a = await layoutGraph(nodes, edges); System.Management.Automation.RemoteException ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯ System.Management.Automation.RemoteException   Test Files  1 failed | 19 passed (20)       Tests  1 failed | 158 passed (159)    Start at  06:02:14    Duration  31.71s (transform 21.59s, setup 19.72s, import 70.53s, tests 19.69s, environment 122.15s)   ELIFECYCLE  Test failed. See above for more details.  ELIFECYCLE  Command failed with exit code 1.
+  FAIL  pnpm check failed
+
+GATE: FAIL (step 5 - app check)
+```
+</details>
 
 ## Last session result
 
-> Batch is on run 2 of 18. I'll stop polling and wait for the completion notification rather than burn context on checks.
+> SESSION-RESULT:** A1.2 — the pre-registered adoption gate — is DELIVERED and claimed DONE (`conductor task --done A1.2`), evidence at `eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md` plus the generated `ADOPTION-GATE.md`, commits `4f51931` (18 rows + transcripts + evidence) and `ec64ea9` (handoff), branch pushed, tree clean. **The gate CLEARS: median per-run `mcp_call_share` = 0.306 against the pre-registered 0.20 floor**, so DESIGN §3.1's `>= 0.2` PROCEED branch fires — the full W3 study runs as specified, arm B stays the primary treatment arm, and B-vs-G remains a genuine test of the MCP. The pilot's identical measurement on the 22-tool *undescribed* surface was 0.015 with 17/18…
 
 ## Tracker handoff
 
 ```
-A1.1 CLAIMED (b0de331 + this commit). Evidence eval-results/2026-08-14/a1-preregistration/.
-DESIGN.md now carries §0 an amendment log and five dated amendments: unseen repo, question mix
-pinned per repo, the non-inferiority endpoint replaced, κ made applicable, arm BI added. Two
-RESULTS §10.4 figures did NOT survive re-derivation - its reachability table is the acc=1.00
-column called "the best each n can produce" (it is the worst; at acc=0.50 the interval is
-zero-width at every n), and the pairs were pseudo-replicated 5× which makes non-inferiority
-EASIER to declare. New endpoint: question-level, bootstrap over questions, ONE pooled test,
-margin −0.10 (`analyse.mjs --ni-power` prints both surfaces). Unseen repo BUILT and pinned:
-eval/agent-probe/unseen/Driewie/, 132 files, treeSha 9857e03c, `rename-repo.mjs --verify` PASSES,
-build 0 errors/4 warnings matching the unmodified control exactly. Building it found 3 defects
-reading could not - read the ledger note before touching rename-repo.mjs.
-NEXT: A1.2, the $10 adoption gate, now unblocked - pre-registration is committed and DESIGN §3.1
-names the branch to report either way. Run arm B alone on eShop, 18 runs, UNCHANGED prompt, via
-`conductor bg start --purpose probe`. A share <0.2 is a REAL product finding, not a failure.
-NOT DONE, and NOT A1.1's: questions/Driewie.json + the 2nd class-B question per repo (full-run
-W3.8 inputs, must be hand-authored before any full run).
+A1.2 CLAIMED (4f51931). Evidence eval-results/2026-08-14/a1-adoption-gate/A1.2-EVIDENCE.md
++ ADOPTION-GATE.md beside it. THE GATE CLEARS: median per-run mcp_call_share 0.306 vs the
+pre-registered 0.20 floor, so DESIGN §3.1's PROCEED branch fires - W3 runs as specified, arm B
+stays primary, B-vs-G remains a test of the MCP. Pilot (22 undescribed tools) was 0.015, 17/18
+below floor; this batch (14 curated described tools, prompt byte-unchanged) is 5/18 below.
+Pooled 0.354 and mean 0.335 clear too, so the verdict does not turn on the estimator. $6.42,
+0 censored, 0 isolation breaches; two devcontextShas in the rows are REPORT.md + the reporting
+script only, so one binary under test - verified, not assumed.
+THE TRAP THAT ATE s26 AND s27 IS SOLVED, use this shape: a `conductor bg` child dies with its
+parent, so LAUNCH FIRST TURN then BLOCK IN-SESSION on a PowerShell poll loop (45-60s sleeps,
+8-min foreground chunks) until the row count hits target. 18 runs = 22 min wall; ledger resumes
+on (question,arm,rep) so a kill only costs the row in flight.
+NEXT: STAGE A1 IS CLOSED (A1.1+A1.2 both DONE) and Z1.1/Z1.2 are the only open cards left in the
+run. Z1.1 wants "whatever A1.2 earned" in the README: the honest sentence is the 0.015 -> 0.306
+move on an unchanged prompt, and note adoption is not dominance (80 mcp vs 146 native calls).
+STILL UNBUILT, owned by nobody: questions/Driewie.json + the 2nd class-B question per repo.
 ```
