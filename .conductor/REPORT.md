@@ -1,12 +1,11 @@
 ﻿# Conductor — DevContext pre-release - desktop agent loop run report
 
-_Updated 2026-08-14 00:58 UTC · branch `feat/pre-release-desktop` · HEAD `5295ca3`_
+_Updated 2026-08-14 01:16 UTC · branch `feat/pre-release-desktop` · HEAD `55d256a`_
 
-**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 22m ago, 20:36:43Z]
+**Status:** Idle — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`) [4h 39m ago, 20:36:43Z]
 **Stage:** N3 — Loop joints - routes into Studio + repo-file hand-off (owner decision 3) · attempts used 0
 **Checkpoints:** 11/16 done · **Sessions run:** 18 · **Cost:** $123.7019 (agent $123.5303 + gates $0.1716) · **Tokens:** 1,940,131 in / 767,635 out
-**Confirmed phases:** N0, N1, N2, M1
-**Pending:** full-battery phase gate for N3
+**Confirmed phases:** N0, N1, N2, M1, N3
 
 ## Stage progress
 
@@ -16,7 +15,7 @@ _Updated 2026-08-14 00:58 UTC · branch `feat/pre-release-desktop` · HEAD `5295
 | N1 | Studio truth pass + pins made real (owner decision 1: IMPLEMENT) | ██████████ 2/2 | confirmed ✓ |
 | N2 | Pack convergence - one pipeline, two faces (owner decision 2: FULL) | ██████████ 2/2 | confirmed ✓ |
 | M1 | Hygiene + Reader prerequisites (proto/mapper shopping list) | ██████████ 2/2 | confirmed ✓ |
-| N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | gating… |
+| N3 | Loop joints - routes into Studio + repo-file hand-off (owner decision 3) | ██████████ 2/2 | confirmed ✓ |
 | N4 | MCP page rebuild - the observation deck (owner decision 4: full deck + ship binary) | ░░░░░░░░░░ 0/3 | todo |
 | Z1 | Close-out: docs + backlog + README screenshot sync, full battery, push | ░░░░░░░░░░ 0/2 | todo |
 
@@ -62,7 +61,7 @@ _Updated 2026-08-14 00:58 UTC · branch `feat/pre-release-desktop` · HEAD `5295
 | # | Title | Status | Commit |
 |---|---|---|---|
 | N3.1 | Send-to-Studio from Explore (selection/trail/pins), Insights cards, and NodeCard; Studio default state = proposed pack from current trail+pins (never opens empty after exploration); archetype preset on fresh sessions | ✅ DONE | [`f427027`](https://github.com/shaahink/DevContext2/commit/f427027) |
-| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | ✅ DONE | - |
+| N3.2 | Save writes `.devcontext/packs/<slug>.md` (gitignored by default) + a copyable point-your-agent-here line for CLAUDE.md; Home's point-your-agent-here routes through Studio | ✅ DONE | [`6efcef6`](https://github.com/shaahink/DevContext2/commit/6efcef6) |
 
 </details>
 
@@ -114,27 +113,21 @@ _What this run has cost, from its own `costs` rows. Same numbers as `conductor m
 
 | scope | sessions | tokens | cache reads | cost | checkpoints | tok/ckpt | $/ckpt |
 |---|---|---|---|---|---|---|---|
-| **run total** | 17 | 155.2M | 98.4% | $112.14 | 10 | 15.5M | $11.21 |
+| **run total** | 18 | 172.6M | 98.4% | $123.72 | 11 | 15.7M | $11.25 |
 | stage N0 | 3 | 29.9M | 98.1% | $22.91 | 3 | 9.96M | $7.64 |
 | stage N1 | 2 | 28.4M | 98.4% | $20.47 | 2 | 14.2M | $10.24 |
 | stage N2 | 8 | 36.7M | 98.3% | $26.67 | 2 | 18.4M | $13.33 |
 | stage M1 | 3 | 43M | 98.6% | $29.77 | 2 | 21.5M | $14.88 |
-| stage N3 | 1 | 17.2M | 98.4% | $12.32 | 1 | 17.2M | $12.32 |
-| 2026-08 | 17 | 155.2M | 98.4% | $112.14 | 10 | 15.5M | $11.21 |
+| stage N3 | 2 | 34.6M | 98.6% | $23.90 | 2 | 17.3M | $11.95 |
+| 2026-08 | 18 | 172.6M | 98.4% | $123.72 | 11 | 15.7M | $11.25 |
 
-_Where the money goes: agent $111.95 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
+_Where the money goes: agent $123.53 (100%) · gate $0.17 (0%) · advisor $0.02 (0%) · blended $0.72/M tokens._
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-08-13 21:35:51  ■ needs human — advisor: human intervention required
-08-13 21:35:57  • session #10 N2 → AgentError  (19.5s)
-08-13 21:35:57  • session #11 N2 Deliver started (attempt 5/6)
-08-13 21:36:11  ■ needs human — advisor: human intervention required
-08-13 21:36:17  • session #11 N2 → AgentError  (19.5s)
-08-13 21:36:17  • session #12 N2 Deliver started (attempt 6/6)
 08-13 21:36:31  ■ needs human — advisor: human intervention required
 08-13 21:36:37  • session #12 N2 → AgentError  (19.6s)
 08-13 21:36:43  ■ needs human — stage N2 used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
@@ -169,6 +162,12 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 08-14 00:50:36  • session #17 N3 Deliver started (attempt 1/4)
 08-14 01:25:11  • session #17 N3 → Advanced · done N3.1 · 3 commit(s)  (34m35s)
 08-14 01:25:12  • session #18 N3 Deliver started (attempt 1/4)
+08-14 01:58:50  • session #18 N3 → Advanced · done N3.2 · 3 commit(s)  (33m38s)
+08-14 02:16:10  ▪ gate fast-app pass [phase]  (7m25s)
+08-14 02:16:10  ▪ gate guards pass [phase]  (1m46s)
+08-14 02:16:11  ▪ gate battery pass [phase]  (8m02s)
+08-14 02:16:11  ✓ checkpoint N3.1 confirmed
+08-14 02:16:11  ✓ checkpoint N3.2 confirmed
 ```
 
 ## Health
@@ -188,7 +187,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/pre-release-desktop
-working tree: clean
+working tree: M PRE-RELEASE-DESKTOP-TRACKER.md, ?? eval-results/2026-08-14/mcp-qa.md
 vs upstream: up to date
 ```
 
@@ -233,6 +232,10 @@ vs upstream: up to date
   - [`5295ca3`](https://github.com/shaahink/DevContext2/commit/5295ca3) docs(eval): N3.2 evidence - repo-file hand-off verified live, gates green
   - [`032c9b8`](https://github.com/shaahink/DevContext2/commit/032c9b8) feat(app): N3.2 - Save writes the pack into the repo and hands over the line
   - [`6efcef6`](https://github.com/shaahink/DevContext2/commit/6efcef6) feat(server): N3.2 - SavePackFile RPC writes .devcontext/packs/<slug>.md
+
+## Last gate run
+
+fast-app:OK · guards:OK · battery:OK
 
 ## Last session result
 
