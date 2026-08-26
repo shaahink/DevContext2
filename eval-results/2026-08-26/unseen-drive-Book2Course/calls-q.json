@@ -1,0 +1,9 @@
+[
+ {"label":"Q1 overview","name":"overview","arguments":{}},
+ {"label":"Q1 entrypoints","name":"entrypoints","arguments":{"top":15}},
+ {"label":"Q3 resolve Run","name":"resolve","arguments":{"query":"Run","limit":8}},
+ {"label":"Q2 resolve upload","name":"resolve","arguments":{"query":"SourceUploadEndpoints","limit":5}},
+ {"label":"Q4 seam upload->ingest","name":"seam","arguments":{"from":"SourceUploadEndpoints","to":"IngestStage"}},
+ {"label":"Q2 trace upload","name":"trace","arguments":{"query":"POST /source-uploads","format":"compact"}},
+ {"label":"Q5 config drain","name":"config","arguments":{"key":"Pipeline:Queue:Drain"}}
+]

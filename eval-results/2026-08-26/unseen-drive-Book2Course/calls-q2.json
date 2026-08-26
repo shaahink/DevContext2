@@ -1,0 +1,8 @@
+[
+ {"label":"Q3 impact Run up","name":"impact","arguments":{"nodeId":"Type:Book2Course.Domain.Runs.Run","direction":"up","maxDepth":4}},
+ {"label":"Q3 neighbors Run in","name":"neighbors","arguments":{"nodeId":"Type:Book2Course.Domain.Runs.Run","direction":"in"}},
+ {"label":"Q4b seam coordinator->ingest","name":"seam","arguments":{"from":"BuildCoordinator","to":"IngestStage"}},
+ {"label":"Q4c seam queue join","name":"neighbors","arguments":{"query":"IJobQueue","direction":"in"}},
+ {"label":"Q2b who consumes jobs","name":"usages","arguments":{"query":"JobRunner"}},
+ {"label":"stats","name":"stats","arguments":{}}
+]

@@ -1,0 +1,19 @@
+
+===== tools/list  (~417 tok) =====
+map: The full architecture map: structured surface (topology, packages, aggregates, service styles, library surface
+entrypoints: List entry points (HTTP routes, bus consumers, gRPC services, jobs). Summary by default: per-kind counts + top
+usages: Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy que
+trace: Trace execution flow: the call spine from ONE entry, hop by hop. Address it with 'focus' OR 'query' - an entry
+overview: One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Start here 
+stats: Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats("abc123")
+resolve: Resolve a symbol/route/file to candidates with kind, service, path and the nodeId every other tool takes. Neve
+neighbors: Outgoing/incoming edges of a node - one hop, with the seam kind and file:line on each. Optional 'kind' filters
+find: Free-text search across graph nodes, paginated. Returns nodeIds the navigation tools take. Example: find("abc1
+read_source: Read the source code behind a node, with its real file:line. Example: read_source("abc123", query:"OrderServic
+seam: The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop.
+impact: Transitive impact analysis: upward (what reaches this) or downward (what this affects), grouped by service. Ad
+get_context: Budget-priced context pack for a focus: the identity, trace, signatures and usage sections an agent needs to w
+analyze: Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD+solution retu
+
+===== analyze  [45.2s]  args={"path":"C:/Code/BookToCourse"}  (~171 tok) =====
+{"handle":"d8722f9f50f04a4d917fe92762c13985","status":"ready","cached":false,"note":"Analyzed now. A first analysis of a large repo can take minutes; the result is snapshotted, so the same repo\u002BHEAD\u002Bsolution re-opens in seconds.","summary":{"label":"Book2Course","archetype":"App","isLibrary":false,"projects":5,"nodes":1315,"edges":1739,"entries":41,"entriesWithTarget":38,"elapsedMs":44693,"fromCache":false,"analyzedAt":"2026-08-26T20:04:53Z","gitHead":"c14da997c46b9273f8319863c68c65b1e5eb52a9","explanation":"Overview map (no focus)."},"hint":"Analysis complete. Omit \u0027handle\u0027 on later calls and they use THIS session, whatever else the server is serving."}
