@@ -53,6 +53,94 @@ public sealed class GraphQueryTests
         Assert.Empty(q.FindUsages(a)); // A has no callers
     }
 
+    // ---- #36 (F5, Book2Course drive) — usages tells one call site once -------------------------
+
+    /// <summary>
+    /// The JobRunner shape, member-fan-in style (<see cref="GraphNeighborKindTests"/>): ONE
+    /// invocation — <c>QueueDrainService.TurnAsync</c> calling into <c>JobRunner</c> at line 95 —
+    /// that the extractors legitimately record as several edges differing only in <c>To</c>
+    /// (the member→member Calls from AddCallEdges and the member→Type Calls from
+    /// PlainCallDetector). Storage refuses a duplicate (From, To, Kind) triple, and the C3
+    /// roll-up keeps them all because its dedup key includes To. A usages surface then drops
+    /// To — the focus IS the target — so before #36 those rows rendered identical and
+    /// usages(JobRunner) answered count: 3 for one line of source. Beside the duplicates the
+    /// fixture carries the two facts that must NOT merge: a same-line edge of a different KIND
+    /// (the DI Resolves), and a second, genuinely distinct call site (PumpAsync at line 120).
+    /// </summary>
+    private static GraphQuery QueueDrain()
+    {
+        var g = new CodeGraphBuilder();
+        foreach (var t in new[] { "QueueDrainService", "JobRunner" })
+            g.AddNode(new GraphNode(NodeId.ForType($"Ns.{t}"), t, NodeKind.Type) { FilePath = $"{t}.cs" });
+        foreach (var (t, m) in new[]
+        {
+            ("QueueDrainService", "TurnAsync"), ("QueueDrainService", "PumpAsync"),
+            ("JobRunner", "RunNextAsync"), ("JobRunner", "RunAsync"),
+        })
+            g.AddNode(new GraphNode(NodeId.ForMember($"Ns.{t}", m), $"{t}.{m}", NodeKind.Member)
+            { FilePath = $"{t}.cs", LineNumber = 7 });
+
+        var turn = NodeId.ForMember("Ns.QueueDrainService", "TurnAsync");
+        var pump = NodeId.ForMember("Ns.QueueDrainService", "PumpAsync");
+        const string site = "QueueDrainService.cs:95";
+
+        // One call site, three recordings — the rows that must merge.
+        g.AddEdge(new GraphEdge(turn, NodeId.ForType("Ns.JobRunner"), EdgeKind.Calls)
+        { Resolution = Resolution.Syntactic, Provenance = site });
+        g.AddEdge(new GraphEdge(turn, NodeId.ForMember("Ns.JobRunner", "RunNextAsync"), EdgeKind.Calls)
+        { Resolution = Resolution.Semantic, Provenance = site });
+        g.AddEdge(new GraphEdge(turn, NodeId.ForMember("Ns.JobRunner", "RunAsync"), EdgeKind.Calls)
+        { Resolution = Resolution.Semantic, Provenance = site });
+        // Same line, different kind — a distinct fact, not a duplicate row.
+        g.AddEdge(new GraphEdge(turn, NodeId.ForType("Ns.JobRunner"), EdgeKind.Resolves)
+        { Resolution = Resolution.Join, Provenance = site });
+        // A second call site — distinct provenance, its own row.
+        g.AddEdge(new GraphEdge(pump, NodeId.ForMember("Ns.JobRunner", "RunAsync"), EdgeKind.Calls)
+        { Resolution = Resolution.Semantic, Provenance = "QueueDrainService.cs:120" });
+
+        return new GraphQuery(g.Build(), []);
+    }
+
+    /// <summary>THE RED — measured on the Book2Course drive (DRIVE.md F5): usages(JobRunner) →
+    /// count: 3, three identical rows (same caller, same kind, same file:line) for one call site.
+    /// Rows agreeing on (caller, kind, provenance) are ONE usage; a different kind on the same
+    /// line and a different call site from the same caller both keep their own rows.</summary>
+    [Fact]
+    public void FindUsages_tells_one_call_site_once()
+    {
+        var q = QueueDrain();
+        var turn = NodeId.ForMember("Ns.QueueDrainService", "TurnAsync");
+        var pump = NodeId.ForMember("Ns.QueueDrainService", "PumpAsync");
+
+        var usages = q.FindUsages(NodeId.ForType("Ns.JobRunner"));
+
+        Assert.Equal(3, usages.Length);
+        var callsAt95 = Assert.Single(usages.Where(u => u.From == turn && u.Kind == EdgeKind.Calls));
+        Assert.Equal("QueueDrainService.cs:95", callsAt95.Provenance);
+        // The merged row keeps the best-evidenced recording of the call site: the semantic
+        // member→member edge outranks the syntactic member→Type one it collapsed with.
+        Assert.Equal(Resolution.Semantic, callsAt95.Resolution);
+        Assert.Single(usages.Where(u => u.From == turn && u.Kind == EdgeKind.Resolves));
+        Assert.Single(usages.Where(u => u.From == pump));
+    }
+
+    /// <summary>The collapse lives in <see cref="GraphQuery.FindUsages"/>, NOT in the walk:
+    /// neighbors keeps every edge (its rows carry <c>To</c>, so the three recordings are
+    /// distinguishable there) and <c>TotalEdges</c>/<c>KindsPresent</c> keep describing the
+    /// UNFILTERED in-direction — the G3.2 contract this fix deliberately leaves intact.</summary>
+    [Fact]
+    public void The_usages_collapse_leaves_the_raw_neighbors_walk_untouched()
+    {
+        var q = QueueDrain();
+
+        var view = q.NeighborsView(NodeId.ForType("Ns.JobRunner"), EdgeDirection.In);
+
+        Assert.Equal(5, view.Edges.Length);
+        Assert.Equal(5, view.TotalEdges);
+        Assert.Equal(4, view.KindsPresent.Single(k => k.Kind == EdgeKind.Calls).Count);
+        Assert.Equal(1, view.KindsPresent.Single(k => k.Kind == EdgeKind.Resolves).Count);
+    }
+
     [Fact]
     public void Neighbors_out_and_in()
     {
