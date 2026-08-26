@@ -6,6 +6,28 @@ namespace DevContext.Core.Extractors;
 /// <summary>Helper for detecting FastEndpoints-style endpoints via syntax analysis (Phases 3 and 4).</summary>
 public static class FastEndpointsHelper
 {
+    /// <summary>F1 integration repair (2026-08-27): the handler overrides a FastEndpoints class can
+    /// declare, in priority order — the framework invokes <c>ExecuteAsync</c>, whose base
+    /// implementation calls <c>HandleAsync</c>, so when both are declared ExecuteAsync is what runs.
+    /// Same pattern as <c>HttpEntryPointBuilder.ComponentLifecycleMethods</c> (the Blazor lifecycle
+    /// join): the entry join targets the FIRST method the class actually declares. Stamping the
+    /// conventional "HandleAsync" on a class that declares only ExecuteAsync (MinimalClean's
+    /// <c>CreateEndpoint</c>) minted a member INV-C correctly refuses, and the entry dead-ended
+    /// with zero out-edges.</summary>
+    private static readonly string[] HandlerMethodPriority = ["ExecuteAsync", "HandleAsync"];
+
+    /// <summary>The first <see cref="HandlerMethodPriority"/> override the class DECLARES, or null
+    /// when it declares none (a handler inherited from a base endpoint class this file cannot see —
+    /// callers keep their conventional stamp and the graph-time declares oracle judges it, walking
+    /// in-solution bases).</summary>
+    private static string? DeclaredHandlerMethod(ClassDeclarationSyntax cls)
+    {
+        foreach (var name in HandlerMethodPriority)
+            if (cls.Members.OfType<MethodDeclarationSyntax>().Any(m => m.Identifier.ValueText == name))
+                return name;
+        return null;
+    }
+
     public static void DetectClassAttributeEndpoints(
         IEnumerable<ClassDeclarationSyntax> fastEndpointClasses,
         string filePath,
@@ -38,7 +60,12 @@ public static class FastEndpointsHelper
             var line = cls.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
             if (!detectedKeys.Add($"{filePath}:{line}")) continue;
 
-            model.Detections.Add(new EndpointDetection(httpMethod, route, cls.Identifier.ValueText, cls.Identifier.ValueText, [], [])
+            // The handler is the override the class DECLARES (ExecuteAsync/HandleAsync priority);
+            // the old class-name stamp named a member no class declares (`Type::Type`), which the
+            // entry join could only dead-end on. Class-name fallback kept for a handler declared
+            // out of sight (base endpoint class) — the entry join's type-node fallback handles it.
+            model.Detections.Add(new EndpointDetection(httpMethod, route, cls.Identifier.ValueText,
+                DeclaredHandlerMethod(cls) ?? cls.Identifier.ValueText, [], [])
             {
                 ExtractorName = "EndpointExtractor",
                 SourceFile = filePath,
@@ -119,9 +146,13 @@ public static class FastEndpointsHelper
                 var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 if (!detectedKeys.Add($"{filePath}:{line}")) continue;
 
+                // The handler is the override the class DECLARES — stamping the conventional
+                // "HandleAsync" on an ExecuteAsync endpoint minted a member INV-C refuses and the
+                // entry dead-ended (MinimalClean `POST /Products`). Convention survives only as the
+                // fallback for a handler declared on a base class this file cannot see.
                 model.Detections.Add(new EndpointDetection(
                     httpMethod, route,
-                    cls.Identifier.ValueText, "HandleAsync", [], [])
+                    cls.Identifier.ValueText, DeclaredHandlerMethod(cls) ?? "HandleAsync", [], [])
                 {
                     ExtractorName = "EndpointExtractor",
                     SourceFile = filePath,

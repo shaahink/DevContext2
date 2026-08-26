@@ -25,11 +25,18 @@ public sealed class PlainCallDetector : ISeamDetector
         "AddDomainEvent", "RaiseDomainEvent", "Raise",
     };
 
+    /// <summary>F1 integration repair (2026-08-27): the confidence of a DEGRADED call — the receiver
+    /// type is verified in-solution but the called member is one its visible hierarchy does not
+    /// declare (inherited from an out-of-solution base, or an extension method). Below the 0.5f of a
+    /// declared-target call so spine selection keeps preferring vouched targets.</summary>
+    private const float DegradedCallConfidence = 0.4f;
+
     public IEnumerable<SeamMatch> Detect(BodyFacts body, SeamContext ctx)
     {
         if (ctx.Symbols is null) yield break;
 
         var emitted = new HashSet<string>(StringComparer.Ordinal);
+        var degraded = new List<SeamMatch>();
 
         // MEASURED CONSEQUENCE OF THE STATIC ARM BELOW, carried openly (conductor bug, E1.4/R1 to
         // decide): CodeGraphBuilder.AddEdge dedupes (From, To, Kind) FIRST-WINS, so when a member
@@ -119,24 +126,40 @@ public sealed class PlainCallDetector : ISeamDetector
                 targetType = hopped;
             }
 
-            // F1 (#33) — same declares gate as CallGraphBinder.ResolveCallee's receiver arm, ONE rule
-            // for both producers: a method the target type does not VISIBLY declare (declared members
-            // + in-solution base walk) is somebody else's member — an extension method or an
-            // out-of-solution inherited method. The edge this seam would emit (`… → AppDbContext
-            // (Where)`) is the edge-only half of the Book2Course noise. Judged AFTER the chain hop,
-            // on the type the call actually lands on; tri-state — only a positive "no" skips.
-            if (ctx.Symbols.DeclaresMemberInHierarchy(targetType, inv.MethodName) == false) continue;
+            // F1 (#33) — same declares oracle as CallGraphBinder.ResolveCallee's receiver arm, judged
+            // AFTER the chain hop, on the type the call actually lands on; tri-state — only a positive
+            // "no" demotes. A method the target type does not VISIBLY declare (declared members +
+            // in-solution base walk) is somebody else's member — an extension method or a member
+            // inherited from an OUT-of-solution base. The binder REFUSES those outright (a member node
+            // the hierarchy cannot vouch for is never minted — INV-C). This seam is the sanctioned
+            // DEGRADE of the same call (F1 integration repair, 2026-08-27): the receiver type is
+            // in-solution by the gates above, the call really lands on one of its instances, and the
+            // emitted shape is member→TYPE with the called name riding on the EDGE (Batch E) — no
+            // member node, no phantom degree, nothing for INV-C to judge. Refusing the seam too
+            // severed TRUE connectivity: TodoApi's `POST /todos/` lambda lost its only path to the
+            // store (`db.SaveChangesAsync()` / `db.Todos.Add(..)` — both DbContext members, all
+            // out-of-solution), and the ratcheted "TodoDbContext" truth pin caught it. Degraded
+            // matches are HELD BACK until every declared-target call has been yielded, so a degraded
+            // call never steals the (From, To, Kind) first-wins edge slot — nor its F4 port-bridge
+            // verb evidence — from a declared call on the same receiver later in the body.
+            var declares = ctx.Symbols.DeclaresMemberInHierarchy(targetType, inv.MethodName);
 
-            yield return new SeamMatch(
+            var match = new SeamMatch(
                 body.Member, EdgeKind.Calls, target,
-                0.5f, $"{body.File}:{inv.Line}", Id)
+                declares == false ? DegradedCallConfidence : 0.5f, $"{body.File}:{inv.Line}", Id)
             {
                 // Batch E: the method name was already in hand here and was dropped on the floor. It is
                 // the difference between "this endpoint calls IDashboardClient" and "this endpoint calls
                 // IDashboardClient.GetGrains".
                 TargetMember = inv.MethodName,
             };
+
+            if (declares == false) { degraded.Add(match); continue; }
+            yield return match;
         }
+
+        // Degraded fallbacks last — a vouched call always claims the edge slot first.
+        foreach (var match in degraded) yield return match;
     }
 
     private static string? ShortName(string? typeText)

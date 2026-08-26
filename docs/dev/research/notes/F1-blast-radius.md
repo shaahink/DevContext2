@@ -72,3 +72,26 @@ visibility, it never vouches).
 - Entry-target rider: inline minimal-API lambdas whose only resolvable calls were
   undeclared-member seams now label "inline (N calls)" (the E6 label — its Title-based check never
   matched V1.2's "Owner.<lambda> …" titles and was dead) instead of naming the registration type.
+
+## Addendum — integration repair (2026-08-27, fix/mcp-drive-integration)
+
+The integrate battery (first run with the TodoApi/VerticalSlice submodules initialized) proved two
+of the declared drops overshot:
+
+- **"PlainCallDetector member→type Calls seams for the same undeclared shapes" is RETRACTED.**
+  Dropping the seam alongside the member node severed TRUE connectivity: TodoApi's `POST /todos/`
+  lambda reaches its store only through `db.Todos.Add(..)` / `db.SaveChangesAsync()` — DbContext
+  members, all out-of-solution — and the RATCHETED truth pin (`TruthExpectationTests`,
+  "TodoDbContext" in the trace) caught the loss. The repair keeps the invariant literal (no member
+  node, INV-C untouched, binder still refuses) and DEGRADES the refused call to the member→TYPE
+  Calls edge PlainCallDetector already emits — called name on the EDGE (`TargetMember`, the shape
+  F4's port bridge reads), confidence 0.4, yielded after declared matches so a degraded call never
+  steals the first-wins edge slot. `UndeclaredMemberEdgeTests` grew the degrade fixtures; the
+  develop-era `Entry_target_for_lambda_with_only_noise_calls` pin ("CatalogContext") is restored.
+- **Entry-builder member nodes are only "declared handler methods" if the DETECTION stamps a
+  declared one.** FastEndpointsHelper stamped `HandlerMethod="HandleAsync"` by convention;
+  MinimalClean's `CreateEndpoint` declares `ExecuteAsync`, the entry join minted
+  `CreateEndpoint::HandleAsync`, INV-C (correctly) refused it, and `POST /Products` dead-ended with
+  zero out-edges. The helper now resolves the handler from what the class DECLARES
+  (ExecuteAsync/HandleAsync priority list, the ComponentLifecycleMethods pattern); the attribute
+  path's class-name stamp (`Type::Type`) got the same resolver.

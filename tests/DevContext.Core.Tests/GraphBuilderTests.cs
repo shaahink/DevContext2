@@ -969,14 +969,16 @@ public sealed class GraphBuilderTests
             .Build(model, scope);
 
         var entry = Assert.Single(entries);
-        // E6 — updated again for F1 (#33): the L7.1 seam that named CatalogContext here rode on
-        // `….OrderBy(x => x.Type)` binding to the RECEIVER's type — OrderBy is a LINQ extension the
-        // context does not declare, exactly the member-of-a-type-that-does-not-declare-it shape the
-        // invariant forbids. With that seam honestly gone, the lambda's one surviving DECLARED call
-        // is data-access noise, so the entry says "inline (1 call)" (the E6 label, now reachable —
-        // the old Title-based lambda check never matched V1.2's "Owner.<lambda> …" titles) rather
-        // than naming the registration type as if it were a handler.
-        Assert.Equal("inline (1 call)", entry.Target);
+        // E6 — updated for F1 (#33) and back for its integration repair (2026-08-27). L7.1's seam
+        // named CatalogContext here; F1's declares gate dropped it (`….OrderBy(x => x.Type)` binds
+        // to the RECEIVER's type and OrderBy is a LINQ extension the context does not declare), and
+        // this pin briefly read "inline (1 call)". Dropping such seams outright severed true
+        // connectivity (TodoApi's ratcheted "TodoDbContext" trace pin went red on the integrated
+        // tree), so the refused call now DEGRADES to the member→TYPE Calls edge — no member node,
+        // the called name on the edge — and the entry target names the DbContext the endpoint
+        // touches again, exactly develop's blessed L7.1 answer. The E6 "inline (N calls)" label
+        // stays reachable for a lambda with no in-solution collaborator at all.
+        Assert.Equal("CatalogContext", entry.Target);
     }
 
     [Fact]

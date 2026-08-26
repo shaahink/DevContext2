@@ -313,11 +313,14 @@ if (-not $Quiet -and $kindGateCensus -eq 0) {
 # NO NODE MAY BE A MEMBER OF A TYPE THAT DOES NOT DECLARE IT. Extension/BCL methods bound to the
 # RECEIVER's type (`AppDbContext::ConfigureAwait`, 72 connections) topped startHere and walked into
 # traces on the Book2Course drive. The gate is one rule in three seats: CallGraphBinder's receiver
-# arm and PlainCallDetector both consult SymbolTable.DeclaresMemberInHierarchy (the tri-state
-# oracle that walks in-solution BaseTypes -- no BCL name lists, that policy is retired), and
-# CodeGraphBuilder.AddNode enforces INV-C with the injected oracle so no NEW producer can mint the
-# shape. A regression here is invisible in the graph (the invariant refuses the node), which is
-# exactly why the SOURCE has to keep saying it.
+# arm REFUSES (no member node), PlainCallDetector DEGRADES the same refused call to a member->Type
+# edge with the name on the edge (F1 integration repair 2026-08-27 -- no member node either way; a
+# refusal that also dropped the seam severed true connectivity, TodoApi's ratcheted trace pin) --
+# both consult SymbolTable.DeclaresMemberInHierarchy (the tri-state oracle that walks in-solution
+# BaseTypes -- no BCL name lists, that policy is retired), and CodeGraphBuilder.AddNode enforces
+# INV-C with the injected oracle so no NEW producer can mint the shape. A regression here is
+# invisible in the graph (the invariant refuses the node), which is exactly why the SOURCE has to
+# keep saying it.
 $declaresCensus = 0
 $declaresSeats = @(
     @{ File = 'src\DevContext.Core\Graph2\CallGraphBinder.cs';        Pattern = 'DeclaresMemberInHierarchy' },

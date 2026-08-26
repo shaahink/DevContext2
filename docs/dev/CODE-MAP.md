@@ -116,6 +116,11 @@ The post-Loom "regex funeral": structured facts + a resolver replace body-scan r
   re-runs on disproved text. `DeclaresMemberInHierarchy` (F1/#33) is the tri-state **declares oracle**:
   declared members + the in-solution `BaseTypes`/interfaces walk; an out-of-solution base ends
   visibility. Consulted by both call-edge producers and injected into `CodeGraphBuilder` as INV-C.
+  A refused receiver-arm call is dropped by `CallGraphBinder` (no member node) but **degraded** by
+  `PlainCallDetector` to a member→Type Calls edge with the called name on the edge (`TargetMember`) —
+  the F1 integration repair (2026-08-27): dropping both severed true connectivity (TodoApi's trace
+  lost its `TodoDbContext` — `db.SaveChangesAsync()` is DbContext's member, out-of-solution). Degraded
+  matches yield after declared ones (never stealing the first-wins edge slot) at confidence 0.4.
 - **`BodyFacts.cs` / `BodyFactExtractor.cs`** — one syntax walk per member yields structured `BodyOp`s
   (`InvocationOp`, `CreationOp`, `LocalDeclOp`, `IdentifierUseOp`) that already know their member + line,
   so edges anchor by construction. Cache-versioned (`BodyFactsVersion`).

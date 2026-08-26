@@ -232,6 +232,110 @@ public sealed class UndeclaredMemberEdgeTests
         Assert.Contains(edges, e => e.CalleeType == "Demo.Factory" && e.CalleeMethod == "Make");
     }
 
+    // ── Integration repair (2026-08-27): refusal must not sever TRUE connectivity ─────────────
+
+    [Fact]
+    public async Task Refused_call_on_an_in_solution_receiver_degrades_to_a_member_to_type_edge()
+    {
+        // `_db.SaveChanges()` stays refused as a MEMBER — DbContext is out-of-solution, the visible
+        // hierarchy cannot vouch, the invariant is literal — but the call really happens on an
+        // AppDbContext instance this solution DECLARES. F1 dropped the seam along with the member,
+        // which severed the caller's only path to the store: TodoApi's `POST /todos/` trace lost
+        // "TodoDbContext" (`db.SaveChangesAsync()` / `db.Todos.Add(..)`) and the RATCHETED truth
+        // pin caught it on the integrated tree. The honest degrade is the member→TYPE Calls edge
+        // PlainCallDetector already emits — the called name rides on the EDGE (Batch E), no member
+        // node is minted, so startHere ranking and INV-C stay exactly as F1 left them.
+        var (graph, model) = await BuildAsync("""
+            namespace Shop;
+
+            public sealed class AppDbContext : DbContext
+            {
+                public void ConfigureConventions() { }
+            }
+
+            public sealed class SaveRuns
+            {
+                private readonly AppDbContext _db;
+                public SaveRuns(AppDbContext db) { _db = db; }
+                public void Save() => _db.SaveChanges();
+            }
+            """);
+
+        // The degraded edge: caller MEMBER → receiver TYPE, the called name on the edge.
+        var degraded = graph.AllEdges.Single(e =>
+            e.Kind == EdgeKind.Calls
+            && e.From.Kind == NodeKind.Member && e.From.Key == "Shop.SaveRuns::Save"
+            && e.To.Kind == NodeKind.Type && e.To.Key == "Shop.AppDbContext");
+        Assert.Equal("SaveChanges", degraded.TargetMember);
+
+        // F1 holds: nothing wears the undeclared identity, and no producer even tried to mint it.
+        Assert.DoesNotContain(graph.Nodes, n => n.Id.Key.Contains("::SaveChanges", StringComparison.Ordinal));
+        Assert.DoesNotContain(graph.AllEdges, e => e.To.Key.Contains("::SaveChanges", StringComparison.Ordinal));
+        Assert.DoesNotContain(model.Diagnostics, d => d.Source == "GraphInvariants");
+    }
+
+    [Fact]
+    public async Task Degraded_edge_ranks_below_a_declared_target_seam()
+    {
+        // One body, two receivers: `_db.SaveChanges()` degrades (DbContext member, out-of-solution
+        // base), `_audit.Log()` is declared. The degraded seam must carry LOWER confidence than the
+        // declared-target seam so spine selection keeps preferring vouched targets.
+        var (graph, _) = await BuildAsync("""
+            namespace Shop;
+
+            public sealed class AppDbContext : DbContext
+            {
+            }
+
+            public sealed class Audit
+            {
+                public void Log() { }
+            }
+
+            public sealed class SaveRuns
+            {
+                private readonly AppDbContext _db;
+                private readonly Audit _audit;
+                public SaveRuns(AppDbContext db, Audit audit) { _db = db; _audit = audit; }
+                public void Save()
+                {
+                    _db.SaveChanges();
+                    _audit.Log();
+                }
+            }
+            """);
+
+        var degraded = graph.AllEdges.Single(e =>
+            e.Kind == EdgeKind.Calls && e.From.Key == "Shop.SaveRuns::Save"
+            && e.To.Kind == NodeKind.Type && e.To.Key == "Shop.AppDbContext");
+        var declared = graph.AllEdges.Single(e =>
+            e.Kind == EdgeKind.Calls && e.From.Key == "Shop.SaveRuns::Save"
+            && e.To.Kind == NodeKind.Type && e.To.Key == "Shop.Audit");
+
+        Assert.Equal("SaveChanges", degraded.TargetMember);
+        Assert.True(degraded.Confidence < declared.Confidence,
+            $"degraded ({degraded.Confidence}) must rank below declared ({declared.Confidence})");
+    }
+
+    [Fact]
+    public async Task A_degraded_call_never_steals_the_edge_slot_from_a_declared_call()
+    {
+        // ExtensionShape's body calls the UNDECLARED `_db.IgnoreQueryFilters()` FIRST and the
+        // declared `_db.ConfigureConventions()` second. The (From, To, Kind) edge slot is first-wins
+        // downstream, so degraded matches are held back until every declared call has been yielded:
+        // the surviving member→type edge must carry the DECLARED name — F4's port-bridge verb
+        // evidence and entry-target labels read that TargetMember, and a degraded call polluting it
+        // is the exact "ConfigureAwait wins the dedupe" coupling EventWiring.cs carries openly.
+        var (graph, _) = await BuildAsync(ExtensionShape);
+
+        var seam = graph.AllEdges.Single(e =>
+            e.Kind == EdgeKind.Calls
+            && e.From.Kind == NodeKind.Member && e.From.Key == "Shop.RunQuery::Run"
+            && e.To.Kind == NodeKind.Type && e.To.Key == "Shop.AppDbContext");
+
+        Assert.Equal("ConfigureConventions", seam.TargetMember);
+    }
+
     // ── Graph level: the standing-guard triple + startHere, the surfaces the drive measured ───
 
     [Fact]
