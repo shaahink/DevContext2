@@ -18,7 +18,8 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
     public ExtractorCapabilities Capabilities => new(
         [], ["di-registrations"],
         ["model.Detections"],
-        "Cheap syntax matching for services.AddSingleton/AddScoped/AddTransient and AddX extension methods");
+        "Cheap syntax matching for services.AddSingleton/AddScoped/AddTransient and AddX extension methods, "
+        + "incl. Options-pattern config bindings (AddOptions<T>().BindConfiguration / Configure<T>)");
 
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
 
@@ -30,6 +31,12 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         // (last-write-wins by key), so committing serially in source order keeps the output identical.
         var files = context.Analysis.AllSourceFiles;
         var perFile = new List<Detection>[files.Count];
+
+        // F3 (BUG-BACKLOG #34): section names in Options bindings are idiomatically string consts
+        // (`BindConfiguration(QueueDrainOptions.SectionName)`), so they resolve through the same
+        // project-wide const index F2 used for group prefixes. Built once, read concurrently —
+        // syntax trees are cached, so the extra pass is cheap.
+        var stringConsts = await FastEndpointsHelper.BuildRouteConstIndex(context, ct);
 
         var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
         await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
@@ -56,7 +63,7 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                 return;
             }
 
-            perFile[i] = BuildDetections(filePath, nodes);
+            perFile[i] = BuildDetections(filePath, nodes, stringConsts);
         });
 
         // Phase 2: commit in source-file order (identical ordering to the prior serial loop).
@@ -68,7 +75,8 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
     }
 
-    private List<Detection> BuildDetections(string filePath, FileSyntaxNodes nodes)
+    private List<Detection> BuildDetections(
+        string filePath, FileSyntaxNodes nodes, IReadOnlyDictionary<string, string> stringConsts)
     {
         var detections = new List<Detection>();
 
@@ -81,6 +89,23 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
             if (!IsServicesChain(memberAccess)) continue;
 
             var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            // F3 (BUG-BACKLOG #34): Options-pattern config bindings. Runs beside the branches below
+            // (the generic Add* branch still records the AddOptions registration itself); what was
+            // missing was the SECTION KEY the chained binding call names, which is the fact the
+            // config catalog and the missing-defaults insight both need.
+            if (TryDetectOptionsBinding(invocation, memberAccess, methodName, stringConsts) is { } binding)
+            {
+                detections.Add(new OptionsBindingDetection(
+                    OptionsType: binding.OptionsType,
+                    SectionKey: binding.SectionKey,
+                    BindingMethod: binding.BindingMethod)
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
 
             // Batch B (DC3) — the transport client REGISTRATION names its target. This runs beside
             // (not instead of) the branches below: AddHttpClient<TI,TImpl> is still a DI binding (C6),
@@ -227,6 +252,134 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
 
         return detections;
+    }
+
+    /// <summary>F3 (BUG-BACKLOG #34) — recognises an Options-pattern configuration binding and the
+    /// section key it names. Two shapes: <c>AddOptions&lt;T&gt;()</c> followed on the fluent chain by
+    /// <c>.BindConfiguration(section)</c> or <c>.Bind(cfg.GetSection(section))</c>, and
+    /// <c>Configure&lt;T&gt;(cfg.GetSection(section))</c> (incl. the named-options overload; a lone
+    /// string argument to a Configure&lt;T&gt; helper counts too). Returns null when no chained call
+    /// binds configuration or when the section argument does not resolve — a computed section is
+    /// never guessed (the F2 rule).</summary>
+    private static (string OptionsType, string SectionKey, string BindingMethod)? TryDetectOptionsBinding(
+        InvocationExpressionSyntax invocation,
+        MemberAccessExpressionSyntax memberAccess,
+        string methodName,
+        IReadOnlyDictionary<string, string> stringConsts)
+    {
+        switch (methodName)
+        {
+            case "AddOptions" when memberAccess.Name is GenericNameSyntax optionsGeneric
+                && optionsGeneric.TypeArgumentList.Arguments.Count >= 1:
+            {
+                var optionsType = optionsGeneric.TypeArgumentList.Arguments[0].ToString();
+
+                // Walk outward along the fluent chain the AddOptions call anchors.
+                SyntaxNode current = invocation;
+                while (current.Parent is MemberAccessExpressionSyntax chainAccess
+                    && ReferenceEquals(chainAccess.Expression, current)
+                    && chainAccess.Parent is InvocationExpressionSyntax chained)
+                {
+                    var chainedName = chainAccess.Name.Identifier.ValueText;
+                    var args = chained.ArgumentList.Arguments;
+
+                    if (chainedName == "BindConfiguration" && args.Count >= 1
+                        && ResolveSectionArgument(args[0].Expression, stringConsts) is { } bound)
+                        return (optionsType, bound, "BindConfiguration");
+
+                    if (chainedName == "Bind" && args.Count >= 1
+                        && SectionFromGetSection(args[0].Expression, stringConsts) is { } section)
+                        return (optionsType, section, "Bind");
+
+                    current = chained;
+                }
+                return null;
+            }
+
+            case "Configure" when memberAccess.Name is GenericNameSyntax configureGeneric
+                && configureGeneric.TypeArgumentList.Arguments.Count == 1:
+            {
+                var optionsType = configureGeneric.TypeArgumentList.Arguments[0].ToString();
+                var args = invocation.ArgumentList.Arguments;
+
+                // A GetSection argument names the section unambiguously, in any position (the
+                // named-options overload puts the name first).
+                foreach (var arg in args)
+                    if (SectionFromGetSection(arg.Expression, stringConsts) is { } section)
+                        return (optionsType, section, "Configure");
+
+                // A LONE string argument can only be the section (a name-first overload has two
+                // arguments, so a named-options name never lands here).
+                if (args.Count == 1
+                    && ResolveSectionArgument(args[0].Expression, stringConsts) is { } lone)
+                    return (optionsType, lone, "Configure");
+
+                return null;
+            }
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>Unwraps <c>cfg.GetSection(section)</c> / <c>GetRequiredSection(section)</c> and
+    /// resolves the section argument; null for any other expression.</summary>
+    private static string? SectionFromGetSection(
+        ExpressionSyntax? expr, IReadOnlyDictionary<string, string> stringConsts)
+        => expr is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax ma } call
+           && ma.Name.Identifier.ValueText is "GetSection" or "GetRequiredSection"
+           && call.ArgumentList.Arguments.Count >= 1
+            ? ResolveSectionArgument(call.ArgumentList.Arguments[0].Expression, stringConsts)
+            : null;
+
+    /// <summary>Resolves a section-name argument to its string value. A literal answers directly;
+    /// <c>nameof(X)</c> is a compile-time constant readable from syntax (the eShop idiom,
+    /// <c>BindConfiguration(nameof(BackgroundTaskOptions))</c>); a const reference resolves through
+    /// the project-wide const index — bare (<c>BindConfiguration(SectionName)</c>, the enclosing
+    /// type's own const) or qualified (<c>QueueDrainOptions.SectionName</c>). Returns null for a
+    /// genuine expression: a computed section is never guessed. Mirrors
+    /// <c>EndpointExtractor.ResolveGroupPrefixArgument</c> (F2), which set the rule.</summary>
+    private static string? ResolveSectionArgument(
+        ExpressionSyntax? expression, IReadOnlyDictionary<string, string> stringConsts)
+    {
+        switch (expression)
+        {
+            case LiteralExpressionSyntax { Token.Value: string literal }:
+                return literal;
+
+            // nameof(X) / nameof(Ns.X) — the value is the final identifier's text, by definition.
+            case InvocationExpressionSyntax
+            {
+                Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" }
+            } nameofCall when nameofCall.ArgumentList.Arguments.Count == 1:
+                return nameofCall.ArgumentList.Arguments[0].Expression switch
+                {
+                    IdentifierNameSyntax id => id.Identifier.ValueText,
+                    MemberAccessExpressionSyntax nested => nested.Name.Identifier.ValueText,
+                    _ => null,
+                };
+
+            // BindConfiguration(SectionName) — a const on the type the call is written in.
+            case IdentifierNameSyntax bare:
+            {
+                var owner = expression.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+                return owner is not null
+                    && stringConsts.TryGetValue(
+                        $"{owner.Identifier.ValueText}.{bare.Identifier.ValueText}", out var own)
+                    ? own
+                    : null;
+            }
+
+            // BindConfiguration(QueueDrainOptions.SectionName) — the index's own key shape.
+            case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax type, Name: { } member }:
+                return stringConsts.TryGetValue(
+                    $"{type.Identifier.ValueText}.{member.Identifier.ValueText}", out var qualified)
+                    ? qualified
+                    : null;
+
+            default:
+                return null;
+        }
     }
 
     /// <summary>Batch B — maps a client-registration method to the transport it configures, or null

@@ -1197,6 +1197,8 @@ message ConfigBinding {
   int32 line_number = 3;     // line in file
   optional string node_id = 4;  // graph node containing this usage, if resolvable
   string pattern_type = 5;   // "GetValue" | "GetSection" | "Indexer" | "GetConnectionString" | "GetRequiredSection"
+                             // | "OptionsBinding" (F3: AddOptions<T>().BindConfiguration/.Bind or Configure<T>,
+                             //   section name resolved from a literal, nameof, or string const)
   string service = 6;        // project/service name
 }
 

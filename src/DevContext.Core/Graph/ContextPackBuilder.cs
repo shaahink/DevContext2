@@ -347,7 +347,8 @@ public sealed class ContextPackBuilder
                 files.Add(fp);
         if (files.Count == 0) return "";
 
-        var bindings = ConfigScanner.Scan(_query.Graph, files);
+        // F3 — the model-aware overload includes Options-pattern bindings in the spine's files.
+        var bindings = ConfigScanner.Scan(_query.Graph, _snapshot.Model, files);
         if (bindings.Count == 0) return "";
 
         var sb = new StringBuilder();
@@ -361,7 +362,7 @@ public sealed class ContextPackBuilder
             var more = group.Count() - 1;
             if (more > 0) sb.Append($" (+{more} more sites)");
             sb.AppendLine();
-            prov.Tally(Resolution.Semantic); // a literal key in the syntax tree is a certain binding
+            prov.Tally(Resolution.Semantic); // a literal or const-resolved key read from syntax is a certain binding
             prov.Locations.Add(Location(first.FilePath, first.LineNumber));
         }
         return sb.ToString();

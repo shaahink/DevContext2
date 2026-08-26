@@ -164,7 +164,7 @@ because the SDK reads `[Description]` attributes and not the XML doc file.
 | `impact` | Transitive impact: upward (what reaches this) or downward (what this affects), grouped by service. Diff-aware `files` mode for "I changed X". | `nodeId`/`query`/`files`, `direction: up\|down`, `maxDepth` |
 | `seam` | The wiring path **between** two symbols, hop by hop, each hop naming its seam kind, how the edge was bound, and the file:line. `trace` walks down from one entry and `impact` returns a set with distances; this is the only tool that answers "how does A reach B". Returns the shortest paths (`totalPaths` counts every one, including those the page left out); says `direction: reverse` when the connection runs the other way round, and names the retry when the hop budget — not the graph — ended the search. | `from`, `to`, `maxDepth` (8), `maxPaths` (3) |
 | `tests_for` † | Best-effort: test methods whose call closure reaches a node (0 = none reached, not "untested"). | `nodeId`/`query`, `maxDepth` |
-| `config` † | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`), optional key filter. | `key` |
+| `config` † | Config-key usage sites (`IConfiguration`, `GetValue`, `GetSection`, and Options-pattern bindings — `AddOptions<T>().BindConfiguration` / `Configure<T>`, const section names resolved), optional key filter. | `key` |
 
 ### Context packs — LLM-ready output
 

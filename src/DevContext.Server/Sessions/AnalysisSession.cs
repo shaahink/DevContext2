@@ -27,8 +27,11 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
 
     // T3.4 — the config-key scan reads + syntax-parses every node-bearing file (10.5s on shamshir), so
     // it is computed once per session and reused. config() filters this list in-memory (≤500ms warm).
+    // F3 — the model-aware overload also merges Options-pattern bindings (AddOptions<T>/Configure<T>)
+    // detected at extraction time; without them a repo that binds config the modern way read "1 keys exist".
     private IReadOnlyList<ConfigBindingInfo>? _configBindings;
-    public IReadOnlyList<ConfigBindingInfo> ConfigBindings() => _configBindings ??= ConfigScanner.Scan(Snapshot.Graph!);
+    public IReadOnlyList<ConfigBindingInfo> ConfigBindings() =>
+        _configBindings ??= ConfigScanner.Scan(Snapshot.Graph!, Snapshot.Model);
 
     // T7.4 (audit B11) — the flow atlas (≤100 shallow traces + hub degrees) computed once per
     // session; the app used to re-derive it with ~100 GetTrace + ~10 GetNode RPCs on every boot.
