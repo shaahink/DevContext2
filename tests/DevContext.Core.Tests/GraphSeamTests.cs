@@ -225,6 +225,9 @@ public sealed class GraphSeamTests
             });
 
             var tree = CSharpSyntaxTree.ParseText($"namespace Zoo {{ {source} }}", parseOpts, path: filePath);
+            // F1 (#33): the model must DECLARE what the source declares — INV-C refuses a member
+            // node of a type whose model entry does not vouch for it, fixture models included.
+            model.Types[fqn].Methods = TestMethodSignatures.DeclaredIn(tree);
             facts.AddRange(BodyFactExtractor.Extract(tree, filePath, "Zoo"));
         }
 
