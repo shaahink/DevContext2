@@ -34,9 +34,23 @@ public sealed record EventWire(
     public bool IsOrphan => Consumers.IsDefaultOrEmpty || Consumers.Length == 0;
 }
 
+/// <summary>F4 (backlog #35) — one in-repo transport port (a queue/bus/outbox interface) whose callers
+/// split into write-verb sites (producers) and read-verb sites (consumers). Both sides call INTO the
+/// port — a call through a DI interface lands on the interface Type because its methods have no bodies —
+/// so without a join the port is a sink (in-degree N, out-degree 0) and no walk can route through it.
+/// The wire is the verb-classified evidence <see cref="EmitPortBridges"/> turns into joined edges.</summary>
+public sealed record TransportPortWire(
+    NodeId Port,
+    string PortName,
+    ImmutableArray<EventParticipant> Producers,
+    ImmutableArray<EventParticipant> Consumers);
+
 /// <summary>Builds the single event-wiring projection from an assembled graph. Pure over the graph's
 /// Raises/Consumes edges — no re-parsing, no second detection pass — so the board, one-pager, and flow
-/// surfaces cannot disagree.</summary>
+/// surfaces cannot disagree. Also home to the TRANSPORT-PORT half of the same join
+/// (<see cref="BuildTransportPorts"/>/<see cref="EmitPortBridges"/>): event wiring has exactly one
+/// join, and a queue port bridged by verb evidence is that join over Calls edges instead of
+/// Raises/Consumes — never a second ad-hoc pass elsewhere.</summary>
 public static class EventWiringProjection
 {
     private sealed class Accumulator
@@ -136,6 +150,155 @@ public static class EventWiringProjection
                 });
             }
         }
+    }
+
+    // ── F4 (backlog #35): the transport-port half of the join ────────────────────────────────────
+    //
+    // Book2Course's Q4: BuildCoordinator.AdvanceAsync enqueues into IJobQueue and JobRunner.RunNextAsync
+    // dequeues from it — the connection is in the graph, fully verified, and seam() answered
+    // "unconnected" because both sides point INTO the port. The verb evidence needed to bridge it was
+    // already on GraphEdge.TargetMember; this join reads it. Verb tables are transport verbs ONLY
+    // (enqueue/dequeue families) — deliberately NOT store verbs (Add/Get/Save/Read/Write): a repository
+    // written by an uploader and read by a later stage is staging, not transport, and bridging it would
+    // fabricate a path the repo does not have (the drive's Q4 FIRST case, which was correctly
+    // found:false, stays found:false). Kin tables: EventBusExtractor's raw-transport queue verbs and
+    // DispatchSeamCatalog's bus receiver verbs.
+    //
+    // MEASURED COUPLING TO #33 (carried openly): on Book2Course today the WRITER edge's TargetMember
+    // is "ConfigureAwait", not "EnqueueAsync" — `await queue.EnqueueAsync(..).ConfigureAwait(false)`
+    // lets the chained BCL call win the (from, to, kind) dedupe, the #33 extension/BCL-member defect
+    // wearing a different hat. Awaiter plumbing matches no stem, so the polluted edge classifies as
+    // nothing and the port stays unbridged — the join degrades to the honest miss, never a wrong
+    // bridge. When #33's declares-gate lands, the verb evidence comes through clean and the wire
+    // forms; the Book2Course re-measure runs on the integrated tree in that order by design.
+
+    /// <summary>Method-name stems that WRITE into a transport port. Matched at a PascalCase word
+    /// boundary ("EnqueueAsync", "PushMany" — never "Poster" or "Sender").</summary>
+    private static readonly ImmutableArray<string> PortWriteStems =
+        ["Enqueue", "Push", "Publish", "Send", "Produce", "Emit", "Post", "Schedule"];
+
+    /// <summary>Method-name stems that READ from a transport port. "Claim"/"Lease" are the dequeue of
+    /// lease-based job queues (Book2Course's <c>IJobQueue.ClaimAsync</c> — F4's measured case).
+    /// Lifecycle verbs (Complete/Fail/Renew/Cancel) are deliberately absent: settling a lease is not
+    /// receiving work, and an unclassifiable caller must never mint a bridge.</summary>
+    private static readonly ImmutableArray<string> PortReadStems =
+        ["Dequeue", "Pop", "Receive", "Consume", "Take", "Poll", "Pull", "Peek", "Lease", "Claim"];
+
+    /// <summary>Classifies every in-repo port the graph holds BOTH sides of: callers that write into it
+    /// and callers that read from it, split by the verb on <see cref="GraphEdge.TargetMember"/>. Only
+    /// Calls edges from a member onto an in-scope TYPE participate (the DI-interface call shape). A
+    /// caller type with calls in BOTH directions is the transport's own plumbing and is dropped from
+    /// both sides — the same rule EventBusExtractor.EmitQueueSeams applies to raw queue transports. A
+    /// port left with only writers or only readers is NOT a wire: nothing may be bridged that the
+    /// graph does not hold both ends of.</summary>
+    public static ImmutableArray<TransportPortWire> BuildTransportPorts(
+        CodeGraph graph,
+        Func<string, string?>? projectForFile = null,
+        Func<string, bool>? isProduction = null)
+    {
+        var writes = new Dictionary<NodeId, List<EventParticipant>>();
+        var reads = new Dictionary<NodeId, List<EventParticipant>>();
+        var writerTypes = new Dictionary<NodeId, HashSet<string>>();
+        var readerTypes = new Dictionary<NodeId, HashSet<string>>();
+
+        foreach (var edge in graph.AllEdges)
+        {
+            if (edge.Kind != EdgeKind.Calls) continue;
+            if (edge.From.Kind != NodeKind.Member || edge.To.Kind != NodeKind.Type) continue;
+            if (edge.TargetMember is not { Length: > 0 } verb) continue;
+
+            // In-repo ports only: a node with no declaring file is an external leaf, and a type
+            // wearing store/entity tags is data, not transport.
+            var port = graph.Node(edge.To);
+            if (port?.FilePath is not { Length: > 0 }) continue;
+            if (port.Tags.Contains(RoleTags.Entity) || port.Tags.Contains(RoleTags.Aggregate)
+                || port.Tags.Contains(RoleTags.DataStore)) continue;
+
+            var caller = graph.Node(edge.From);
+            if (caller is null) continue;
+            if (!IsProductionSeam(edge, caller, isProduction)) continue;
+
+            var direction = ClassifyPortVerb(verb);
+            if (direction == 0) continue;
+
+            var side = direction > 0 ? writes : reads;
+            if (!side.TryGetValue(edge.To, out var list)) side[edge.To] = list = [];
+            list.Add(Participant(caller, edge, projectForFile));
+
+            var types = direction > 0 ? writerTypes : readerTypes;
+            if (!types.TryGetValue(edge.To, out var set)) types[edge.To] = set = new(StringComparer.Ordinal);
+            set.Add(Graph2.SymbolCanon.OwnerTypeOf(edge.From.Key));
+        }
+
+        var wires = ImmutableArray.CreateBuilder<TransportPortWire>();
+        foreach (var (portId, writers) in writes.OrderBy(kv => kv.Key.Key, StringComparer.Ordinal))
+        {
+            if (!reads.TryGetValue(portId, out var readers)) continue;
+
+            // EmitQueueSeams' rule, mirrored: a type on BOTH sides of the same port is the transport's
+            // implementation (a drain loop, a decorator, an in-memory bus) — never a bridge endpoint.
+            var infra = new HashSet<string>(writerTypes[portId], StringComparer.Ordinal);
+            infra.IntersectWith(readerTypes[portId]);
+
+            var producers = Dedup([.. writers.Where(p => !infra.Contains(Graph2.SymbolCanon.OwnerTypeOf(p.Node.Key)))]);
+            var consumers = Dedup([.. readers.Where(p => !infra.Contains(Graph2.SymbolCanon.OwnerTypeOf(p.Node.Key)))]);
+            if (producers.IsEmpty || consumers.IsEmpty) continue;
+
+            wires.Add(new TransportPortWire(portId, ShortName(portId), producers, consumers));
+        }
+        return wires.ToImmutable();
+    }
+
+    /// <summary>Emits the bridge each wire earns: port → consumer-member <see cref="EdgeKind.Consumes"/>
+    /// edges, so a walk can route producer → port → consumer. The hop is a JOIN — <see
+    /// cref="Resolution.Join"/>, confidence 0.8, tagged <see cref="RoleTags.TransportPortBridge"/> —
+    /// because the builder classified it from verb evidence; it must never render as verified.
+    /// Provenance anchors on the consumer's read call site, the line where delivery happens.
+    /// Idempotent: the builder dedups (from, to, kind) edges.</summary>
+    public static void EmitPortBridges(CodeGraphBuilder g, ImmutableArray<TransportPortWire> ports)
+    {
+        if (ports.IsDefaultOrEmpty) return;
+        foreach (var wire in ports)
+        {
+            foreach (var consumer in wire.Consumers)
+            {
+                g.AddEdge(new GraphEdge(wire.Port, consumer.Node, EdgeKind.Consumes)
+                {
+                    Provenance = consumer.Provenance,
+                    Resolution = Resolution.Join,
+                    Confidence = 0.8f,
+                    Tags = [RoleTags.TransportPortBridge],
+                });
+            }
+        }
+    }
+
+    /// <summary>+1 write, -1 read, 0 neither/both. "Try"/"Begin" wrappers are transparent
+    /// ("TryDequeue" reads); a name matching neither table — or, defensively, both — does not
+    /// participate, so an unclassifiable caller can never mint a bridge.</summary>
+    private static int ClassifyPortVerb(string memberName)
+    {
+        var name = StripVerbPrefix(memberName, "Try");
+        name = StripVerbPrefix(name, "Begin");
+        var w = MatchesAnyStem(name, PortWriteStems);
+        var r = MatchesAnyStem(name, PortReadStems);
+        return w == r ? 0 : w ? 1 : -1;
+    }
+
+    private static string StripVerbPrefix(string name, string prefix)
+        => name.Length > prefix.Length && name.StartsWith(prefix, StringComparison.Ordinal)
+            && char.IsUpper(name[prefix.Length])
+            ? name[prefix.Length..] : name;
+
+    private static bool MatchesAnyStem(string name, ImmutableArray<string> stems)
+    {
+        foreach (var stem in stems)
+        {
+            if (name.StartsWith(stem, StringComparison.Ordinal)
+                && (name.Length == stem.Length || char.IsUpper(name[stem.Length])))
+                return true;
+        }
+        return false;
     }
 
     private static Accumulator Acc(Dictionary<string, Accumulator> map, GraphNode eventNode)

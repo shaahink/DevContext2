@@ -1533,7 +1533,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    [Description("The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")")]
+    [Description("The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Crosses in-repo queue/bus ports: when the graph holds both a writer and a reader of a port, the path routes producer -> port -> consumer and that hop's resolution says Join (classified from verb evidence, not a verified call). Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")")]
     public async Task<string> Seam(
         [Description(HandleDoc)] string? handle = null,
         [Description("The starting symbol - a nodeId or a resolvable name.")] string? from = null,
