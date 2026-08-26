@@ -123,6 +123,21 @@ public sealed record DiRegistrationDetection(
     string? FactorySummary = null
 ) : Detection;
 
+/// <summary>F3 (BUG-BACKLOG #34) — an Options-pattern configuration binding:
+/// <c>AddOptions&lt;T&gt;().BindConfiguration(section)</c> / <c>.Bind(cfg.GetSection(section))</c> /
+/// <c>Configure&lt;T&gt;(cfg.GetSection(section))</c>, with <paramref name="SectionKey"/> resolved from a
+/// literal, <c>nameof</c>, or a string const through the project-wide const index (the F2 rule: a
+/// computed expression is never guessed). Detected at extraction time because the config catalog's
+/// syntax scan only visits files that own a graph node — a composition-root DependencyInjection.cs
+/// can be skipped wholesale — and cannot see across files to resolve consts. This record is the ONE
+/// source both catalog consumers read: <c>ConfigScanner</c> merges it into the binding catalog
+/// (PatternType "OptionsBinding") and <c>ConfigDefaultsSource</c> counts it as a consumed key.</summary>
+public sealed record OptionsBindingDetection(
+    string OptionsType,
+    string SectionKey,
+    string BindingMethod
+) : Detection;
+
 /// <summary>Detection for an anti-pattern found in the codebase.</summary>
 public sealed record AntiPatternDetection(
     string Pattern,

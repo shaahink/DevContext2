@@ -1607,7 +1607,7 @@ public sealed class DevContextTools
 
     [McpServerTool]
     [SpecialistTool("ask it when the question is specifically about configuration keys")]
-    [Description("Find config key usage sites (IConfiguration, GetValue, GetSection) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
+    [Description("Find config key usage sites (IConfiguration indexer, GetValue, GetSection, and Options-pattern bindings: AddOptions<T>().BindConfiguration / Configure<T>) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
     public async Task<string> Config(
         [Description(HandleDoc)] string? handle = null,
         [Description("Config key to filter on, e.g. \"GrpcSettings:DiscountUrl\". Omit for every key found.")] string? key = null)
@@ -1656,7 +1656,7 @@ public sealed class DevContextTools
                 key = key ?? "(all)",
                 totalKeys = resp.TotalKeys,
                 // T3.6 — self-describing: name the scan and its blind spot.
-                method = "Scanned source for IConfiguration indexer / GetValue / GetSection / GetConnectionString with literal keys. Dynamically-built keys are not captured.",
+                method = "Scanned source for IConfiguration indexer / GetValue / GetSection / GetConnectionString with literal keys, plus Options-pattern bindings (AddOptions<T>().BindConfiguration/.Bind, Configure<T>) with literal or const section names. Dynamically-built keys are not captured.",
                 keys = bindings,
             }, JsonOpts);
         }
