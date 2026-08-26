@@ -125,6 +125,18 @@
       desktop run's N2 (pack convergence: FULL — `DECISIONS.md` §D-G), so what remains here is
       **D-F (insight dedup, engine-side) and D-H**. RE-DRIVE the live app before any R3 work — a full-page screenshot cannot judge a
       canvas (`r3-canvas-zoom.mts`).
+- [~] **DESKTOP PROPOSAL v2 — 2026-08-14 (the "Reader refinement" item from PRE-RELEASE-PLAN §6,
+      executed as an extended research session on owner direction).** The v1 Reader proposal was
+      reviewed against a LIVE re-drive of the post-Z1 app (`develop` @ 170d304, eShop @ 9b4f943 —
+      evidence + 2 candidate bug filings in `eval-results/2026-08-14/desktop-redrive/`) and
+      superseded in §4–§7 by **`DESKTOP-PRODUCT-PROPOSAL-2026-08-14.md`**: one workspace (the
+      Reading Room — flow spine │ real source with a wiring gutter │ answers rail), a two-vocabulary
+      object model (engine truth × human salience), the noise split as a layered Lens
+      (`.devcontext/lens.json`), curation as reading gestures (pin/clip/note/name), IA 7 routes → 5.
+      Wireframe decision brief:
+      <https://claude.ai/code/artifact/4bba9dce-f07f-4254-9fb8-c26ae77086e3>. **AWAITING the owner's
+      nine §11 decisions (each carries a recommendation); R1 starts after.** Branch
+      `feat/desktop-proposal-v2` (docs + evidence only).
 - [~] R4 (parallel lane) — now driven by conductor as stage **G1** (`docs/dev/archive/trackers/GRAPH-V2-START.md`).
       **§1 item 1 LANDED 2026-07-29**: `map` returns the structured surface (it was dropping the
       library surface, packages, aggregates, service styles and the archetype view *after* the server
