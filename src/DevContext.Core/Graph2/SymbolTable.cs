@@ -33,6 +33,11 @@ public sealed class SymbolTable
     // Batch C (DC4): typeFqn -> (propertyName -> declared type text). Feeds the receiver-chain hop.
     private readonly Dictionary<string, Dictionary<string, string>> _propertyTypesByType;
     private readonly HashSet<string> _interfaceFqns;
+    // F1 (#33): typeFqn -> base-list texts AS WRITTEN (base classes + interfaces, union across
+    // partials) and the declaring file (for project-scoped resolution of short base names). Feeds
+    // the declares oracle's visible-hierarchy walk.
+    private readonly Dictionary<string, List<string>> _baseTypeTextsByType;
+    private readonly Dictionary<string, string> _fileByType;
 
     public SymbolTable(
         IEnumerable<TypeDiscovery> types,
@@ -50,6 +55,8 @@ public sealed class SymbolTable
         _memberNamesByType = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
         _propertyTypesByType = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
         _interfaceFqns = new HashSet<string>(StringComparer.Ordinal);
+        _baseTypeTextsByType = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        _fileByType = new Dictionary<string, string>(StringComparer.Ordinal);
 
         if (types is not null)
         {
@@ -88,6 +95,21 @@ public sealed class SymbolTable
                     foreach (var pr in t.Properties)
                         if (!string.IsNullOrEmpty(pr.PropertyType))
                             props.TryAdd(pr.Name, pr.PropertyType);
+                }
+
+                // F1 (#33): record the base list (classes AND interfaces, texts as written) plus the
+                // declaring file, so the declares oracle can walk the in-solution hierarchy.
+                if (!string.IsNullOrEmpty(t.FilePath)) _fileByType.TryAdd(t.Id, t.FilePath);
+                if (!t.BaseTypes.IsDefaultOrEmpty || !t.ImplementedInterfaces.IsDefaultOrEmpty)
+                {
+                    if (!_baseTypeTextsByType.TryGetValue(t.Id, out var bases))
+                        _baseTypeTextsByType[t.Id] = bases = [];
+                    if (!t.BaseTypes.IsDefaultOrEmpty)
+                        foreach (var b in t.BaseTypes)
+                            if (!bases.Contains(b)) bases.Add(b);
+                    if (!t.ImplementedInterfaces.IsDefaultOrEmpty)
+                        foreach (var i in t.ImplementedInterfaces)
+                            if (!bases.Contains(i)) bases.Add(i);
                 }
             }
         }
@@ -148,6 +170,52 @@ public sealed class SymbolTable
     public bool TypeDeclaresMember(string typeFqn, string memberName)
         => _memberNamesByType.TryGetValue(typeFqn, out var members) && members.Contains(memberName);
 
+    /// <summary>F1 (#33) — the declares ORACLE: does <paramref name="typeFqn"/> declare
+    /// <paramref name="memberName"/> anywhere in its <b>visible</b> hierarchy? Tri-state, honestly:
+    /// <list type="bullet">
+    /// <item><c>true</c> — the type, or an IN-SOLUTION base class / interface reached by walking
+    /// <see cref="Models.TypeDiscovery.BaseTypes"/>/<c>ImplementedInterfaces</c>, declares a method,
+    /// constructor or property with this name. The base walk is what keeps legitimate calls to
+    /// inherited in-solution methods alive — a declared-members-only gate drops them.</item>
+    /// <item><c>false</c> — the type is declared in-solution and NOTHING visible declares the member.
+    /// An out-of-solution base (e.g. EF's <c>DbContext</c>) ENDS visibility — it never vouches. That is
+    /// the invariant's whole point: <c>ConfigureAwait</c>/<c>Where</c>/<c>IgnoreQueryFilters</c> on an
+    /// <c>AppDbContext</c> receiver are somebody else's members, and minting
+    /// <c>AppDbContext::ConfigureAwait</c> ranked pure noise #2 in startHere by degree. No BCL name
+    /// lists — this gate is what retired them (see GraphBuilder.Seams).</item>
+    /// <item><c>null</c> — the type itself is not declared in-solution: the oracle cannot judge, the
+    /// caller must not refuse on its account.</item>
+    /// </list></summary>
+    public bool? DeclaresMemberInHierarchy(string typeFqn, string memberName)
+    {
+        if (string.IsNullOrEmpty(typeFqn) || string.IsNullOrEmpty(memberName)) return null;
+        if (!_namespaceByFqn.ContainsKey(typeFqn)) return null;   // not declared here — cannot judge
+
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var queue = new Queue<string>();
+        queue.Enqueue(typeFqn);
+        while (queue.Count > 0)
+        {
+            var cur = queue.Dequeue();
+            if (!visited.Add(cur)) continue;
+            if (_memberNamesByType.TryGetValue(cur, out var members) && members.Contains(memberName))
+                return true;
+            if (_propertyTypesByType.TryGetValue(cur, out var props) && props.ContainsKey(memberName))
+                return true;
+            if (!_baseTypeTextsByType.TryGetValue(cur, out var bases)) continue;
+            var file = _fileByType.GetValueOrDefault(cur);
+            foreach (var baseText in bases)
+            {
+                // ResolveName handles generic base texts (SplitGenericText + arity narrowing) and
+                // returns the input unchanged when unknown — which then fails the declared-type check.
+                var fqn = ResolveName(baseText, file);
+                if (_namespaceByFqn.ContainsKey(fqn)) queue.Enqueue(fqn);
+                // unresolved / out-of-solution base: visibility ends on this branch — it never vouches
+            }
+        }
+        return false;
+    }
+
     /// <summary>Narrows short-name candidates by use-site generic arity: an explicit arity keeps only
     /// structurally-matching declarations; a bare mention (arity 0) prefers non-generic declarations
     /// but falls back to all candidates (a stripped mention of a generic type).</summary>
@@ -171,6 +239,12 @@ public sealed class SymbolTable
     {
         if (string.IsNullOrEmpty(r.Text))
             return r with { Tier = ResolutionTier.Unresolved };
+
+        // F1 (#33) — a ref a Tier-B bind CONTRADICTED stays unresolved: re-running the name ladder
+        // on its text would resurrect the very guess the semantic measurement disproved (which is
+        // exactly how `AppDbContext::ConfigureAwait` survived to the graph).
+        if (r.Contradicted)
+            return r with { Resolved = null, Tier = ResolutionTier.Unresolved };
 
         // Law R2 — tier is monotone: a ref that already carries a real semantic bind is never downgraded
         // or re-ambiguated. Map it onto the in-scope node id when the short name is uniquely known (so the

@@ -358,6 +358,11 @@ public sealed class SeamDetectorTests
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
             SourceBody = source,
+            // F1 (#33): the seam origin must be a DECLARED member — INV-C refuses a member node of a
+            // type that does not declare it, and SyntaxStructureExtractor would have recorded this.
+            Methods = [new MethodSignature("CreateOrderDraftAsync", "Task<OrderDraftDTO>",
+                ["CreateOrderDraftCommand", "OrderServices"], ["command", "services"],
+                Microsoft.CodeAnalysis.Accessibility.Public, true, true)],
         });
         model.Types.TryAdd("Ordering.API.Application.Commands.CreateOrderDraftCommand", new TypeDiscovery
         {

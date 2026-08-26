@@ -112,8 +112,20 @@ public sealed class PlainCallDetector : ISeamDetector
             if (hopMember is not null && string.Equals(hopMember, ShortName(receiverRef.Text), StringComparison.Ordinal))
                 hopMember = null;
             var target = SeamDetectorHelpers.Resolve(receiverRef, ctx);
+            var targetType = resolvedType.Canonical;
             if (ctx.Symbols.HopThroughProperty(resolvedType.Canonical, hopMember, receiverRef.Site) is { } hopped)
+            {
                 target = ctx.Symbols.Resolve(new SymbolRef { Text = hopped, Site = receiverRef.Site });
+                targetType = hopped;
+            }
+
+            // F1 (#33) — same declares gate as CallGraphBinder.ResolveCallee's receiver arm, ONE rule
+            // for both producers: a method the target type does not VISIBLY declare (declared members
+            // + in-solution base walk) is somebody else's member — an extension method or an
+            // out-of-solution inherited method. The edge this seam would emit (`… → AppDbContext
+            // (Where)`) is the edge-only half of the Book2Course noise. Judged AFTER the chain hop,
+            // on the type the call actually lands on; tri-state — only a positive "no" skips.
+            if (ctx.Symbols.DeclaresMemberInHierarchy(targetType, inv.MethodName) == false) continue;
 
             yield return new SeamMatch(
                 body.Member, EdgeKind.Calls, target,

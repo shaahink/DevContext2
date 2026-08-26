@@ -48,7 +48,12 @@ public sealed partial class GraphBuilder
 
         if (handler.Kind == NodeKind.Member)
         {
-            if (handler.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+            // F1 (#33) rider: V1.2 derives member titles as "Owner.<lambda> …", so a Title
+            // StartsWith("<lambda>") check never fired and every inline lambda fell through to the
+            // owning REGISTRATION type — the exact "reads as a real handler" mislabel E6 forbade.
+            // Unmasked when the declares gate dropped the undeclared-member seams that used to
+            // resolve such lambdas earlier in the chain. The lambda marker lives in the member KEY.
+            if (Graph2.SymbolCanon.MemberNameOf(handler.Id.Key).StartsWith("<lambda>", StringComparison.Ordinal))
             {
                 var callCount = graph.OutEdges(handler.Id, EdgeKind.Calls).Length;
                 if (callCount > 0) return $"inline ({callCount} call{(callCount == 1 ? "" : "s")})";

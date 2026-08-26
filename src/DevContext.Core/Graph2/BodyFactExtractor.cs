@@ -357,6 +357,13 @@ public static class BodyFactExtractor
     {
         var member = receiver is MemberAccessExpressionSyntax ma ? ma.Name.Identifier.ValueText : null;
         var text = RootIdentifier(receiver);
+        // F1 (#33): a receiver EXPRESSION that roots at no identifier (a call result `x.Y().Z()`,
+        // an element access, a cast…) keeps its raw text so the op still records "this call HAS a
+        // receiver". A null here would masquerade as a bare self-call in the binder's
+        // declares-the-method arm — `sb.Append(a).Append(b)` inside a type declaring its own
+        // Append would join the caller. The raw text resolves from no scope and no name ladder,
+        // so no arm can bind it; Tier B fills ReceiverType with the true (return) type where it can.
+        if (text is null) return (receiver.ToString(), member);
         if (text is not "this") return (text, member);
 
         var expr = receiver;
@@ -384,9 +391,11 @@ public static class BodyFactExtractor
                 case MemberAccessExpressionSyntax ma:
                     expr = ma.Expression;
                     continue;
-                case InvocationExpressionSyntax inv:
-                    expr = inv.Expression;
-                    continue;
+                // F1 (#33): an invocation is NOT walked through — a call result's type is not the
+                // root identifier's type. `_db.SaveChangesAsync().ConfigureAwait(false)` used to
+                // root ConfigureAwait's receiver at `_db` (AppDbContext) and the binder minted
+                // `AppDbContext::ConfigureAwait`. The chain's receiver type is Tier B's to bind
+                // (the CALL's return type), never a syntactic guess.
                 case IdentifierNameSyntax id:
                     return id.Identifier.ValueText;
                 case ThisExpressionSyntax:
