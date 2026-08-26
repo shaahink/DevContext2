@@ -252,6 +252,18 @@ public static class CallGraphBinder
                 // else: keep the interface — the graph's Resolves edges carry the candidates
             }
 
+            // F1 (#33) — the DECLARES gate this arm alone was missing (the bare-identifier arm and
+            // the static arm below both carry it): a method the resolved callee type does not
+            // VISIBLY declare — declared members plus the in-solution base/interface walk — is
+            // somebody else's member. Extension methods (`_db.IgnoreQueryFilters()`) and methods
+            // inherited from an out-of-solution base (`_db.SaveChangesAsync()`, `.ToString()`)
+            // minted `AppDbContext::ConfigureAwait`-shaped Member nodes that out-ranked every real
+            // startHere row by degree and walked into traces. Placed AFTER the property-hop and DI
+            // routing so it judges the type the call actually lands on. Tri-state: only a positive
+            // "does not declare it" refuses. No BCL name lists — this gate is what retired them.
+            if (symbols.DeclaresMemberInHierarchy(calleeType, inv.MethodName) == false)
+                return null;
+
             var resolution = resolved.Tier == ResolutionTier.Semantic
                 ? Graph.Resolution.Semantic
                 : Graph.Resolution.Syntactic;

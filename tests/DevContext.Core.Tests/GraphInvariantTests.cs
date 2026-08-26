@@ -156,6 +156,90 @@ public sealed class GraphInvariantTests
         Assert.Equal("StackTraceHtmlFragments.Type", g.Build().Node(m)!.Title);   // V1.2
     }
 
+    // ── INV-C (F1, backlog #33): no node may be a member of a type that does not declare it ──
+
+    [Fact]
+    public void A_member_of_a_type_that_does_not_visibly_declare_it_is_refused_and_counted()
+    {
+        // Book2Course shipped Member:Shop.AppDbContext::ConfigureAwait (72 connections) as the TOP
+        // startHere row — an extension/BCL method wearing the receiver type's identity. The oracle
+        // is tri-state: only a positive "known type, nothing visible declares it" refuses.
+        var g = new CodeGraphBuilder((type, member) =>
+            type == "Shop.AppDbContext" ? member is "ConfigureConventions" : null);
+
+        var phantom = NodeId.ForMember("Shop.AppDbContext", "ConfigureAwait");
+        var declared = NodeId.ForMember("Shop.AppDbContext", "ConfigureConventions");
+        var unjudged = NodeId.ForMember("External.Unknown", "Whatever");
+        var synthetic = NodeId.ForMember("Shop.Program", "<lambda> GET /x");
+
+        g.AddNode(new GraphNode(phantom, "irrelevant", NodeKind.Member));
+        g.AddNode(new GraphNode(declared, "irrelevant", NodeKind.Member));
+        g.AddNode(new GraphNode(unjudged, "irrelevant", NodeKind.Member));
+        g.AddNode(new GraphNode(synthetic, "irrelevant", NodeKind.Member));
+
+        Assert.False(g.HasNode(phantom));       // refused: the type does not declare it
+        Assert.True(g.HasNode(declared));       // declared member — admitted
+        Assert.True(g.HasNode(unjudged));       // oracle cannot judge (null) — admitted
+        Assert.True(g.HasNode(synthetic));      // synthetic member name — not judged, admitted
+
+        var refusal = Assert.Single(g.RefusedNodes);
+        Assert.Equal("INV-C", refusal.Invariant);
+        Assert.Contains("::ConfigureAwait", refusal.Key);
+
+        // The edge that wanted the phantom leaves no half behind.
+        Assert.False(g.AddEdge(new GraphEdge(declared, phantom, EdgeKind.Calls)));
+    }
+
+    [Fact]
+    public void Without_an_oracle_INV_C_is_inert()
+    {
+        // Tests (and any caller without a SymbolTable) build graphs by hand; a null oracle must
+        // never refuse — INV-C is enforcement of KNOWN declarations, not a guess.
+        var g = new CodeGraphBuilder();
+        var m = NodeId.ForMember("Shop.AppDbContext", "ConfigureAwait");
+        g.AddNode(new GraphNode(m, "irrelevant", NodeKind.Member));
+        Assert.True(g.HasNode(m));
+        Assert.Empty(g.RefusedNodes);
+    }
+
+    [Fact]
+    public void An_INV_C_refusal_reaches_the_DIAGNOSTICS_of_a_real_build()
+    {
+        // The positive control for the F1 sweep, same shape as the INV-A control above: a producer
+        // (AddCallEdges, fed straight from model.CallEdges) tries to mint a member the type does not
+        // declare, and the refusal is READ BACK off the DiscoveryModel the pipeline prints from.
+        var model = new DiscoveryModel();
+        model.Projects.Add(new ProjectInfo("Shop", @"C:/repo/src/Shop/Shop.csproj", "C#", [], [], []));
+        model.Types.TryAdd("Shop.RunQuery", new TypeDiscovery
+        {
+            Id = "Shop.RunQuery", Name = "RunQuery", Namespace = "Shop",
+            FilePath = @"C:/repo/src/Shop/RunQuery.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+            Methods = [new MethodSignature("Run", "void", [], [], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+        });
+        model.Types.TryAdd("Shop.AppDbContext", new TypeDiscovery
+        {
+            Id = "Shop.AppDbContext", Name = "AppDbContext", Namespace = "Shop",
+            FilePath = @"C:/repo/src/Shop/AppDbContext.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+            Methods = [new MethodSignature("ConfigureConventions", "void", [], [], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+        });
+        model.CallEdges.Add(new CallEdge(
+            "Shop.RunQuery", "Run", "Shop.AppDbContext", "ConfigureAwait", @"C:/repo/src/Shop/RunQuery.cs:8"));
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.DoesNotContain(graph.Nodes,
+            n => n.Id.Key == "Shop.AppDbContext::ConfigureAwait");
+        var d = Assert.Single(model.Diagnostics, x => x.Source == "GraphInvariants");
+        Assert.Contains("INV-C", d.Message);
+        Assert.Contains("::ConfigureAwait", d.Message);
+    }
+
     // ── INV-B: lambda / expression text never becomes a node ─────────────────────────────────
 
     [Theory]

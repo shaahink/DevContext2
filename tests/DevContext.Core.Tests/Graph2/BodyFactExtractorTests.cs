@@ -66,6 +66,38 @@ public sealed class BodyFactExtractorTests
     }
 
     [Fact]
+    public void Chained_call_receiver_is_the_call_result_not_the_root_identifier()
+    {
+        // F1 (#33): in `x.Y().Z()` the receiver of Z is what Y() RETURNS, not x. RootIdentifier used
+        // to walk THROUGH the invocation and hand Z the root's type — `_db.SaveChangesAsync()
+        // .ConfigureAwait(false)` recorded receiver `_db` (AppDbContext) and the binder minted
+        // `AppDbContext::ConfigureAwait`. The op must carry NO receiver type (Tier B may bind the
+        // true one later) and its ReceiverText must NOT be the root identifier — and must not be
+        // null either, or the call would masquerade as a self-call in the binder's bare arm.
+        const string code = """
+            namespace Shop;
+            public class Worker
+            {
+                private Session _session;
+                public void Run()
+                {
+                    _session.Begin().Commit();
+                }
+            }
+            """;
+        var body = Member(code, "Run");
+        var commit = body.Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Commit");
+        Assert.Null(commit.ReceiverType);
+        Assert.NotNull(commit.ReceiverText);
+        Assert.NotEqual("_session", commit.ReceiverText);
+
+        // The INNER call is untouched: `_session` is its real receiver.
+        var begin = body.Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Begin");
+        Assert.Equal("_session", begin.ReceiverText);
+        Assert.Equal("Session", begin.ReceiverType?.Text);
+    }
+
+    [Fact]
     public void Body_facts_carry_the_member_declaration_line()
     {
         // T2.2: the member's own decl line, from the syntax walk (no re-parse), so the assembler can stamp
@@ -175,8 +207,9 @@ public sealed class BodyFactExtractorTests
     }
 
     [Fact]
-    public void Facts_version_is_v1()
-        => Assert.Equal("facts-v1", BodyFactsVersion.Version);
+    public void Facts_version_is_v2()
+        // v2: F1 (#33) — chained-call receivers stopped rooting at the leading identifier.
+        => Assert.Equal("facts-v2", BodyFactsVersion.Version);
 
     [Fact]
     public async Task Body_facts_cache_builds_once_and_is_reused()
@@ -332,12 +365,15 @@ public sealed class BodyFactExtractorTests
     [Fact]
     public void This_rooted_chain_through_a_call_is_left_alone()
     {
-        // Second guard: `this.Make().Do()` bottoms out at `this` too, but the segment before the call is
-        // the RESULT of a call, not a declared member — nothing the type scope can resolve. The
-        // normalisation must only fire when the walk to `this` is pure member access.
+        // Second guard: `this.Make().Do()` — the segment before the call is the RESULT of a call,
+        // not a declared member, so nothing the type scope can resolve. The D-3 normalisation must
+        // only fire when the walk to `this` is pure member access. F1 (#33) tightened the contract:
+        // Do's receiver is what Make() RETURNS, so the op records the raw receiver expression
+        // (never "this", which would send it to the binder's declares-the-method self-call arm and
+        // bind Do to the caller type on a name coincidence).
         const string code = "namespace N; class C { void M() { this.Make().Do(); } }";
         var call = Member(code, "M").Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Do");
-        Assert.Equal("this", call.ReceiverText);
+        Assert.Equal("this.Make()", call.ReceiverText);
         Assert.Null(call.ReceiverType);
     }
 }

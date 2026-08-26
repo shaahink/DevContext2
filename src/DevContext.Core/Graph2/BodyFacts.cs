@@ -69,8 +69,10 @@ public sealed record IdentifierUseOp(int Line, string Identifier) : BodyOp(Line)
 public sealed record ArgFact(string Text, SymbolRef? Type = null);
 
 /// <summary>Version tag for the content-keyed BodyFacts cache. Bump when the op shape changes so stale
-/// cached facts are not reused across versions.</summary>
+/// cached facts are not reused across versions. v2: F1 (#33) — chained-call receivers no longer root
+/// at the leading identifier (ReceiverText carries the raw expression, ReceiverType stays null for
+/// Tier B), and <see cref="SymbolRef.Contradicted"/> exists.</summary>
 public static class BodyFactsVersion
 {
-    public const string Version = "facts-v1";
+    public const string Version = "facts-v2";
 }

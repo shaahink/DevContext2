@@ -38,6 +38,14 @@ public sealed class SharedAnalysisContext
         = FrozenDictionary<string, ArchitectureLayer>.Empty;
     /// <summary>Call graph mapping methods to their call edges.</summary>
     public CallGraph? CallGraph { get; set; }
+    /// <summary>F1 (#33): the ONE <see cref="SymbolTable"/> the graph world resolved through (scoped
+    /// to the analysed solution, built pre-compression), kept so post-analysis consumers — the
+    /// dogfood truth sweep foremost — judge declarations with the SAME index the builders and the
+    /// INV-C oracle used. The legacy catalog's compression mutates <see cref="TypeDiscovery"/>
+    /// members afterwards (TrivialMemberCompressor strips ToString/Equals/GetHashCode and
+    /// auto-properties), so an oracle re-derived from the compressed model disagrees with the
+    /// graph's own admission decisions. Null when the full graph was not built.</summary>
+    public SymbolTable? GraphSymbols { get; set; }
     /// <summary>Shared cache of pre-parsed syntax nodes per file. Populated once, read by all Stage 2 extractors.</summary>
     public ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>> SyntaxNodeCache { get; } = new();
 
