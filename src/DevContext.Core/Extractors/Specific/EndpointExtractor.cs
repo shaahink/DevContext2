@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
@@ -37,7 +37,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         // the `group.MapGet("/", …)` calls inside MapShowsApi in another file. Composed only when
         // every observed call site agrees on one prefix — an ambiguous or mixed-receiver method
         // keeps its routes bare rather than guessing.
-        var extensionCallerPrefixes = await BuildExtensionCallerPrefixIndex(context, ct);
+        var extensionCallerPrefixes = await BuildExtensionCallerPrefixIndex(context, routeConsts, ct);
 
         foreach (var filePath in context.Analysis.AllSourceFiles)
         {
@@ -49,7 +49,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     private static async Task ScanFile(
         string filePath, DiscoveryContext context, DiscoveryModel model,
         HashSet<string> detectedKeys, IReadOnlyDictionary<string, string> routeConsts,
-        IReadOnlyDictionary<string, string> extensionCallerPrefixes, CancellationToken ct)
+        IReadOnlyDictionary<string, CallerGroupContext> extensionCallerPrefixes, CancellationToken ct)
     {
         SyntaxTree syntaxTree;
         try
@@ -73,7 +73,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         // Phase 1b pre-scan: MapGroup + NewVersionedApi chain detection — resolve group prefixes and
         // group-level auth conventions (RequireAuthorization/AllowAnonymous applied to the group, either
         // chained onto MapGroup(...) or as a later statement on the group variable — E1).
-        var groupPrefixes = ExtractGroupPrefixes(root);
+        var groupPrefixes = ExtractGroupPrefixes(root, routeConsts);
         var groupAuth = ExtractGroupAuth(root, groupPrefixes);
 
         // Phase 2 FIRST (B3): extension methods that take IEndpointRouteBuilder/WebApplication/
@@ -91,16 +91,27 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             // receiver types; a WebApplication receiver can never be a RouteGroupBuilder at a call site,
             // so an index hit there is a same-name different method.
             Dictionary<string, string>? seed = null;
+            Dictionary<string, ImmutableArray<string>>? authSeed = null;
             var firstParam = extMethod.ParameterList.Parameters[0];
             var firstParamType = firstParam.Type?.ToString() ?? "";
             if ((firstParamType.Contains("RouteGroupBuilder") || firstParamType.Contains("IEndpointRouteBuilder"))
-                && extensionCallerPrefixes.TryGetValue(extMethod.Identifier.ValueText, out var callerPrefix))
+                && extensionCallerPrefixes.TryGetValue(extMethod.Identifier.ValueText, out var callerContext))
             {
-                seed = new Dictionary<string, string> { [firstParam.Identifier.ValueText] = callerPrefix };
+                seed = new Dictionary<string, string> { [firstParam.Identifier.ValueText] = callerContext.Prefix };
+
+                // The group's authorization travels with its prefix (F2) — the routes are in this file,
+                // the policy that guards them is in the caller's.
+                if (!callerContext.Auth.IsDefaultOrEmpty)
+                {
+                    authSeed = new Dictionary<string, ImmutableArray<string>>
+                    {
+                        [firstParam.Identifier.ValueText] = callerContext.Auth,
+                    };
+                }
             }
 
-            var extGroupPrefixes = ExtractGroupPrefixes(extMethod, seed);
-            var extGroupAuth = ExtractGroupAuth(extMethod, extGroupPrefixes);
+            var extGroupPrefixes = ExtractGroupPrefixes(extMethod, routeConsts, seed);
+            var extGroupAuth = ExtractGroupAuth(extMethod, extGroupPrefixes, authSeed);
             var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (var invocation in extInvocations)
             {
@@ -277,10 +288,44 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     /// custom policy builders. Member endpoints registered on that group inherit these unless they
     /// specify their own auth chain.
     /// </summary>
+    /// <param name="seed">Auth conventions entering this scope from outside — the extension-method
+    /// receiver parameter carrying its caller's group policy (B3/F2). A sub-group declared off that
+    /// receiver inherits it too: `var sub = app.MapGroup("/x")` inside a method whose `app` is the
+    /// admin group is still the admin surface.</param>
     private static Dictionary<string, ImmutableArray<string>> ExtractGroupAuth(
-        SyntaxNode root, Dictionary<string, string> groupPrefixes)
+        SyntaxNode root,
+        Dictionary<string, string> groupPrefixes,
+        IReadOnlyDictionary<string, ImmutableArray<string>>? seed = null)
     {
         var groupAuth = new Dictionary<string, List<string>>();
+
+        if (seed is not null)
+        {
+            foreach (var (name, attributes) in seed)
+                groupAuth[name] = [.. attributes];
+
+            // Carry it to group vars declared off a seeded receiver, transitively.
+            var receivers = GroupReceivers(root);
+            foreach (var (varName, receiver) in receivers)
+            {
+                var origin = receiver;
+                var guard = new HashSet<string>(StringComparer.Ordinal);
+                while (origin is not null && guard.Add(origin))
+                {
+                    if (seed.TryGetValue(origin, out var inherited))
+                    {
+                        if (!groupAuth.TryGetValue(varName, out var list))
+                            groupAuth[varName] = list = [];
+                        foreach (var attribute in inherited)
+                        {
+                            if (!list.Contains(attribute)) list.Add(attribute);
+                        }
+                        break;
+                    }
+                    origin = receivers.TryGetValue(origin, out var next) ? next : null;
+                }
+            }
+        }
 
         void AddAuth(string varName, string? attr)
         {
@@ -371,7 +416,9 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     /// receiver parameter carrying its caller's composed prefix. Unresolvable receivers (`app`,
     /// `NewVersionedApi(...)` chains) contribute nothing: the var keeps its own literal, as before.</summary>
     private static Dictionary<string, string> ExtractGroupPrefixes(
-        SyntaxNode root, IReadOnlyDictionary<string, string>? seed = null)
+        SyntaxNode root,
+        IReadOnlyDictionary<string, string> routeConsts,
+        IReadOnlyDictionary<string, string>? seed = null)
     {
         var defs = new Dictionary<string, (string? Receiver, string Prefix)>();
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -380,9 +427,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             if (memberAccess.Name.Identifier.ValueText != "MapGroup") continue;
 
             var prefixArg = invocation.ArgumentList.Arguments.FirstOrDefault();
-            var prefix = prefixArg?.Expression is LiteralExpressionSyntax lit
-                ? lit.Token.ValueText
-                : null;
+            var prefix = ResolveGroupPrefixArgument(prefixArg?.Expression, routeConsts);
             if (prefix is null) continue;
 
             var variableName = FindAssignedVariable(invocation);
@@ -424,20 +469,109 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         return resolved;
     }
 
+    /// <summary>Resolves a `MapGroup(...)` prefix argument to its route string. A literal answers
+    /// directly; a const-string reference resolves through the project-wide const index — either bare
+    /// (`MapGroup(GroupPrefix)`, the enclosing type's own const) or qualified
+    /// (`MapGroup(AdminEndpoints.GroupPrefix)`). Returns null for a genuine expression, which keeps
+    /// the previous behaviour: the group contributes nothing rather than being guessed at.
+    /// <para>
+    /// This is load-bearing beyond the route text. A group whose prefix does not resolve is never
+    /// registered as a group variable at all, so <see cref="ExtractGroupAuth"/> — which gates on
+    /// <c>groupPrefixes.ContainsKey</c> — also loses the group's `RequireAuthorization`, and every
+    /// endpoint on it reads as un-annotated. Naming the group's prefix with a constant is the
+    /// idiomatic way to write it, and it used to cost the whole surface its auth.
+    /// </para></summary>
+    private static string? ResolveGroupPrefixArgument(
+        ExpressionSyntax? expression, IReadOnlyDictionary<string, string> routeConsts)
+    {
+        switch (expression)
+        {
+            case LiteralExpressionSyntax { Token.Value: string literal }:
+                return literal;
+
+            // `MapGroup(GroupPrefix)` — a const on the type the call is written in.
+            case IdentifierNameSyntax bare:
+            {
+                var owner = expression.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+                return owner is not null
+                    && routeConsts.TryGetValue(
+                        $"{owner.Identifier.ValueText}.{bare.Identifier.ValueText}", out var own)
+                    ? own
+                    : null;
+            }
+
+            // `MapGroup(AdminEndpoints.GroupPrefix)` — the index's own key shape.
+            case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax type, Name: { } member }:
+                return routeConsts.TryGetValue(
+                    $"{type.Identifier.ValueText}.{member.Identifier.ValueText}", out var qualified)
+                    ? qualified
+                    : null;
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>Group variable → the identifier it was built from, for `var sub = parent.MapGroup(...)`.
+    /// Only the identifier-receiver shape is recorded; anything else has no name to inherit from.</summary>
+    private static Dictionary<string, string> GroupReceivers(SyntaxNode root)
+    {
+        var receivers = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            if (memberAccess.Name.Identifier.ValueText != "MapGroup") continue;
+            if (memberAccess.Expression is not IdentifierNameSyntax receiver) continue;
+            if (FindAssignedVariable(invocation) is not { } variableName) continue;
+            receivers[variableName] = receiver.Identifier.ValueText;
+        }
+        return receivers;
+    }
+
     /// <summary>Composes a parent group prefix with a child's own prefix, normalizing the seam slash.</summary>
     private static string CombinePrefix(string parent, string child)
         => NormalizeRoute($"{parent}/{child}".Replace("//", "/"));
 
-    /// <summary>Builds the repo-wide method-name → caller-group-prefix index for B3. Records every
+    /// <summary>What a group builder carries at the call site of an endpoint extension method: its
+    /// composed route prefix, and the auth conventions applied to the group. Both cross the
+    /// extension-method boundary together — a group is one surface, and its authorization is a
+    /// property of that surface, not of the file the routes happen to be written in.</summary>
+    /// <remarks>Equality is by VALUE over both members. <see cref="ImmutableArray{T}"/> compares by
+    /// reference, so the compiler-generated equality would make two call sites that agree perfectly
+    /// look like disagreement — and the agreement rule below would then silently drop the group.</remarks>
+    private readonly record struct CallerGroupContext(string Prefix, ImmutableArray<string> Auth)
+    {
+        public bool Equals(CallerGroupContext other) =>
+            string.Equals(Prefix, other.Prefix, StringComparison.Ordinal)
+            && Auth.AsSpan().SequenceEqual(other.Auth.AsSpan(), StringComparer.Ordinal);
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            hash.Add(Prefix, StringComparer.Ordinal);
+            foreach (var attribute in Auth) hash.Add(attribute, StringComparer.Ordinal);
+            return hash.ToHashCode();
+        }
+    }
+
+    /// <summary>Builds the repo-wide method-name → caller-group-context index for B3. Records every
     /// member call whose receiver is a resolved group builder — `shows.MapShowsApi()` (group variable)
     /// and `app.MapGroup("/shows").MapShowsApi()` (inline chain) both index MapShowsApi → "/shows".
-    /// A name survives only when (a) every prefixed call site agrees on ONE prefix and (b) it is never
-    /// also called on a plain identifier receiver (`app.MapXApi()`), where composing would be a guess —
-    /// single-hop honesty: an extension calling another extension does not forward its seeded prefix.</summary>
-    private static async Task<IReadOnlyDictionary<string, string>> BuildExtensionCallerPrefixIndex(
-        DiscoveryContext context, CancellationToken ct)
+    /// A name survives only when (a) every prefixed call site agrees on ONE prefix AND one set of auth
+    /// conventions and (b) it is never also called on a plain identifier receiver (`app.MapXApi()`),
+    /// where composing would be a guess — single-hop honesty: an extension calling another extension
+    /// does not forward its seeded context.
+    /// <para>
+    /// The auth half is what makes the group's `RequireAuthorization` reach routes registered in
+    /// another file (2026-08-26 unseen drive, F2). `var admin = app.MapGroup(Prefix).RequireAuthorization(p);
+    /// admin.MapAdminLedgerEndpoints();` puts the policy in one file and the routes in another; before
+    /// this carried, every one of those routes read as un-annotated and the insight layer called the
+    /// most protected surface in the app anonymous.
+    /// </para></summary>
+    private static async Task<IReadOnlyDictionary<string, CallerGroupContext>> BuildExtensionCallerPrefixIndex(
+        DiscoveryContext context, IReadOnlyDictionary<string, string> routeConsts, CancellationToken ct)
     {
-        var prefixed = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var prefixed = new Dictionary<string, HashSet<CallerGroupContext>>(StringComparer.Ordinal);
         var unprefixed = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var filePath in context.Analysis.AllSourceFiles)
@@ -454,7 +588,8 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             }
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var groupPrefixes = ExtractGroupPrefixes(root);
+            var groupPrefixes = ExtractGroupPrefixes(root, routeConsts);
+            var groupAuth = ExtractGroupAuth(root, groupPrefixes);
 
             foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
@@ -462,18 +597,26 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
                 var name = memberAccess.Name.Identifier.ValueText;
                 if (name == "MapGroup" || MapMethods.Contains(name)) continue;
 
-                string? prefix = memberAccess.Expression switch
+                CallerGroupContext? context2 = memberAccess.Expression switch
                 {
-                    IdentifierNameSyntax id when groupPrefixes.TryGetValue(id.Identifier.ValueText, out var p) => p,
-                    InvocationExpressionSyntax chain => ChainMapGroupPrefix(chain, groupPrefixes),
+                    IdentifierNameSyntax id when groupPrefixes.TryGetValue(id.Identifier.ValueText, out var p) =>
+                        new CallerGroupContext(
+                            p,
+                            groupAuth.TryGetValue(id.Identifier.ValueText, out var a) ? a : []),
+
+                    // `app.MapGroup("/x").RequireAuthorization().MapXApi()` — the group is never named,
+                    // so its conventions have to be read off the chain itself.
+                    InvocationExpressionSyntax chain when ChainMapGroupPrefix(chain, groupPrefixes, routeConsts) is { } cp =>
+                        new CallerGroupContext(cp, [.. ExtractAuthFromChain(chain)]),
+
                     _ => null,
                 };
 
-                if (prefix is not null)
+                if (context2 is { } resolved)
                 {
                     if (!prefixed.TryGetValue(name, out var set))
                         prefixed[name] = set = [];
-                    set.Add(prefix);
+                    set.Add(resolved);
                 }
                 else if (memberAccess.Expression is IdentifierNameSyntax)
                 {
@@ -490,9 +633,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     /// <summary>Walks INWARD through a fluent chain receiver to the innermost `MapGroup("literal")`
     /// link — `app.MapGroup("/x").RequireAuthorization().MapXApi()` yields "/x", composed with the
     /// MapGroup receiver's own prefix when that receiver is a resolved group variable. Returns null
-    /// when the chain carries no literal MapGroup (e.g. `NewVersionedApi(...)` chains).</summary>
+    /// when the chain carries no resolvable MapGroup prefix (e.g. `NewVersionedApi(...)` chains).</summary>
     private static string? ChainMapGroupPrefix(
-        InvocationExpressionSyntax chain, Dictionary<string, string> groupPrefixes)
+        InvocationExpressionSyntax chain,
+        Dictionary<string, string> groupPrefixes,
+        IReadOnlyDictionary<string, string> routeConsts)
     {
         var current = chain;
         while (true)
@@ -501,8 +646,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             if (memberAccess.Name.Identifier.ValueText == "MapGroup")
             {
                 var prefixArg = current.ArgumentList.Arguments.FirstOrDefault();
-                if (prefixArg?.Expression is not LiteralExpressionSyntax lit) return null;
-                var own = lit.Token.ValueText;
+                if (ResolveGroupPrefixArgument(prefixArg?.Expression, routeConsts) is not { } own) return null;
                 return memberAccess.Expression is IdentifierNameSyntax recv
                     && groupPrefixes.TryGetValue(recv.Identifier.ValueText, out var parent)
                     ? CombinePrefix(parent, own)
