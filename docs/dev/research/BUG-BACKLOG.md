@@ -22,6 +22,15 @@
 1 HELD-with-premise-refuted · 5 still open (all medium), and of those 5 only four belong to this
 repo — the fifth is Conductor's.**
 
+> **Third source, 2026-08-26 (the Book2Course unseen-repo hand drive).**
+> `eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md` drove five pre-fixed questions
+> against a repo the engine had never seen and found one decisive win (impact) and five defects.
+> F2 (the auth-group miss, release-blocking) was fixed the same day (`09934f2`, merged `5e42c46`)
+> and carries its FIXED block in DRIVE.md itself. The remaining four are filed as **#33–#36** —
+> three high, one low — at [Filed 2026-08-26](#filed-2026-08-26) at the foot of this file. The
+> drive's own license line binds: **the pre-registered re-probe must not run until F1–F4 are
+> filed and fixed.**
+
 > **On the two runs.** The pre-release program ran as two parallel conductor runs against one
 > backlog: **run A** (engine, `conductor.engine.plan.json`, stages T1 · V1 · E1 · D1 · R1 · A1) took
 > the G-stage engine items, and **run B** (desktop, `conductor.desktop.plan.json`, stages N0–N4 · M1)
@@ -993,3 +1002,243 @@ their numbers are **independent of the `#` series above**. Read them as "new #N"
 
 Nothing above is a regression: every one was measured by the stage that found it and filed rather
 than fixed, on the same rule as the 2026-08-02 export.
+
+---
+
+<a id="filed-2026-08-26"></a>
+
+## Filed 2026-08-26 — the Book2Course unseen-repo hand drive
+
+Source: `eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md` (filed at commit `76e1111`) —
+one operator, five questions fixed in advance, answered once with grep/read and once through
+`devcontext-mcp` over stdio, against `C:/Code/BookToCourse` @ `c14da997` (a private .NET 10 Aspire
+app the engine had never seen, 487 C# files). Engine under test: `develop` @ `b7b0ab0`. Driver and
+full transcripts sit next to the drive record: `mcp.js`, `calls-*.json`, `analyze-out.txt`,
+`q-out.txt`, `q2-out.txt` — every evidence line below is a line in one of those files, not a recall.
+
+The drive found five defects. **F2** (auth: a `MapGroup`'d group's policy never reached its routes,
+so `stats` called the most protected surface anonymous) was release-blocking and was fixed the same
+day — `09934f2` on `fix/auth-group-inheritance`, merged to develop as `5e42c46`, re-measured
+12/39 → 6/39 on the same repo; its record is the FIXED block inside DRIVE.md and it is deliberately
+NOT re-filed here. The remaining four are filed below, numbered **#33–#36** — the `#` series'
+next free numbers (highest previously #32; conductor's independent "new #N" series above is not
+this series and stays untouched).
+
+Mechanism loci below were mapped in source on 2026-08-26 by a read of the shipping code at
+`b7b0ab0`, not fixture-proven — the fixture goes RED first, per house rule, before any fix lands.
+
+| # | Sev | Stage | Drive id | Title |
+|---|-----|-------|----------|-------|
+| [#33](#33) | high | drive-2026-08-26 | F1 | Extension and BCL methods are minted as MEMBERS of the receiver type — `startHere`'s first line is `AppDbContext.ConfigureAwait`, which nothing declares |
+| [#34](#34) | high | drive-2026-08-26 | F3 | `config` does not know the Options pattern — a 487-file repo reads "1 keys exist" and `config.missing-defaults` under-declares without saying so |
+| [#35](#35) | high | drive-2026-08-26 | F4 | `seam` cannot cross a transport — the port is a sink (in 8 / out 0), so found:false across a connection the graph holds fully verified |
+| [#36](#36) | low | drive-2026-08-26 | F5 | `usages` returns the same call site three times — one caller, one line, count 3 |
+
+<a id="33"></a>
+
+### #33 · drive-2026-08-26 · Extension and BCL methods are minted as MEMBERS of the receiver type — `startHere`'s first line on an unseen repo is AppDbContext.ConfigureAwait / .Where / .IgnoreQueryFilters, none of which AppDbContext declares — the residual of the #7/#12 family on the extension-method path
+
+```text
+MEASURED 2026-08-26, Q1 of the hand drive (drive id F1, severity HIGH). Artifacts:
+eval-results/2026-08-26/unseen-drive-Book2Course/q-out.txt:19 (the overview response, verbatim)
+and DRIVE.md §F1.
+
+WHAT THE WIRE SAYS. overview's text — the first line an agent ever reads on this repo — is:
+  Start here: AppDbContext, AppDbContext.ConfigureAwait,
+              AppDbContext.Where, AppDbContext.IgnoreQueryFilters
+and the structured startHere behind it mints the nodes:
+  Member:Book2Course.Api.Data.AppDbContext::ConfigureAwait      "Central type: 72 connections"
+  Member:Book2Course.Api.Data.AppDbContext::Where               53
+  Member:Book2Course.Api.Data.AppDbContext::IgnoreQueryFilters  46
+  Member:Book2Course.Api.Data.AppDbContext::Select              37
+  Member:Book2Course.Api.Data.AppDbContext::ToListAsync         37
+AppDbContext declares NONE of these (Api/Data/AppDbContext.cs: a constructor, 13 DbSet
+properties, ConfigureConventions, OnModelCreating). ConfigureAwait is Task's;
+Where/Select/ToListAsync/IgnoreQueryFilters are LINQ/EF extension methods. The engine binds the
+call to the RECEIVER's type, ranks by degree, and the noise sorts to the top — displacing the
+real starting points on the one question class (A, orientation) the deep eval names winnable.
+
+NOT CONFINED TO RANKING. The same phantoms appear inside traces (q-out.txt, the Q2 trace):
+"→ Member: SourceUploads.ConfigureAwait [approx]", "→ Member: S3ObjectStore.ConfigureAwait
+[approx]" — so trace hops route through members that do not exist.
+
+FAMILY. #7 (a METHOD registered as a Type node, 26 BCL references bound to it) and #12 (the
+receiver-type upgrade's line-span miss) are both FIXED; this is the residual of that family on
+the extension-method path. It is also the unseen-repo confirmation of conductor "new #6" (LINQ
+extension calls attributed to the receiver root's type: 126/2453 Calls edges, 66 distinct
+phantoms, measured on the DevContext pole 2026-08-14) — same defect, now shown to corrupt the
+FIRST LINE of the product on a repo nobody tuned for.
+
+MECHANISM, MAPPED IN SOURCE 2026-08-26 (four hops, none with a declares-gate on the in-solution
+value-receiver arm):
+  1. BodyFactExtractor.RootIdentifier walks THROUGH invocations, so a chained call's root
+     receiver becomes the guess (Graph2/BodyFactExtractor.cs:378-398).
+  2. SemanticLitePopulator.MergeSemantic DROPS a semantic bind that contradicts the syntactic
+     text, so the wrong guess survives the tier that knew better
+     (Graph2/SemanticLitePopulator.cs:692-710 — the smoking gun).
+  3. CallGraphBinder.ResolveCallee's receiver arm gates on Kind==Type + IsKnownFqn but never
+     asks whether the type DECLARES the member (Graph2/CallGraphBinder.cs:200-277). The gate
+     already exists on the bare-identifier arm (:261-267) and the static arm
+     (SymbolTable.cs:294-308); mirror gap in PlainCallDetector.cs:86-98.
+  4. GraphBuilder.AddCallEdges mints the node (Graph/GraphBuilder.Seams.cs:155-185; second
+     producer AddHubScopeEdges :263-277).
+
+INVARIANT WORTH GATING: no node may be a member of a type that does not declare it — as a
+standing invariant at CodeGraphBuilder.AddNode (Graph/CodeGraph.cs:344-377) with an injected
+declares-oracle. THE ORACLE MUST WALK TypeDiscovery.BaseTypes: TypeDeclaresMember is
+declared-members-only today, and a naive gate drops legitimate inherited-method calls. No BCL
+name lists — house policy; the declares gate replaced them (GraphBuilder.Seams.cs:749-751).
+
+WATCH IT GO RED FIRST: the discriminating fixture is a chained extension call on a DbContext-like
+receiver asserting the phantom member node is NEVER minted — template
+Graph2/StaticReceiverEdgeTests.cs (negative idiom :88-108), standing-guard triple à la
+BclNameCollisionEdgeTests, receiver-root case in BodyFactExtractorTests, dogfood sweep à la
+DogfoodEdgeInvariantTests.
+
+BLAST RADIUS WARNING FOR WHOEVER FIXES IT: call-edge counts move on EVERY pole — declare
+flip/hold/not-worsen expectations in writing before coding (E1 discipline), and check the
+startHere noise-filter tests (GraphQueryTests.cs:105-136) and approx-share numbers, which this
+fix should move DOWN.
+```
+
+<a id="34"></a>
+
+### #34 · drive-2026-08-26 · `config` does not know the Options pattern — `AddOptions&lt;T&gt;().BindConfiguration(Const)` is invisible, so a 487-file repo reads "1 keys exist" and `config.missing-defaults` under-declares without saying so
+
+```text
+MEASURED 2026-08-26, Q5 of the hand drive (drive id F3, severity HIGH). Artifacts:
+eval-results/2026-08-26/unseen-drive-Book2Course/q-out.txt:37 (the config error envelope,
+verbatim) and DRIVE.md §F3.
+
+WHAT THE WIRE SAYS. config(key:"Pipeline:Queue:Drain") returns:
+  "No config key exactly 'Pipeline:Queue:Drain' (1 keys exist)."
+  candidates: ["OTEL_EXPORTER_OTLP_ENDPOINT"]
+ONE key, in the whole repo. The repo binds config the modern way — Pipeline/DependencyInjection.cs:73:
+  services.AddOptions<QueueDrainOptions>()
+      .BindConfiguration(QueueDrainOptions.SectionName)   // "Pipeline:Queue:Drain"
+with [Range]-validated properties (IdlePollSeconds = 2, Workers = 2, Enabled), an env-var
+contract in infra/.env.example, and Storage__* / Pipeline__Media__* wiring in the AppHost. Q5 was
+the question grep was PRE-REGISTERED to win ("control"); it lost by defect, not by design.
+
+IT PROPAGATES, AND THE HEADLINE HIDES IT. Insight config.missing-defaults reports "1 consumed
+keys" off the same blind spot — the catalog under-declares and does not say so anywhere a reader
+looks; the admission lives only in confidenceBasis. This is the mirror of the catalog
+OVER-declares class in GRAPH-DETECTION-AUDIT-2026-08-13.md.
+
+MECHANISM, MAPPED IN SOURCE 2026-08-26 — TWO UNRELATED IMPLEMENTATIONS THAT MUST MOVE TOGETHER
+OR THE NUMBERS DISAGREE:
+  - Graph/ConfigScanner.cs (the syntax path behind `config`): ConfigMethods (:31-37) knows only
+    GetValue / GetSection / GetConnectionString / GetRequiredSection — no AddOptions, no
+    BindConfiguration, no Configure<T>. LiteralArg (:120-123) is literal-only — the exact
+    defeat F2 just taught us (a const argument reads as null). And it scans only files that
+    already own a graph node (:46-49), so a composition-root DependencyInjection.cs can be
+    skipped wholesale.
+  - Insights/ConfigDefaultsSource.cs (the regex path over SourceBody, :41-43): drives the
+    "N consumed keys" number independently, admits the gap only in confidenceBasis.
+
+FIX SHAPE (do not apply from this text — fixture first): detect Options bindings at EXTRACTION
+time. DiRegistrationExtractor already captures AddOptions<QueueDrainOptions>() (generic Add*
+branch :184-210); read the chained .BindConfiguration(section) / .Bind(config.GetSection(...)) /
+services.Configure<T>(section) there, resolving const arguments exactly the way F2 did — copy
+EndpointExtractor.ResolveGroupPrefixArgument (:484-513: literal / bare-on-enclosing-type /
+qualified, NEVER guess a computed value) against FastEndpointsHelper.BuildRouteConstIndex
+(:50-78 — the index already contains "QueueDrainOptions.SectionName"). Carry the keys in the
+model so ConfigScanner's consumers and ConfigDefaultsSource read ONE source. Where
+under-declaring remains possible, the HEADLINE says so — not just confidenceBasis. Update the
+tool's self-description (DevContext.Mcp/DevContextTools.cs:1599, 1648), the proto pattern_type
+comment (devcontext.proto:1199), and the docs row (docs/product/mcp-reference.md:167).
+
+WATCH IT GO RED FIRST: extend ConfigScannerTests (the harness needs a SECOND file for the
+cross-file const shape); mirror the four F2 const tests including the never-guess-a-computed-
+value negative (EndpointExtractorTests.cs:249-361) for BindConfiguration(BuildSectionName());
+first-ever tests for ConfigDefaultsSource (home: InsightHonestyTests.cs); a server ConfigLookup
+envelope test via the McpStubCallInvoker precedents.
+```
+
+<a id="35"></a>
+
+### #35 · drive-2026-08-26 · `seam` cannot cross a transport — producer and consumer both point INTO `IJobQueue` (in 8 / out 0, a sink), so seam reports found:false across a connection the graph itself holds fully verified
+
+```text
+MEASURED 2026-08-26, Q4 of the hand drive — two of five questions hit it (drive id F4, severity
+HIGH). Artifacts: eval-results/2026-08-26/unseen-drive-Book2Course/q-out.txt:31
+(seam SourceUploadEndpoints → IngestStage, found:false — TRUTHFUL, see below),
+q2-out.txt:25 (seam BuildCoordinator → IngestStage, found:false — THE MISS),
+q2-out.txt:27-28 (neighbors(IJobQueue, direction:in) — the proof), and DRIVE.md §F4.
+
+WHAT THE WIRE SAYS. Both seam calls answer found:false: "…the walk exhausted everything
+reachable from each end within 8 hops and neither reached the other." The neighbors call shows
+exactly why the second one is wrong. The join is IN the graph, fully verified — count:8,
+totalEdges:8, every edge kind Calls, resolution Semantic, each with file:line provenance:
+  BuildCoordinator.AdvanceAsync   → IJobQueue   Pipeline/Workflow/BuildCoordinator.cs:34
+  BuildCoordinator.CancelAsync    → IJobQueue   Pipeline/Workflow/BuildCoordinator.cs:61
+  JobRunner.RunNextAsync          → IJobQueue   Pipeline/Workflow/JobRunner.cs:82
+  JobRunner.RunAsync              → IJobQueue   Pipeline/Workflow/JobRunner.cs:106
+  JobRunner.CompleteAsync         → IJobQueue   Pipeline/Workflow/JobRunner.cs:199
+  (+ JobSettlement.CancelAsync / .FailAsync, LeaseHeartbeat.BeatAsync)
+Producer and consumer BOTH point into the port; nothing points out of it. In-degree 8,
+out-degree 0 — a sink. No path can route through it, and seam correctly reports no path across
+a connection that plainly exists.
+
+MECHANISM, MAPPED IN SOURCE 2026-08-26: GraphQuery.SearchSeam walks out-edges only
+(Graph/GraphQuery.cs:791); both sides of a port land as IN-edges on the interface Type
+(PlainCallDetector.cs:118-126). The verb evidence that could split them — enqueue vs dequeue —
+is already carried on GraphEdge.TargetMember (CodeGraph.cs:191-199) and read by nothing.
+
+WHY IT MATTERS. This is the handler-join cell of the graph-truth matrix, and it is not a corner
+case: it is every queue-, bus- and outbox-driven .NET app. seam is advertised as "the only tool
+that answers how does A reach B" — on this architecture it answers only within a single process
+hop.
+
+FIX SHAPE (do not apply from this text — fixture first): materialize the bridge at GRAPH BUILD,
+mirroring the ONE sanctioned join — EventWiringProjection (Graph/EventWiring.cs:63-139, emits
+ServiceLink with Resolution.Join, invoked off a draft graph at GraphBuilder.cs:104-108). Extend
+that projection (or generalize it in place — house rule: event wiring has exactly ONE join,
+never a second ad-hoc one) to classify an in-repo port whose callers split into write-verbs and
+read-verbs (from TargetMember; verb tables exist at EventBusExtractor.cs:127-131 and in
+DispatchSeamCatalog), emitting producer→port→consumer join edges so the seam can route through.
+
+TRUTHFULNESS CONSTRAINT, NON-NEGOTIABLE: the drive's FIRST seam call
+(SourceUploadEndpoints → IngestStage, found:false) was CORRECT — upload stages the file, ingest
+happens later off the queue. The join must not fabricate a path across a boundary the graph
+genuinely cannot see, and a joined hop renders as `joined`, NEVER as `verified`. If a new
+SeamKind/EdgeKind is introduced, SeamVocabularyTests ratchets glyph+label, and any new proto
+field must be read by a client or allow-listed (eval/contract-sweep.ps1, R-T1).
+
+WATCH IT GO RED FIRST: a fourth factory in GraphSeamTests.cs (producer → port ← consumer shape)
+asserting SeamDirection.Forward where today it is None, with a "THE RED" doc comment; wire/tool
+pinning via the SeamPrimitiveTests builders. No existing fixture has this shape — add it to
+PatternZoo or a small new fixture for the end-to-end.
+```
+
+<a id="36"></a>
+
+### #36 · drive-2026-08-26 · `usages` returns the same call site three times — usages(JobRunner) reads count:3 where QueueDrainService.cs:95 is ONE call site
+
+```text
+MEASURED 2026-08-26, Q2b of the hand drive (drive id F5, severity LOW). Artifacts:
+eval-results/2026-08-26/unseen-drive-Book2Course/q2-out.txt:31 (the usages response, verbatim)
+and DRIVE.md §F5.
+
+WHAT THE WIRE SAYS. usages(query:"JobRunner") → count: 3, and all three rows are:
+  caller  Member:Book2Course.Pipeline.Workflow.QueueDrainService::TurnAsync
+  kind    Calls
+  provenance  Pipeline/Workflow/QueueDrainService.cs:95
+One call site, counted three times. A small lie, but it is a COUNT — the number an agent quotes.
+
+MECHANISM, MAPPED IN SOURCE 2026-08-26. Storage holds no duplicate edges — CodeGraph dedupes on
+(From,To,Kind) (CodeGraph.cs:409-416). The Type roll-up returns edges that differ only in `To`
+(the caller reaches JobRunner AND its distinct members; GraphQuery.cs:98-121), and the MCP
+projection then DROPS `To` (DevContextTools.cs:1356-1362) — so rows that were distinct in the
+graph render identical on the wire. The CLI has the same omission (QueryCommand.cs:295-300).
+
+FIX SHAPE (do not apply from this text — fixture first): collapse at projection/query time —
+rows agreeing on (caller, kind, provenance) merge, and the count is the merged count. Prefer the
+seat that keeps TotalEdges/KindsPresent's documented "unfiltered walk" contract intact
+(GraphQuery.cs:211-221), or amend that contract deliberately — not by accident. Avoid the proto
+change unless the fix genuinely needs TargetMember on the wire (contract-sweep applies).
+
+WATCH IT GO RED FIRST: a new [Fact] in GraphQueryTests.cs — row uniqueness is currently pinned
+by NOTHING — plus a GraphNeighborKindTests-style member-fan-in fixture (one caller hitting a
+type and two of its members), and CLI parity.
+```
