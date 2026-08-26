@@ -192,8 +192,11 @@ public sealed class DevContextGrpcService(
             if (ResolveNode(session, request.NodeId) is not { } nid)
                 return new Proto.NeighborsResponse();
 
-            // "usages" IS the in-direction (GraphQuery.FindUsages is Neighbors(In) verbatim); reading
-            // it as one avoids a second arm that could accept the kind filter differently.
+            // "usages" IS the in-direction; reading it as one avoids a second arm that could accept
+            // the kind filter differently. The wire stays the RAW walk — its rows carry `to`, so the
+            // member→member and member→Type recordings of one invocation are distinguishable here —
+            // while the usages PROJECTIONS collapse duplicate (caller, kind, provenance) rows on
+            // their side (#36): the MCP tool locally, the CLI via GraphQuery.FindUsages.
             var direction = request.Direction is "in" or "usages" ? EdgeDirection.In : EdgeDirection.Out;
 
             // G3.2 — an unparseable kind must not fall through as "no filter", which would return

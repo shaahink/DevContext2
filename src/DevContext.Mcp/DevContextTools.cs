@@ -1249,7 +1249,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    [Description("Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")")]
+    [Description("Find all usages (in-edges) of a node across the codebase, with file:line provenance. One row per distinct call site (caller + kind + file:line) - a call recorded against both a member and its type reports once, so count is honest. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")")]
     public async Task<string> Usages(
         [Description(HandleDoc)] string? handle = null,
         [Description(NodeIdDoc)] string? nodeId = null,
@@ -1348,12 +1348,23 @@ public sealed class DevContextTools
                     suggestions.Length > 0 ? suggestions : null);
             }
 
+            // #36 — the wire carries the raw in-walk (its rows keep `to`, so the member→member and
+            // member→Type recordings of ONE invocation are distinguishable there), but this
+            // projection drops the target — the focus IS the target — so edges differing only in
+            // `to` would render as identical rows and the count would over-state (measured:
+            // usages(JobRunner) said 3 for one line). One call site tells once: collapse on the
+            // exact fields a row shows — (caller, kind, provenance) — same key as
+            // GraphQuery.FindUsages, so this surface and the CLI's agree.
+            var callSites = resp.Edges
+                .DistinctBy(e => (e.From, e.Kind, e.HasProvenance ? e.Provenance : null))
+                .ToArray();
+
             return JsonSerializer.Serialize(new
             {
                 nodeId = resolved,
-                count = resp.Edges.Count,
+                count = callSites.Length,
                 resolvedFrom = resolved != nodeId ? nodeId : null,
-                usages = resp.Edges.Select(e => new
+                usages = callSites.Select(e => new
                 {
                     caller = e.From,
                     kind = e.Kind,
