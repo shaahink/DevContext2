@@ -102,6 +102,37 @@ Invariant worth gating: *no node may be a member of a type that does not declare
 
 ### F2 · HIGH · The auth insight misses `MapGroup` and cries wolf on the safest surface
 
+> **FIXED 2026-08-26, re-measured on the same repo.** `auth.anonymous` went **12/39 → 6/39**
+> and `web.auth-surface` **27 protected → 33**. The six that remain are genuinely public and
+> check out in source: `POST /auth/register`, `POST /auth/login` (you cannot require auth to log
+> in), `GET /auth/google` (the OAuth challenge), `GET /` (the banner) and `POST /client-events`
+> (the repo's one real `.AllowAnonymous()`). `POST /auth/logout` and `GET /me` carry
+> `RequireAuthorization` and are correctly no longer flagged.
+>
+> **The diagnosis below is right about the symptom and wrong about the cause** — `MapGroup`
+> inheritance was already implemented (the E1 work). Two things defeated it, and both had to go:
+>
+> 1. **The group prefix accepted only a string LITERAL.** `app.MapGroup(GroupPrefix)` with
+>    `internal const string GroupPrefix = "/admin"` left `prefix` null, so `ExtractGroupPrefixes`
+>    `continue`d and never registered the group variable at all. `ExtractGroupAuth` gates on
+>    `groupPrefixes.ContainsKey`, so losing the prefix silently lost the auth with it. Naming your
+>    group's prefix with a constant — the idiomatic way to write it — cost the surface its policy.
+>    The tell was in the original evidence and I read past it: the routes printed as
+>    `GET /accounting`, not `GET /admin/accounting`. The prefix was already missing.
+>    Fixed by resolving const references through the project-wide const index that already existed
+>    for FastEndpoints routes (G2), bare and qualified.
+> 2. **The B3 cross-file index carried the prefix but not the auth.** The policy is declared in
+>    `AdminEndpoints.cs`; the routes live in `AdminPipelineEndpoints.cs` / `AdminPromptEndpoints.cs`
+>    / `AdminLedgerEndpoints.cs`, reached via `admin.MapAdminLedgerEndpoints()`. Fixing (1) alone
+>    moved the routes to `/admin/*` and left the count at 12/39 — a group is one surface, and its
+>    authorization had to travel with its prefix. The index value is now
+>    `CallerGroupContext(Prefix, Auth)`, under the same all-call-sites-agree rule.
+>
+> Four tests in `EndpointExtractorTests`, including the exact two-file shape and a guard that a
+> non-constant prefix is still never guessed at. Core suite 904/904.
+
+
+
 `stats` insight `auth.anonymous`, severity `warning`, confidence 0.69:
 
 > **12/39 endpoints anonymous, incl. 4 POST/PUT/DELETE**

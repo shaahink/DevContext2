@@ -247,6 +247,145 @@ public sealed class EndpointExtractorTests
     }
 
     [Fact]
+    public async Task GroupPrefix_FromSameTypeConst_ResolvesAndCarriesGroupAuth()
+    {
+        // The Book2Course shape (2026-08-26 unseen drive, F2): the group's prefix is named by a const
+        // on the declaring type, which is the idiomatic way to write it. The prefix used to require a
+        // string LITERAL, so the group variable was never registered — which cost the routes their
+        // prefix AND, because ExtractGroupAuth gates on the group being known, cost the whole admin
+        // surface its RequireAuthorization. stats then reported the most-protected endpoints in the
+        // app as anonymous.
+        var result = await RunExtractorOnSourceAsync(
+            "AdminEndpoints.cs",
+            """
+            internal static class AdminEndpoints
+            {
+                internal const string GroupPrefix = "/admin";
+
+                public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
+                {
+                    var admin = app.MapGroup(GroupPrefix)
+                        .RequireAuthorization(Policies.Admin)
+                        .WithTags("Admin");
+
+                    admin.MapGet("/accounting", () => Results.Ok());
+                    admin.MapPost("/prompts", () => Results.Ok());
+                    return app;
+                }
+            }
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/admin/accounting" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/admin/prompts" && e.HttpMethod == "POST");
+
+        // The half that made it a security claim rather than a routing nicety.
+        Assert.NotEmpty(endpoints);
+        Assert.All(endpoints, e => Assert.Contains("[Authorize]", e.AuthAttributes));
+    }
+
+    [Fact]
+    public async Task GroupPrefix_FromQualifiedConst_Resolves()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Routes.cs",
+            """
+            internal static class ApiRoutes
+            {
+                internal const string Admin = "/admin";
+            }
+
+            internal static class AdminEndpoints
+            {
+                public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
+                {
+                    var admin = app.MapGroup(ApiRoutes.Admin).RequireAuthorization();
+                    admin.MapGet("/stats", () => Results.Ok());
+                    return app;
+                }
+            }
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/admin/stats" && e.HttpMethod == "GET");
+        Assert.All(endpoints, e => Assert.Contains("[Authorize]", e.AuthAttributes));
+    }
+
+    [Fact]
+    public async Task GroupAuth_CrossesTheExtensionMethodBoundary_WithThePrefix()
+    {
+        // The full Book2Course shape (F2): the group, its const prefix and its policy are declared in
+        // ONE file; the routes it guards are registered in ANOTHER, through `admin.MapAdminLedgerEndpoints()`.
+        // B3 already carried the PREFIX across that boundary; the auth did not travel with it, so every
+        // admin route arrived un-annotated and stats reported the whole surface as anonymous.
+        var fs = new FakeFileSystem();
+        fs.AddFile("AdminEndpoints.cs",
+            """
+            internal static class AdminEndpoints
+            {
+                internal const string GroupPrefix = "/admin";
+
+                public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
+                {
+                    var admin = app.MapGroup(GroupPrefix)
+                        .RequireAuthorization(Policies.Admin)
+                        .WithTags("Admin");
+
+                    admin.MapAdminLedgerEndpoints();
+                    return app;
+                }
+            }
+            """);
+        fs.AddFile("AdminLedgerEndpoints.cs",
+            """
+            internal static class AdminLedgerEndpoints
+            {
+                public static IEndpointRouteBuilder MapAdminLedgerEndpoints(this IEndpointRouteBuilder app)
+                {
+                    app.MapGet("/accounting", () => Results.Ok());
+                    app.MapGet("/stats", () => Results.Ok());
+                    return app;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        var accounting = Assert.Single(endpoints, e => e.RouteTemplate == "/admin/accounting");
+        Assert.Contains("[Authorize]", accounting.AuthAttributes);
+        var stats = Assert.Single(endpoints, e => e.RouteTemplate == "/admin/stats");
+        Assert.Contains("[Authorize]", stats.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task GroupPrefix_FromNonConstantExpression_IsNotGuessed()
+    {
+        // The deliberate limit: a prefix the syntax pass cannot resolve leaves the group unregistered
+        // and the route bare, exactly as before. Widening const resolution must not turn into inventing
+        // a prefix from an expression nobody evaluated.
+        var result = await RunExtractorOnSourceAsync(
+            "DynamicEndpoints.cs",
+            """
+            internal static class DynamicEndpoints
+            {
+                public static IEndpointRouteBuilder MapDynamicEndpoints(this IEndpointRouteBuilder app)
+                {
+                    var group = app.MapGroup(BuildPrefix());
+                    group.MapGet("/thing", () => Results.Ok());
+                    return app;
+                }
+
+                private static string BuildPrefix() => "/dynamic";
+            }
+            """);
+
+        var endpoint = Assert.Single(result.Detections.OfType<EndpointDetection>());
+        Assert.Equal("/thing", endpoint.RouteTemplate);
+        Assert.Null(endpoint.GroupPrefix);
+    }
+
+    [Fact]
     public async Task GroupLevel_RequireAuthorization_ChainedOnMapGroup_PropagatesToMembers()
     {
         var result = await RunExtractorOnSourceAsync(
