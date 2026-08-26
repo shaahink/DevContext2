@@ -28,8 +28,8 @@ two pre-registered gates are DEGENERATE at pilot n - the transferable lesson: -0
 | Metric | Value |
 |---|---|
 | Total checkpoints | 12 |
-| Done | 8 |
-| Claimed (unconfirmed) | 2 |
+| Done | 9 |
+| Claimed (unconfirmed) | 3 |
 
 ## Checkpoints
 
@@ -69,14 +69,14 @@ phase (a code path is not evidence). Agent claims are marked DONE; engine confir
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | A1.1 | Deterministic grading pass complete: mustMention hits, mustNotMention violations, expectedVerdict match, citation resolution — scored per run into `results/graded.jsonl` | DONE ✓ | c366338 | eval/agent-probe/results/a1.1-grading.md |
-| A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | DONE | 33aba13 | eval/agent-probe/results/a1.2-analysis.md |
+| A1.2 | Judge pass complete on anonymised final answers only, plus the paired analysis: median log2 cost ratio with bootstrap CI, accuracy difference with CI, fabrication rate, mcp call share | DONE ✓ | 33aba13 | eval/agent-probe/results/a1.2-analysis.md |
 
 ### R1 — Report and verdict
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| R1.1 | `eval-results/agent-probe/RESULTS.md` states the verdict against the four pre-registered outcomes, with the per-class breakdown and the honest pilot interval | TODO | - | - |
-| R1.2 | Human-check sample (20%, stratified) written to a separate file for the owner; report names exactly what the full run needs to turn this pilot into a defensible number | TODO | - | - |
+| R1.1 | `eval-results/agent-probe/RESULTS.md` states the verdict against the four pre-registered outcomes, with the per-class breakdown and the honest pilot interval | DONE | cd4d15d | eval-results/agent-probe/RESULTS.md |
+| R1.2 | Human-check sample (20%, stratified) written to a separate file for the owner; report names exactly what the full run needs to turn this pilot into a defensible number | DONE | cd4d15d | eval/agent-probe/results/r1.2-human-sample/README.md |
 
 ## Dependencies
 
