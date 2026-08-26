@@ -1,4 +1,7 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
+
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DevContext.Core.Tests;
 
@@ -187,6 +190,191 @@ public sealed class GraphSeamTests
         Assert.Equal(SeamDirection.Forward, seam.Direction);
         Assert.Equal(0, seam.Hops);
         Assert.Empty(Assert.Single(seam.Paths).Hops);
+    }
+
+    // ── F4 (backlog #35) — the transport-port cell: producer → port ← consumer ──────────────────
+    //
+    // The fourth factory runs the REAL assembly pipeline (BodyFacts → seam detectors → GraphBuilder),
+    // not a hand-built graph: the defect lives in what the builder emits, so a hand-assembled fixture
+    // would only ever test the assertion's mirror. Shape (Book2Course's Q4, minimized): a producer
+    // enqueues into an in-repo port interface, a consumer dequeues from it and drives the next stage.
+    // Both callers land as IN-edges on the port Type (a call through a DI interface has no member body
+    // to land on), so without a join the port is a sink — in-degree 2, out-degree 0.
+    private static (CodeGraph Graph, GraphQuery Query) BuildZoo(params (string Fqn, TypeKind Kind, string Source)[] types)
+    {
+        var pi = new ProjectInfo("Zoo", @"C:\repo\Zoo\Zoo.csproj", "C#", ["net10.0"], [], []);
+        var model = new DiscoveryModel { Projects = [pi] };
+        var facts = new List<DevContext.Core.Graph2.BodyFacts>();
+        var parseOpts = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
+
+        foreach (var (fqn, kind, source) in types)
+        {
+            var name = fqn[(fqn.LastIndexOf('.') + 1)..];
+            var filePath = $@"C:\repo\Zoo\{name}.cs";
+            model.Types.TryAdd(fqn, new TypeDiscovery
+            {
+                Id = fqn,
+                Name = name,
+                Namespace = "Zoo",
+                FilePath = filePath,
+                Kind = kind,
+                Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Application,
+                SourceBody = source,
+                Methods = [],
+            });
+
+            var tree = CSharpSyntaxTree.ParseText($"namespace Zoo {{ {source} }}", parseOpts, path: filePath);
+            facts.AddRange(BodyFactExtractor.Extract(tree, filePath, "Zoo"));
+        }
+
+        var builder = new GraphBuilder(new SyntacticSymbolResolver(), new NoiseFilter(new ProjectClassifier([pi])));
+        var (graph, entries) = builder.Build(model, SolutionScope.FromModel(model), facts);
+        return (graph, new GraphQuery(graph, entries));
+    }
+
+    private const string PortSource = """
+        public interface IJobQueue
+        {
+            Task EnqueueAsync(string job);
+            Task<string?> DequeueAsync();
+        }
+        """;
+
+    private const string ProducerSource = """
+        public class BuildCoordinator
+        {
+            private readonly IJobQueue _queue;
+            public BuildCoordinator(IJobQueue queue) => _queue = queue;
+            public Task AdvanceAsync() => _queue.EnqueueAsync("ingest");
+        }
+        """;
+
+    private const string StageSource = """
+        public class IngestStage
+        {
+            public Task ExecuteAsync(string job) => Task.CompletedTask;
+        }
+        """;
+
+    private const string ConsumerSource = """
+        public class JobRunner
+        {
+            private readonly IJobQueue _queue;
+            private readonly IngestStage _stage;
+            public JobRunner(IJobQueue queue, IngestStage stage) { _queue = queue; _stage = stage; }
+            public async Task RunNextAsync()
+            {
+                var job = await _queue.DequeueAsync();
+                if (job is not null) await _stage.ExecuteAsync(job);
+            }
+        }
+        """;
+
+    private static (CodeGraph Graph, GraphQuery Query) TransportPortChain() => BuildZoo(
+        ("Zoo.IJobQueue", TypeKind.Interface, PortSource),
+        ("Zoo.BuildCoordinator", TypeKind.Class, ProducerSource),
+        ("Zoo.IngestStage", TypeKind.Class, StageSource),
+        ("Zoo.JobRunner", TypeKind.Class, ConsumerSource));
+
+    /// <summary>
+    /// THE RED (F4, backlog #35). Today's answer is <see cref="SeamDirection.None"/> — "unconnected"
+    /// — about a producer and a stage that are wired through a queue on every single job. Both the
+    /// enqueue and the dequeue land as IN-edges on the port interface's Type node, so the walk
+    /// (out-edges only) can never route through it: the graph holds the truth and the query cannot
+    /// reach it. The fix classifies the port's callers by verb (Enqueue* writes, Dequeue* reads —
+    /// the evidence is already on <see cref="GraphEdge.TargetMember"/>) and emits a JOINED bridge
+    /// port → consumer, so the path producer → port → consumer → stage exists and every joined hop
+    /// says it was joined, never verified.
+    /// </summary>
+    [Fact]
+    public void A_seam_crosses_an_in_repo_transport_port_through_a_joined_hop()
+    {
+        var (graph, query) = TransportPortChain();
+
+        // Preconditions — the defect's shape must actually be in the graph, or this test would pass
+        // for the wrong reason (no edges at all) after an extractor regression.
+        var port = NodeId.ForType("Zoo.IJobQueue");
+        var producerCall = graph.InEdges(port).Where(e => e.Kind == EdgeKind.Calls && e.TargetMember == "EnqueueAsync");
+        var consumerCall = graph.InEdges(port).Where(e => e.Kind == EdgeKind.Calls && e.TargetMember == "DequeueAsync");
+        Assert.Single(producerCall);
+        Assert.Single(consumerCall);
+
+        var seam = query.Seam(NodeId.ForType("Zoo.BuildCoordinator"), NodeId.ForType("Zoo.IngestStage"));
+
+        Assert.Equal(SeamDirection.Forward, seam.Direction);
+        Assert.Equal(3, seam.Hops);
+
+        var hops = Assert.Single(seam.Paths).Hops;
+        Assert.Equal(["BuildCoordinator.AdvanceAsync", "IJobQueue", "JobRunner.RunNextAsync"], hops.Select(h => h.FromTitle));
+
+        // The bridge hop is the port: it renders as a JOINED consume — a classification the builder
+        // made from verb evidence — never as a verified call. Truthfulness is the product.
+        var bridge = hops[1];
+        Assert.Equal(EdgeKind.Consumes, bridge.Kind);
+        Assert.Equal(Resolution.Join, bridge.Resolution);
+    }
+
+    /// <summary>
+    /// THE NEGATIVE TWIN (the drive's Q4 first case, which was CORRECT as found:false). A port with
+    /// only writers is staging, not transport: nothing in the graph reads it, so bridging it would
+    /// fabricate a path the repo does not have. The uploader stages work into the port; the stage
+    /// runs off something else the graph cannot see — and the honest answer stays "unconnected".
+    /// </summary>
+    [Fact]
+    public void A_port_with_only_writers_does_not_bridge()
+    {
+        var (graph, query) = BuildZoo(
+            ("Zoo.IJobQueue", TypeKind.Interface, PortSource),
+            ("Zoo.BuildCoordinator", TypeKind.Class, ProducerSource),
+            ("Zoo.IngestStage", TypeKind.Class, StageSource),
+            ("Zoo.SourceUploader", TypeKind.Class, """
+                public class SourceUploader
+                {
+                    private readonly IJobQueue _queue;
+                    public SourceUploader(IJobQueue queue) => _queue = queue;
+                    public Task UploadAsync() => _queue.EnqueueAsync("staged");
+                }
+                """));
+
+        // No reader in the graph → no bridge out of the port, and the seam stays honest.
+        Assert.DoesNotContain(graph.OutEdges(NodeId.ForType("Zoo.IJobQueue")), e => e.Kind == EdgeKind.Consumes);
+
+        var seam = query.Seam(NodeId.ForType("Zoo.BuildCoordinator"), NodeId.ForType("Zoo.IngestStage"));
+        Assert.Equal(SeamDirection.None, seam.Direction);
+        Assert.False(seam.StoppedAtDepthLimit);
+    }
+
+    /// <summary>
+    /// A type calling BOTH directions on the same port is the transport's own plumbing (a decorator,
+    /// a drain loop, an in-memory bus), not a producer or a consumer — the same rule
+    /// EventBusExtractor's queue seams apply to raw transports. Its calls must not mint a bridge.
+    /// </summary>
+    [Fact]
+    public void A_type_calling_both_directions_is_infrastructure_not_a_bridge_endpoint()
+    {
+        var (graph, query) = BuildZoo(
+            ("Zoo.IJobQueue", TypeKind.Interface, PortSource),
+            ("Zoo.IngestStage", TypeKind.Class, StageSource),
+            ("Zoo.QueueDrain", TypeKind.Class, """
+                public class QueueDrain
+                {
+                    private readonly IJobQueue _queue;
+                    private readonly IngestStage _stage;
+                    public QueueDrain(IJobQueue queue, IngestStage stage) { _queue = queue; _stage = stage; }
+                    public Task RequeueAsync() => _queue.EnqueueAsync("again");
+                    public async Task DrainAsync()
+                    {
+                        var job = await _queue.DequeueAsync();
+                        if (job is not null) await _stage.ExecuteAsync(job);
+                    }
+                }
+                """));
+
+        Assert.DoesNotContain(graph.OutEdges(NodeId.ForType("Zoo.IJobQueue")), e => e.Kind == EdgeKind.Consumes);
+
+        var seam = query.Seam(NodeId.ForType("Zoo.IJobQueue"), NodeId.ForType("Zoo.IngestStage"));
+        Assert.NotEqual(SeamDirection.Forward, seam.Direction);
     }
 
     /// <summary>Determinism seal: the same question returns the same paths in the same order.

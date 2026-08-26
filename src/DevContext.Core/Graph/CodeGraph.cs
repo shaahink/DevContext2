@@ -55,6 +55,12 @@ public static class RoleTags
     /// service that lives in another repo). Renderers draw these dashed: the seam is real, the
     /// implementation is out of scope.</summary>
     public const string External = "external";
+    /// <summary>F4 (backlog #35): edge tag on a JOINED Consumes edge bridging an in-repo transport
+    /// port (queue/bus/outbox interface) to a caller that reads from it — emitted by
+    /// EventWiringProjection.EmitPortBridges when the graph holds both a write-verb and a read-verb
+    /// caller of the same port. The hop is a classification (Resolution.Join), never a verified
+    /// call.</summary>
+    public const string TransportPortBridge = "transport-port";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport

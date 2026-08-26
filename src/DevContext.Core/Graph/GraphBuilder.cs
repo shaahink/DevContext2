@@ -107,6 +107,14 @@ public sealed partial class GraphBuilder
         g.SetEventWiring(eventWiring);
         EventWiringProjection.EmitServiceLinks(g, eventWiring);
 
+        // F4 (backlog #35): the transport-port half of the SAME join — an in-repo queue/bus/outbox
+        // port whose callers split into write-verb and read-verb sites (evidence already on
+        // GraphEdge.TargetMember) gets a joined port → consumer Consumes bridge, so seam/trace can
+        // route producer → port → consumer instead of reporting a sink as "unconnected". Ports the
+        // graph holds only one side of are NOT bridged.
+        EventWiringProjection.EmitPortBridges(g, EventWiringProjection.BuildTransportPorts(
+            seamGraph, scope.ProjectForFile, _noise.IsProductionEntrySource));
+
         // ── Batch B: sync transports + AppHost topology ───────────────────────
         // Deliberately last, and in this order: an edge keeps the tag of whoever claims a
         // (from, to, kind) triple first, so the verified publish→consume join outranks a client

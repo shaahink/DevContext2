@@ -92,7 +92,10 @@ derived inverse adjacency for O(degree) `neighbors`/`find_usages`.
    (Consumes), `AddDiResolves` (Resolves, with multi-impl honesty).
 5. **P2 trace seams**: `AddSeamsFromDetectors` (BodyFacts seam detectors, §5) + `AddLambdaSeams` +
    `AddCallEdges` (Calls) + `AddHubScopeEdges` (L3.4 sparse-graph fallback).
-6. **Cross-service**: `AddBusServiceLinks`, `AddGrpcServiceLinks`, `AddHttpServiceLinks` (ServiceLink).
+6. **Cross-service + the one join**: `AddGrpcServiceLinks`, `AddHttpServiceLinks` (ServiceLink); then
+   `EventWiringProjection` off a draft — `Build`+`EmitServiceLinks` (bus ServiceLinks, superseding the
+   old `AddBusServiceLinks`) and `BuildTransportPorts`+`EmitPortBridges` (F4: joined port→consumer
+   Consumes bridges over an in-repo queue/bus port, so seam/trace can route through the transport).
 7. `ComputeFlows` (spine-first per entry) → `DetectLayerViolations` → freeze; then `EnrichEntryTargets`
    / `EnrichEntryGroupPaths` / `EnrichEntryScores`.
 
