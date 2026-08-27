@@ -1,3 +1,5 @@
+using DevContext.Core.Models;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +18,10 @@ public readonly record struct ConfigBindingInfo(
 /// so re-running it on every config() call was the latency bug. The scan is pure and deterministic.
 /// The match walks the Roslyn syntax tree (no regex — the Graph/ regex funeral, L2.3), so keys inside
 /// comments or non-literal arguments are never mistaken for real bindings.
+/// F3 (BUG-BACKLOG #34): the model-aware overload additionally merges Options-pattern bindings
+/// (<c>AddOptions&lt;T&gt;().BindConfiguration</c> / <c>.Bind</c> / <c>Configure&lt;T&gt;</c>) detected at
+/// extraction time, where const section names resolve project-wide — the syntax scan here cannot see
+/// those (it visits only node-bearing files and reads only literals).
 /// </summary>
 public static class ConfigScanner
 {
@@ -36,9 +42,76 @@ public static class ConfigScanner
         ["GetRequiredSection"] = "GetRequiredSection",
     };
 
-    /// <summary>Full unfiltered scan over every file that owns a graph node. Callers filter by key
-    /// in-memory afterward — this is the expensive part worth caching. Pass <paramref name="onlyFiles"/>
-    /// to scan a file subset instead (T4.3: the pack's config section scans just the spine's files).</summary>
+    /// <summary>The PatternType label carried by catalog rows merged in from extraction-time
+    /// Options-pattern detections (F3, BUG-BACKLOG #34). Part of the documented closed set on
+    /// <c>ConfigBinding.pattern_type</c> in the proto.</summary>
+    public const string OptionsBindingPatternType = "OptionsBinding";
+
+    /// <summary>F3 — the full catalog: the syntax scan below PLUS the Options-pattern bindings the
+    /// extractors detected (<see cref="OptionsBindingDetection"/>). The syntax scan alone cannot see
+    /// them: it only visits files that own a graph node (a composition-root DependencyInjection.cs
+    /// can be skipped wholesale) and it cannot resolve a const section name across files. Every
+    /// catalog consumer — the server's session catalog, the pack's config section — reads THIS
+    /// overload so the numbers agree with <c>ConfigDefaultsSource</c>, which counts the same
+    /// detections.</summary>
+    public static IReadOnlyList<ConfigBindingInfo> Scan(
+        CodeGraph graph, DiscoveryModel model, ISet<string>? onlyFiles = null)
+    {
+        var syntaxRows = Scan(graph, onlyFiles);
+        var optionsRows = OptionsBindings(model, graph, onlyFiles);
+        if (optionsRows.Count == 0) return syntaxRows;
+
+        // One binding, one row: Configure<T>(cfg.GetSection("X")) is caught by BOTH paths at the
+        // same site — the options row (which knows the bound type's pattern) wins the collision.
+        static string Site(ConfigBindingInfo b) => $"{b.Key}\n{b.FilePath}\n{b.LineNumber}";
+        var optionsSites = new HashSet<string>(optionsRows.Select(Site), StringComparer.OrdinalIgnoreCase);
+
+        var merged = new List<ConfigBindingInfo>(syntaxRows.Count + optionsRows.Count);
+        merged.AddRange(syntaxRows.Where(row => !optionsSites.Contains(Site(row))));
+        merged.AddRange(optionsRows);
+        return merged;
+    }
+
+    /// <summary>F3 — projects <see cref="OptionsBindingDetection"/> rows into catalog form. The ONE
+    /// source for Options-pattern section keys: the catalog overload above merges these rows, and
+    /// <c>ConfigDefaultsSource</c> counts their keys, so the two surfaces cannot disagree.</summary>
+    public static IReadOnlyList<ConfigBindingInfo> OptionsBindings(
+        DiscoveryModel model, CodeGraph? graph = null, ISet<string>? onlyFiles = null)
+    {
+        var rows = new List<ConfigBindingInfo>();
+
+        // Best-effort service attribution: the project of any graph node in the binding's file.
+        Dictionary<string, string>? projectByFile = null;
+        if (graph is not null)
+        {
+            projectByFile = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var node in graph.Nodes)
+                if (node.FilePath is { } fp && node.Project is { } project)
+                    projectByFile.TryAdd(fp, project);
+        }
+
+        foreach (var detection in model.Detections.OfType<OptionsBindingDetection>())
+        {
+            if (onlyFiles is not null && !onlyFiles.Contains(detection.SourceFile)) continue;
+            var service = projectByFile?.GetValueOrDefault(detection.SourceFile) ?? "";
+            rows.Add(new ConfigBindingInfo(
+                detection.SectionKey, detection.SourceFile, detection.LineNumber,
+                NodeId: "", OptionsBindingPatternType, service));
+        }
+
+        // model.Detections is a ConcurrentBag — order it so the catalog stays deterministic.
+        return rows
+            .OrderBy(r => r.FilePath, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(r => r.LineNumber)
+            .ThenBy(r => r.Key, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>The syntax half of the catalog: a full scan over every file that owns a graph node.
+    /// Callers filter by key in-memory afterward — this is the expensive part worth caching. Pass
+    /// <paramref name="onlyFiles"/> to scan a file subset instead (T4.3: the pack's config section
+    /// scans just the spine's files). Prefer the model-aware overload — this one cannot see
+    /// Options-pattern bindings.</summary>
     public static IReadOnlyList<ConfigBindingInfo> Scan(CodeGraph graph, ISet<string>? onlyFiles = null)
     {
         var result = new List<ConfigBindingInfo>();

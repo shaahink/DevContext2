@@ -77,6 +77,21 @@ came back `ambiguous:true` with 8 candidates, each with file:line and in/out deg
 
 ### F1 · HIGH · Extension and BCL methods are bound as members of the receiver type
 
+> **FIXED 2026-08-27, re-measured on the same repo with the recorded calls**
+> (`remeasure-post-fix/REMEASURE.md`). `startHere` now reads **ApiProblems, Course, Run,
+> AppDbContext**, and every member in the 21-entry list is declared by its receiver
+> (`Planner.Compute`, `JobRunner.RunAsync`, `JobSettlement.FailAsync` — spot-checked in target
+> source). Zero `ConfigureAwait` / `::Where` / `IgnoreQueryFilters` across **all four
+> transcripts**, including the Q2 trace (29 steps), which kept its DI hop
+> (`IObjectStore ◇ S3ObjectStore`) and its `[approx]` markers. The invariant proposed below is
+> standing in the battery (INV-C: no node may be a member of a type that does not declare it,
+> plus the dogfood sweep), filed and closed as backlog **#33**. The honesty ledger moved with
+> it: Calls approx 900 → 279 (56% → 30%), graph 1315/1739 → 1172/1078 nodes/edges. One
+> overshoot was caught by the integration battery and repaired (`e085634`): a refused call now
+> DEGRADES to a member→Type edge (confidence 0.4) instead of dropping, so true connectivity
+> through out-of-solution bases (TodoApi's `db.Todos.Add` path to its store) survives the
+> refusal.
+
 `overview.startHere` — the first line an agent reads — is:
 
 ```
@@ -155,6 +170,19 @@ two counters for one fact is the #19/#20 shape again.
 
 ### F3 · HIGH · `config` does not know the Options pattern
 
+> **FIXED 2026-08-27, re-measured on the same repo with the recorded calls**
+> (`remeasure-post-fix/REMEASURE.md`). `config(key:"Pipeline:Queue:Drain")` resolves — with
+> provenance at exactly `Pipeline/DependencyInjection.cs:73`, patternType **OptionsBinding**:
+> the `AddOptions<QueueDrainOptions>().BindConfiguration(...)` site quoted below. The full
+> catalog reads **14 keys** where it read 1 (`remeasure-post-fix/diag-out.txt`, D6:
+> `Storage`, `Database`, `Admin`, `Authentication:Google`, `Pipeline:Queue:Drain`, …), and
+> `config.missing-defaults` now says what it cannot see: "counts literal + Options-bound keys;
+> computed keys are invisible here" — the under-declare-without-saying-so half is gone too.
+> Filed and closed as backlog **#34**. One new LOW observation from the re-measure, filed as
+> **#38**: the `Storage` key picked up a second provenance row from a stray
+> `.conductor/tmp-q14/` temp copy inside the target repo — the scan does not confine itself to
+> solution sources.
+
 `config(key:"Pipeline:Queue:Drain")` → `No config key exactly 'Pipeline:Queue:Drain' (1 keys exist)`,
 candidates: `["OTEL_EXPORTER_OTLP_ENDPOINT"]`. **One key, in this repo.**
 
@@ -174,6 +202,22 @@ so the catalog **under-declares and doesn't say so** — the mirror of the "cata
 class in `GRAPH-DETECTION-AUDIT-2026-08-13.md`.
 
 ### F4 · HIGH · `seam` cannot cross a transport — the port is a sink, not a bridge
+
+> **FIXED as filed, 2026-08-27 — and the re-measured bar moved one hop and stopped**
+> (`remeasure-post-fix/REMEASURE.md`). The port is no longer a sink:
+> `seam(BuildCoordinator → JobRunner)` is **found:true, 2 paths**, and the crossing hop is the
+> verb-classified join this section asked for —
+> `IJobQueue —Consumes/Join→ JobRunner.RunNextAsync`
+> (`remeasure-post-fix/diag-out.txt`, D1; `neighbors(IJobQueue, out)` now carries the
+> `Consumes` edge beside the DI `Resolves`; stats ledger: `Consumes: total 1, joined 1`). But
+> the recorded `seam(BuildCoordinator → IngestStage)` still answers **found:false** — honestly:
+> `neighbors(IngestStage, in)` is **count 0**. Stages are registered by a reflection assembly
+> scan (`AddStages()`, target `DependencyInjection.cs:206-214`) and dispatched dynamically
+> through `IStageRegistry`, so nothing static lands on any stage type and the walk from the
+> now-bridged queue exhausts before `IngestStage`. That is a **different defect** the sink had
+> masked — filed as backlog **#37**, not inferred fixed; the port defect itself is **#35,
+> closed**. The truthful half held: `seam(SourceUploadEndpoints → IngestStage)` stays
+> found:false with the honest note, and no path was fabricated anywhere.
 
 Two of five questions hit this.
 
@@ -205,6 +249,13 @@ every queue-, bus- and outbox-driven .NET app. `seam` is advertised as "the only
 how does A reach B" — on this architecture it answers it only within a single process hop.
 
 ### F5 · LOW · `usages` returns duplicate identical edges
+
+> **FIXED 2026-08-27, re-measured on the same repo with the recorded calls**
+> (`remeasure-post-fix/REMEASURE.md`). `usages(JobRunner)` reads **count: 2** —
+> `QueueDrainService.TurnAsync` at `QueueDrainService.cs:95` appears **exactly once**, and the
+> second row is not a duplicate: it is the visibly distinct `Consumes` port-bridge in-edge from
+> F4's fix (distinct caller, distinct kind, distinct provenance). The tool's own description
+> now reads "One row per distinct call…". Filed and closed as backlog **#36**.
 
 `usages(JobRunner)` → `count: 3`, all three the same caller, same kind, same line
 (`QueueDrainService.TurnAsync`, `QueueDrainService.cs:95`). One call site, counted three times.

@@ -22,6 +22,10 @@
 1 HELD-with-premise-refuted · 5 still open (all medium), and of those 5 only four belong to this
 repo — the fifth is Conductor's.**
 
+**Reconciled 2026-08-27, the drive-fix program: #33 · #34 · #36 FIXED, #35 FIXED-as-filed with
+its residual re-filed as #37. New filings #37–#39 (1 high, 1 medium, 1 low) from the integration
+battery and the post-fix re-measure.**
+
 > **Third source, 2026-08-26 (the Book2Course unseen-repo hand drive).**
 > `eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md` drove five pre-fixed questions
 > against a repo the engine had never seen and found one decisive win (impact) and five defects.
@@ -30,6 +34,19 @@ repo — the fifth is Conductor's.**
 > three high, one low — at [Filed 2026-08-26](#filed-2026-08-26) at the foot of this file. The
 > drive's own license line binds: **the pre-registered re-probe must not run until F1–F4 are
 > filed and fixed.**
+>
+> **Reconciled 2026-08-27** by the drive-fix program (`fix/f5-usages-projection` ·
+> `fix/f3-options-config` · `fix/f4-seam-transport` · `fix/f1-undeclared-members`, integrated and
+> battery-repaired on `fix/mcp-drive-integration`, merged to develop): **#33 · #34 · #36 FIXED,
+> #35 FIXED as filed with its residual re-filed as #37** — every verdict re-measured on the same
+> repo with the same recorded call batches
+> (`eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-fix/REMEASURE.md`). Per-item
+> reasoning: [§ Reconciliation 2026-08-27](#reconciliation-2026-08-27). Three new findings from
+> the integration battery and the re-measure are filed as **#37–#39** at
+> [Filed 2026-08-27](#filed-2026-08-27). The license line's letter is met — F1–F4 filed and
+> fixed — but the re-measure's F4 bar still cannot pass end-to-end on this repo until #37 lands
+> (`seam(BuildCoordinator → IngestStage)` now dies one hop PAST the fixed port); whether to run
+> the re-probe with that known and filed stays the owner's call.
 
 > **On the two runs.** The pre-release program ran as two parallel conductor runs against one
 > backlog: **run A** (engine, `conductor.engine.plan.json`, stages T1 · V1 · E1 · D1 · R1 · A1) took
@@ -1027,12 +1044,16 @@ this series and stays untouched).
 Mechanism loci below were mapped in source on 2026-08-26 by a read of the shipping code at
 `b7b0ab0`, not fixture-proven — the fixture goes RED first, per house rule, before any fix lands.
 
-| # | Sev | Stage | Drive id | Title |
-|---|-----|-------|----------|-------|
-| [#33](#33) | high | drive-2026-08-26 | F1 | Extension and BCL methods are minted as MEMBERS of the receiver type — `startHere`'s first line is `AppDbContext.ConfigureAwait`, which nothing declares |
-| [#34](#34) | high | drive-2026-08-26 | F3 | `config` does not know the Options pattern — a 487-file repo reads "1 keys exist" and `config.missing-defaults` under-declares without saying so |
-| [#35](#35) | high | drive-2026-08-26 | F4 | `seam` cannot cross a transport — the port is a sink (in 8 / out 0), so found:false across a connection the graph holds fully verified |
-| [#36](#36) | low | drive-2026-08-26 | F5 | `usages` returns the same call site three times — one caller, one line, count 3 |
+| # | Sev | Stage | Drive id | Status (2026-08-27) | Title |
+|---|-----|-------|----------|---------------------|-------|
+| [#33](#33) | high | drive-2026-08-26 | F1 | **FIXED** — re-measured PASS | Extension and BCL methods are minted as MEMBERS of the receiver type — `startHere`'s first line is `AppDbContext.ConfigureAwait`, which nothing declares |
+| [#34](#34) | high | drive-2026-08-26 | F3 | **FIXED** — re-measured PASS | `config` does not know the Options pattern — a 487-file repo reads "1 keys exist" and `config.missing-defaults` under-declares without saying so |
+| [#35](#35) | high | drive-2026-08-26 | F4 | **FIXED as filed, residual re-filed** → [#37](#37) | `seam` cannot cross a transport — the port is a sink (in 8 / out 0), so found:false across a connection the graph holds fully verified |
+| [#36](#36) | low | drive-2026-08-26 | F5 | **FIXED** — re-measured PASS | `usages` returns the same call site three times — one caller, one line, count 3 |
+
+Statuses are the 2026-08-27 reconciliation — see
+[§ Reconciliation 2026-08-27](#reconciliation-2026-08-27) at the foot of this file. The filings
+below stay unedited, on the same rule as the 2026-08-02 originals.
 
 <a id="33"></a>
 
@@ -1241,4 +1262,172 @@ change unless the fix genuinely needs TargetMember on the wire (contract-sweep a
 WATCH IT GO RED FIRST: a new [Fact] in GraphQueryTests.cs — row uniqueness is currently pinned
 by NOTHING — plus a GraphNeighborKindTests-style member-fan-in fixture (one caller hitting a
 type and two of its members), and CLI parity.
+```
+
+---
+
+<a id="reconciliation-2026-08-27"></a>
+
+## Reconciliation 2026-08-27 — the Book2Course drive-fix program
+
+Four fix branches, one per filed defect, built fixture-first in their own worktrees and merged on
+`fix/mcp-drive-integration` (`9e68756` F5 · `91e6d32` F3 · `b7e106d` F4 · `37f70a6` F1). The
+integration battery — the first run in a while with the `eval-repos/TodoApi` + `VerticalSlice`
+submodules initialized — caught two F1-introduced regressions and STOPPED ON RED per R-T7; both
+were root-caused by bisection (develop `04173d6` + same submodules = 6/6 PASS; F1 head `bd46c8b`
+alone = the same 3 FAIL) and repaired on the integration branch: `e085634` (a refused call
+DEGRADES to the member→Type Calls edge instead of dropping — INV-C kept literal, connectivity
+kept true; and the FastEndpoints entry join targets the handler the class actually DECLARES),
+with the zoo fixtures made to declare what their source declares (`b24e09b`) and the ratcheted
+MCP QA record moving in its own R-T7 commits (`9fea911`, `9cfefc2` — nothing loosened, every
+number tied to a declared cause).
+
+Verdicts were then re-measured with the drive's own recorded call batches against the integrated
+tree (`9cfefc2`), fresh analyze, target untouched at `c14da997`. Evidence for every row:
+`eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-fix/REMEASURE.md`, raw
+transcripts beside it.
+
+| # | Verdict | What the re-measure found |
+|---|---|---|
+| #33 | **FIXED** (F1) | `startHere` is `ApiProblems, Course, Run, AppDbContext` + genuinely declared members; zero `ConfigureAwait`/`::Where`/`IgnoreQueryFilters` across all four transcripts including the Q2 trace (29 steps, DI hop and `[approx]` markers intact). The ledger moved the honest way: Calls approx 900 → 279 (56% → 30%), graph 1315/1739 → 1172/1078 as the minted members left, verified down only 41. The invariant stands in the battery (INV-C + dogfood sweep = zero undeclared member nodes), and the integration repair kept it literal while restoring the connectivity the first cut overshot away. |
+| #34 | **FIXED** (F3) | `config(key:"Pipeline:Queue:Drain")` resolves with provenance `Pipeline/DependencyInjection.cs:73`, patternType `OptionsBinding`; the catalog reads 14 keys where it read 1; `config.missing-defaults` now states its blind spot out loud ("counts literal + Options-bound keys; computed keys are invisible here"). |
+| #35 | **FIXED as filed, residual re-filed → #37** (F4) | The filed defect — the port is a SINK — is gone: `seam(BuildCoordinator → JobRunner)` is found:true, 2 paths, crossing hop `IJobQueue —Consumes/Join→ JobRunner.RunNextAsync`; stats carries `Consumes: total 1, joined 1`. The drive's recorded Q4b call still answers found:false — the walk now dies ONE HOP LATER, at `IngestStage` in-degree 0 (stages registered by a reflection assembly scan), a defect the sink had masked. Re-filed as #37 on the #8 rule: fixed against the true cause, the leftover re-filed rather than quietly widened. The truthfulness half held: `seam(SourceUploadEndpoints → IngestStage)` stayed found:false with the honest note; nothing fabricated anywhere. |
+| #36 | **FIXED** (F5) | `usages(JobRunner)` reads count:2 — `QueueDrainService.TurnAsync` at `QueueDrainService.cs:95` exactly once; the second row is the visibly distinct new `Consumes` port-bridge in-edge (distinct caller, kind, provenance), not a duplicate. |
+
+The drive's license line — the re-probe must not run until F1–F4 are filed and fixed — is met on
+its letter. It is NOT met end-to-end on this repo: the pre-registered Q4 will keep reading
+found:false until #37 lands, and the pilot's lesson (do not pay to measure a known-broken part)
+now points at exactly that item. Owner's call.
+
+---
+
+<a id="filed-2026-08-27"></a>
+
+## Filed 2026-08-27 — the integration battery and the post-fix re-measure
+
+Source: the `fix/mcp-drive-integration` battery/repair story (commits `b24e09b` · `9fea911` ·
+`e085634` · `9cfefc2` and the integrate report) and `remeasure-post-fix/REMEASURE.md`. Findings
+filed, not fixed, on the standing rule. Numbers continue the `#` series.
+
+| # | Sev | Stage | Title |
+|---|-----|-------|-------|
+| [#37](#37) | high | remeasure-2026-08-27 | Reflection-registered types have NO in-edges — `AddStages()`'s assembly scan is invisible, so `IngestStage` sits at in-degree 0 and the re-measured F4 bar dies one hop past the fixed port |
+| [#38](#38) | low | remeasure-2026-08-27 | The config catalog sweeps stray temp copies inside the target repo — `.conductor/tmp-q14/StorageModule.cs` contributes a provenance row |
+| [#39](#39) | medium | integrate-2026-08-27 | The MCP QA drive can be raced by any concurrent test run: `eval/mcp-qa/run.js` never adopted `server-identity.js`'s endpoint isolation, and `ServerTestFactory.Dispose` kills EVERY `DevContext.Server` on the machine by name |
+
+<a id="37"></a>
+
+### #37 · remeasure-2026-08-27 · Reflection-registered types have NO in-edges — `AddStages()`'s assembly scan is invisible, so `IngestStage` sits at in-degree 0 and the re-measured F4 bar dies one hop past the fixed port
+
+```text
+MEASURED 2026-08-27, the post-fix re-measure of the Book2Course drive (severity HIGH). Artifacts:
+eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-fix/REMEASURE.md §F4,
+diag-out.txt D4 (neighbors(IngestStage, direction:in) → count: 0), q2-out.txt (the recorded Q4b
+seam, still found:false with the honest note).
+
+WHAT THE WIRE SAYS. With #35's port bridge landed and PROVEN — seam(BuildCoordinator → JobRunner)
+found:true, 2 paths, through IJobQueue with the Consumes/Join hop — the recorded call still
+misses:
+  seam(BuildCoordinator → IngestStage) → found:false, "the walk exhausted everything reachable
+  from each end within 8 hops and neither reached the other."
+and the localization is one call: neighbors(IngestStage, direction:in) → count: 0. NOTHING in
+the graph lands on IngestStage — no Calls, no Resolves, no seam. The walk from the now-bridged
+queue exhausts honestly before any stage type.
+
+MECHANISM, IN TARGET SOURCE (read 2026-08-27). Stages are registered by reflection —
+Pipeline/DependencyInjection.cs:206-214: AddStages() scans the assembly for IStage implementors
+and calls services.AddSingleton(typeof(IStage), stage) with a RUNTIME Type variable; JobRunner
+dispatches to them dynamically through IStageRegistry. No spelling anywhere in source names
+IngestStage as a registration or a callee, so the engine's DI arm
+(Extractors/Generic/DiRegistrationExtractor.cs — generic-name and literal-argument shapes) has
+nothing to bind: the implementation type NAME never appears at the registration site.
+
+FAMILY. The registration-is-a-scan class: #22's retirement measured it from the other side (the
+four eShop "orphans" were Carter ICarterModule endpoints registered by assembly scan), and
+conductor new #3 (a LITERAL typeof(X) registration loses its edge) is the adjacent named case —
+this is the harder no-name-at-all case. It was masked behind #35's sink until the port bridged;
+it was NOT in the drive's fixed set, so it is filed, not inferred fixed (REMEASURE.md's own
+words).
+
+WHY IT MATTERS. Until it lands, the drive's Q4 bar cannot pass end-to-end on Book2Course — the
+pre-registered re-probe hits it directly — and every plugin-style architecture (assembly scan +
+dispatch registry) has this shape.
+
+FIX SHAPE (do not apply from this text — fixture first, reform in place): recognize the scan
+idiom at the DI arm — AddSingleton/AddScoped(typeof(I), <non-literal>) inside a method that
+enumerates assembly types filtered by I — and join the INTERFACE to each in-solution implementor
+with Resolution.Join, rendered joined, NEVER verified: the same truthfulness discipline #35's
+port bridge just established. The seam walk then routes queue → runner → registry → stage, or
+the interface-join equivalent.
+
+WATCH IT GO RED FIRST: a fixture with the scan-registration shape (one interface, two
+implementors, AddSingleton(typeof(I), t) in a scan loop, a registry dispatch) asserting the
+implementor has in-edges and the seam routes — today it measures 0. The Book2Course end-to-end
+re-check is the recorded calls-q2.json batch itself.
+```
+
+<a id="38"></a>
+
+### #38 · remeasure-2026-08-27 · The config catalog sweeps stray temp copies inside the target repo — `.conductor/tmp-q14/StorageModule.cs` contributes a provenance row
+
+```text
+MEASURED 2026-08-27, the post-fix re-measure (F3's catalog check, severity LOW). Artifacts:
+eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-fix/REMEASURE.md §F3
+(the observation paragraph), diag-out.txt D6 (the full 14-key catalog).
+
+WHAT THE WIRE SAYS. The Storage key carries TWO provenance rows; the second is
+  C:\Code\BookToCourse\.conductor\tmp-q14\StorageModule.cs
+— a stray temp copy inside the target repo, part of no solution project. The scan swept it in
+and reports it with the same file:line authority as the real StorageModule.cs row.
+
+WHY IT MATTERS (small, but it is a truth surface): a temp/backup copy can double a key's
+provenance, resurrect a deleted key, or point an agent at a file nobody compiles — stated with
+provenance confidence. Harmless on this repo today (the row duplicates a real key rather than
+minting one), which is why this is LOW.
+
+MECHANISM, NOT LOCALIZED THIS PASS. ConfigScanner itself visits only node-bearing files
+(Graph/ConfigScanner.cs:119-124) and the OptionsBinding rows ride the DI extractor, so the temp
+copy most likely entered at DISCOVERY: the file inventory includes .cs files outside any
+solution project, and .conductor/ is not among the default exclusions the way eval-repos is.
+Localize before fixing — the fix seat differs (default exclusion list vs solution-scoped
+inventory vs a config-scan filter).
+
+WATCH IT GO RED FIRST: a fixture repo with a compiled source file plus a byte-identical copy
+under a non-project directory (.conductor/tmp-x/), asserting the catalog carries exactly one
+provenance row for the key.
+```
+
+<a id="39"></a>
+
+### #39 · integrate-2026-08-27 · The MCP QA drive can be raced by any concurrent test run: `eval/mcp-qa/run.js` never adopted `server-identity.js`'s endpoint isolation, and `ServerTestFactory.Dispose` kills EVERY `DevContext.Server` on the machine by name
+
+```text
+READ IN SOURCE 2026-08-27 at the integration close-out (severity MEDIUM, harness infra) — the
+root-cause note behind the T0.1-era "shared-state race". Two halves, one failure mode:
+
+(a) eval/mcp-qa/run.js spawns its MCP with the AMBIENT environment: its requires are
+child_process/path/readline/fs only — eval/mcp-qa/server-identity.js (built in T1.4 for exactly
+this; adopted by wire-truth.js, partial-truth.js, deep-link-truth.js, classc-impact.js) is not
+among them, and run.js never sets DEVCONTEXT_ENDPOINT. So the QA drive's server sits on the
+shared default endpoint (conductor new #1, still open) where another checkout or the desktop
+app can join it.
+
+(b) tests/DevContext.Server.Tests/ServerTestFactory.cs:62-66 — Dispose runs
+Process.GetProcessesByName("DevContext.Server") + Kill(entireProcessTree: true): machine-wide,
+any owner. The factory's own host is an in-process TestServer, so in a clean run the loop finds
+nothing — but the QA drive's ServerShim-spawned server IS an external DevContext.Server, and a
+concurrent Server.Tests dispose (any `dotnet test --filter "Category!=Eval"`, which unlike
+gates.ps1 Step 2 does not exclude McpQa — the documented verification-command trap,
+gates.ps1:300-311) kills the server the QA drive is mid-conversation with.
+
+WHY BOTH HALVES MUST MOVE TOGETHER: endpoint isolation alone does not survive a kill-by-name —
+an isolated server is still named DevContext.Server. Hardening = run.js adopts probeEnv() +
+health verification like the other four probes, AND the factory's kill loop gets
+identity-scoped (kill only a process it can attribute — the PID it spawned, or a /health
+baseDirectory under its own repo — never the bare process name).
+
+WATCH IT GO RED FIRST: harness infra, not engine truth — the discriminating check is the
+concurrent repro (QA drive + a Server.Tests dispose in parallel; the drive dies with the
+first-call "no server" symptom), or at minimum run.js failing the same foreign-server identity
+assertion the four converted probes already fail.
 ```

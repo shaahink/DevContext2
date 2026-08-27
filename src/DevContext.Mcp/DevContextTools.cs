@@ -1249,7 +1249,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    [Description("Find all usages (in-edges) of a node across the codebase, with file:line provenance. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")")]
+    [Description("Find all usages (in-edges) of a node across the codebase, with file:line provenance. One row per distinct call site (caller + kind + file:line) - a call recorded against both a member and its type reports once, so count is honest. A short name or fuzzy query resolves, and ambiguity is reported rather than guessed. Example: usages(\"abc123\", query:\"IOrderRepository\")")]
     public async Task<string> Usages(
         [Description(HandleDoc)] string? handle = null,
         [Description(NodeIdDoc)] string? nodeId = null,
@@ -1348,12 +1348,23 @@ public sealed class DevContextTools
                     suggestions.Length > 0 ? suggestions : null);
             }
 
+            // #36 — the wire carries the raw in-walk (its rows keep `to`, so the member→member and
+            // member→Type recordings of ONE invocation are distinguishable there), but this
+            // projection drops the target — the focus IS the target — so edges differing only in
+            // `to` would render as identical rows and the count would over-state (measured:
+            // usages(JobRunner) said 3 for one line). One call site tells once: collapse on the
+            // exact fields a row shows — (caller, kind, provenance) — same key as
+            // GraphQuery.FindUsages, so this surface and the CLI's agree.
+            var callSites = resp.Edges
+                .DistinctBy(e => (e.From, e.Kind, e.HasProvenance ? e.Provenance : null))
+                .ToArray();
+
             return JsonSerializer.Serialize(new
             {
                 nodeId = resolved,
-                count = resp.Edges.Count,
+                count = callSites.Length,
                 resolvedFrom = resolved != nodeId ? nodeId : null,
-                usages = resp.Edges.Select(e => new
+                usages = callSites.Select(e => new
                 {
                     caller = e.From,
                     kind = e.Kind,
@@ -1533,7 +1544,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    [Description("The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")")]
+    [Description("The wiring path BETWEEN two symbols - how does 'from' reach 'to', hop by hop, with the seam kind on every hop. Answers \"does the checkout endpoint actually reach the payment service, and through what\". Crosses in-repo queue/bus ports: when the graph holds both a writer and a reader of a port, the path routes producer -> port -> consumer and that hop's resolution says Join (classified from verb evidence, not a verified call). Returns the shortest paths; says so when the connection runs the other way round, and when the depth budget rather than the graph ended the search. Example: seam(handle, from:\"OrdersController\", to:\"OrderingContext\")")]
     public async Task<string> Seam(
         [Description(HandleDoc)] string? handle = null,
         [Description("The starting symbol - a nodeId or a resolvable name.")] string? from = null,
@@ -1596,7 +1607,7 @@ public sealed class DevContextTools
 
     [McpServerTool]
     [SpecialistTool("ask it when the question is specifically about configuration keys")]
-    [Description("Find config key usage sites (IConfiguration, GetValue, GetSection) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
+    [Description("Find config key usage sites (IConfiguration indexer, GetValue, GetSection, and Options-pattern bindings: AddOptions<T>().BindConfiguration / Configure<T>) with file:line. Example: config(\"abc123\", \"GrpcSettings:DiscountUrl\")")]
     public async Task<string> Config(
         [Description(HandleDoc)] string? handle = null,
         [Description("Config key to filter on, e.g. \"GrpcSettings:DiscountUrl\". Omit for every key found.")] string? key = null)
@@ -1645,7 +1656,7 @@ public sealed class DevContextTools
                 key = key ?? "(all)",
                 totalKeys = resp.TotalKeys,
                 // T3.6 — self-describing: name the scan and its blind spot.
-                method = "Scanned source for IConfiguration indexer / GetValue / GetSection / GetConnectionString with literal keys. Dynamically-built keys are not captured.",
+                method = "Scanned source for IConfiguration indexer / GetValue / GetSection / GetConnectionString with literal keys, plus Options-pattern bindings (AddOptions<T>().BindConfiguration/.Bind, Configure<T>) with literal or const section names. Dynamically-built keys are not captured.",
                 keys = bindings,
             }, JsonOpts);
         }

@@ -307,6 +307,45 @@ if (-not $Quiet -and $kindGateCensus -eq 0) {
     Write-Host "  PASSED: a resolved symbol becomes a Type node id only behind a Kind gate (rule 11)" -ForegroundColor Green
 }
 
+# Rule 12 (F1, backlog #33): the declares gate stays on every call-edge producer, and INV-C stays
+# at the node choke point.
+#
+# NO NODE MAY BE A MEMBER OF A TYPE THAT DOES NOT DECLARE IT. Extension/BCL methods bound to the
+# RECEIVER's type (`AppDbContext::ConfigureAwait`, 72 connections) topped startHere and walked into
+# traces on the Book2Course drive. The gate is one rule in three seats: CallGraphBinder's receiver
+# arm REFUSES (no member node), PlainCallDetector DEGRADES the same refused call to a member->Type
+# edge with the name on the edge (F1 integration repair 2026-08-27 -- no member node either way; a
+# refusal that also dropped the seam severed true connectivity, TodoApi's ratcheted trace pin) --
+# both consult SymbolTable.DeclaresMemberInHierarchy (the tri-state oracle that walks in-solution
+# BaseTypes -- no BCL name lists, that policy is retired), and CodeGraphBuilder.AddNode enforces
+# INV-C with the injected oracle so no NEW producer can mint the shape. A regression here is
+# invisible in the graph (the invariant refuses the node), which is exactly why the SOURCE has to
+# keep saying it.
+$declaresCensus = 0
+$declaresSeats = @(
+    @{ File = 'src\DevContext.Core\Graph2\CallGraphBinder.cs';        Pattern = 'DeclaresMemberInHierarchy' },
+    @{ File = 'src\DevContext.Core\Graph2\Seams\PlainCallDetector.cs'; Pattern = 'DeclaresMemberInHierarchy' },
+    @{ File = 'src\DevContext.Core\Graph\CodeGraph.cs';               Pattern = 'INV-C' },
+    @{ File = 'src\DevContext.Core\Graph\GraphBuilder.cs';            Pattern = 'new CodeGraphBuilder\(\s*names\.DeclaresMemberInHierarchy' }
+)
+foreach ($seat in $declaresSeats) {
+    $path = Join-Path $repoRoot $seat.File
+    if (-not (Test-Path $path)) {
+        if (-not $Quiet) { Write-Host "  BANNED: declares-gate seat file missing: $($seat.File)" }
+        $script:failures++; $declaresCensus++
+        continue
+    }
+    $hit = Select-String -LiteralPath $path -CaseSensitive -Pattern $seat.Pattern 2>$null | Select-Object -First 1
+    if ($null -eq $hit) {
+        if (-not $Quiet) { Write-Host "  BANNED: declares gate missing from $($seat.File) (expected /$($seat.Pattern)/, rule 12)" }
+        $script:failures++
+        $declaresCensus++
+    }
+}
+if (-not $Quiet -and $declaresCensus -eq 0) {
+    Write-Host "  PASSED: the declares gate holds all three seats + the INV-C choke point (rule 12)" -ForegroundColor Green
+}
+
 # Advisory: count remaining banned patterns in Graph/ (fixed by later stages)
 $nodeIdCount = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'NodeId.ForType(' -SimpleMatch -CaseSensitive 2>$null).Count
 $fqns0Count = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'fqns[0]' -SimpleMatch 2>$null).Count

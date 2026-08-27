@@ -59,6 +59,24 @@ public sealed class SeamPrimitiveTests
         Assert.Equal(["Type:Ns.A", "Type:Ns.B"], hops.Select(h => h.FromNodeId));
     }
 
+    /// <summary>F4 (backlog #35): a transport-port bridge hop — the joined Consumes edge that routes
+    /// producer → port → consumer — reaches the wire saying <c>Join</c>. The agent's ledger reads the
+    /// resolution string to tell a verified call from a builder classification, so a joined hop that
+    /// arrived as anything else would launder a verb-evidence join into Roslyn certainty.</summary>
+    [Fact]
+    public void A_joined_transport_hop_says_join_on_the_wire_never_verified()
+    {
+        var resp = ProtoMapper.ToSeamResponse(
+            Forward(
+                Hop("BuildCoordinator", "IJobQueue", EdgeKind.Calls, Resolution.Semantic),
+                Hop("IJobQueue", "JobRunner", EdgeKind.Consumes, Resolution.Join)),
+            "Type:Ns.BuildCoordinator", "BuildCoordinator", "Type:Ns.JobRunner", "JobRunner", maxDepth: 8);
+
+        var hops = Assert.Single(resp.Paths).Hops;
+        Assert.Equal(["Calls", "Consumes"], hops.Select(h => h.Kind));
+        Assert.Equal(["Semantic", "Join"], hops.Select(h => h.Resolution));
+    }
+
     /// <summary>A clean, complete answer carries no note — the note is for what the rows cannot say.</summary>
     [Fact]
     public void A_complete_forward_answer_says_nothing_extra()

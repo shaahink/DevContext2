@@ -1,4 +1,6 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
+
 using Xunit.Abstractions;
 
 namespace DevContext.Core.Tests;
@@ -40,7 +42,7 @@ public sealed class DogfoodEdgeInvariantTests
         Skip.IfNot(Directory.Exists(Path.Combine(srcPath, "DevContext.Core")),
             $"not running inside the DevContext repo (not a pass): {srcPath}");
 
-        var graph = await AnalyzeOwnSourceAsync(srcPath);
+        var graph = (await AnalyzeOwnSourceAsync(srcPath)).Graph;
         Assert.NotNull(graph);
 
         var missing = new List<string>();
@@ -61,8 +63,72 @@ public sealed class DogfoodEdgeInvariantTests
             + $"'who calls this helper' answered 'nobody'): {string.Join(", ", missing)}");
     }
 
-    /// <summary>Runs the real analysis pipeline over the engine's own sources and returns the graph.</summary>
-    private static async Task<CodeGraph?> AnalyzeOwnSourceAsync(string srcPath)
+    /// <summary>F1 (backlog #33) — THE DOGFOOD MEMBER INVARIANT: no node in DevContext's own graph
+    /// may be a member of a type that does not visibly declare it. The Book2Course drive measured
+    /// the violation on an unseen repo (`AppDbContext.ConfigureAwait` as startHere's FIRST row, the
+    /// same phantoms inside traces); this sweep asks the engine the same question about itself, so
+    /// the class of defect cannot come back silently. The oracle is the shipping one
+    /// (<see cref="SymbolTable.DeclaresMemberInHierarchy"/>, tri-state, in-solution base walk), and
+    /// the zero-refusals assertion carries the same weight as BclNameCollisionEdgeTests' third leg:
+    /// nodes clean AND refusals zero means no producer even TRIED to mint the shape.</summary>
+    [SkippableFact]
+    public async Task No_member_node_of_a_type_that_does_not_visibly_declare_it()
+    {
+        var srcPath = RepoPath("src");
+        Skip.IfNot(Directory.Exists(Path.Combine(srcPath, "DevContext.Core")),
+            $"not running inside the DevContext repo (not a pass): {srcPath}");
+
+        var snapshot = await AnalyzeOwnSourceAsync(srcPath);
+        var graph = snapshot.Graph;
+        Assert.NotNull(graph);
+
+        // The GRAPH-TIME symbol table, not one re-derived from snapshot.Model: the legacy catalog's
+        // TrivialMemberCompressor strips ToString/Equals/GetHashCode from TypeDiscovery AFTER the
+        // graph is assembled, so a post-compression oracle would flag legitimately declared members
+        // (measured: NodeId::ToString) and disagree with the INV-C decisions the build actually made.
+        var symbols = snapshot.Analysis.GraphSymbols;
+        Assert.NotNull(symbols);
+
+        var offenders = new List<string>();
+        foreach (var node in graph!.Nodes)
+        {
+            if (node.Kind != NodeKind.Member) continue;
+            var key = node.Id.Key;
+            var sep = key.IndexOf("::", StringComparison.Ordinal);
+            if (sep <= 0 || sep + 2 >= key.Length) continue;
+            var owner = key[..sep];
+            var member = key[(sep + 2)..];
+            var paren = member.IndexOf('(');
+            if (paren > 0 && member.EndsWith(')')) member = member[..paren];
+            if (member.Length == 0 || member.Any(c => !char.IsLetterOrDigit(c) && c != '_')) continue;
+
+            if (symbols!.DeclaresMemberInHierarchy(owner, member) == false)
+                offenders.Add(key);
+        }
+
+        foreach (var o in offenders) _output.WriteLine($"undeclared member node: {o}");
+        Assert.True(offenders.Count == 0,
+            "Member nodes of types that do not visibly declare them in DevContext's own graph "
+            + $"(F1/#33 shape — extension/BCL methods minted on the receiver type): first "
+            + $"{Math.Min(offenders.Count, 10)} of {offenders.Count}: "
+            + string.Join(", ", offenders.Take(10)));
+
+        // No producer even tried: an INV-C refusal would be counted in the GraphInvariants tally.
+        // Deliberately scoped to INV-C — the dogfood graph carries a handful of INV-B refusals
+        // (expression-text keys from DI-lambda shapes), which is that invariant's machinery doing
+        // its counted-refusal job, not this sweep's subject.
+        foreach (var d in snapshot.Model.Diagnostics.Where(d => d.Source == "GraphInvariants"))
+        {
+            _output.WriteLine(d.Message);
+            var m = System.Text.RegularExpressions.Regex.Match(
+                d.Message, @"INV-C \(member of a type that does not declare it\): (\d+)");
+            if (m.Success)
+                Assert.Equal("0", m.Groups[1].Value);
+        }
+    }
+
+    /// <summary>Runs the real analysis pipeline over the engine's own sources and returns the snapshot.</summary>
+    private static async Task<AnalysisSnapshot> AnalyzeOwnSourceAsync(string srcPath)
     {
         var fs = new RealFileSystem();
         var cache = new AnalysisCache(fs);
@@ -91,8 +157,7 @@ public sealed class DogfoodEdgeInvariantTests
         };
 
         var pipeline = TestPipeline.Build(loggerFactory);
-        var snapshot = await pipeline.AnalyzeAsync(ctx);
-        return snapshot.Graph;
+        return await pipeline.AnalyzeAsync(ctx);
     }
 
     private static string RepoPath(string relative)

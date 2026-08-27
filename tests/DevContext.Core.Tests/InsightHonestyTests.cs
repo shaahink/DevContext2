@@ -103,4 +103,73 @@ public sealed class InsightHonestyTests
 
         Assert.DoesNotContain("--focus", insight.Title);
     }
+
+    // ----- config.missing-defaults (F3, BUG-BACKLOG #34) — first-ever coverage -----
+
+    private static OptionsBindingDetection OptionsBinding(string optionsType, string section) => new(
+        optionsType, section, "BindConfiguration")
+    {
+        ExtractorName = "DiRegistrationExtractor",
+        SourceFile = @"C:\repo\src\Pipeline\DependencyInjection.cs",
+        LineNumber = 73,
+    };
+
+    [Fact]
+    public void ConfigDefaults_counts_options_bound_sections()
+    {
+        // F3: AddOptions<T>().BindConfiguration(Const) consumed a section the regex path could not
+        // see, so "N consumed keys" under-declared. The extraction-time OptionsBindingDetection is
+        // the ONE source both the config catalog and this count read.
+        var model = new DiscoveryModel();
+        model.Detections.Add(OptionsBinding("QueueDrainOptions", "Pipeline:Queue:Drain"));
+
+        var insight = new ConfigDefaultsSource().Compute(model, EmptyGraph, []).Single();
+
+        Assert.Contains("1 consumed", insight.Title);
+        Assert.Contains("Pipeline:Queue:Drain", insight.Evidence);
+    }
+
+    [Fact]
+    public void ConfigDefaults_still_counts_literal_reads_alongside_options_bindings()
+    {
+        var model = new DiscoveryModel();
+        model.Types["T1"] = MakeType("Notifier", Microsoft.CodeAnalysis.Accessibility.Public);
+        model.Types["T1"].SourceBody = """var url = _config["Notify:Url"];""";
+        model.Detections.Add(OptionsBinding("QueueDrainOptions", "Pipeline:Queue:Drain"));
+
+        var insight = new ConfigDefaultsSource().Compute(model, EmptyGraph, []).Single();
+
+        Assert.Contains("2 consumed", insight.Title);
+        Assert.Contains("Notify:Url", insight.Evidence);
+        Assert.Contains("Pipeline:Queue:Drain", insight.Evidence);
+    }
+
+    [Fact]
+    public void ConfigDefaults_headline_names_its_blind_spot()
+    {
+        // The drive's honesty requirement: where under-declaring remains possible, the HEADLINE
+        // says what the count cannot see — not just confidenceBasis. (DRIVE.md F3: "the catalog
+        // under-declares and doesn't say so".)
+        var model = new DiscoveryModel();
+        model.Detections.Add(OptionsBinding("QueueDrainOptions", "Pipeline:Queue:Drain"));
+
+        var insight = new ConfigDefaultsSource().Compute(model, EmptyGraph, []).Single();
+
+        Assert.Contains("computed keys", insight.Title, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ConfigDefaults_count_is_the_full_missing_count_not_the_evidence_cap()
+    {
+        // The old code did Take(8) BEFORE counting, so any repo with more than eight missing keys
+        // reported exactly 8 — an under-declared count wearing a confident headline.
+        var model = new DiscoveryModel();
+        for (var i = 0; i < 10; i++)
+            model.Detections.Add(OptionsBinding($"Opt{i}", $"Section:{i:D2}"));
+
+        var insight = new ConfigDefaultsSource().Compute(model, EmptyGraph, []).Single();
+
+        Assert.Contains("10 consumed", insight.Title);
+        Assert.Equal(8, insight.Evidence.Length); // evidence stays capped; the COUNT is honest
+    }
 }

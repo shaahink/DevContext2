@@ -75,7 +75,12 @@ derived inverse adjacency for O(degree) `neighbors`/`find_usages`.
 - **`Resolution`**: `Join` (detection join, high-confidence) · `Syntactic` (heuristic) · `Semantic`
   (Roslyn-verified). Edges upgrade Syntactic→Semantic in place (`CodeGraphBuilder.UpgradeEdge`), never down.
 - **`NodeId`** = `(Kind, Key)` where Key is canonical (FQN / "VERB route" / request FQN). The backbone of
-  every join — `CodeGraphBuilder.AddNode` merges same-id nodes (union of tags, first-non-null decl info).
+  every join — `CodeGraphBuilder.AddNode` merges same-id nodes (union of tags, first-non-null decl info)
+  and enforces the standing invariants where a node is MADE: INV-A (no Type node with a member id),
+  INV-B (no expression text as a key/title), and INV-C (F1/#33 — **no node may be a member of a type
+  that does not declare it**, judged by the injected declares oracle,
+  `SymbolTable.DeclaresMemberInHierarchy`). Refusals are counted per distinct key and reported through
+  the `GraphInvariants` diagnostic — a refusal drops the node AND every edge that wanted it.
 - **`Flow`** (precomputed, spine-only, one per entry) lives on the graph (`CodeGraph.Flows`), consumed by
   projections/MCP/UI.
 
@@ -92,7 +97,10 @@ derived inverse adjacency for O(degree) `neighbors`/`find_usages`.
    (Consumes), `AddDiResolves` (Resolves, with multi-impl honesty).
 5. **P2 trace seams**: `AddSeamsFromDetectors` (BodyFacts seam detectors, §5) + `AddLambdaSeams` +
    `AddCallEdges` (Calls) + `AddHubScopeEdges` (L3.4 sparse-graph fallback).
-6. **Cross-service**: `AddBusServiceLinks`, `AddGrpcServiceLinks`, `AddHttpServiceLinks` (ServiceLink).
+6. **Cross-service + the one join**: `AddGrpcServiceLinks`, `AddHttpServiceLinks` (ServiceLink); then
+   `EventWiringProjection` off a draft — `Build`+`EmitServiceLinks` (bus ServiceLinks, superseding the
+   old `AddBusServiceLinks`) and `BuildTransportPorts`+`EmitPortBridges` (F4: joined port→consumer
+   Consumes bridges over an in-repo queue/bus port, so seam/trace can route through the transport).
 7. `ComputeFlows` (spine-first per entry) → `DetectLayerViolations` → freeze; then `EnrichEntryTargets`
    / `EnrichEntryGroupPaths` / `EnrichEntryScores`.
 
@@ -104,6 +112,15 @@ The post-Loom "regex funeral": structured facts + a resolver replace body-scan r
   (`ResolutionTier`): `Semantic` (kept, Law R2 — never downgraded) → `Declared` (exact FQN) →
   `ProjectScoped` (unique short-name in project) → `GlobalUnique` (unique short-name globally) →
   `Ambiguous` (multiple candidates — carried as `Candidates`, **never** `fqns[0]`, Law R1) → `Unresolved`.
+  A ref a Tier-B bind **contradicted** (`SymbolRef.Contradicted`) stays `Unresolved` — the ladder never
+  re-runs on disproved text. `DeclaresMemberInHierarchy` (F1/#33) is the tri-state **declares oracle**:
+  declared members + the in-solution `BaseTypes`/interfaces walk; an out-of-solution base ends
+  visibility. Consulted by both call-edge producers and injected into `CodeGraphBuilder` as INV-C.
+  A refused receiver-arm call is dropped by `CallGraphBinder` (no member node) but **degraded** by
+  `PlainCallDetector` to a member→Type Calls edge with the called name on the edge (`TargetMember`) —
+  the F1 integration repair (2026-08-27): dropping both severed true connectivity (TodoApi's trace
+  lost its `TodoDbContext` — `db.SaveChangesAsync()` is DbContext's member, out-of-solution). Degraded
+  matches yield after declared ones (never stealing the first-wins edge slot) at confidence 0.4.
 - **`BodyFacts.cs` / `BodyFactExtractor.cs`** — one syntax walk per member yields structured `BodyOp`s
   (`InvocationOp`, `CreationOp`, `LocalDeclOp`, `IdentifierUseOp`) that already know their member + line,
   so edges anchor by construction. Cache-versioned (`BodyFactsVersion`).
@@ -111,8 +128,9 @@ The post-Loom "regex funeral": structured facts + a resolver replace body-scan r
   `DomainEventRaiseDetector`, `IntegrationEventCreationDetector`, `EntityTouchDetector`, `PlainCallDetector`,
   plus `DispatchClassifier`. Detectors emit `SeamMatch` and **never write the graph** — the assembler
   resolves the target via `SymbolTable` and skips ambiguous ones (Law R1).
-- **`SemanticLitePopulator.cs`** (798 LOC) — Tier B: builds compilations from `assets.json`, upgrades
-  BodyFacts + CallEdges to `Semantic`.
+- **`SemanticLitePopulator.cs`** (~830 LOC) — Tier B: builds compilations from `assets.json`, upgrades
+  BodyFacts + CallEdges to `Semantic`. A bind that DISAGREES with the syntactic guess unresolves the
+  ref (`Contradicted`, F1/#33) — never confirms the guess, never re-points at this tier.
 - **Entry-point builders** — `Graph/EntryPoints/*` (11): `Http`, `Grpc`, `Signalr`, `GraphQl`, `Functions`,
   `Worker`, `OrleansGrain`, `Desktop`, `CliCommand`, `DomainEventHandler`, `MessageConsumer`. Add a new
   entry surface here without touching `GraphBuilder`.

@@ -55,6 +55,12 @@ public static class RoleTags
     /// service that lives in another repo). Renderers draw these dashed: the seam is real, the
     /// implementation is out of scope.</summary>
     public const string External = "external";
+    /// <summary>F4 (backlog #35): edge tag on a JOINED Consumes edge bridging an in-repo transport
+    /// port (queue/bus/outbox interface) to a caller that reads from it — emitted by
+    /// EventWiringProjection.EmitPortBridges when the graph holds both a write-verb and a read-verb
+    /// caller of the same port. The hop is a classification (Resolution.Join), never a verified
+    /// call.</summary>
+    public const string TransportPortBridge = "transport-port";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport
@@ -307,8 +313,14 @@ public sealed class CodeGraph
 }
 
 /// <summary>Mutable builder for <see cref="CodeGraph"/>. Deduplicates nodes (first write wins) and edges.</summary>
-public sealed class CodeGraphBuilder
+/// <param name="declaresMember">F1 (#33) — the injected declares ORACLE behind the INV-C standing
+/// invariant: <c>(typeFqn, memberName) → bool?</c>. <c>false</c> means the type is known in-solution
+/// and nothing in its visible hierarchy declares the member — the node is refused; <c>true</c>/<c>null</c>
+/// (declares / cannot judge) admit it. Null oracle (tests building graphs by hand) disables INV-C.
+/// The real assembly injects <see cref="Graph2.SymbolTable.DeclaresMemberInHierarchy"/>.</param>
+public sealed class CodeGraphBuilder(Func<string, string, bool?>? declaresMember = null)
 {
+    private readonly Func<string, string, bool?>? _declaresMember = declaresMember;
     private readonly Dictionary<NodeId, GraphNode> _nodes = [];
     private readonly Dictionary<NodeId, List<GraphEdge>> _out = [];
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
@@ -332,6 +344,26 @@ public sealed class CodeGraphBuilder
     private void Refuse(string invariant, string key)
     {
         if (_refusedSeen.Add(invariant + "|" + key)) _refused.Add((invariant, key));
+    }
+
+    /// <summary>F1 (#33) — splits a member key (<c>Ns.Type::Name</c> or <c>Ns.Type::Name(2)</c>) into a
+    /// JUDGEABLE (owner, member-name) pair for INV-C. Synthetic member names — lambda handler ids
+    /// (<c>&lt;lambda&gt; GET /x</c>), dotted vocabulary, anything that is not a plain identifier —
+    /// return false: the invariant judges only names that could be a declared method/property.</summary>
+    private static bool TryParseJudgeableMemberKey(string key, out string owner, out string member)
+    {
+        owner = ""; member = "";
+        var sep = key.IndexOf("::", StringComparison.Ordinal);
+        if (sep <= 0 || sep + 2 >= key.Length) return false;
+        owner = key[..sep];
+        var name = key[(sep + 2)..];
+        var paren = name.IndexOf('(');
+        if (paren > 0 && name.EndsWith(')')) name = name[..paren];
+        if (name.Length == 0) return false;
+        foreach (var c in name)
+            if (!char.IsLetterOrDigit(c) && c != '_') return false;
+        member = name;
+        return true;
     }
 
     /// <summary>Adds a node, or MERGES into the existing one with the same id. Because a class collapses
@@ -374,6 +406,22 @@ public sealed class CodeGraphBuilder
             // Key is a name but the title is not: the title is derived, as V1.2 does for members.
             if (Graph2.SymbolCanon.IsExpressionText(node.Title))
                 node = node with { Title = Graph2.SymbolCanon.ShortNameOf(node.Id.Key) };
+        }
+
+        //  (c) F1 (backlog #33) — INV-C: NO NODE MAY BE A MEMBER OF A TYPE THAT DOES NOT DECLARE IT.
+        //      `AppDbContext::ConfigureAwait` / `::Where` / `::IgnoreQueryFilters` shipped as Member
+        //      nodes (extension/BCL methods bound to the receiver's type), out-ranked every real
+        //      starting point in startHere by degree, and walked into traces. The injected oracle
+        //      (SymbolTable.DeclaresMemberInHierarchy) answers over the VISIBLE hierarchy — declared
+        //      members plus in-solution base classes/interfaces — and only a positive "does not
+        //      declare it" refuses; an unknown owner type or a synthetic member name (lambda ids,
+        //      dotted vocabulary) is not judged. Refusal, not repair, same as (a)/(b).
+        if (node.Id.Kind == NodeKind.Member && _declaresMember is not null
+            && TryParseJudgeableMemberKey(node.Id.Key, out var ownerFqn, out var memberName)
+            && _declaresMember(ownerFqn, memberName) == false)
+        {
+            Refuse("INV-C", node.Id.Key);
+            return node;
         }
 
         if (_nodes.TryGetValue(node.Id, out var existing))

@@ -287,6 +287,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         var id = query.ResolveNodeId(focus);
         if (id is null) return new { error = $"No node matched '{focus}'" };
 
+        // #36 — FindUsages collapses to one row per distinct call site (caller, kind, provenance);
+        // the row carries the provenance so the key that distinguishes rows is also visible.
         var edges = query.FindUsages(id.Value);
         return new
         {
@@ -297,6 +299,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 caller = e.From.Key,
                 kind = e.Kind.ToString(),
                 otherTitle = e.OtherTitle,
+                provenance = e.Provenance,
             }).ToArray(),
         };
     }

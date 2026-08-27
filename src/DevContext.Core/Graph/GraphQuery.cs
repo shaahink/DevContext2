@@ -263,8 +263,36 @@ public sealed class GraphQuery
     /// <summary>G3.2 — every edge kind a caller may ask for, in enum order. The one list.</summary>
     public static ImmutableArray<string> EdgeKindNames { get; } = [.. Enum.GetNames<EdgeKind>()];
 
-    /// <summary>find_usages(id) — who references this node (the inverse query): its in-edges.</summary>
-    public ImmutableArray<EdgeRef> FindUsages(NodeId id) => Neighbors(id, EdgeDirection.In);
+    /// <summary>find_usages(id) — who references this node (the inverse query): its in-edges, one
+    /// row per distinct CALL SITE (#36). The C3 roll-up legitimately returns edges that differ only
+    /// in <c>To</c> — the member→member call and the member→Type detection of the same invocation —
+    /// and every usages surface drops <c>To</c>, because the focus IS the target. Rendered, those
+    /// rows are identical and the count over-states (measured: usages(JobRunner) said 3 for one
+    /// line), so rows agreeing on (caller, kind, provenance) merge here, keeping the best-evidenced
+    /// duplicate (a verified recording outranks an approximate one). <see cref="Neighbors"/>/
+    /// <see cref="NeighborsView"/> stay the raw walk — their rows carry <c>To</c>, so the
+    /// recordings are distinguishable there, and <c>TotalEdges</c>/<c>KindsPresent</c> keep
+    /// describing the unfiltered in-direction (the G3.2 contract).</summary>
+    public ImmutableArray<EdgeRef> FindUsages(NodeId id)
+    {
+        var raw = Neighbors(id, EdgeDirection.In);
+        var index = new Dictionary<(NodeId From, EdgeKind Kind, string? Provenance), int>();
+        var b = ImmutableArray.CreateBuilder<EdgeRef>(raw.Length);
+        foreach (var e in raw)
+        {
+            var key = (e.From, e.Kind, e.Provenance);
+            if (!index.TryGetValue(key, out var kept))
+            {
+                index[key] = b.Count;
+                b.Add(e);
+            }
+            else if (EdgeConfidence.IsApproximate(b[kept].Resolution) && !EdgeConfidence.IsApproximate(e.Resolution))
+            {
+                b[kept] = e; // duplicates agree on everything a usages row shows; keep the verified one
+            }
+        }
+        return b.Count == raw.Length ? raw : b.ToImmutable();
+    }
 
     /// <summary>Resolves a user string (short name, FQN suffix, or "Type:Method") to a node id — the
     /// convenience faces use before calling <see cref="Node"/>/<see cref="Neighbors"/>/<see cref="FindUsages"/>.

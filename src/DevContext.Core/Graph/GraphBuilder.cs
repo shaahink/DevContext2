@@ -50,11 +50,13 @@ public sealed partial class GraphBuilder
     public (CodeGraph Graph, ImmutableArray<EntryPoint> Entries) Build(DiscoveryModel model, SolutionScope scope,
         IReadOnlyList<BodyFacts>? bodyFacts = null, SymbolTable? symbols = null)
     {
-        var g = new CodeGraphBuilder();
         // ONE symbol table for the whole assembly (Batch A): name-string joins, seam-detector
         // resolution and the DI joins all read the same project-scoped, arity-aware index — shared
         // with the CallGraphBinder when the pipeline hands it in.
         var names = symbols ?? new SymbolTable(model.OrderedTypes, f => scope.ProjectForFile(f), bodyFacts);
+        // F1 (#33) — the declares oracle arms INV-C at the node choke point: no producer, whatever
+        // its pass order, can mint a member of a type that does not visibly declare it.
+        var g = new CodeGraphBuilder(names.DeclaresMemberInHierarchy);
         var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
         AddTypeNodes(g, model, scope, archetype);
@@ -107,6 +109,14 @@ public sealed partial class GraphBuilder
         g.SetEventWiring(eventWiring);
         EventWiringProjection.EmitServiceLinks(g, eventWiring);
 
+        // F4 (backlog #35): the transport-port half of the SAME join — an in-repo queue/bus/outbox
+        // port whose callers split into write-verb and read-verb sites (evidence already on
+        // GraphEdge.TargetMember) gets a joined port → consumer Consumes bridge, so seam/trace can
+        // route producer → port → consumer instead of reporting a sink as "unconnected". Ports the
+        // graph holds only one side of are NOT bridged.
+        EventWiringProjection.EmitPortBridges(g, EventWiringProjection.BuildTransportPorts(
+            seamGraph, scope.ProjectForFile, _noise.IsProductionEntrySource));
+
         // ── Batch B: sync transports + AppHost topology ───────────────────────
         // Deliberately last, and in this order: an edge keeps the tag of whoever claims a
         // (from, to, kind) triple first, so the verified publish→consume join outranks a client
@@ -140,11 +150,14 @@ public sealed partial class GraphBuilder
         if (g.RefusedNodes.Count == 0) return;
 
         var invA = g.RefusedNodes.Count(r => r.Invariant == "INV-A");
-        var invB = g.RefusedNodes.Count - invA;
+        var invC = g.RefusedNodes.Count(r => r.Invariant == "INV-C");
+        var invB = g.RefusedNodes.Count - invA - invC;
         var examples = string.Join(" · ", g.RefusedNodes.Take(5).Select(r => $"{r.Invariant} {Excerpt(r.Key)}"));
         model.AddDiagnostic(DiagnosticLevel.Info, "GraphInvariants",
             $"refused {g.RefusedNodes.Count} distinct node key(s) — INV-A (kind Type with a member id): {invA}, "
-            + $"INV-B (expression text as a key): {invB}. Every edge that wanted one was dropped with it. "
+            + $"INV-B (expression text as a key): {invB}, "
+            + $"INV-C (member of a type that does not declare it): {invC}. "
+            + $"Every edge that wanted one was dropped with it. "
             + $"First: {examples}");
 
         static string Excerpt(string key)

@@ -570,6 +570,10 @@ public sealed class GraphBuilderTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Presentation,
+            // F1 (#33): the action the endpoint detection names must be DECLARED — INV-C refuses
+            // a member node of a type that does not declare it, fixture models included.
+            Methods = [new MethodSignature("Get", "IActionResult", [], [],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
         });
         model.Detections.Add(new EndpointDetection("GET", "/configuration",
             "FileConfigurationController", "Get", [], [])
@@ -754,8 +758,15 @@ public sealed class GraphBuilderTests
         model.Types.TryAdd("Gv.Commands.OutputSettings",
             T("Gv.Commands.OutputSettings", "OutputSettings", "Gv.Commands",
                 @"C:/repo/src/Gv.Output/OutputSettings.cs"));
-        model.Types.TryAdd("Gv.Service",
-            T("Gv.Service", "Service", "Gv", @"C:/repo/src/Gv.Output/Service.cs"));
+        // F1 (#33): the collaborator DECLARES the method the fixture's call edge lands on — INV-C
+        // refuses a member of a type that does not declare it, so an honest model must say so.
+        var service = T("Gv.Service", "Service", "Gv", @"C:/repo/src/Gv.Output/Service.cs");
+        service.Methods =
+        [
+            new MethodSignature("Call", "void", [], [],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, false),
+        ];
+        model.Types.TryAdd("Gv.Service", service);
 
         model.Detections.Add(new CliCommandDetection("OutputCommand", "OutputSettings", "InvokeAsync", "output")
         {
@@ -840,6 +851,9 @@ public sealed class GraphBuilderTests
             Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogApi.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Api,
+            // F1 (#33): fixture members must be DECLARED — INV-C refuses undeclared member nodes.
+            Methods = [new MethodSignature("GetItemPictureById", "Task<IResult>", ["int"], ["id"],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, true)],
         });
         model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
         {
@@ -847,6 +861,9 @@ public sealed class GraphBuilderTests
             Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogContext.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
+            // F1 (#33): fixture call edges land only on DECLARED members (INV-C).
+            Methods = [new MethodSignature("FindAsync", "ValueTask<CatalogItem?>", ["int"], ["id"],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, true)],
         });
         model.Types.TryAdd("Catalog.Api.CatalogItem", new TypeDiscovery
         {
@@ -861,6 +878,8 @@ public sealed class GraphBuilderTests
             Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/ImageStore.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
+            Methods = [new MethodSignature("ReadImageAsync", "Task<byte[]>", ["int"], ["id"],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, true)],
         });
         model.Detections.Add(new EfEntityDetection("CatalogItem", "CatalogContext", true, ["Id"])
         {
@@ -915,6 +934,9 @@ public sealed class GraphBuilderTests
             Namespace = "Catalog.Api", FilePath = @"C:/repo/src/Catalog.Api/CatalogContext.cs",
             Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Infrastructure,
+            // F1 (#33): fixture call edges land only on DECLARED members (INV-C).
+            Methods = [new MethodSignature("ToListAsync", "Task<List<CatalogType>>", [], [],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, true)],
         });
         model.Types.TryAdd("Catalog.Api.CatalogType", new TypeDiscovery
         {
@@ -947,10 +969,15 @@ public sealed class GraphBuilderTests
             .Build(model, scope);
 
         var entry = Assert.Single(entries);
-        // E6 — updated L7.1: PlainCallDetector now identifies the lambda's dependency on
-        // CatalogContext (an in-solution data-store type), so the entry target reflects the real
-        // service type instead of the generic "inline (N calls)" fallback. This is more honest:
-        // the reader sees exactly which DbContext the endpoint touches.
+        // E6 — updated for F1 (#33) and back for its integration repair (2026-08-27). L7.1's seam
+        // named CatalogContext here; F1's declares gate dropped it (`….OrderBy(x => x.Type)` binds
+        // to the RECEIVER's type and OrderBy is a LINQ extension the context does not declare), and
+        // this pin briefly read "inline (1 call)". Dropping such seams outright severed true
+        // connectivity (TodoApi's ratcheted "TodoDbContext" trace pin went red on the integrated
+        // tree), so the refused call now DEGRADES to the member→TYPE Calls edge — no member node,
+        // the called name on the edge — and the entry target names the DbContext the endpoint
+        // touches again, exactly develop's blessed L7.1 answer. The E6 "inline (N calls)" label
+        // stays reachable for a lambda with no in-solution collaborator at all.
         Assert.Equal("CatalogContext", entry.Target);
     }
 
@@ -1130,6 +1157,10 @@ public sealed class GraphBuilderTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Presentation,
+            // F1 (#33): the action the endpoint detection names must be DECLARED — INV-C refuses
+            // a member node of a type that does not declare it, fixture models included.
+            Methods = [new MethodSignature("Get", "IActionResult", [], [],
+                Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
         });
         model.Detections.Add(new EndpointDetection("GET", "/configuration",
             "FileConfigurationController", "Get", [], [])

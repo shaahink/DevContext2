@@ -494,7 +494,8 @@ public static class SemanticLitePopulator
                     {
                         ops = ops.SetItem(i, local with { InferredFrom = merged });
                         changed = true;
-                        varDeclsResolved++;
+                        // F1 (#33): a contradiction UNRESOLVES the ref — an honest change, not a resolution.
+                        if (merged.Tier == ResolutionTier.Semantic) varDeclsResolved++;
                     }
                     break;
                 }
@@ -508,7 +509,12 @@ public static class SemanticLitePopulator
                     {
                         var bound = TryBindReceiverType(inv, tree, semanticModel);
                         var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
-                        if (merged is not null) { newInv = newInv with { ReceiverType = merged }; invChanged = true; receiversResolved++; }
+                        if (merged is not null)
+                        {
+                            newInv = newInv with { ReceiverType = merged };
+                            invChanged = true;
+                            if (merged.Tier == ResolutionTier.Semantic) receiversResolved++;
+                        }
                     }
 
                     // (b) Generic type arguments (e.g. Adapt<T>, Map<T>) — bound directly (assembly-independent).
@@ -521,7 +527,12 @@ public static class SemanticLitePopulator
                             if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
                             var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
                             var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
-                            if (merged is not null) { gargs = gargs.SetItem(gi, merged); gargsChanged = true; genericArgsResolved++; }
+                            if (merged is not null)
+                            {
+                                gargs = gargs.SetItem(gi, merged);
+                                gargsChanged = true;
+                                if (merged.Tier == ResolutionTier.Semantic) genericArgsResolved++;
+                            }
                         }
                         if (gargsChanged) { newInv = newInv with { GenericArgs = gargs }; invChanged = true; }
                     }
@@ -542,7 +553,7 @@ public static class SemanticLitePopulator
                         {
                             newInv = newInv with { Args = newInv.Args.SetItem(0, newInv.Args[0] with { Type = merged }) };
                             invChanged = true;
-                            argTypesResolved++;
+                            if (merged.Tier == ResolutionTier.Semantic) argTypesResolved++;
                         }
                     }
 
@@ -557,7 +568,7 @@ public static class SemanticLitePopulator
                     {
                         ops = ops.SetItem(i, cr with { Type = merged });
                         changed = true;
-                        creationOpsResolved++;
+                        if (merged.Tier == ResolutionTier.Semantic) creationOpsResolved++;
                     }
                     break;
                 }
@@ -687,7 +698,14 @@ public static class SemanticLitePopulator
     /// <list type="bullet">
     /// <item>existing null → <b>fill</b>: new Semantic ref (short Text for detector matching, bound FQN in Resolved).</item>
     /// <item>existing short name equals bound short name → <b>confirm</b>: same Text, tier→Semantic, Resolved set.</item>
-    /// <item>short names disagree → no change (never re-point a resolution this tier; left for a later pass).</item>
+    /// <item>short names disagree → <b>unresolve</b> (F1, #33): Roslyn measured a DIFFERENT type than
+    /// the scope guessed, so the syntactic text is disproved at this site. The old behaviour — return
+    /// null and let the wrong guess survive — was the smoking gun behind
+    /// <c>AppDbContext::ConfigureAwait</c>: the name ladder re-resolved the disproved text and the
+    /// binder consumed it as fact. The ref is marked <see cref="SymbolRef.Contradicted"/> so
+    /// <see cref="SymbolTable.Resolve"/> never re-runs the ladder on it; it is deliberately NOT
+    /// re-pointed at the bound type (never re-point a resolution this tier — when two witnesses
+    /// disagree, say unknown).</item>
     /// </list></summary>
     private static SymbolRef? MergeSemantic(SymbolRef? existing, (string Short, string Fqn)? bound, int line, string file)
     {
@@ -706,7 +724,13 @@ public static class SemanticLitePopulator
         if (string.Equals(existing.Text, b.Short, StringComparison.Ordinal))
             return existing with { Resolved = resolved, Tier = ResolutionTier.Semantic };
 
-        return null;
+        return existing with
+        {
+            Resolved = null,
+            Candidates = [],
+            Tier = ResolutionTier.Unresolved,
+            Contradicted = true,
+        };
     }
 
     /// <summary>Binds the initializer of a local declaration and returns its <c>(short, fqn)</c> type when

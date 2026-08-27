@@ -31,6 +31,10 @@ public sealed class PatternZooTests
         var wrappedSource = $"namespace PatternZoo {{ {sourceBody} }}";
         var parseOpts = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
         var tree = CSharpSyntaxTree.ParseText(wrappedSource, parseOpts, path: filePath);
+        // F1 (#33): unless a test pins its own signatures, the model DECLARES what the source
+        // declares — INV-C refuses a member node of a type whose model entry does not vouch for
+        // it, and a zoo fixture with `Methods = []` would drop every edge it means to assert.
+        model.Types["PatternZoo.Handler"].Methods = methods ?? TestMethodSignatures.DeclaredIn(tree);
         var facts = BodyFactExtractor.Extract(tree, filePath, "PatternZoo");
         return Builder.Build(model, SolutionScope.FromModel(model), facts);
     }

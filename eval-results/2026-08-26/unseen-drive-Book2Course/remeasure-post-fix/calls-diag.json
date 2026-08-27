@@ -1,0 +1,8 @@
+[
+ {"label":"D1 seam coordinator->jobrunner","name":"seam","arguments":{"from":"BuildCoordinator","to":"JobRunner"}},
+ {"label":"D2 seam jobrunner->ingest","name":"seam","arguments":{"from":"JobRunner","to":"IngestStage"}},
+ {"label":"D3 neighbors IJobQueue out","name":"neighbors","arguments":{"query":"IJobQueue","direction":"out"}},
+ {"label":"D4 neighbors IngestStage in","name":"neighbors","arguments":{"query":"IngestStage","direction":"in"}},
+ {"label":"D5 neighbors JobRunner.RunAsync out","name":"neighbors","arguments":{"nodeId":"Member:Book2Course.Pipeline.Workflow.JobRunner::RunAsync","direction":"out"}},
+ {"label":"D6 config catalog","name":"config","arguments":{}}
+]

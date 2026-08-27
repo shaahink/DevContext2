@@ -215,6 +215,9 @@ public sealed class DiscoveryPipeline
                     model.OrderedTypes.Where(t => scopeForGraph.Contains(t.FilePath)),
                     scopeForGraph.ProjectForFile,
                     binderFacts.Where(b => string.IsNullOrEmpty(b.File) || scopeForGraph.Contains(b.File)).ToList());
+                // F1 (#33): keep the graph-time table for post-analysis consumers (dogfood truth
+                // sweep) — the legacy compression mutates TypeDiscovery members after this point.
+                context.Analysis.GraphSymbols = graphSymbols;
                 CallGraphBinder.Bind(context, model, graphSymbols, binderFacts, noiseFilter, ct);
             }
             catch (OperationCanceledException) { throw; }

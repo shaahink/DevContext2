@@ -76,6 +76,55 @@ public sealed class ExtractorTests
         var detection = Assert.Single(model.Detections.OfType<EndpointDetection>());
         Assert.Equal("POST", detection.HttpMethod);
         Assert.Equal("/api/orders", detection.RouteTemplate);
+        // HOLD: the class declares HandleAsync, so the stamped handler IS the declared override.
+        Assert.Equal("HandleAsync", detection.HandlerMethod);
+    }
+
+    /// <summary>F1 integration repair (2026-08-27): the FastEndpoints entry join must target a method
+    /// the class DECLARES. The helper used to stamp <c>HandlerMethod="HandleAsync"</c> by convention;
+    /// MinimalClean's <c>CreateEndpoint</c> declares <c>ExecuteAsync</c> instead, so the entry join
+    /// minted <c>CreateEndpoint::HandleAsync</c>, INV-C (correctly) refused it, and <c>POST /Products</c>
+    /// dead-ended with zero out-edges. The handler resolves from the class's own declarations through
+    /// the same priority-list pattern as the Blazor component lifecycle join.</summary>
+    [Fact]
+    public async Task EndpointExtractor_FastEndpoints_stamps_the_handler_override_the_class_declares()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\Endpoints\CreateEndpoint.cs", """
+            using FastEndpoints;
+
+            public class CreateEndpoint : Endpoint<CreateProductRequest, ProductRecord>
+            {
+                public override void Configure()
+                {
+                    Post("/Products");
+                    AllowAnonymous();
+                }
+                public override async Task<ProductRecord> ExecuteAsync(CreateProductRequest req, CancellationToken ct)
+                {
+                    return new ProductRecord();
+                }
+            }
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Endpoints\CreateEndpoint.cs"];
+
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.FastEndpoints));
+
+        var extractor = new EndpointExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var detection = Assert.Single(model.Detections.OfType<EndpointDetection>());
+        Assert.Equal("POST", detection.HttpMethod);
+        Assert.Equal("/Products", detection.RouteTemplate);
+        // The class declares ExecuteAsync, not HandleAsync — the stamp must say what the code says.
+        Assert.Equal("ExecuteAsync", detection.HandlerMethod);
     }
 
     [Fact]
@@ -111,6 +160,10 @@ public sealed class ExtractorTests
         var detection = Assert.Single(model.Detections.OfType<EndpointDetection>());
         Assert.Equal("GET", detection.HttpMethod);
         Assert.Equal("/api/orders", detection.RouteTemplate);
+        // F1 integration repair (2026-08-27): the attribute path stamped the CLASS NAME as the
+        // handler method — `GetOrdersEndpoint::GetOrdersEndpoint` is a member no class declares
+        // (INV-C refuses it at the entry join). The class declares HandleAsync; the stamp must too.
+        Assert.Equal("HandleAsync", detection.HandlerMethod);
     }
 
     [Fact]

@@ -9,32 +9,44 @@ using DevContext.Core.Pipeline;
 namespace DevContext.Core.Insights;
 
 /// <summary>M2.2 — Detects configuration keys consumed in C# source that have no default value
-/// in appsettings*.json. Scans source for IConfiguration access patterns and compares against
-/// declared configuration keys.</summary>
+/// in appsettings*.json. Consumed keys come from two sources: literal IConfiguration access in
+/// source bodies (regex below) and Options-pattern bindings detected at extraction time
+/// (<see cref="OptionsBindingDetection"/> via <see cref="ConfigScanner.OptionsBindings"/> — F3,
+/// BUG-BACKLOG #34: the same source the config catalog merges, so the two counts cannot disagree).
+/// Computed keys remain invisible to both, and the HEADLINE says so — under-declaring silently is
+/// the defect this insight used to have.</summary>
 public sealed class ConfigDefaultsSource : IInsightSource
 {
     public string Id => "config.missing-defaults";
     public InsightCategory Category => InsightCategory.Risk;
 
+    /// <summary>Evidence rows are capped; the COUNT in the headline never is (a repo with 20
+    /// missing keys used to report exactly 8, silently).</summary>
+    private const int MaxEvidence = 8;
+
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         var consumedKeys = FindConsumedConfigKeys(model);
+        foreach (var binding in ConfigScanner.OptionsBindings(model))
+            consumedKeys.Add(binding.Key);
         if (consumedKeys.Count == 0) yield break;
 
         var appsettingsKeys = ParseAppsettingsKeys(model);
         var missingDefaults = consumedKeys
             .Where(k => !appsettingsKeys.Contains(k))
-            .Take(8)
-            .OrderBy(k => k)
+            .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         if (missingDefaults.Count == 0) yield break;
 
         yield return Insight.Create(Id, Category, Severity.Notable,
-            $"Config without defaults: {missingDefaults.Count} consumed keys have no appsettings default",
-            missingDefaults,
+            $"Config without defaults: {missingDefaults.Count} consumed keys have no appsettings default"
+                + " (counts literal + Options-bound keys; computed keys are invisible here)",
+            missingDefaults.Take(MaxEvidence),
             confidence: 0.5,
-            confidenceBasis: "Config key extraction is regex-based — may miss Bind()/Options pattern keys. appsettings parsing is best-effort.",
+            confidenceBasis: "Consumed keys = literal IConfiguration access (regex) + Options-pattern bindings "
+                + "(AddOptions<T>/Configure<T>) with literal or const section names. Computed keys are not seen. "
+                + "appsettings parsing is best-effort.",
             whyItMatters: "A config key consumed with no default fails at runtime — document or provide a default for every consumed key.");
     }
 
