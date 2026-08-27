@@ -26,6 +26,13 @@ repo — the fifth is Conductor's.**
 its residual re-filed as #37. New filings #37–#39 (1 high, 1 medium, 1 low) from the integration
 battery and the post-fix re-measure.**
 
+**Reconciled 2026-08-27 (evening), the residuals run (`fix/drive-residuals`): #37 · #38 · #39
+FIXED — every verdict re-measured on the same repo with the same recorded batches
+(`eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-37/REMEASURE.md`). The drive's
+whole defect set #33–#39 is now closed: the F4 bar passes end-to-end
+(`seam(BuildCoordinator → IngestStage)` found:true through the joined interface→implementor hop)
+and the re-probe's known blocker is gone.**
+
 > **Third source, 2026-08-26 (the Book2Course unseen-repo hand drive).**
 > `eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md` drove five pre-fixed questions
 > against a repo the engine had never seen and found one decisive win (impact) and five defects.
@@ -47,6 +54,12 @@ battery and the post-fix re-measure.**
 > fixed — but the re-measure's F4 bar still cannot pass end-to-end on this repo until #37 lands
 > (`seam(BuildCoordinator → IngestStage)` now dies one hop PAST the fixed port); whether to run
 > the re-probe with that known and filed stays the owner's call.
+>
+> **Reconciled 2026-08-27 (evening, residuals run):** #37 · #38 · #39 FIXED on
+> `fix/drive-residuals`, re-measured in `remeasure-post-37/REMEASURE.md` — Q4b `found:true`
+> (closing hop `IStage —Resolves/Join→ IngestStage`, provenance = the scan site), the Storage key
+> one row, the QA drive isolated and 12/12. The known blocker is gone; whether to run the
+> pre-registered re-probe stays the owner's call.
 
 > **On the two runs.** The pre-release program ran as two parallel conductor runs against one
 > backlog: **run A** (engine, `conductor.engine.plan.json`, stages T1 · V1 · E1 · D1 · R1 · A1) took
@@ -1309,15 +1322,30 @@ Source: the `fix/mcp-drive-integration` battery/repair story (commits `b24e09b` 
 `e085634` · `9cfefc2` and the integrate report) and `remeasure-post-fix/REMEASURE.md`. Findings
 filed, not fixed, on the standing rule. Numbers continue the `#` series.
 
-| # | Sev | Stage | Title |
-|---|-----|-------|-------|
-| [#37](#37) | high | remeasure-2026-08-27 | Reflection-registered types have NO in-edges — `AddStages()`'s assembly scan is invisible, so `IngestStage` sits at in-degree 0 and the re-measured F4 bar dies one hop past the fixed port |
-| [#38](#38) | low | remeasure-2026-08-27 | The config catalog sweeps stray temp copies inside the target repo — `.conductor/tmp-q14/StorageModule.cs` contributes a provenance row |
-| [#39](#39) | medium | integrate-2026-08-27 | The MCP QA drive can be raced by any concurrent test run: `eval/mcp-qa/run.js` never adopted `server-identity.js`'s endpoint isolation, and `ServerTestFactory.Dispose` kills EVERY `DevContext.Server` on the machine by name |
+| # | Sev | Stage | Status | Title |
+|---|-----|-------|--------|-------|
+| [#37](#37) | high | remeasure-2026-08-27 | **FIXED** — residuals run, re-measured | Reflection-registered types have NO in-edges — `AddStages()`'s assembly scan is invisible, so `IngestStage` sits at in-degree 0 and the re-measured F4 bar dies one hop past the fixed port |
+| [#38](#38) | low | remeasure-2026-08-27 | **FIXED** — residuals run, re-measured | The config catalog sweeps stray temp copies inside the target repo — `.conductor/tmp-q14/StorageModule.cs` contributes a provenance row |
+| [#39](#39) | medium | integrate-2026-08-27 | **FIXED** — residuals run, verified live | The MCP QA drive can be raced by any concurrent test run: `eval/mcp-qa/run.js` never adopted `server-identity.js`'s endpoint isolation, and `ServerTestFactory.Dispose` kills EVERY `DevContext.Server` on the machine by name |
 
 <a id="37"></a>
 
 ### #37 · remeasure-2026-08-27 · Reflection-registered types have NO in-edges — `AddStages()`'s assembly scan is invisible, so `IngestStage` sits at in-degree 0 and the re-measured F4 bar dies one hop past the fixed port
+
+> **FIXED 2026-08-27 (`fix/drive-residuals`, commit `600d380`).** The fix shape as filed, both
+> halves: `DiRegistrationExtractor` recognizes the scan idiom — `AddSingleton/AddScoped/
+> AddTransient(typeof(I), <runtime value>)` inside a method that enumerates assembly types — as
+> `Shape=ScanRegistration` (ServiceType = the interface, ImplementationType = `"*"`; a typeof
+> SECOND argument stays out, that is conductor #3's named class). `AddDiResolves` then joins the
+> interface to EVERY in-solution implementor: `Resolution.Join`, confidence 0.8, provenance = the
+> scan site, tagged `scan-registration`, after the direct bindings so an explicit registration wins
+> the dedup. Watched red first (extractor test recorded `ImplementationType="stage"` as
+> DirectBinding; the implementor's Resolves in-edges were empty). Re-measured
+> (`remeasure-post-37/REMEASURE.md`): recorded Q4b `found:true` (3 hops, closing hop
+> `IStage —Resolves/Join→ IngestStage`), `neighbors(IngestStage, in)` = 1 with provenance
+> `DependencyInjection.cs:214`, graph +9 edges / 0 new nodes, and the correctly-false upload seam
+> STAYED false. Zoo fixtures now declare their base lists (the b24e09b rule extended to
+> ImplementedInterfaces).
 
 ```text
 MEASURED 2026-08-27, the post-fix re-measure of the Book2Course drive (severity HIGH). Artifacts:
@@ -1370,6 +1398,13 @@ re-check is the recorded calls-q2.json batch itself.
 
 ### #38 · remeasure-2026-08-27 · The config catalog sweeps stray temp copies inside the target repo — `.conductor/tmp-q14/StorageModule.cs` contributes a provenance row
 
+> **FIXED 2026-08-27 (`fix/drive-residuals`, commit `08aa243`).** Localized to DISCOVERY, the
+> filing's first suspect: `FileTreeExtractor`'s inventory admitted the copy because `.conductor`
+> was not in `ExtractionOptions.DefaultExcludePatterns` — `.claude`'s exact class (tool-staged
+> copies of repo sources, T6.0). Added to the default set; fixture watched the double-inventory go
+> red first. Re-measured: the catalog's Storage key carries exactly ONE provenance row
+> (`Api/Storage/StorageModule.cs:18`), totalKeys 14 unchanged — breadth kept, phantom gone.
+
 ```text
 MEASURED 2026-08-27, the post-fix re-measure (F3's catalog check, severity LOW). Artifacts:
 eval-results/2026-08-26/unseen-drive-Book2Course/remeasure-post-fix/REMEASURE.md §F3
@@ -1400,6 +1435,16 @@ provenance row for the key.
 <a id="39"></a>
 
 ### #39 · integrate-2026-08-27 · The MCP QA drive can be raced by any concurrent test run: `eval/mcp-qa/run.js` never adopted `server-identity.js`'s endpoint isolation, and `ServerTestFactory.Dispose` kills EVERY `DevContext.Server` on the machine by name
+
+> **FIXED 2026-08-27 (`fix/drive-residuals`, commit `843d961`).** Both halves moved together, as
+> the filing required. (a) `run.js` adopts `server-identity.js`: spawns with `probeEnv()` (own
+> endpoint) and refuses to drive a server whose `/health` it cannot attribute to this checkout's
+> fresh build. (b) `ServerTestFactory.Dispose` kills only a `DevContext.Server` whose main module
+> lives under THIS checkout (walked to the `DevContext.slnx` marker) — an unattributable process
+> is left alone. Verified: the QA drive runs isolated and answers 12/12 with both gates green; the
+> sweep's target class showed up LIVE this session (a leaked server locking `bin/` failed the
+> build with MSB3027) and was killed by path attribution — the only kind of kill the teardown now
+> performs.
 
 ```text
 READ IN SOURCE 2026-08-27 at the integration close-out (severity MEDIUM, harness infra) — the

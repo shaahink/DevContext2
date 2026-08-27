@@ -61,6 +61,11 @@ public static class RoleTags
     /// caller of the same port. The hop is a classification (Resolution.Join), never a verified
     /// call.</summary>
     public const string TransportPortBridge = "transport-port";
+    /// <summary>#37: edge tag on a Resolves edge JOINED from a reflection scan registration
+    /// (<c>AddSingleton(typeof(I), t)</c> inside an assembly-scan method). The implementors are
+    /// runtime values the site never spells — the edge is the scan's in-solution candidate set
+    /// (Resolution.Join), never a verified binding.</summary>
+    public const string ScanRegistrationDi = "scan-registration";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport

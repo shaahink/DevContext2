@@ -2,6 +2,7 @@ using DevContext.Core.Graph;
 using DevContext.Core.Graph2;
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Tests;
 
@@ -201,9 +202,14 @@ public sealed class GraphSeamTests
     // Both callers land as IN-edges on the port Type (a call through a DI interface has no member body
     // to land on), so without a join the port is a sink — in-degree 2, out-degree 0.
     private static (CodeGraph Graph, GraphQuery Query) BuildZoo(params (string Fqn, TypeKind Kind, string Source)[] types)
+        => BuildZoo([], types);
+
+    private static (CodeGraph Graph, GraphQuery Query) BuildZoo(
+        IReadOnlyList<Detection> detections, (string Fqn, TypeKind Kind, string Source)[] types)
     {
         var pi = new ProjectInfo("Zoo", @"C:\repo\Zoo\Zoo.csproj", "C#", ["net10.0"], [], []);
         var model = new DiscoveryModel { Projects = [pi] };
+        foreach (var detection in detections) model.Detections.Add(detection);
         var facts = new List<DevContext.Core.Graph2.BodyFacts>();
         var parseOpts = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
 
@@ -228,6 +234,14 @@ public sealed class GraphSeamTests
             // F1 (#33): the model must DECLARE what the source declares — INV-C refuses a member
             // node of a type whose model entry does not vouch for it, fixture models included.
             model.Types[fqn].Methods = TestMethodSignatures.DeclaredIn(tree);
+            // #37: the model must also DECLARE what the source declares about its BASE LIST — the
+            // scan join's implementor oracle reads ImplementedInterfaces, and a fixture that omits
+            // what its source spells would hide the very fact under test (the same rule that gave
+            // Methods its DeclaredIn oracle).
+            model.Types[fqn].ImplementedInterfaces =
+                [.. tree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
+                    .SelectMany(t => t.BaseList?.Types ?? default)
+                    .Select(t => t.Type.ToString())];
             facts.AddRange(BodyFactExtractor.Extract(tree, filePath, "Zoo"));
         }
 
@@ -279,6 +293,124 @@ public sealed class GraphSeamTests
         ("Zoo.BuildCoordinator", TypeKind.Class, ProducerSource),
         ("Zoo.IngestStage", TypeKind.Class, StageSource),
         ("Zoo.JobRunner", TypeKind.Class, ConsumerSource));
+
+    // ── #37 — the registration-is-a-scan cell: AddSingleton(typeof(I), t) in an assembly scan ───
+    //
+    // Book2Course's residual behind F4: stages registered by reflection (AddStages() scans the
+    // assembly for IStage implementors), dispatched dynamically through a registry. No spelling in
+    // source names any stage as a registration or a callee, so the implementor sits at in-degree 0
+    // and the seam walk exhausts honestly one hop short of it.
+
+    private const string StageContractSource = """
+        public interface IStage
+        {
+            Task ExecuteAsync(string job);
+        }
+        """;
+
+    private const string IngestStageImplSource = """
+        public class IngestStage : IStage
+        {
+            public Task ExecuteAsync(string job) => Task.CompletedTask;
+        }
+        """;
+
+    private const string OutlineStageImplSource = """
+        public class OutlineStage : IStage
+        {
+            public Task ExecuteAsync(string job) => Task.CompletedTask;
+        }
+        """;
+
+    // Minimized from the real registry shape (IEnumerable<IStage> + a lookup): the binding
+    // mechanism under test is a call through the INTERFACE, and a field-typed receiver is how the
+    // zoo's resolver binds one (the F4 consumer's _queue rule; a foreach variable does not bind).
+    private const string StageRegistrySource = """
+        public class StageRegistry
+        {
+            private readonly IStage _current;
+            public StageRegistry(IStage current) => _current = current;
+            public Task RunAsync(string job) => _current.ExecuteAsync(job);
+        }
+        """;
+
+    private const string StageModuleSource = """
+        public static class StageModule
+        {
+            public static void AddStages(IServiceCollection services)
+            {
+                foreach (var stage in typeof(IStage).Assembly.GetTypes()
+                    .Where(t => !t.IsAbstract && typeof(IStage).IsAssignableFrom(t)))
+                {
+                    services.AddSingleton(typeof(IStage), stage);
+                }
+            }
+        }
+        """;
+
+    private static (CodeGraph Graph, GraphQuery Query) ScanRegistrationChain() => BuildZoo(
+        [new DiRegistrationDetection("IStage", "*", "Singleton", [], DiRegistrationShape.ScanRegistration)
+        {
+            ExtractorName = "DiRegistrationExtractor",
+            SourceFile = @"C:\repo\Zoo\StageModule.cs",
+            LineNumber = 7,
+        }],
+        [("Zoo.IStage", TypeKind.Interface, StageContractSource),
+         ("Zoo.IngestStage", TypeKind.Class, IngestStageImplSource),
+         ("Zoo.OutlineStage", TypeKind.Class, OutlineStageImplSource),
+         ("Zoo.StageRegistry", TypeKind.Class, StageRegistrySource),
+         ("Zoo.StageModule", TypeKind.Class, StageModuleSource)]);
+
+    /// <summary>
+    /// THE RED (#37, Book2Course F4's residual). Today `neighbors(IngestStage, in)` measures 0 —
+    /// NOTHING in the graph lands on a reflection-registered stage, so the walk from the bridged
+    /// queue exhausts honestly one hop short. The fix joins the scanned interface to each
+    /// in-solution implementor: Resolution.Join, rendered joined, NEVER verified — the same
+    /// truthfulness discipline the F4 port bridge established.
+    /// </summary>
+    [Fact]
+    public void A_scan_registration_joins_the_interface_to_each_implementor()
+    {
+        var (graph, query) = ScanRegistrationChain();
+
+        // Precondition — the dispatch call must actually land on the interface Type, or the seam
+        // assertion below would pass/fail for the wrong reason after an extractor regression.
+        Assert.Contains(graph.InEdges(NodeId.ForType("Zoo.IStage")),
+            e => e.Kind == EdgeKind.Calls && e.TargetMember == "ExecuteAsync");
+
+        var ingestIn = graph.InEdges(NodeId.ForType("Zoo.IngestStage"), EdgeKind.Resolves);
+        var join = Assert.Single(ingestIn);
+        Assert.Equal(NodeId.ForType("Zoo.IStage"), join.From);
+        Assert.Equal(Resolution.Join, join.Resolution);            // joined on the wire, never verified
+        Assert.Equal(2, join.MultiImplCount);                      // the scan's candidate set is honest
+        Assert.Contains(RoleTags.ScanRegistrationDi, join.Tags);
+        Assert.EndsWith("StageModule.cs:7", join.Provenance);      // the scan site is the provenance
+
+        // BOTH implementors join — a scan registers the set, not a chosen one.
+        Assert.Single(graph.InEdges(NodeId.ForType("Zoo.OutlineStage"), EdgeKind.Resolves));
+
+        // And the seam routes: registry -> IStage (dispatch call) -> Resolves join -> stage.
+        var seam = query.Seam(NodeId.ForType("Zoo.StageRegistry"), NodeId.ForType("Zoo.IngestStage"));
+        Assert.Equal(SeamDirection.Forward, seam.Direction);
+    }
+
+    /// <summary>An interface the scan names but nothing in the solution implements joins NOTHING —
+    /// a scan over externally-provided implementors must not fabricate an edge to guess at.</summary>
+    [Fact]
+    public void A_scan_over_an_interface_with_no_implementors_joins_nothing()
+    {
+        var (graph, _) = BuildZoo(
+            [new DiRegistrationDetection("IStage", "*", "Singleton", [], DiRegistrationShape.ScanRegistration)
+            {
+                ExtractorName = "DiRegistrationExtractor",
+                SourceFile = @"C:\repo\Zoo\StageModule.cs",
+                LineNumber = 7,
+            }],
+            [("Zoo.IStage", TypeKind.Interface, StageContractSource),
+             ("Zoo.StageModule", TypeKind.Class, StageModuleSource)]);
+
+        Assert.Empty(graph.OutEdges(NodeId.ForType("Zoo.IStage")).Where(e => e.Kind == EdgeKind.Resolves));
+    }
 
     /// <summary>
     /// THE RED (F4, backlog #35). Today's answer is <see cref="SeamDirection.None"/> — "unconnected"
