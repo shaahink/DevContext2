@@ -73,6 +73,30 @@ public sealed class FileTreeExtractorTests
         Assert.DoesNotContain(analysis.AllSourceFiles, f => f.Contains("Ignored.cs"));
     }
 
+    /// <summary>#38 (Book2Course re-measure) — `.conductor/tmp-q14/StorageModule.cs` was a stray
+    /// temp copy of a real source file. The inventory swept it in, the DI extractor detected its
+    /// Options binding, and the config catalog reported the Storage key with a SECOND provenance
+    /// row pointing at a file nobody compiles — stated with the same file:line authority as the
+    /// real one. The default exclusions must prune `.conductor` the way they prune `.claude`.</summary>
+    [Fact]
+    public async Task ExtractAsync_ExcludesConductorTempCopiesByDefault()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"repo\src\StorageModule.cs", "class StorageModule {}");
+        fs.AddFile(@"repo\.conductor\tmp-q14\StorageModule.cs", "class StorageModule {}");
+
+        var cache = new FakeAnalysisCache(fs);
+        var analysis = new SharedAnalysisContext();
+        // DEFAULT options — the exclusion list itself is the seat under test.
+        var ctx = CreateContext(fs, cache, analysis, rootPath: "repo");
+
+        var extractor = new FileTreeExtractor();
+        await extractor.ExtractAsync(ctx, new DiscoveryModel(), CancellationToken.None);
+
+        var file = Assert.Single(analysis.AllSourceFiles);
+        Assert.DoesNotContain(".conductor", file);
+    }
+
     [Fact]
     public async Task ExtractAsync_ExcludesNestedAgentWorktreesByDefault()
     {

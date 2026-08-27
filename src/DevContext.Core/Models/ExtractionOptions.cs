@@ -20,9 +20,12 @@ public sealed record ExtractionOptions
     /// <summary>The one default exclusion set — CLI callers reference this instead of keeping copies.
     /// `.claude` matters: agent tooling keeps full git-worktree COPIES of the repo under
     /// `.claude/worktrees/`, and walking one doubles every path-keyed surface (topology,
-    /// per-service styles, dependent counts) while id-keyed nodes merge silently (T6.0 shamshir catch).</summary>
+    /// per-service styles, dependent counts) while id-keyed nodes merge silently (T6.0 shamshir catch).
+    /// `.conductor` is the same class (#38): conductor runs stage temp COPIES of target sources
+    /// under `.conductor/tmp-*/`, and one swept-in copy gave Book2Course's config catalog a second
+    /// provenance row pointing at a file nobody compiles.</summary>
     public static readonly ImmutableArray<string> DefaultExcludePatterns =
-        [".git", "bin", "obj", ".vs", "node_modules", ".idea", ".claude", "eval-repos", "analysis-repos"];
+        [".git", "bin", "obj", ".vs", "node_modules", ".idea", ".claude", ".conductor", "eval-repos", "analysis-repos"];
 
     /// <summary>Directory/file patterns to exclude from analysis.</summary>
     public ImmutableArray<string> ExcludePatterns { get; init; } = DefaultExcludePatterns;
