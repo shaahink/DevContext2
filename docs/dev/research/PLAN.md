@@ -118,6 +118,15 @@
       **(4) A threshold is only as good as its calibration data.** G10 re-measured five calibrated
       on the pre-Batch-A starved graph; two had silently inverted. `git blame` against the Batch A
       commit (`4e1292d`) is the discriminator that finds them.
+- [x] **DRIVE PROGRAM — CLOSED 2026-08-27.** The Book2Course unseen-repo hand drive (2026-08-26,
+      `eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md`) filed F1–F5; all seven backlog
+      items **#33–#39 are FIXED and re-measured** across `fix/mcp-drive-integration` (overnight
+      workflow) and `fix/drive-residuals` (residuals: scan-registration joins, `.conductor`
+      exclusion, QA-drive identity), both merged to develop, full battery GATE: PASS. The recorded
+      Q-batteries pass end-to-end with nothing fabricated (`remeasure-post-37/REMEASURE.md`).
+      **The pre-registered re-probe is UNBLOCKED — running it is the owner's call.** Backlog
+      remainder: #3 · #13 · #16 · #32 (+#15, Conductor's). Cold start: read
+      `docs/dev/research/BUG-BACKLOG.md` first.
 - [ ] S11 — R3 continued: D-F · D-G · D-H · C-2/C-3 + D-3/D-4 · render kernel built AFTER the
       decisions it serves · re-point `screenshot-gate.mts` as pages land.
       **This is the next owner-interactive session.** C-2/C-3 and D-3/D-4 were delivered
