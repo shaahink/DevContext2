@@ -112,6 +112,11 @@ public enum DiRegistrationShape
     ForwardingAlias,
     /// <summary>sp => new Foo(...) or sp => { ... } — has real factory logic.</summary>
     InlineFactory,
+    /// <summary>#37 — <c>AddSingleton(typeof(IStage), stage)</c> inside an assembly-scan method:
+    /// the implementor is a RUNTIME Type the site never spells. ServiceType carries the scanned
+    /// interface; ImplementationType is <c>"*"</c>. The graph joins the interface to its
+    /// in-solution implementors (<c>Resolution.Join</c>, never verified).</summary>
+    ScanRegistration,
 }
 
 public sealed record DiRegistrationDetection(

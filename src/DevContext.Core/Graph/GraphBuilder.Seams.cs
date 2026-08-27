@@ -114,12 +114,48 @@ public sealed partial class GraphBuilder
             });
         }
 
-        // Fallback: single-implementor interfaces not covered by DI registrations
+        // #37: scan registrations — AddSingleton(typeof(I), t) inside an assembly-scan method. The
+        // site names ONLY the interface; the implementor names never appear in source (Book2Course's
+        // AddStages, the registration-is-a-scan class #22 measured from the other side). Join the
+        // interface to every in-solution implementor: Resolution.Join, confidence 0.8, tagged — the
+        // F4 port bridge's truthfulness discipline (joined on the wire, never verified). Runs AFTER
+        // the direct bindings so an explicit registration's edge wins the (from,to,kind) dedup, and
+        // only from production sources — a test assembly's scan must not wire the production graph.
+        var scanRegs = model.Detections.OfType<DiRegistrationDetection>()
+            .Where(di => di.Shape == DiRegistrationShape.ScanRegistration
+                && scope.Contains(di.SourceFile) && _noise.IsProductionEntrySource(di.SourceFile))
+            .OrderBy(di => di.SourceFile, StringComparer.Ordinal).ThenBy(di => di.LineNumber);
+        foreach (var scan in scanRegs)
+        {
+            var ifaceShort = StripGenerics(scan.ServiceType);
+            var svcNodeId = NodeId.ForType(names.ResolveName(scan.ServiceType, scan.SourceFile));
+            if (!g.HasNode(svcNodeId)) continue; // not an in-solution interface — nothing to join
+
+            var implTotal = implCounts.TryGetValue(ifaceShort, out var total) ? total : 0;
+            foreach (var type in model.OrderedTypes)
+            {
+                if (!scope.Contains(type.FilePath) || !_noise.IsProductionCode(type)) continue;
+                if (!type.ImplementedInterfaces.Any(i => StripGenerics(i) == ifaceShort)) continue;
+                var implNodeId = NodeId.ForType(type.Id);
+                if (implNodeId == svcNodeId || !g.HasNode(implNodeId)) continue;
+                g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
+                {
+                    Provenance = $"{scan.SourceFile}:{scan.LineNumber}",
+                    Resolution = Resolution.Join,
+                    Confidence = 0.8f,
+                    MultiImplCount = implTotal > 1 ? implTotal : 0,
+                    Tags = [RoleTags.ScanRegistrationDi],
+                });
+            }
+        }
+
+        // Fallback: single-implementor interfaces not covered by DI registrations (a scan-joined
+        // interface IS covered — #37's join beats the weaker syntactic guess).
         var diResolvedSvcIds = new HashSet<NodeId>();
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
             if (!scope.Contains(di.SourceFile)) continue;
-            if (di.Shape != DiRegistrationShape.DirectBinding) continue;
+            if (di.Shape is not (DiRegistrationShape.DirectBinding or DiRegistrationShape.ScanRegistration)) continue;
             var svcFqn = names.ResolveName(di.ServiceType, di.SourceFile);
             diResolvedSvcIds.Add(NodeId.ForType(svcFqn));
         }

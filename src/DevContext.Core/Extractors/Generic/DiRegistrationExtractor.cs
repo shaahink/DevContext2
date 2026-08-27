@@ -148,9 +148,28 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
 
                 if (args.Count >= 2)
                 {
-                    serviceType = args[0].Expression?.ToString() ?? "?";
-                    implementationType = args[1].Expression?.ToString() ?? "?";
-                    (shape, factorySummary) = ClassifyShape(args[1].Expression);
+                    // #37: the scan idiom — AddSingleton(typeof(I), t) where t is a RUNTIME Type
+                    // inside an assembly-scan method. Recording args[1]'s text here names a loop
+                    // variable, and INV-B (rightly) refuses the typeof() text as a node key — the
+                    // Book2Course drive measured the result: IngestStage at in-degree 0. Say what
+                    // the site actually says: the interface, and "*" for the implementor it cannot
+                    // spell. A typeof SECOND argument is the NAMED registration (a different,
+                    // deferred class — it adds edges the site spells itself), and a lambda is a
+                    // factory — both keep the generic path below.
+                    if (args[0].Expression is TypeOfExpressionSyntax svcTypeOf
+                        && args[1].Expression is not (TypeOfExpressionSyntax or LambdaExpressionSyntax or LiteralExpressionSyntax)
+                        && IsInsideAssemblyScan(invocation))
+                    {
+                        serviceType = svcTypeOf.Type.ToString();
+                        implementationType = "*";
+                        shape = DiRegistrationShape.ScanRegistration;
+                    }
+                    else
+                    {
+                        serviceType = args[0].Expression?.ToString() ?? "?";
+                        implementationType = args[1].Expression?.ToString() ?? "?";
+                        (shape, factorySummary) = ClassifyShape(args[1].Expression);
+                    }
                 }
                 else if (args.Count == 1)
                 {
@@ -380,6 +399,29 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
             default:
                 return null;
         }
+    }
+
+    /// <summary>#37 — true when the invocation sits inside a method (or local function) that
+    /// enumerates assembly types: <c>GetTypes</c>/<c>DefinedTypes</c>/<c>ExportedTypes</c>/
+    /// <c>GetExportedTypes</c>, or an <c>IsAssignableFrom</c> filter. The evidence the scan idiom
+    /// always carries; a typeof service argument alone is NOT enough — an instance registration
+    /// (<c>AddSingleton(typeof(IClock), clock)</c>) also passes a runtime value.</summary>
+    private static bool IsInsideAssemblyScan(InvocationExpressionSyntax invocation)
+    {
+        var scopeNode = invocation.Ancestors().FirstOrDefault(a =>
+            a is MethodDeclarationSyntax or LocalFunctionStatementSyntax
+                or AccessorDeclarationSyntax or ConstructorDeclarationSyntax);
+        if (scopeNode is null) return false;
+
+        foreach (var name in scopeNode.DescendantNodes().OfType<SimpleNameSyntax>())
+        {
+            switch (name.Identifier.ValueText)
+            {
+                case "GetTypes" or "DefinedTypes" or "ExportedTypes" or "GetExportedTypes" or "IsAssignableFrom":
+                    return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>Batch B — maps a client-registration method to the transport it configures, or null

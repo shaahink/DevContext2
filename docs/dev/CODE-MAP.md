@@ -94,7 +94,9 @@ derived inverse adjacency for O(degree) `neighbors`/`find_usages`.
 2. **P3 entry builders** (`_entryBuilders`, one per kind — open for extension, §5).
 3. `AddHandlerJoins` (Handles) + `AddPipelineBehaviors` (WrappedBy).
 4. **P1 map seams**: `AddEntityNodes`, `AddEntityNavigationEdges` (EntityRelation), `AddEventConsumers`
-   (Consumes), `AddDiResolves` (Resolves, with multi-impl honesty).
+   (Consumes), `AddDiResolves` (Resolves, with multi-impl honesty; #37: a reflection scan
+   registration — `AddSingleton(typeof(I), t)` in an assembly-scan method — joins the interface
+   to each in-solution implementor, Resolution.Join, tagged `scan-registration`).
 5. **P2 trace seams**: `AddSeamsFromDetectors` (BodyFacts seam detectors, §5) + `AddLambdaSeams` +
    `AddCallEdges` (Calls) + `AddHubScopeEdges` (L3.4 sparse-graph fallback).
 6. **Cross-service + the one join**: `AddGrpcServiceLinks`, `AddHttpServiceLinks` (ServiceLink); then
