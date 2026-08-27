@@ -673,6 +673,29 @@ Session log (one line each: date · what closed · surprises):
   cover the change it is cited for is not a verdict.
   Next: S11 — D-F (insight dedup, engine-side so CLI+MCP benefit) · D-G (Studio default state + the
   picker-label design call) · D-H/D-4 (three "service" vocabularies on the Atlas page) · C-2/C-3/D-3.
+- [x] **DRIVE-FIX 2026-08-26→27 — the Book2Course unseen-repo drive and its fix program (CLOSED).**
+      The 2026-08-26 hand drive (`eval-results/2026-08-26/unseen-drive-Book2Course/DRIVE.md`: five
+      pre-fixed questions, MCP vs grep, an unseen 487-file Aspire repo) found one decisive win
+      (impact, the question the pilot lost) and five defects. **F2** (auth-group miss,
+      release-blocking) was fixed same-day (`5e42c46`); **F1/F3/F4/F5** were filed as backlog
+      **#33–#36** and fixed on four fixture-first worktree branches, integrated on
+      `fix/mcp-drive-integration`. The integration battery — the first run in a while with the
+      TodoApi/VerticalSlice submodules initialized — caught two F1-introduced regressions, STOPPED
+      ON RED per R-T7, and the branch repaired them (`e085634`: a refused call degrades to the
+      member→Type edge, INV-C kept literal, connectivity kept true; FastEndpoints entry joins
+      target the handler the class declares), with the ratcheted MCP QA record moving in its own
+      R-T7 commits. Re-measure with the drive's recorded call batches
+      (`remeasure-post-fix/REMEASURE.md`): **F1 PASS · F3 PASS · F5 PASS · F4 FIXED AS FILED** —
+      the port bridges (`seam(BuildCoordinator→JobRunner)` found:true through the
+      `IJobQueue —Consumes/Join→` hop) **but the recorded Q4 bar still reads found:false one hop
+      later**: `IngestStage` in-degree 0, a reflection-assembly-scan registration blind spot the
+      sink had masked — re-filed as **#37** (plus #38 config temp-copy sweep, #39 QA-harness race
+      hardening; all in `BUG-BACKLOG.md` § Filed 2026-08-27). Honesty ledger: Calls approx
+      56% → 30%. Merged to develop at close-out 2026-08-27 with `dotnet build` 0w/0e and
+      `Category!=Eval` verified green on the merged tree. **Re-probe gate: the drive's license
+      line is met on its letter — F1–F4 all filed and fixed — but the pre-registered Q4 cannot
+      pass end-to-end until #37 lands; the re-probe itself stays owner-gated and unscheduled,
+      with #37 the named risk of running it now.**
 
 ## 3. Session map
 

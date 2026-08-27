@@ -2680,3 +2680,5 @@ sites T8.3 missed; RepoAvailable guard @ 24ce626) - run 2 GATE: PASS every step 
 D5.6: HANDOVER-PRISM.md written, tracker closed, cross-OS CI re-dispatched at the tip.
 PRISM PHASE COMPLETE PENDING MERGE - branch train feat/prism-d1..d5 merges to develop as ONE merge
 on owner sign-off.
+
+## 2026-08-27 - Book2Course drive-fix close-out: F1/F3/F4/F5 fixed+merged to develop (fix/mcp-drive-integration); #33-#36 reconciled (#35 fixed-as-filed, residual re-filed #37; new #37-#39); re-measure F1/F3/F5 PASS, F4 port bridges but Q4 bar blocked by #37 - re-probe gate met on its letter, owner call with #37 named
