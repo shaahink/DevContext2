@@ -7,6 +7,11 @@ const { spawn } = require("child_process");
 const { join } = require("path");
 const { createInterface } = require("readline");
 const { existsSync } = require("fs");
+// #39: the QA drive used to spawn its MCP with the AMBIENT environment - its server sat on
+// the shared default endpoint, where another checkout or the desktop app could join it and
+// a concurrent Server.Tests dispose could kill it mid-conversation. Isolate + verify, the
+// same two defences the other four probes adopted from server-identity.js.
+const { ENDPOINT, probeEnv, verifyServerIdentity } = require("./server-identity");
 
 const REPO =
   process.argv.includes("--repo")
@@ -32,6 +37,7 @@ function mcpClient(exePath) {
   const proc = spawn(exePath, [], {
     stdio: ["pipe", "pipe", "pipe"],
     windowsHide: true,
+    env: probeEnv(), // #39: own endpoint - never the shared default
   });
 
   const rl = createInterface({ input: proc.stdout, crlfDelay: Infinity });
@@ -591,6 +597,16 @@ async function main() {
     // Bootstrap
     const { toolNames } = await bootstrap(client);
     log(`Server ready. ${toolNames.length} tools: ${toolNames.join(", ")}`);
+
+    // #39: WHICH engine answered - an unattributed measurement is worse than none, because it
+    // looks like proof. Refuse to drive a server this checkout cannot attribute to its own build.
+    const identity = await verifyServerIdentity();
+    if (!identity.ok) {
+      console.error(`FAILED: server identity: ${identity.detail}`);
+      client.close();
+      process.exit(1);
+    }
+    log(`Server identity: ${identity.detail} at ${ENDPOINT}`);
 
     // Analyze repo
     log("Analyzing dogfood repo...");

@@ -59,10 +59,22 @@ public sealed class ServerTestFactory : WebApplicationFactory<Program>
         catch (IOException) { /* temp dir — OS cleans up */ }
         catch (UnauthorizedAccessException) { /* same */ }
 
+        // #39: the sweep used to kill EVERY DevContext.Server on the machine by name — including
+        // the one the MCP QA drive (or another checkout's probe) was mid-conversation with. Kill
+        // only a process this factory can ATTRIBUTE: its main module lives under THIS repo's tree.
+        // The factory's own host is in-process, so anything matched here is a leaked orphan from an
+        // interrupted run in this checkout — the only thing this teardown exists to clean. A process
+        // whose binary cannot be read (other user, exited) is unattributable and is left alone.
+        var repoRoot = FindRepoRoot();
         foreach (var proc in Process.GetProcessesByName("DevContext.Server"))
         {
             try
             {
+                var exePath = proc.MainModule?.FileName;
+                if (repoRoot is null || exePath is null
+                    || !exePath.StartsWith(repoRoot, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 proc.Kill(entireProcessTree: true);
                 proc.WaitForExit(2000);
             }
@@ -75,5 +87,15 @@ public sealed class ServerTestFactory : WebApplicationFactory<Program>
                 proc.Dispose();
             }
         }
+    }
+
+    /// <summary>The checkout this test assembly was built in — the attribution boundary for the
+    /// orphan sweep above. Walks up from the test bin dir to the solution marker.</summary>
+    private static string? FindRepoRoot()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+            if (File.Exists(Path.Combine(dir.FullName, "DevContext.slnx")))
+                return dir.FullName;
+        return null;
     }
 }
